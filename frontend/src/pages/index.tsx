@@ -16,6 +16,11 @@ export default function Home() {
     <div
       className={`${geistSans.className} ${geistMono.className} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
     >
+      <header className="w-full text-center py-4 bg-green-100 dark:bg-green-900 rounded-lg">
+        <h1 className="text-2xl font-bold text-green-800 dark:text-green-100">
+          Hello World - MVP is Live! 🚀
+        </h1>
+      </header>
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
         <Image
           className="dark:invert"
