@@ -1,6 +1,12 @@
-import { auth } from "@clerk/nextjs";
+import { useAuth } from '@clerk/nextjs';
 
-export const getToken = async (): Promise<string | null> => {
-    const { getToken } = auth();
-    return await getToken();
-};
+export async function getToken(): Promise<string | null> {
+    try {
+        const { getToken } = useAuth();
+        const token = await getToken();
+        return token;
+    } catch (error) {
+        console.error('Error getting auth token:', error);
+        return null;
+    }
+}
