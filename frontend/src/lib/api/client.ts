@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getToken } from '../auth/getToken';
+import { useAuth } from '@clerk/nextjs';
 
 // API Error interface
 export interface ApiError {
@@ -24,23 +24,36 @@ const apiClient = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
-    timeout: 30000, // 30 seconds
+    timeout: 30000
 });
 
-// Request interceptor for adding auth token
-apiClient.interceptors.request.use(
-    async (config: any) => {
-        const token = await getToken();
-        if (token) {
-            config.headers = {
-                ...config.headers,
-                Authorization: `Bearer ${token}`
-            };
-        }
-        return config;
-    },
-    (error) => Promise.reject(error)
-);
+// Helper function to get token
+const getAuthHeader = async () => {
+    const { getToken } = useAuth();
+    const token = await getToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+// Helper functions for common API calls
+export const get = async <T>(url: string, params?: any) => {
+    const headers = await getAuthHeader();
+    return apiClient.get<ApiResponse<T>>(url, { params, headers });
+};
+
+export const post = async <T>(url: string, data?: any) => {
+    const headers = await getAuthHeader();
+    return apiClient.post<ApiResponse<T>>(url, data, { headers });
+};
+
+export const put = async <T>(url: string, data?: any) => {
+    const headers = await getAuthHeader();
+    return apiClient.put<ApiResponse<T>>(url, data, { headers });
+};
+
+export const del = async <T>(url: string) => {
+    const headers = await getAuthHeader();
+    return apiClient.delete<ApiResponse<T>>(url, { headers });
+};
 
 // Response interceptor for handling errors
 apiClient.interceptors.response.use(
@@ -48,40 +61,26 @@ apiClient.interceptors.response.use(
     (error) => {
         if (error.response) {
             // Server responded with an error
-            const apiError: ApiError = {
+            return Promise.reject({
                 message: error.response.data?.message || 'An error occurred',
                 status: error.response.status,
                 code: error.response.data?.code,
-                details: error.response.data?.details,
-            };
-            return Promise.reject(apiError);
+                details: error.response.data?.details
+            });
         } else if (error.request) {
             // Request made but no response
             return Promise.reject({
                 message: 'No response from server',
-                status: 0,
+                status: 0
             });
         } else {
             // Something happened in setting up the request
             return Promise.reject({
                 message: error.message,
-                status: 0,
+                status: 0
             });
         }
     }
 );
-
-// Helper functions for common API calls
-export const get = <T>(url: string, params?: any) =>
-    apiClient.get<ApiResponse<T>>(url, { params });
-
-export const post = <T>(url: string, data?: any) =>
-    apiClient.post<ApiResponse<T>>(url, data);
-
-export const put = <T>(url: string, data?: any) =>
-    apiClient.put<ApiResponse<T>>(url, data);
-
-export const del = <T>(url: string) =>
-    apiClient.delete<ApiResponse<T>>(url);
 
 export default apiClient;
