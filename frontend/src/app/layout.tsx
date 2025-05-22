@@ -2,6 +2,7 @@ import { ClerkProvider } from '@clerk/nextjs'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { TokenSaver } from '@/components/TokenSaver'
+import Navbar from '@/components/Navbar'
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -35,10 +36,13 @@ export default function RootLayout({
                 },
             }}
         >
-            <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-                <body className="min-h-screen bg-white dark:bg-gray-900">
+            <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
+                <body className="min-h-screen bg-white dark:bg-gray-900" suppressHydrationWarning>
                     <TokenSaver />
-                    {children}
+                    <Navbar />
+                    <main className="pt-16">
+                        {children}
+                    </main>
                 </body>
             </html>
         </ClerkProvider>
