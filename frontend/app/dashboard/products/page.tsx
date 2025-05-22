@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import ProductForm from '@/components/ProductForm';
 import ProductList from '@/components/ProductList';
-import { apiClient } from '@/lib/api';
+import { apiClient } from '@/services/api';
 
 interface Product {
     id: string;
