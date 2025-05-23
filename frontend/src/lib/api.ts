@@ -1,4 +1,6 @@
-import axios from 'axios';
+// Try dynamic import as a workaround
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const axios = require('axios').default || require('axios');
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -25,7 +27,7 @@ const apiClient = axios.create({
 });
 
 // Add request interceptor to include auth token
-apiClient.interceptors.request.use((config) => {
+apiClient.interceptors.request.use((config: any) => {
     if (typeof window !== 'undefined') {
         const token = localStorage.getItem('clerk-token');
         if (token && config.headers) {
@@ -37,8 +39,8 @@ apiClient.interceptors.request.use((config) => {
 
 // Add response interceptor for error handling
 apiClient.interceptors.response.use(
-    (response) => response,
-    (error) => {
+    (response: any) => response,
+    (error: any) => {
         console.error('API error:', error);
         return Promise.reject({
             status: error.response?.status,
@@ -51,32 +53,32 @@ apiClient.interceptors.response.use(
 // Product endpoints
 export const productService = {
     getProducts: async () => {
-        const response = await apiClient.get<ApiResponse>('/api/v1/products');
+        const response = await apiClient.get('/api/v1/products');
         return response.data;
     },
 
     getProduct: async (id: string) => {
-        const response = await apiClient.get<ApiResponse>(`/api/v1/products/${id}`);
+        const response = await apiClient.get(`/api/v1/products/${id}`);
         return response.data;
     },
 
     createProduct: async (data: any) => {
-        const response = await apiClient.post<ApiResponse>('/api/v1/products', data);
+        const response = await apiClient.post('/api/v1/products', data);
         return response.data;
     },
 
     updateProduct: async (id: string, data: any) => {
-        const response = await apiClient.put<ApiResponse>(`/api/v1/products/${id}`, data);
+        const response = await apiClient.put(`/api/v1/products/${id}`, data);
         return response.data;
     },
 
     deleteProduct: async (id: string) => {
-        const response = await apiClient.delete<ApiResponse>(`/api/v1/products/${id}`);
+        const response = await apiClient.delete(`/api/v1/products/${id}`);
         return response.data;
     },
 
     uploadImage: async (formData: FormData) => {
-        const response = await apiClient.post<ApiResponse>('/api/v1/products/upload-image', formData, {
+        const response = await apiClient.post('/api/v1/products/upload-image', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
@@ -88,22 +90,22 @@ export const productService = {
 // Order endpoints
 export const orderService = {
     getOrders: async () => {
-        const response = await apiClient.get<ApiResponse>('/api/v1/orders');
+        const response = await apiClient.get('/api/v1/orders');
         return response.data;
     },
 
     getOrder: async (id: string) => {
-        const response = await apiClient.get<ApiResponse>(`/api/v1/orders/${id}`);
+        const response = await apiClient.get(`/api/v1/orders/${id}`);
         return response.data;
     },
 
     createOrder: async (data: any) => {
-        const response = await apiClient.post<ApiResponse>('/api/v1/orders', data);
+        const response = await apiClient.post('/api/v1/orders', data);
         return response.data;
     },
 
     updateOrderStatus: async (id: string, status: string) => {
-        const response = await apiClient.patch<ApiResponse>(`/api/v1/orders/${id}/status`, { status });
+        const response = await apiClient.patch(`/api/v1/orders/${id}/status`, { status });
         return response.data;
     },
 };
@@ -111,7 +113,7 @@ export const orderService = {
 // Dashboard endpoints
 export const dashboardService = {
     getStats: async () => {
-        const response = await apiClient.get<ApiResponse>('/api/v1/dashboard/stats');
+        const response = await apiClient.get('/api/v1/dashboard/stats');
         return response.data;
     },
 };
@@ -119,7 +121,7 @@ export const dashboardService = {
 // Health check function
 export const healthCheck = async (): Promise<boolean> => {
     try {
-        const response = await apiClient.get<{ status: string }>('/health');
+        const response = await apiClient.get('/health');
         return response.data?.status === 'ok';
     } catch (error) {
         console.error('Backend health check failed:', error);
