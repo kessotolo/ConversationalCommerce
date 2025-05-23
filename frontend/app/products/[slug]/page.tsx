@@ -2,6 +2,7 @@ interface ProductPageProps {
     params: {
         slug: string;
     };
+    searchParams: { [key: string]: string | string[] | undefined };
 }
 
 export default function ProductPage({ params }: ProductPageProps) {
