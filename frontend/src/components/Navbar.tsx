@@ -1,6 +1,6 @@
 'use client';
 
-import { UserButton, useUser } from '@clerk/nextjs';
+import { UserButton, useUser, SignUpButton, SignInButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -51,18 +51,20 @@ export default function Navbar() {
                             </div>
                         ) : (
                             <div className="flex items-center space-x-4">
-                                <Link
-                                    href="/auth/sign-in"
-                                    className="text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-                                >
-                                    Sign in
-                                </Link>
-                                <Link
-                                    href="/auth/sign-up"
-                                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-violet-600 hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500"
-                                >
-                                    Sign up
-                                </Link>
+                                <SignInButton mode="modal">
+                                    <button
+                                        className="text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                                    >
+                                        Sign in
+                                    </button>
+                                </SignInButton>
+                                <SignUpButton mode="modal">
+                                    <button
+                                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-violet-600 hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500"
+                                    >
+                                        Sign up
+                                    </button>
+                                </SignUpButton>
                             </div>
                         )}
                     </div>
