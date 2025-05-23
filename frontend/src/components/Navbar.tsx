@@ -24,8 +24,8 @@ export default function Navbar() {
                             <Link
                                 href="/dashboard"
                                 className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive('/dashboard')
-                                        ? 'border-violet-500 text-gray-900 dark:text-white'
-                                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white'
+                                    ? 'border-violet-500 text-gray-900 dark:text-white'
+                                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white'
                                     }`}
                             >
                                 Dashboard
@@ -33,8 +33,8 @@ export default function Navbar() {
                             <Link
                                 href="/storefront"
                                 className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive('/storefront')
-                                        ? 'border-violet-500 text-gray-900 dark:text-white'
-                                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white'
+                                    ? 'border-violet-500 text-gray-900 dark:text-white'
+                                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white'
                                     }`}
                             >
                                 Storefront
@@ -52,13 +52,13 @@ export default function Navbar() {
                         ) : (
                             <div className="flex items-center space-x-4">
                                 <Link
-                                    href="/sign-in"
+                                    href="/auth/sign-in"
                                     className="text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
                                 >
                                     Sign in
                                 </Link>
                                 <Link
-                                    href="/sign-up"
+                                    href="/auth/sign-up"
                                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-violet-600 hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500"
                                 >
                                     Sign up

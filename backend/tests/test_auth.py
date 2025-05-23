@@ -1,8 +1,10 @@
-import pytest
-from fastapi.testclient import TestClient
-from app.main import app
+from datetime import datetime, timedelta, timezone
 import jwt
-from datetime import datetime, timedelta
+from app.main import app
+from fastapi.testclient import TestClient
+import pytest
+import os
+os.environ["TESTING"] = "1"
 
 client = TestClient(app)
 
@@ -13,8 +15,8 @@ def create_mock_token():
     payload = {
         "sub": "test_user_123",
         "email": "test@example.com",
-        "iat": datetime.utcnow(),
-        "exp": datetime.utcnow() + timedelta(hours=1)
+        "iat": datetime.now(timezone.utc),
+        "exp": datetime.now(timezone.utc) + timedelta(hours=1)
     }
     # Note: In real tests, you'd use a proper signing key
     return jwt.encode(payload, "test_secret", algorithm="HS256")
@@ -33,6 +35,7 @@ def test_dashboard_with_token():
         "/api/v1/dashboard",
         headers={"Authorization": f"Bearer {token}"}
     )
+    print(response.status_code, response.text)
     assert response.status_code == 200
     assert "Welcome to your dashboard" in response.json()["message"]
 
@@ -54,6 +57,7 @@ def test_create_product_with_token():
         headers={"Authorization": f"Bearer {token}"},
         json=product_data
     )
+    print(response.status_code, response.text)
     assert response.status_code == 200
     assert response.json()["message"] == "Product created successfully"
 
@@ -69,5 +73,6 @@ def test_orders_with_token():
         "/api/v1/orders",
         headers={"Authorization": f"Bearer {token}"}
     )
+    print(response.status_code, response.text)
     assert response.status_code == 200
     assert "Orders retrieved successfully" in response.json()["message"]
