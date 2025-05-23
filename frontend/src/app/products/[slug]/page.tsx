@@ -1,8 +1,16 @@
+import { Metadata } from 'next';
+
 interface ProductPageProps {
     params: {
         slug: string;
     };
+    searchParams: { [key: string]: string | string[] | undefined };
 }
+
+export const metadata: Metadata = {
+    title: 'Product Details',
+    description: 'View product details and specifications',
+};
 
 export default function ProductPage({ params }: ProductPageProps) {
     return (

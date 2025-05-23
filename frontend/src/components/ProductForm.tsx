@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import ImageUploader from './ImageUploader';
-import { apiClient } from '@/lib/api';
+import { productService } from '@/lib/api';
 
 interface ProductFormProps {
     onSubmit: (data: any) => void;
@@ -30,12 +30,7 @@ export default function ProductForm({ onSubmit }: ProductFormProps) {
                 formData.append('image', selectedImage);
             }
 
-            const response = await apiClient.post('/products', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-
+            const response = await productService.createProduct(formData);
             onSubmit(response.data);
             setSuccess('Product created successfully!');
 
@@ -46,14 +41,14 @@ export default function ProductForm({ onSubmit }: ProductFormProps) {
             setSelectedImage(null);
         } catch (error: any) {
             console.error('Error creating product:', error);
-            setError(error.response?.data?.detail || 'Failed to create product. Please try again.');
+            setError(error.message || 'Failed to create product. Please try again.');
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
                 <div className="rounded-md bg-red-50 p-4">
                     <div className="flex">

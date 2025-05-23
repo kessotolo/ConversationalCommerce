@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import ProductForm from '@/components/ProductForm';
 import ProductList from '@/components/ProductList';
-import { apiClient } from '@/lib/api';
+import { productService } from '@/lib/api';
 
 interface Product {
     id: string;
@@ -27,11 +27,11 @@ export default function ProductsPage() {
         try {
             setIsLoading(true);
             setError(null);
-            const response = await apiClient.get('/products');
+            const response = await productService.getProducts();
             setProducts(response.data);
         } catch (error: any) {
             console.error('Error fetching products:', error);
-            setError(error.response?.data?.detail || 'Failed to fetch products. Please try again.');
+            setError(error.message || 'Failed to fetch products. Please try again.');
         } finally {
             setIsLoading(false);
         }
