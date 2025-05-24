@@ -1,7 +1,7 @@
 'use client';
 
-import { UserButton, useUser, SignUpButton, SignInButton } from '@clerk/nextjs';
 import Link from 'next/link';
+import { UserButton, useUser } from '@clerk/nextjs';
 import { usePathname } from 'next/navigation';
 
 export default function Navbar() {
@@ -11,60 +11,62 @@ export default function Navbar() {
     const isActive = (path: string) => pathname === path;
 
     return (
-        <nav className="bg-white shadow-sm dark:bg-gray-800">
+        <nav className="bg-[#FFFFF0] shadow-sm border-b border-[#A8D5BA]/30">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16">
                     <div className="flex">
                         <div className="flex-shrink-0 flex items-center">
-                            <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white">
+                            <Link href="/" className="text-xl font-bold text-[#6C9A8B]">
                                 Conversational Commerce
                             </Link>
                         </div>
                         <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                            <Link
-                                href="/dashboard"
-                                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive('/dashboard')
-                                    ? 'border-violet-500 text-gray-900 dark:text-white'
-                                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white'
-                                    }`}
-                            >
-                                Dashboard
-                            </Link>
-                            <Link
-                                href="/storefront"
-                                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive('/storefront')
-                                    ? 'border-violet-500 text-gray-900 dark:text-white'
-                                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white'
-                                    }`}
-                            >
-                                Storefront
-                            </Link>
+                            {isSignedIn && (
+                                <>
+                                    <Link
+                                        href="/dashboard"
+                                        className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive('/dashboard')
+                                            ? 'border-[#6C9A8B] text-[#6C9A8B]'
+                                            : 'border-transparent text-gray-500 hover:border-[#A8D5BA] hover:text-[#6C9A8B]'
+                                            }`}
+                                    >
+                                        Dashboard
+                                    </Link>
+                                    <Link
+                                        href="/storefront"
+                                        className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive('/storefront')
+                                            ? 'border-[#6C9A8B] text-[#6C9A8B]'
+                                            : 'border-transparent text-gray-500 hover:border-[#A8D5BA] hover:text-[#6C9A8B]'
+                                            }`}
+                                    >
+                                        Storefront
+                                    </Link>
+                                </>
+                            )}
                         </div>
                     </div>
                     <div className="flex items-center">
                         {isSignedIn ? (
                             <div className="flex items-center space-x-4">
-                                <span className="text-sm text-gray-700 dark:text-gray-300">
+                                <span className="text-sm text-[#6C9A8B]">
                                     {user?.firstName || user?.username}
                                 </span>
                                 <UserButton afterSignOutUrl="/" />
                             </div>
                         ) : (
                             <div className="flex items-center space-x-4">
-                                <SignInButton mode="modal">
-                                    <button
-                                        className="text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-                                    >
-                                        Sign in
-                                    </button>
-                                </SignInButton>
-                                <SignUpButton mode="modal">
-                                    <button
-                                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-violet-600 hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500"
-                                    >
-                                        Sign up
-                                    </button>
-                                </SignUpButton>
+                                <Link
+                                    href="/sign-in"
+                                    className={`px-5 py-2 rounded-md font-semibold border text-[#6C9A8B] bg-white border-[#A8D5BA] hover:bg-[#A8D5BA]/30 transition ${isActive('/sign-in') ? 'bg-[#A8D5BA] text-white' : ''}`}
+                                >
+                                    Sign In
+                                </Link>
+                                <Link
+                                    href="/sign-up"
+                                    className={`px-5 py-2 rounded-md font-semibold text-white bg-[#A8D5BA] hover:bg-[#6C9A8B] hover:text-white transition ${isActive('/sign-up') ? 'ring-2 ring-[#6C9A8B] ring-offset-2' : ''}`}
+                                >
+                                    Sign Up
+                                </Link>
                             </div>
                         )}
                     </div>
