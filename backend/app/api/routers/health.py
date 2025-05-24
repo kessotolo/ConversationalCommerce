@@ -1,7 +1,20 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from app.db.session import get_db
 from datetime import datetime
 
 router = APIRouter()
+
+
+@router.get("/health", tags=["health"])
+def health_check(db: Session = Depends(get_db)):
+    try:
+        # Simple DB check
+        db.execute("SELECT 1")
+        db_status = "ok"
+    except Exception as e:
+        db_status = f"error: {str(e)}"
+    return {"status": "ok", "database": db_status}
 
 
 @router.get("/health")

@@ -44,6 +44,26 @@ class ProductBase(BaseModel):
         False,
         description="Whether the product is featured in social media"
     )
+    show_on_storefront: bool = Field(
+        True,
+        description="Show product on storefront"
+    )
+    show_on_whatsapp: bool = Field(
+        True,
+        description="Show product on WhatsApp"
+    )
+    show_on_instagram: bool = Field(
+        False,
+        description="Show product on Instagram"
+    )
+    whatsapp_caption: Optional[str] = Field(
+        None,
+        description="Caption for WhatsApp status"
+    )
+    storefront_url: Optional[HttpUrl] = Field(
+        None,
+        description="URL for the product on the storefront"
+    )
 
     @validator('name')
     def name_must_be_valid(cls, v):
@@ -101,6 +121,26 @@ class ProductUpdate(BaseModel):
     is_featured: Optional[bool] = Field(
         None,
         description="Whether the product is featured in social media"
+    )
+    show_on_storefront: Optional[bool] = Field(
+        None,
+        description="Show product on storefront"
+    )
+    show_on_whatsapp: Optional[bool] = Field(
+        None,
+        description="Show product on WhatsApp"
+    )
+    show_on_instagram: Optional[bool] = Field(
+        None,
+        description="Show product on Instagram"
+    )
+    whatsapp_caption: Optional[str] = Field(
+        None,
+        description="Caption for WhatsApp status"
+    )
+    storefront_url: Optional[HttpUrl] = Field(
+        None,
+        description="URL for the product on the storefront"
     )
 
     @validator('name')

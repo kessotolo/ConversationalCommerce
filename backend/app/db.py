@@ -1,9 +1,4 @@
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-
-SQLALCHEMY_DATABASE_URL = "postgresql://postgres:RCNJpbmdEOclRgjjNxDdqkehPDTqnhzY@caboose.proxy.rlwy.net:27789/railway"
-
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+# This file is now deprecated in favor of the modular structure in app/db/
+# Import Base for backward compatibility with existing code
+from app.db.base_class import Base
+from app.db.session import SessionLocal, engine

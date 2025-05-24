@@ -339,3 +339,27 @@ async def delete_product(
             status_code=500,
             detail=f"Error deleting product: {str(e)}"
         )
+
+
+@router.post("/products/upload-image")
+async def upload_image(
+    image: UploadFile,
+    db: Session = Depends(get_db),
+    user=Depends(require_auth)
+):
+    try:
+        # Upload image to Cloudinary
+        result = await CloudinaryClient.upload_file(
+            file=image,
+            folder="products/images"
+        )
+
+        return {
+            "url": result.get("secure_url"),
+            "public_id": result.get("public_id")
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error uploading image: {str(e)}"
+        )
