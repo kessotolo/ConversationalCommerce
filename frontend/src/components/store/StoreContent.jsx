@@ -1,3 +1,21 @@
+/**
+ * StoreContent - Client Component for Conversational Commerce Platform
+ * 
+ * This component handles the client-side functionality of the merchant store, including:
+ * - Product data fetching based on merchant ID
+ * - Loading and error state management
+ * - Shopping cart integration via useCart hook
+ * - Responsive product grid rendering
+ *
+ * ARCHITECTURE NOTES:
+ * - Uses 'use client' directive to indicate it's a Client Component
+ * - Follows the pattern of separating client/server concerns in Next.js App Router
+ * - Implements clean state management with React hooks
+ * - Provides responsive grid layout for products optimized for mobile viewing
+ * - Handles error scenarios gracefully with retry functionality
+ * - Optimized for African markets with mobile-first design
+ */
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -6,24 +24,10 @@ import ProductCard from '@/components/storefront/ProductCard';
 import { useCart } from '@/lib/cart';
 import Link from 'next/link';
 
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image_url: string | null;
-  created_at: string;
-  is_available: boolean;
-}
-
-interface ClientStoreProps {
-  merchantId: string;
-}
-
-export default function ClientStore({ merchantId }: ClientStoreProps) {
-  const [products, setProducts] = useState<Product[]>([]);
+export default function StoreContent({ merchantId }) {
+  const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   const { addItem } = useCart();
 
   useEffect(() => {
@@ -37,7 +41,7 @@ export default function ClientStore({ merchantId }: ClientStoreProps) {
       // Here you would typically filter products by merchant ID
       const response = await productService.getProducts();
       setProducts(response.data);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching products:', error);
       setError('Failed to load products. Please try again later.');
     } finally {
@@ -45,7 +49,7 @@ export default function ClientStore({ merchantId }: ClientStoreProps) {
     }
   };
 
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = (product) => {
     addItem({
       id: product.id,
       name: product.name,

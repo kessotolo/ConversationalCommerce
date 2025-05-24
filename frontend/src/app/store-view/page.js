@@ -1,33 +1,24 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { productService } from '@/lib/api';
 import ProductCard from '@/components/storefront/ProductCard';
 import { useCart } from '@/lib/cart';
-import Link from 'next/link';
 
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image_url: string | null;
-  created_at: string;
-  is_available: boolean;
-}
-
-interface ClientStoreProps {
-  merchantId: string;
-}
-
-export default function ClientStore({ merchantId }: ClientStoreProps) {
-  const [products, setProducts] = useState<Product[]>([]);
+export default function StoreViewPage() {
+  const searchParams = useSearchParams();
+  const merchantId = searchParams.get('id');
+  
+  const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   const { addItem } = useCart();
 
   useEffect(() => {
-    fetchProducts();
+    if (merchantId) {
+      fetchProducts();
+    }
   }, [merchantId]);
 
   const fetchProducts = async () => {
@@ -37,7 +28,7 @@ export default function ClientStore({ merchantId }: ClientStoreProps) {
       // Here you would typically filter products by merchant ID
       const response = await productService.getProducts();
       setProducts(response.data);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching products:', error);
       setError('Failed to load products. Please try again later.');
     } finally {
@@ -45,7 +36,7 @@ export default function ClientStore({ merchantId }: ClientStoreProps) {
     }
   };
 
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = (product) => {
     addItem({
       id: product.id,
       name: product.name,
@@ -53,6 +44,17 @@ export default function ClientStore({ merchantId }: ClientStoreProps) {
       image_url: product.image_url
     });
   };
+
+  if (!merchantId) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center py-10">
+          <h1 className="text-2xl font-bold mb-4">Store Not Found</h1>
+          <p className="text-gray-600">No merchant ID provided.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -88,6 +90,9 @@ export default function ClientStore({ merchantId }: ClientStoreProps) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <h1 className="text-3xl font-bold mb-6">Store Products</h1>
+      <p className="mb-6 text-gray-600">Merchant ID: {merchantId}</p>
+      
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {products.length === 0 ? (
           <div className="col-span-full text-center py-10">
