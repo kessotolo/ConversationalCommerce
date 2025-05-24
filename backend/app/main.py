@@ -1,12 +1,16 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.api import api_router
-from app.core.config.settings import Settings
+from app.core.config.settings import Settings, get_settings
 from dotenv import load_dotenv
+from pathlib import Path
 
-load_dotenv()
+# Load environment variables from the .env file in the backend directory
+env_path = Path(__file__).parent.parent.parent / '.env'
+load_dotenv(dotenv_path=env_path, override=True)
 
-settings = Settings()
+# Initialize settings after environment variables are loaded
+settings = get_settings()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -25,10 +29,19 @@ app.add_middleware(
 # Include API router
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
+# Test endpoint to verify environment variables
+@app.get("/test-env")
+async def test_env(settings: Settings = Depends(get_settings)):
+    return {
+        "project_name": settings.PROJECT_NAME,
+        "postgres_server": settings.POSTGRES_SERVER,
+        "cloudinary_configured": bool(settings.CLOUDINARY_CLOUD_NAME),
+        "twilio_configured": bool(settings.TWILIO_ACCOUNT_SID)
+    }
 
 @app.get("/")
 def root():
-    return {"message": "Backend is live "}
+    return {"message": "Backend is running. Use /test-env to check environment variables."}
 
 
 @app.get("/health")
