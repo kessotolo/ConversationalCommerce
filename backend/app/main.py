@@ -32,5 +32,5 @@ def root():
 
 
 @app.get("/health")
-def health_check():
-    return {"status": "ok"}
+async def health_check():
+    return {"status": "healthy"}
