@@ -15,7 +15,13 @@ interface Product {
     is_available: boolean;
 }
 
-export default function StorePage({ params }: { params: { merchantId: string } }) {
+interface PageProps {
+  params: {
+    merchantId: string;
+  };
+}
+
+export default function StorePage({ params }: PageProps) {
     const [products, setProducts] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
