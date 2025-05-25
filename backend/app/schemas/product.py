@@ -1,28 +1,31 @@
-from pydantic import BaseModel, Field, HttpUrl, validator
+from pydantic import BaseModel, Field, HttpUrl, field_validator, ConfigDict, ValidationError
 from typing import Optional, List
 from datetime import datetime
 from uuid import UUID
 import re
+from decimal import Decimal
 
 
 class ProductBase(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     name: str = Field(
         ...,
-        min_length=3,
+        min_length=1,
         max_length=100,
-        description="Product name (3-100 characters)"
+        description="Product name (1-100 characters)"
     )
     description: str = Field(
         ...,
-        min_length=10,
-        max_length=2000,
-        description="Product description (10-2000 characters)"
+        min_length=1,
+        max_length=1000,
+        description="Product description (1-1000 characters)"
     )
-    price: float = Field(
+    price: Decimal = Field(
         ...,
         gt=0,
-        le=1000000,
-        description="Product price (greater than 0, max 1,000,000)"
+        decimal_places=2,
+        description="Product price (greater than 0)"
     )
     image_url: Optional[HttpUrl] = Field(
         None,
@@ -65,42 +68,50 @@ class ProductBase(BaseModel):
         description="URL for the product on the storefront"
     )
 
-    @validator('name')
-    def name_must_be_valid(cls, v):
-        if not re.match(r'^[a-zA-Z0-9\s\-_]+$', v):
+    @field_validator('name')
+    @classmethod
+    def validate_name(cls, v):
+        if not v or not v.strip():
+            raise ValueError('Name cannot be empty')
+        if not all(c.isalnum() or c.isspace() or c in '-_' for c in v):
             raise ValueError(
                 'Name can only contain letters, numbers, spaces, hyphens, and underscores')
-        return v
+        return v.strip()
 
-    @validator('price')
-    def price_must_have_two_decimals(cls, v):
-        if round(v, 2) != v:
-            raise ValueError('Price must have at most 2 decimal places')
-        return v
+    @field_validator('price')
+    @classmethod
+    def validate_price(cls, v):
+        if not isinstance(v, (int, float, Decimal)):
+            raise ValueError('Price must be a number')
+        if v <= 0:
+            raise ValueError('Price must be greater than 0')
+        return Decimal(str(v)).quantize(Decimal('0.01'))
 
 
 class ProductCreate(ProductBase):
-    seller_id: UUID
+    seller_id: Optional[UUID] = None  # Will be set by the endpoint
 
 
 class ProductUpdate(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     name: Optional[str] = Field(
         None,
-        min_length=3,
+        min_length=1,
         max_length=100,
-        description="Product name (3-100 characters)"
+        description="Product name (1-100 characters)"
     )
     description: Optional[str] = Field(
         None,
-        min_length=10,
-        max_length=2000,
-        description="Product description (10-2000 characters)"
+        min_length=1,
+        max_length=1000,
+        description="Product description (1-1000 characters)"
     )
-    price: Optional[float] = Field(
+    price: Optional[Decimal] = Field(
         None,
         gt=0,
-        le=1000000,
-        description="Product price (greater than 0, max 1,000,000)"
+        decimal_places=2,
+        description="Product price (greater than 0)"
     )
     image_url: Optional[HttpUrl] = Field(
         None,
@@ -143,17 +154,27 @@ class ProductUpdate(BaseModel):
         description="URL for the product on the storefront"
     )
 
-    @validator('name')
-    def name_must_be_valid(cls, v):
-        if v is not None and not re.match(r'^[a-zA-Z0-9\s\-_]+$', v):
-            raise ValueError(
-                'Name can only contain letters, numbers, spaces, hyphens, and underscores')
+    @field_validator('name')
+    @classmethod
+    def validate_name(cls, v):
+        if v is not None:
+            if not v.strip():
+                raise ValueError('Name cannot be empty')
+            if not all(c.isalnum() or c.isspace() or c in '-_' for c in v):
+                raise ValueError(
+                    'Name can only contain letters, numbers, spaces, hyphens, and underscores')
+            return v.strip()
         return v
 
-    @validator('price')
-    def price_must_have_two_decimals(cls, v):
-        if v is not None and round(v, 2) != v:
-            raise ValueError('Price must have at most 2 decimal places')
+    @field_validator('price')
+    @classmethod
+    def validate_price(cls, v):
+        if v is not None:
+            if not isinstance(v, (int, float, Decimal)):
+                raise ValueError('Price must be a number')
+            if v <= 0:
+                raise ValueError('Price must be greater than 0')
+            return Decimal(str(v)).quantize(Decimal('0.01'))
         return v
 
 
@@ -163,42 +184,35 @@ class ProductInDB(ProductBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
-
 
 class ProductResponse(ProductInDB):
-    pass
+    is_deleted: bool = False
+
+
+class PaginatedResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    items: List[ProductResponse]
+    total: int
+    limit: int
+    offset: int
 
 
 class ProductSearchParams(BaseModel):
-    query: Optional[str] = Field(
-        None, description="Search query for product name or description")
-    min_price: Optional[float] = Field(
-        None, gt=0, description="Minimum price filter")
-    max_price: Optional[float] = Field(
-        None, gt=0, description="Maximum price filter")
-    seller_id: Optional[UUID] = Field(None, description="Filter by seller ID")
-    has_video: Optional[bool] = Field(
-        None, description="Filter products with video content")
-    is_featured: Optional[bool] = Field(
-        None, description="Filter featured products")
-    sort_by: Optional[str] = Field(
-        None,
-        description="Sort field (name, price, created_at)",
-        pattern="^(name|price|created_at)$"
-    )
-    sort_order: Optional[str] = Field(
-        None,
-        description="Sort order (asc, desc)",
-        pattern="^(asc|desc)$"
-    )
-    page: int = Field(1, ge=1, description="Page number")
-    limit: int = Field(10, ge=1, le=100, description="Items per page")
+    model_config = ConfigDict(from_attributes=True)
 
-    @validator('max_price')
-    def max_price_must_be_greater_than_min_price(cls, v, values):
-        if v is not None and 'min_price' in values and values['min_price'] is not None:
-            if v < values['min_price']:
+    search: Optional[str] = None
+    min_price: Optional[Decimal] = None
+    max_price: Optional[Decimal] = None
+    featured: Optional[bool] = None
+    show_on_storefront: Optional[bool] = None
+    limit: int = 10
+    offset: int = 0
+
+    @field_validator('max_price')
+    @classmethod
+    def validate_price_range(cls, v, info):
+        if v is not None and 'min_price' in info.data and info.data['min_price'] is not None:
+            if v < info.data['min_price']:
                 raise ValueError('max_price must be greater than min_price')
         return v

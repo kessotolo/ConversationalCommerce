@@ -2,12 +2,10 @@ import pytest
 from sqlalchemy import text
 
 
-@pytest.mark.usefixtures("setup_test_db")
-def test_db_connection(setup_test_db):
+def test_db_connection(db_engine):
     """Test that we can connect to the test database"""
-    from app.db.test_session import test_engine
-    
-    with test_engine.connect() as connection:
+    # Use the existing db_engine fixture instead of setup_test_db
+    with db_engine.connect() as connection:
         result = connection.execute(text("SELECT 1"))
         assert result.scalar() == 1
 

@@ -45,7 +45,7 @@ def upgrade() -> None:
                     sa.Column('id', sa.UUID(), nullable=False),
                     sa.Column('name', sa.String(), nullable=False),
                     sa.Column('description', sa.String(), nullable=False),
-                    sa.Column('price', sa.Float(), nullable=False),
+                    sa.Column('price', sa.Numeric(10, 2), nullable=False),
                     sa.Column('image_url', sa.String(), nullable=True),
                     sa.Column('seller_id', sa.UUID(), nullable=False),
                     sa.Column('created_at', sa.DateTime(), nullable=True),

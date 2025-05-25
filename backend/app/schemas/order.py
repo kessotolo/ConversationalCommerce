@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, ConfigDict
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
@@ -64,5 +64,4 @@ class OrderResponse(OrderBase):
     message_id: Optional[str] = None
     conversation_id: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

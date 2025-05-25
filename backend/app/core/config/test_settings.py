@@ -12,6 +12,11 @@ class TestSettings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     PROJECT_NAME: str = "Test Conversational Commerce Platform"
     
+    # Mock Clerk JWT settings for tests
+    CLERK_JWT_PUBLIC_KEY: str = "mock_public_key_for_testing"
+    CLERK_JWT_AUDIENCE: str = "mock_audience_for_testing"
+    SECRET_KEY: str = "mock_secret_key_for_testing"
+    
     model_config = ConfigDict(
         case_sensitive=True,
         env_file=".env.test"

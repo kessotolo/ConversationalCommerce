@@ -1,16 +1,18 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from app.core.config.test_settings import get_test_settings
 
-# Use SQLite in-memory database for tests to avoid requiring PostgreSQL
-TEST_SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
+# Get the test settings that include PostgreSQL database URL
+settings = get_test_settings()
 
-# For in-memory SQLite testing
-# TEST_SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+# Use the PostgreSQL database URL from test settings
+TEST_SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
 
-# Create test engine with SQLite
+# Create test engine with PostgreSQL
 test_engine = create_engine(
-    TEST_SQLALCHEMY_DATABASE_URL, 
-    connect_args={"check_same_thread": False}  # Needed for SQLite
+    TEST_SQLALCHEMY_DATABASE_URL,
+    pool_size=5,
+    max_overflow=10
 )
 
 TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
