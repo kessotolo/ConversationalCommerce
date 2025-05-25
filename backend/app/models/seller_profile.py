@@ -1,12 +1,13 @@
 from sqlalchemy import Column, String, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID
 from app.db import Base
 import uuid
 
 
 class SellerProfile(Base):
     __tablename__ = "seller_profiles"
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String, ForeignKey("users.id"))
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
     store_name = Column(String)
     slug = Column(String, unique=True)
     bio = Column(String)

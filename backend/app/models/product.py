@@ -28,3 +28,4 @@ class Product(Base):
     video_url = Column(String, nullable=True)
     whatsapp_status_url = Column(String, nullable=True)
     instagram_story_url = Column(String, nullable=True)
+    is_deleted = Column(Boolean, default=False)

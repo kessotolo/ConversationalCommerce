@@ -1,4 +1,5 @@
 from sqlalchemy import Column, String, Enum, ForeignKey, Integer, Float, Text, DateTime, Index
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from app.db import Base
 import uuid
@@ -23,8 +24,8 @@ class OrderSource(str, enum.Enum):
 class Order(Base):
     __tablename__ = "orders"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    product_id = Column(String, ForeignKey("products.id"))
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"))
 
     # WhatsApp-specific fields
     message_id = Column(String, nullable=True)  # WhatsApp message ID

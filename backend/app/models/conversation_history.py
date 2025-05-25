@@ -21,7 +21,8 @@ class ChannelType(str, enum.Enum):
 class ConversationHistory(Base):
     __tablename__ = "conversation_history"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    order_id = Column(String, ForeignKey("orders.id"), nullable=True)
+    order_id = Column(UUID(as_uuid=True), ForeignKey(
+        "orders.id"), nullable=True)
     message = Column(String, nullable=False)
     sender_type = Column(Enum(SenderType), nullable=False)
     channel = Column(Enum(ChannelType), nullable=False)
