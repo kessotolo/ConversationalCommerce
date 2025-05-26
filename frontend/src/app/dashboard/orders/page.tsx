@@ -137,6 +137,33 @@ export default function OrdersPage() {
     return matchesSearch && matchesStatus;
   });
 
+  // Function to update order status
+  const updateOrderStatus = async (orderId: string, newStatus: OrderStatus) => {
+    setIsLoading(true);
+    
+    try {
+      // This is where you would make a real API call
+      // await orderService.updateOrderStatus(orderId, newStatus);
+      
+      // Simulate API call
+      setTimeout(() => {
+        setOrders(orders.map(order => 
+          order.id === orderId ? { ...order, status: newStatus } : order
+        ));
+        setIsLoading(false);
+      }, 500);
+    } catch (err: any) {
+      setError(err.message || 'Failed to update order status');
+      setIsLoading(false);
+    }
+  };
+  
+  // Function to message customer via WhatsApp
+  const messageCustomer = (phone: string) => {
+    // In production, this would use the Twilio API
+    window.open(`https://wa.me/${phone.replace(/[^0-9]/g, '')}`, '_blank');
+  };
+
   return (
     <DashboardLayout>
       <div className="px-4 py-6 sm:px-6 lg:px-8">
@@ -147,6 +174,57 @@ export default function OrdersPage() {
               <RefreshCcw className="h-4 w-4 mr-2" />
               {isLoading ? 'Refreshing...' : 'Refresh'}
             </Button>
+          </div>
+        </div>
+
+        {/* Order Status Tabs */}
+        <div className="border-b mb-6 overflow-x-auto pb-px">
+          <div className="flex whitespace-nowrap">
+            <button
+              onClick={() => setStatusFilter('all')}
+              className={`pb-3 px-4 font-medium text-sm border-b-2 ${statusFilter === 'all' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+            >
+              All Orders
+              <span className="ml-2 bg-gray-100 text-gray-700 py-0.5 px-2 rounded-full text-xs">
+                {orders.length}
+              </span>
+            </button>
+            <button
+              onClick={() => setStatusFilter('pending')}
+              className={`pb-3 px-4 font-medium text-sm border-b-2 ${statusFilter === 'pending' ? 'border-yellow-500 text-yellow-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+            >
+              Pending
+              <span className="ml-2 bg-yellow-100 text-yellow-700 py-0.5 px-2 rounded-full text-xs">
+                {orders.filter(o => o.status === 'pending').length}
+              </span>
+            </button>
+            <button
+              onClick={() => setStatusFilter('processing')}
+              className={`pb-3 px-4 font-medium text-sm border-b-2 ${statusFilter === 'processing' ? 'border-blue-500 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+            >
+              Processing
+              <span className="ml-2 bg-blue-100 text-blue-700 py-0.5 px-2 rounded-full text-xs">
+                {orders.filter(o => o.status === 'processing').length}
+              </span>
+            </button>
+            <button
+              onClick={() => setStatusFilter('delivered')}
+              className={`pb-3 px-4 font-medium text-sm border-b-2 ${statusFilter === 'delivered' ? 'border-green-500 text-green-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+            >
+              Delivered
+              <span className="ml-2 bg-green-100 text-green-700 py-0.5 px-2 rounded-full text-xs">
+                {orders.filter(o => o.status === 'delivered').length}
+              </span>
+            </button>
+            <button
+              onClick={() => setStatusFilter('cancelled')}
+              className={`pb-3 px-4 font-medium text-sm border-b-2 ${statusFilter === 'cancelled' ? 'border-red-500 text-red-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+            >
+              Cancelled
+              <span className="ml-2 bg-red-100 text-red-700 py-0.5 px-2 rounded-full text-xs">
+                {orders.filter(o => o.status === 'cancelled').length}
+              </span>
+            </button>
           </div>
         </div>
 
@@ -161,20 +239,6 @@ export default function OrdersPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-          </div>
-          <div className="relative">
-            <select
-              className="appearance-none pl-4 pr-10 py-2 bg-white border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="processing">Processing</option>
-              <option value="delivered">Delivered</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           </div>
         </div>
 

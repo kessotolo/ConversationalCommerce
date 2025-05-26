@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { UserButton } from '@clerk/nextjs';
 import { 
   Home, 
   Package, 
@@ -9,9 +10,9 @@ import {
   BarChart, 
   MessageCircle, 
   Settings,
-  LogOut
+  Store,
+  User
 } from 'lucide-react';
-import { Button } from '../ui/Button';
 
 const navItems = [
   {
@@ -86,19 +87,24 @@ export function Sidebar() {
             })}
           </nav>
         </div>
-        <div className="flex-shrink-0 flex border-t p-4">
-          <div className="flex items-center">
-            <div className="ml-3">
-              <p className="text-sm font-medium text-foreground">Seller Account</p>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="mt-1 flex items-center text-xs text-muted-foreground hover:text-foreground"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign out
-              </Button>
+        <div className="flex-shrink-0 flex flex-col border-t p-4 space-y-4">
+          {/* Storefront Link */}
+          <Link 
+            href="/storefront" 
+            className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+          >
+            <Store className="mr-3 flex-shrink-0 h-5 w-5" />
+            View Storefront
+          </Link>
+          
+          {/* Account Info */}
+          <div className="flex items-center px-3">
+            <User className="h-5 w-5 text-muted-foreground mr-3" />
+            <div className="flex-1">
+              <p className="text-sm font-medium">Seller Account</p>
+              <p className="text-xs text-muted-foreground">Sign out →</p>
             </div>
+            <UserButton afterSignOutUrl="/" />
           </div>
         </div>
       </div>

@@ -5,10 +5,10 @@ A high-growth commerce platform for African markets that seamlessly integrates m
 ## 🌟 Key Features
 
 - **Seller Authentication**: Secure JWT-based authentication through Clerk with role-based access control
-- **Product Management**: Full CRUD operations with rich media support and batch operations
+- **Product Management**: Full CRUD operations with rich media support and mobile camera integration
 - **WhatsApp Integration**: Direct customer engagement through conversational commerce
-- **Mobile-First Design**: Optimized for the primary devices used in African markets
-- **Multi-Media Support**: Images, video, and WhatsApp status content handling
+- **Mobile-First Design**: Optimized interface with bottom navigation for primary devices used in African markets
+- **Multi-Media Support**: Images, video, and WhatsApp status content handling with direct camera capture
 - **Advanced Security**: Comprehensive audit logging, request monitoring, and optimistic locking
 - **High Performance**: Efficient keyset pagination, database indexing, and batch operations
 - **Robust Error Handling**: Standardized error responses and centralized exception management
@@ -27,7 +27,19 @@ A high-growth commerce platform for African markets that seamlessly integrates m
 - **TailwindCSS**: Utility-first CSS for rapid UI development
 - **TypeScript**: Type-safe JavaScript
 - **Clerk**: Authentication and user management
-- **Zustand**: Lightweight state management
+- **Chart.js**: Data visualization for analytics
+- **Lucide React**: Icon library for consistent UI
+
+## 📱 Mobile-First Architecture
+
+The platform is designed with a mobile-first approach, recognizing that most users in African markets primarily access the internet via mobile devices:
+
+- **Bottom Tab Navigation**: User-friendly mobile navigation with quick access to key features
+- **Mobile Camera Integration**: Direct product photo capture from mobile devices
+- **Responsive Dashboard**: Optimized for all screen sizes with special attention to mobile usability
+- **Touch-Friendly UI**: Larger touch targets and intuitive gestures for mobile users
+- **Offline Capabilities**: Core functionality works with intermittent connectivity
+- **WhatsApp-Centric**: Deep integration with the most popular messaging platform in target markets
 
 ## 🚀 Getting Started
 
@@ -39,27 +51,9 @@ A high-growth commerce platform for African markets that seamlessly integrates m
 - Cloudinary account (media storage)
 - Twilio account (WhatsApp messaging)
 
-### Environment Setup
+### Installation
 
-1. **Backend Setup**
-
-```bash
-# Navigate to backend directory
-cd backend
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Set up environment variables (copy from example)
-cp .env.example .env
-# Edit .env with your configuration
-```
-
-2. **Frontend Setup**
+#### Frontend Setup
 
 ```bash
 # Navigate to frontend directory
@@ -68,27 +62,226 @@ cd frontend
 # Install dependencies
 npm install
 
-# Set up environment variables (copy from example)
+# Setup environment variables
 cp .env.example .env.local
-# Edit .env.local with your configuration
+
+# Edit .env.local with your configuration values
+# Required: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY
+
+# Start development server
+npm run dev
 ```
 
-### Running the Application
-
-1. **Backend**
+#### Backend Setup
 
 ```bash
+# Navigate to backend directory
 cd backend
+
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
 source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Setup environment variables
+cp .env.example .env
+
+# Edit .env with your configuration values
+# Required: DATABASE_URL, CLOUDINARY_URL, TWILIO_AUTH_TOKEN
+
+# Run migrations
+alembic upgrade head
+
+# Start development server
 uvicorn app.main:app --reload
 ```
 
-2. **Frontend**
+### Environment Variables
+
+#### Frontend (.env.local)
+```
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_xxx
+CLERK_SECRET_KEY=sk_xxx
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+#### Backend (.env)
+```
+DATABASE_URL=postgresql://user:password@localhost:5432/dbname
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+TWILIO_ACCOUNT_SID=your_account_sid
+TWILIO_AUTH_TOKEN=your_auth_token
+TWILIO_PHONE_NUMBER=your_twilio_number
+JWT_SECRET=your_jwt_secret
+```
+
+## 📁 Project Structure
+
+### Frontend Structure
+
+```
+frontend/
+├── public/                # Static assets
+├── src/
+│   ├── app/              # Next.js App Router
+│   │   ├── (auth)/       # Authentication routes
+│   │   ├── dashboard/    # Dashboard routes
+│   │   │   ├── products/ # Product management
+│   │   │   ├── orders/   # Order management
+│   │   │   ├── messages/ # WhatsApp messaging
+│   │   │   └── settings/ # Store settings
+│   │   └── storefront/   # Customer-facing storefront
+│   ├── components/       # Reusable UI components
+│   │   ├── dashboard/    # Dashboard components
+│   │   ├── layout/       # Layout components (Sidebar, MobileNav)
+│   │   └── ui/           # Base UI components
+│   ├── lib/              # Utility functions
+│   └── types/            # TypeScript types
+├── next.config.js        # Next.js configuration
+└── tailwind.config.js    # TailwindCSS configuration
+```
+
+### Backend Structure
+
+```
+backend/
+├── alembic/             # Database migrations
+├── app/
+│   ├── api/             # API endpoints
+│   │   ├── v1/          # API version 1
+│   │   │   ├── products/
+│   │   │   ├── orders/
+│   │   │   ├── messages/
+│   │   │   └── users/
+│   ├── core/            # Core functionality
+│   │   ├── auth/        # Authentication
+│   │   ├── config/      # Configuration
+│   │   ├── db/          # Database
+│   │   ├── errors/      # Error handling
+│   │   └── utils/       # Utilities
+│   ├── models/          # Database models
+│   ├── schemas/         # Pydantic schemas
+│   └── services/        # Business logic
+├── tests/               # Test suite
+└── main.py              # Application entry point
+```
+
+## 🔄 Recent Updates
+
+### Mobile Interface Improvements (May 2025)
+
+- **Bottom Tab Navigation**: Implemented a fixed bottom navigation bar for mobile users with quick access to Home, Products, Orders, Messages, and More options
+- **Mobile Camera Integration**: Added direct camera capture for product photos using the device camera
+- **Slide-Up Menu**: Added a slide-up menu from the "More" tab for accessing Storefront, Account settings, and Sign Out
+- **Simplified Navigation**: Removed top navigation bar for cleaner UI
+- **Improved Product Management**: Enhanced product listing with list view and detailed edit pages
+- **Next.js Configuration Update**: Updated image configuration from deprecated `domains` to recommended `remotePatterns`
+
+### Key Mobile Experience Enhancements
+
+- **Authentication Flow**: Fixed mobile login redirection for seamless dashboard access
+- **Touch-Optimized UI**: Increased padding and spacing for mobile tap targets
+- **Consistent Mobile Navigation**: Bottom tabs remain visible across all dashboard sections
+- **Responsive Layout**: All pages properly respond to various device sizes
+
+## 💻 Development Workflow
+
+### Common Tasks
+
+#### Adding a New Product Feature
+
+1. Create or modify API endpoints in `backend/app/api/v1/products/`
+2. Update the corresponding frontend components in `frontend/src/app/dashboard/products/`
+3. Use the mobile camera integration for product images when needed
+4. Test thoroughly on both desktop and mobile views
+
+#### Implementing WhatsApp Features
+
+1. Configure Twilio webhooks in the backend
+2. Update message handling logic in `backend/app/services/messaging/`
+3. Enhance the frontend chat interface in `frontend/src/app/dashboard/messages/`
+
+### Best Practices
+
+- **Mobile Testing**: Always test on mobile devices or using browser dev tools' mobile emulation
+- **Code Organization**: Follow the established directory structure
+- **Authentication**: Use Clerk for all user authentication flows
+- **Image Handling**: Use Cloudinary for all media uploads
+- **State Management**: Use React hooks for component state, avoid large global state
+- **API Communication**: Implement consistent error handling and loading states
+
+### Performance Considerations
+
+- Optimize image sizes for mobile networks
+- Implement proper pagination for product/order lists
+- Use skeleton loaders for better perceived performance
+- Leverage Next.js image optimization features
+
+## 🔨 Running the Application
+
+### Starting the Backend
 
 ```bash
+# Navigate to backend directory
+cd backend
+
+# Activate virtual environment
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Start development server
+uvicorn app.main:app --reload
+```
+
+### Starting the Frontend
+
+```bash
+# Navigate to frontend directory
 cd frontend
+
+# Start development server
 npm run dev
 ```
+
+### Accessing the Application
+
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Documentation: http://localhost:8000/docs
+
+## 🔥 Core Principles
+
+This platform has been built with the following core principles in mind:
+
+### Build for Scale from MVP
+- Modular architecture allows for easy expansion
+- API versioning to support future changes
+- Multi-tenant support planned for future phases
+
+### Mobile-First Design
+- Bottom tab navigation optimized for African market users
+- Direct camera integration for product management
+- Responsive design that works on all device sizes
+
+### Clean, Composable Code
+- Component-based architecture in the frontend
+- Service pattern in the backend
+- Consistent file and directory structure
+
+### Environment-Based Configuration
+- Separate development and production settings
+- Easy deployment to different environments
+- Secrets management through environment variables
+
+### Modular Architecture
+- Separation of concerns across all layers
+- Pluggable services for easy replacement
+- Clear boundaries between components
 
 ## 🧪 Testing
 

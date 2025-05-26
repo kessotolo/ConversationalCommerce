@@ -2,6 +2,7 @@
 
 import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/nextjs';
 import { useState } from 'react';
+import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { DashboardHeader } from '@/components/layout/DashboardHeader';
 import { StatCard } from '@/components/dashboard/StatCard';
@@ -9,7 +10,7 @@ import { SalesChart } from '@/components/dashboard/SalesChart';
 import { RecentOrders } from '@/components/dashboard/RecentOrders';
 import { TopProducts } from '@/components/dashboard/TopProducts';
 import { ChannelPerformance } from '@/components/dashboard/ChannelPerformance';
-import { ShoppingBag, DollarSign, Users, ArrowUpRight } from 'lucide-react';
+import { ShoppingBag, DollarSign, Users, ArrowUpRight, PlusCircle, BarChart3 } from 'lucide-react';
 
 // Define types to match component requirements
 type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
@@ -115,10 +116,47 @@ export default function Dashboard() {
     <>
       <SignedIn>
         <DashboardLayout>
-          <DashboardHeader 
-            title="Dashboard" 
-            subtitle="Overview of your store performance"
-          />
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+            <DashboardHeader 
+              title="Dashboard" 
+              subtitle="Overview of your store performance"
+            />
+            
+            {/* Period Selector */}
+            <div className="mt-4 sm:mt-0 flex items-center space-x-2 bg-muted/20 p-1 rounded-md">
+              <button 
+                onClick={() => setPeriod('7days')}
+                className={`px-3 py-1 text-sm rounded-md ${period === '7days' ? 'bg-primary text-white' : 'hover:bg-muted'}`}
+              >
+                7 Days
+              </button>
+              <button 
+                onClick={() => setPeriod('30days')}
+                className={`px-3 py-1 text-sm rounded-md ${period === '30days' ? 'bg-primary text-white' : 'hover:bg-muted'}`}
+              >
+                30 Days
+              </button>
+              <button 
+                onClick={() => setPeriod('90days')}
+                className={`px-3 py-1 text-sm rounded-md ${period === '90days' ? 'bg-primary text-white' : 'hover:bg-muted'}`}
+              >
+                90 Days
+              </button>
+            </div>
+          </div>
+          
+          {/* Quick Action Buttons */}
+          <div className="flex flex-wrap gap-3 mb-6">
+            <Link href="/dashboard/products/add" className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium flex items-center">
+              <PlusCircle className="mr-2 h-4 w-4" /> Add Product
+            </Link>
+            <Link href="/dashboard/orders" className="bg-muted text-foreground px-4 py-2 rounded-md text-sm font-medium flex items-center">
+              <ShoppingBag className="mr-2 h-4 w-4" /> View Orders
+            </Link>
+            <Link href="/dashboard/analytics" className="bg-muted text-foreground px-4 py-2 rounded-md text-sm font-medium flex items-center">
+              <BarChart3 className="mr-2 h-4 w-4" /> Analytics
+            </Link>
+          </div>
           
           {/* Stats Overview */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

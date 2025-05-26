@@ -2,6 +2,7 @@ import { ClerkProvider } from '@clerk/nextjs'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { TokenSaver } from '@/components/TokenSaver'
+import { AuthRedirect } from '@/components/AuthRedirect'
 import Navbar from '@/components/Navbar'
 
 const inter = Inter({
@@ -33,6 +34,7 @@ export default function RootLayout({
             <html lang="en" className={`${inter.variable} font-sans`}>
                 <body className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
                     <TokenSaver />
+                    <AuthRedirect />
                     <Navbar />
                     {children}
                 </body>

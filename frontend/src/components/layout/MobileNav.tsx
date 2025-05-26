@@ -2,22 +2,24 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { UserButton } from '@clerk/nextjs';
 
 // Import icons
 import { 
   Home, 
   Package, 
   ShoppingBag, 
-  BarChart, 
   MessageCircle, 
-  Settings,
-  Menu,
-  X
+  MoreHorizontal,
+  LogOut,
+  User,
+  Store
 } from 'lucide-react';
 
-const navItems = [
+// Bottom navigation items - limited to 5 for mobile best practices
+const bottomNavItems = [
   {
-    name: 'Dashboard',
+    name: 'Home',
     href: '/dashboard',
     icon: Home
   },
@@ -32,103 +34,126 @@ const navItems = [
     icon: ShoppingBag
   },
   {
-    name: 'Analytics',
-    href: '/dashboard/analytics',
-    icon: BarChart
-  },
-  {
     name: 'Messages',
     href: '/dashboard/messages',
     icon: MessageCircle
   },
   {
-    name: 'Settings',
+    name: 'More',
     href: '/dashboard/settings',
-    icon: Settings
+    icon: MoreHorizontal
   }
 ];
 
 export function MobileNav() {
-  const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const [showMenu, setShowMenu] = useState(false);
 
-  const toggleMenu = () => setIsOpen(!isOpen);
+  // Only show navigation on dashboard pages
+  if (!pathname?.startsWith('/dashboard')) {
+    return null;
+  }
 
   return (
     <>
-      {/* Mobile menu button */}
-      <button 
-        onClick={toggleMenu} 
-        className="md:hidden fixed bottom-4 right-4 z-50 bg-primary text-white p-3 rounded-full shadow-lg"
-        aria-label={isOpen ? "Close menu" : "Open menu"}
-      >
-        {isOpen ? <X size={24} /> : <Menu size={24} />}
-      </button>
-
-      {/* Mobile navigation menu */}
-      <div 
-        className={cn(
-          "fixed inset-0 z-40 transform transition-transform duration-300 ease-in-out bg-background md:hidden",
-          isOpen ? "translate-x-0" : "translate-x-full"
-        )}
-      >
-        <div className="flex flex-col h-full pt-16 pb-20 overflow-y-auto">
-          <div className="px-4 py-2">
-            <h2 className="text-xl font-bold">Menu</h2>
+      {/* Slide-up menu for account options */}
+      {showMenu && (
+        <div className="md:hidden fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setShowMenu(false)}>
+          <div 
+            className="absolute bottom-16 left-0 right-0 bg-white rounded-t-xl shadow-lg p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mx-auto w-12 h-1 bg-gray-300 rounded-full mb-4"></div>
+            
+            <div className="space-y-4">
+              <Link 
+                href="/storefront" 
+                className="flex items-center p-3 hover:bg-gray-100 rounded-lg"
+                onClick={() => setShowMenu(false)}
+              >
+                <Store className="h-5 w-5 mr-3 text-primary" />
+                <span>View Storefront</span>
+              </Link>
+              
+              <Link 
+                href="/dashboard/account" 
+                className="flex items-center p-3 hover:bg-gray-100 rounded-lg"
+                onClick={() => setShowMenu(false)}
+              >
+                <User className="h-5 w-5 mr-3 text-primary" />
+                <span>Seller Account</span>
+              </Link>
+              
+              <div className="flex items-center p-3 hover:bg-gray-100 rounded-lg">
+                <LogOut className="h-5 w-5 mr-3 text-red-500" />
+                <span className="text-red-500">Sign Out</span>
+                <div className="ml-auto">
+                  <UserButton afterSignOutUrl="/" />
+                </div>
+              </div>
+            </div>
           </div>
-          <nav className="flex-1 px-4 pt-4">
-            <ul className="space-y-2">
-              {navItems.map((item) => {
-                const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
-                const Icon = item.icon;
-                
-                return (
-                  <li key={item.name}>
-                    <Link 
-                      href={item.href}
-                      onClick={() => setIsOpen(false)}
-                      className={cn(
-                        "flex items-center p-3 text-sm font-medium rounded-md",
-                        isActive 
-                          ? "bg-primary/10 text-primary" 
-                          : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                      )}
-                    >
-                      <Icon className="mr-3 h-5 w-5" />
-                      {item.name}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
         </div>
-      </div>
+      )}
 
-      {/* Bottom navigation bar - Mobile only */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 bg-background border-t md:hidden">
-        <nav className="flex items-center justify-around h-16">
-          {navItems.slice(0, 5).map((item) => {
-            const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+      {/* Main navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-lg">
+        <div className="flex justify-around items-center h-16 px-1">
+          {bottomNavItems.map((item) => {
+            const isActive = 
+              (item.href === '/dashboard' && pathname === '/dashboard') || 
+              (item.href !== '/dashboard' && pathname?.startsWith(item.href));
             const Icon = item.icon;
             
+            // If this is the More button, show the menu instead of navigating
+            if (item.name === 'More') {
+              return (
+                <button
+                  key={item.name}
+                  onClick={() => setShowMenu(!showMenu)}
+                  className="flex flex-col items-center justify-center w-full h-full relative"
+                >
+                  <div className={cn(
+                    "flex flex-col items-center justify-center p-1 rounded-full",
+                    showMenu ? "text-primary" : "text-gray-500"
+                  )}>
+                    <Icon className={cn(
+                      "h-6 w-6 mb-1",
+                      showMenu ? "text-primary" : "text-gray-500"  
+                    )} />
+                    <span className="text-xs font-medium">{item.name}</span>
+                  </div>
+                  {showMenu && (
+                    <div className="absolute -top-[2px] left-1/2 transform -translate-x-1/2 w-12 h-1 rounded-full bg-primary" />
+                  )}
+                </button>
+              );
+            }
+            
             return (
-              <Link
+              <Link 
                 key={item.name}
                 href={item.href}
-                className={cn(
-                  "flex flex-col items-center justify-center w-full h-full",
-                  isActive ? "text-primary" : "text-muted-foreground"
-                )}
-                aria-label={item.name}
+                className="flex flex-col items-center justify-center w-full h-full relative"
               >
-                <Icon className="h-5 w-5" />
-                <span className="text-xs mt-1">{item.name}</span>
+                <div className={cn(
+                  "flex flex-col items-center justify-center p-1 rounded-full",
+                  isActive ? "text-primary" : "text-gray-500"
+                )}>
+                  <Icon className={cn(
+                    "h-6 w-6 mb-1",
+                    isActive ? "text-primary" : "text-gray-500"  
+                  )} />
+                  <span className="text-xs font-medium">{item.name}</span>
+                </div>
+                {isActive && (
+                  <div className="absolute -top-[2px] left-1/2 transform -translate-x-1/2 w-12 h-1 rounded-full bg-primary" />
+                )}
               </Link>
             );
           })}
-        </nav>
-      </div>
+        </div>
+      </nav>
     </>
   );
 }
