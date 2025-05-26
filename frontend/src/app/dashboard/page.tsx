@@ -11,6 +11,18 @@ import { TopProducts } from '@/components/dashboard/TopProducts';
 import { ChannelPerformance } from '@/components/dashboard/ChannelPerformance';
 import { ShoppingBag, DollarSign, Users, ArrowUpRight } from 'lucide-react';
 
+// Define types to match component requirements
+type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+
+interface Order {
+  id: string;
+  customerName: string;
+  amount: number;
+  status: OrderStatus;
+  date: string;
+  phone?: string;
+}
+
 // Mock data - this would come from an API call in production
 const mockSalesData = [
   { date: 'May 19', amount: 1200 },
@@ -22,7 +34,7 @@ const mockSalesData = [
   { date: 'May 25', amount: 2200 },
 ];
 
-const mockRecentOrders = [
+const mockRecentOrders: Order[] = [
   {
     id: '1',
     customerName: 'John Doe',
