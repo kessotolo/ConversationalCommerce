@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     TWILIO_ACCOUNT_SID: str
     TWILIO_AUTH_TOKEN: str
     TWILIO_PHONE_NUMBER: str
+    TWILIO_WHATSAPP_FROM: str = ""  # WhatsApp number with country code (no +)
 
     # CORS
     BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:3000"]

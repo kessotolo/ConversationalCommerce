@@ -1,8 +1,32 @@
 from fastapi import Depends, HTTPException, status
 from typing import List, Optional, Callable, Any
+import enum
+
 from app.core.security.dependencies import require_auth
 from app.core.security.clerk import ClerkTokenData
 from app.core.errors.error_response import forbidden_error
+
+
+class RoleType(str, enum.Enum):
+    """Enum for user roles in the system"""
+    ADMIN = "admin"
+    SELLER = "seller"
+    CUSTOMER = "customer"
+
+
+class RoleChecker:
+    """Class to check if a user has the required roles"""
+    def __init__(self, allowed_roles: List[RoleType]):
+        self.allowed_roles = [role.value for role in allowed_roles]
+        
+    def __call__(self, user: ClerkTokenData = Depends(require_auth)) -> bool:
+        for role in self.allowed_roles:
+            if user.has_role(role):
+                return True
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"This action requires one of these roles: {', '.join(self.allowed_roles)}"
+        )
 
 
 def require_role(required_role: str):
