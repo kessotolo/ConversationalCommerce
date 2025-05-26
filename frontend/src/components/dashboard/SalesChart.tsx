@@ -8,7 +8,8 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
+  ChartOptions
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
@@ -55,7 +56,7 @@ export function SalesChart({ data, period, isLoading = false }: SalesChartProps)
     ],
   };
 
-  const options = {
+  const options: ChartOptions<'line'> = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -63,7 +64,7 @@ export function SalesChart({ data, period, isLoading = false }: SalesChartProps)
         display: false,
       },
       tooltip: {
-        mode: 'index' as const,
+        mode: 'index',
         intersect: false,
         callbacks: {
           label: function(context: any) {
@@ -72,10 +73,7 @@ export function SalesChart({ data, period, isLoading = false }: SalesChartProps)
               label += ': ';
             }
             if (context.parsed.y !== null) {
-              label += new Intl.NumberFormat('en-NG', {
-                style: 'currency',
-                currency: 'NGN',
-              }).format(context.parsed.y);
+              label += '₦' + context.parsed.y.toLocaleString();
             }
             return label;
           }
@@ -95,9 +93,7 @@ export function SalesChart({ data, period, isLoading = false }: SalesChartProps)
       },
       y: {
         beginAtZero: true,
-        grid: {
-          borderDash: [2],
-        },
+        // Removed borderDash which was causing TypeScript errors
         ticks: {
           callback: function(value: any) {
             return '₦' + value.toLocaleString();
@@ -106,8 +102,8 @@ export function SalesChart({ data, period, isLoading = false }: SalesChartProps)
       },
     },
     interaction: {
-      mode: 'nearest' as const,
-      axis: 'x' as const,
+      mode: 'nearest',
+      axis: 'x',
       intersect: false
     },
   };
