@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import Link from 'next/link';
 import { 
   Card, 
   CardContent, 
@@ -17,7 +18,10 @@ import {
   RefreshCcw, 
   ChevronDown, 
   Eye,
-  MessageSquare
+  MessageSquare,
+  Package,
+  Truck,
+  Check
 } from 'lucide-react';
 import { orderService } from '@/lib/api';
 
@@ -86,6 +90,16 @@ const mockOrders: Order[] = [
     status: 'delivered',
     date: '2025-05-17T13:20:00',
     paymentMethod: 'Cash on Delivery'
+  },
+  {
+    id: 'ORD-006',
+    customerName: 'Grace Okonkwo',
+    phone: '+234 678 901 2345',
+    amount: 132.75,
+    items: 2,
+    status: 'shipped',
+    date: '2025-05-20T10:15:00',
+    paymentMethod: 'Mobile Money'
   }
 ];
 
@@ -93,6 +107,7 @@ const mockOrders: Order[] = [
 const statusStyles = {
   pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   processing: 'bg-blue-100 text-blue-800 border-blue-200',
+  shipped: 'bg-purple-100 text-purple-800 border-purple-200',
   delivered: 'bg-green-100 text-green-800 border-green-200',
   cancelled: 'bg-red-100 text-red-800 border-red-200'
 };
@@ -208,6 +223,15 @@ export default function OrdersPage() {
               </span>
             </button>
             <button
+              onClick={() => setStatusFilter('shipped')}
+              className={`pb-3 px-4 font-medium text-sm border-b-2 ${statusFilter === 'shipped' ? 'border-purple-500 text-purple-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+            >
+              Shipped
+              <span className="ml-2 bg-purple-100 text-purple-700 py-0.5 px-2 rounded-full text-xs">
+                {orders.filter(o => o.status === 'shipped').length}
+              </span>
+            </button>
+            <button
               onClick={() => setStatusFilter('delivered')}
               className={`pb-3 px-4 font-medium text-sm border-b-2 ${statusFilter === 'delivered' ? 'border-green-500 text-green-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
             >
@@ -291,12 +315,54 @@ export default function OrdersPage() {
                         <td className="py-3 px-4">{order.paymentMethod}</td>
                         <td className="py-3 px-4">
                           <div className="flex space-x-2">
-                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" title="View Order Details">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" title="Message Customer">
+                            <Link href={`/dashboard/orders/${order.id}`}>
+                              <Button size="sm" variant="ghost" className="h-8 w-8 p-0" title="View Order Details">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="h-8 w-8 p-0" 
+                              title="Message Customer"
+                              onClick={() => messageCustomer(order.phone)}
+                            >
                               <MessageSquare className="h-4 w-4" />
                             </Button>
+                            {/* Quick status update buttons */}
+                            {order.status === 'pending' && (
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="h-8 w-8 p-0 text-blue-600" 
+                                title="Mark as Processing"
+                                onClick={() => updateOrderStatus(order.id, 'processing')}
+                              >
+                                <Package className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {order.status === 'processing' && (
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="h-8 w-8 p-0 text-purple-600" 
+                                title="Mark as Shipped"
+                                onClick={() => updateOrderStatus(order.id, 'shipped')}
+                              >
+                                <Truck className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {order.status === 'shipped' && (
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="h-8 w-8 p-0 text-green-600" 
+                                title="Mark as Delivered"
+                                onClick={() => updateOrderStatus(order.id, 'delivered')}
+                              >
+                                <Check className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         </td>
                       </tr>
