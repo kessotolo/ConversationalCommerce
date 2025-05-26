@@ -53,7 +53,7 @@ const mockConversations = [
     id: '4',
     customerName: 'Elizabeth Brown',
     phone: '+234 456 789 0123',
-    lastMessage: 'I'd like to place an order for...',
+    lastMessage: "I'd like to place an order for...",
     unread: 0,
     timestamp: '2025-05-23T16:20:00',
     avatar: 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg'
@@ -64,7 +64,7 @@ const mockConversations = [
 const mockMessages = [
   {
     id: '1',
-    content: 'Hello! I'm interested in your products.',
+    content: "Hello! I'm interested in your products.",
     timestamp: '2025-05-25T10:00:00',
     sender: 'customer',
     status: 'read'
@@ -101,11 +101,11 @@ const mockMessages = [
 
 // Quick reply templates
 const quickReplies = [
-  'Thank you for your order! We'll process it right away.',
-  'Your order has been shipped and should arrive within 2-3 business days.',
-  'We're currently out of stock on that item. Would you like to be notified when it's back?',
-  'Can I help you with anything else today?',
-  'What's your delivery address?'
+  "Thank you for your order! We'll process it right away.",
+  "Your order has been shipped and should arrive within 2-3 business days.",
+  "We're currently out of stock on that item. Would you like to be notified when it's back?",
+  "Can I help you with anything else today?",
+  "What's your delivery address?"
 ];
 
 export default function MessagesPage() {

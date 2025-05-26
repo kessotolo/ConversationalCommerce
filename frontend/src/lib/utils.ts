@@ -13,12 +13,27 @@ export function formatCurrency(amount: number, currency = "NGN"): string {
   }).format(amount);
 }
 
-export function formatDate(date: string | Date): string {
+export function formatDate(date: string | Date, format?: 'full' | 'date' | 'time'): string {
+  const dateObj = new Date(date);
+  
+  if (format === 'time') {
+    return new Intl.DateTimeFormat("en-NG", {
+      hour: "numeric",
+      minute: "numeric",
+    }).format(dateObj);
+  } else if (format === 'date') {
+    return new Intl.DateTimeFormat("en-NG", {
+      day: "numeric",
+      month: "short",
+    }).format(dateObj);
+  }
+  
+  // Default full format
   return new Intl.DateTimeFormat("en-NG", {
     day: "numeric",
     month: "short",
     year: "numeric",
-  }).format(new Date(date));
+  }).format(dateObj);
 }
 
 export function formatPhoneNumber(phoneNumber: string): string {
