@@ -1,0 +1,250 @@
+import React, { useEffect, useState } from 'react';
+import {
+    Box,
+    Grid,
+    Paper,
+    Typography,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Chip,
+    IconButton,
+    TextField,
+    Select,
+    MenuItem,
+    FormControl,
+    InputLabel,
+} from '@mui/material';
+import {
+    Refresh as RefreshIcon,
+    FilterList as FilterIcon,
+    Warning as WarningIcon,
+    Error as ErrorIcon,
+    Info as InfoIcon,
+} from '@mui/icons-material';
+import { useWebSocket } from '../../hooks/useWebSocket';
+import { formatDistanceToNow } from 'date-fns';
+
+interface Activity {
+    id: string;
+    user_id: string;
+    tenant_id: string;
+    action: string;
+    resource_type: string;
+    resource_id: string;
+    details: {
+        path: string;
+        method: string;
+        status_code: number;
+        duration: number;
+        ip_address: string;
+        user_agent: string;
+    };
+    timestamp: string;
+}
+
+interface ActivityStats {
+    total: number;
+    byType: Record<string, number>;
+    byStatus: Record<number, number>;
+    byUser: Record<string, number>;
+}
+
+const ActivityDashboard: React.FC = () => {
+    const [activities, setActivities] = useState<Activity[]>([]);
+    const [stats, setStats] = useState<ActivityStats>({
+        total: 0,
+        byType: {},
+        byStatus: {},
+        byUser: {},
+    });
+    const [filter, setFilter] = useState({
+        resourceType: '',
+        statusCode: '',
+        user: '',
+    });
+
+    // WebSocket connection
+    const { lastMessage, sendMessage } = useWebSocket(
+        `${process.env.REACT_APP_WS_URL}/ws/monitoring/${localStorage.getItem('tenant_id')}`
+    );
+
+    useEffect(() => {
+        if (lastMessage) {
+            const data = JSON.parse(lastMessage.data);
+            if (data.type === 'activity') {
+                setActivities(prev => [data.data, ...prev].slice(0, 100));
+                updateStats(data.data);
+            }
+        }
+    }, [lastMessage]);
+
+    const updateStats = (activity: Activity) => {
+        setStats(prev => ({
+            total: prev.total + 1,
+            byType: {
+                ...prev.byType,
+                [activity.resource_type]: (prev.byType[activity.resource_type] || 0) + 1,
+            },
+            byStatus: {
+                ...prev.byStatus,
+                [activity.details.status_code]: (prev.byStatus[activity.details.status_code] || 0) + 1,
+            },
+            byUser: {
+                ...prev.byUser,
+                [activity.user_id]: (prev.byUser[activity.user_id] || 0) + 1,
+            },
+        }));
+    };
+
+    const getStatusIcon = (statusCode: number) => {
+        if (statusCode >= 500) return <ErrorIcon color="error" />;
+        if (statusCode >= 400) return <WarningIcon color="warning" />;
+        return <InfoIcon color="info" />;
+    };
+
+    const filteredActivities = activities.filter(activity => {
+        if (filter.resourceType && activity.resource_type !== filter.resourceType) return false;
+        if (filter.statusCode && activity.details.status_code.toString() !== filter.statusCode) return false;
+        if (filter.user && activity.user_id !== filter.user) return false;
+        return true;
+    });
+
+    return (
+        <Box sx={{ p: 3 }}>
+            <Grid container spacing={3}>
+                {/* Stats Cards */}
+                <Grid item xs={12} md={4}>
+                    <Paper sx={{ p: 2 }}>
+                        <Typography variant="h6">Total Activities</Typography>
+                        <Typography variant="h3">{stats.total}</Typography>
+                    </Paper>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                    <Paper sx={{ p: 2 }}>
+                        <Typography variant="h6">Active Users</Typography>
+                        <Typography variant="h3">{Object.keys(stats.byUser).length}</Typography>
+                    </Paper>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                    <Paper sx={{ p: 2 }}>
+                        <Typography variant="h6">Resource Types</Typography>
+                        <Typography variant="h3">{Object.keys(stats.byType).length}</Typography>
+                    </Paper>
+                </Grid>
+
+                {/* Filters */}
+                <Grid item xs={12}>
+                    <Paper sx={{ p: 2 }}>
+                        <Grid container spacing={2} alignItems="center">
+                            <Grid item xs={12} md={3}>
+                                <FormControl fullWidth>
+                                    <InputLabel>Resource Type</InputLabel>
+                                    <Select
+                                        value={filter.resourceType}
+                                        onChange={(e) => setFilter(prev => ({ ...prev, resourceType: e.target.value }))}
+                                    >
+                                        <MenuItem value="">All</MenuItem>
+                                        {Object.keys(stats.byType).map(type => (
+                                            <MenuItem key={type} value={type}>{type}</MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                            <Grid item xs={12} md={3}>
+                                <FormControl fullWidth>
+                                    <InputLabel>Status Code</InputLabel>
+                                    <Select
+                                        value={filter.statusCode}
+                                        onChange={(e) => setFilter(prev => ({ ...prev, statusCode: e.target.value }))}
+                                    >
+                                        <MenuItem value="">All</MenuItem>
+                                        {Object.keys(stats.byStatus).map(status => (
+                                            <MenuItem key={status} value={status}>{status}</MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                            <Grid item xs={12} md={3}>
+                                <FormControl fullWidth>
+                                    <InputLabel>User</InputLabel>
+                                    <Select
+                                        value={filter.user}
+                                        onChange={(e) => setFilter(prev => ({ ...prev, user: e.target.value }))}
+                                    >
+                                        <MenuItem value="">All</MenuItem>
+                                        {Object.keys(stats.byUser).map(user => (
+                                            <MenuItem key={user} value={user}>{user}</MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                            <Grid item xs={12} md={3}>
+                                <IconButton onClick={() => setFilter({ resourceType: '', statusCode: '', user: '' })}>
+                                    <FilterIcon />
+                                </IconButton>
+                                <IconButton onClick={() => sendMessage({ type: 'refresh' })}>
+                                    <RefreshIcon />
+                                </IconButton>
+                            </Grid>
+                        </Grid>
+                    </Paper>
+                </Grid>
+
+                {/* Activity Table */}
+                <Grid item xs={12}>
+                    <TableContainer component={Paper}>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Time</TableCell>
+                                    <TableCell>User</TableCell>
+                                    <TableCell>Action</TableCell>
+                                    <TableCell>Resource</TableCell>
+                                    <TableCell>Status</TableCell>
+                                    <TableCell>Duration</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {filteredActivities.map((activity) => (
+                                    <TableRow key={activity.id}>
+                                        <TableCell>
+                                            {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
+                                        </TableCell>
+                                        <TableCell>{activity.user_id}</TableCell>
+                                        <TableCell>
+                                            <Chip
+                                                label={activity.action}
+                                                color={activity.action === 'GET' ? 'primary' : 'secondary'}
+                                                size="small"
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            {activity.resource_type}/{activity.resource_id}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                {getStatusIcon(activity.details.status_code)}
+                                                <Typography sx={{ ml: 1 }}>
+                                                    {activity.details.status_code}
+                                                </Typography>
+                                            </Box>
+                                        </TableCell>
+                                        <TableCell>
+                                            {activity.details.duration.toFixed(2)}s
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </Grid>
+            </Grid>
+        </Box>
+    );
+};
+
+export default ActivityDashboard;

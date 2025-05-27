@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.api import api_router
 from app.core.config.settings import Settings, get_settings
 from app.core.middleware.rate_limit import RateLimitMiddleware
+from app.core.middleware.activity_tracker import ActivityTrackerMiddleware
 from app.core.errors.exception_handlers import register_exception_handlers
 from starlette.middleware.base import BaseHTTPMiddleware
 from dotenv import load_dotenv
@@ -11,6 +12,7 @@ import time
 import logging
 from app.db.session import set_tenant_id, SessionLocal
 from app.models.tenant import Tenant
+from app.api.v1.endpoints.websocket import router as websocket_router
 
 # Configure logging
 logging.basicConfig(
@@ -54,31 +56,31 @@ class TenantMiddleware(BaseHTTPMiddleware):
         # Skip tenant check for public endpoints
         if self._is_public_path(request.url.path):
             return await call_next(request)
-            
+
         tenant_id = request.headers.get('X-Tenant-ID')
         if not tenant_id:
             return Response("Missing X-Tenant-ID header", status_code=400)
-            
+
         try:
             # Validate UUID format
             from uuid import UUID
             tenant_uuid = UUID(tenant_id)
-            
+
             # Store tenant_id in request.state for use in dependencies
             request.state.tenant_id = str(tenant_uuid)
-            
+
             # Set tenant_id in DB session for this request
             db = SessionLocal()
-            
+
             # Validate tenant exists
             tenant = db.query(Tenant).filter(Tenant.id == tenant_uuid).first()
             if not tenant:
                 db.close()
                 return Response(f"Invalid tenant ID: {tenant_id}", status_code=403)
-                
+
             set_tenant_id(db, str(tenant_uuid))
             request.state.db = db
-            
+
             # Execute the rest of the request
             response = await call_next(request)
             return response
@@ -91,7 +93,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
             # Make sure to close the db connection
             if hasattr(request.state, 'db'):
                 request.state.db.close()
-    
+
     def _is_public_path(self, path: str) -> bool:
         """Check if the path is a public endpoint that doesn't require tenant isolation"""
         public_paths = [
@@ -103,7 +105,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
             "/redoc",
             "/openapi.json"
         ]
-        
+
         # Check if path exactly matches any public path or starts with one
         return any(path == public_path or path.startswith(f"{public_path}/") for public_path in public_paths)
 
@@ -124,7 +126,10 @@ def create_app() -> FastAPI:
     app.add_middleware(RequestTimingMiddleware)
 
     # Add rate limiting middleware
-    app.add_middleware(RateLimitMiddleware, requests_per_minute=60)
+    app.add_middleware(RateLimitMiddleware)
+
+    # Add activity tracking middleware
+    app.add_middleware(ActivityTrackerMiddleware)
 
     # Add tenant middleware
     app.add_middleware(TenantMiddleware)
@@ -140,6 +145,9 @@ def create_app() -> FastAPI:
 
     # Include API router
     app.include_router(api_router, prefix=settings.API_V1_STR)
+
+    # Include WebSocket router
+    app.include_router(websocket_router)
 
     # Test endpoint to verify environment variables
     @app.get("/test-env")

@@ -26,7 +26,7 @@ PostgreSQL RLS policies are applied to all tenant-scoped tables, allowing rows t
 
 ```sql
 ALTER TABLE table_name ENABLE ROW LEVEL SECURITY;
-CREATE POLICY tenant_isolation_policy ON table_name 
+CREATE POLICY tenant_isolation_policy ON table_name
   USING (tenant_id::uuid = current_setting('my.tenant_id')::uuid);
 ALTER TABLE table_name FORCE ROW LEVEL SECURITY;
 ```
@@ -45,6 +45,158 @@ The `TenantMiddleware` class:
 - `set_tenant_id()` function sets the PostgreSQL session variable using parameterized queries
 - `get_db()` dependency automatically applies tenant context from request state
 - Services use the tenant context for all database operations
+
+### 🚦 Rate Limiting and Resource Quotas
+
+The platform implements tenant-specific rate limiting and resource quotas to ensure fair usage and prevent abuse.
+
+#### 1. Rate Limiting
+
+- **Per-Tenant Limits:**
+  - Requests per minute (default: 60)
+  - Requests per hour (default: 1000)
+  - Requests per day (default: 10000)
+
+- **Rate Limit Headers:**
+  ```
+  X-RateLimit-Limit-Minute: 60
+  X-RateLimit-Remaining-Minute: 59
+  X-RateLimit-Limit-Hour: 1000
+  X-RateLimit-Remaining-Hour: 999
+  X-RateLimit-Limit-Day: 10000
+  X-RateLimit-Remaining-Day: 9999
+  ```
+
+#### 2. Resource Quotas
+
+- **Storage Limits:**
+  - Maximum storage per tenant (default: 1GB)
+  - Current storage usage tracking
+
+- **Product Limits:**
+  - Maximum products per tenant (default: 1000)
+  - Current product count tracking
+
+- **User Limits:**
+  - Maximum users per tenant (default: 100)
+  - Current user count tracking
+
+#### 3. API Usage Tracking
+
+- Tracks API calls at multiple time intervals:
+  - Per minute
+  - Per hour
+  - Per day
+- Automatically resets counters daily
+- Persists usage data in the database
+
+### 🔒 Progressive Trust System (Planned)
+
+The platform will implement a comprehensive progressive trust system to ensure platform security and enable feature access based on seller trustworthiness.
+
+#### 1. Trust Levels
+
+- **Level 0: Unverified Seller**
+  - Basic profile creation
+  - Limited to 5 product listings
+  - Manual order processing
+  - Basic store features
+
+- **Level 1: Verified Seller**
+  - Email and phone verified
+  - Business details verified
+  - Up to 50 product listings
+  - Basic automation features
+  - Payment processing enabled
+
+- **Level 2: Trusted Seller**
+  - Business registration verified
+  - Tax information verified
+  - Full product listing capacity
+  - Advanced automation features
+  - Priority support access
+  - Bulk operations enabled
+
+- **Level 3: Premium Seller**
+  - All verifications complete
+  - Excellent performance metrics
+  - Unlimited products
+  - Full platform features
+  - API access
+  - Custom integrations
+
+#### 2. Verification Process
+
+- **Basic Verification**
+  - Email verification
+  - Phone number verification
+  - Basic business information
+  - Store setup completion
+
+- **Business Verification**
+  - Business registration document
+  - Tax identification
+  - Business address verification
+  - Bank account verification
+
+- **Performance Verification**
+  - Order fulfillment rate
+  - Customer satisfaction metrics
+  - Response time metrics
+  - Dispute resolution rate
+
+#### 3. Trust Score System
+
+The trust score will be calculated based on:
+- Account age
+- Order volume
+- Customer ratings
+- Response time
+- Dispute resolution rate
+- Payment history
+- Platform rule compliance
+
+#### 4. Feature Access by Level
+
+- **Level 0 Features**
+  - Basic store setup
+  - Manual order management
+  - Basic product listings
+  - Standard support
+
+- **Level 1 Features**
+  - Automated order processing
+  - Basic analytics
+  - Email notifications
+  - Payment processing
+
+- **Level 2 Features**
+  - Advanced analytics
+  - Bulk operations
+  - Custom automation rules
+  - Priority support
+
+- **Level 3 Features**
+  - API access
+  - Custom integrations
+  - Advanced automation
+  - Dedicated support
+
+#### 5. Monitoring and Review
+
+- Regular trust score updates
+- Automated level progression
+- Manual review triggers
+- Performance monitoring
+- Compliance checks
+
+#### 6. Risk Management
+
+- Fraud detection
+- Suspicious activity monitoring
+- Automated risk assessment
+- Level demotion triggers
+- Account suspension criteria
 
 ### Using Tenant Context in New Code
 
@@ -71,13 +223,13 @@ async def create_something_endpoint(
 def create_something(db: Session, data_in: SomeSchema, request: Request = None) -> Model:
     # Convert data
     data = data_in.model_dump()
-    
+
     # Get tenant ID from request context if not already set
     if request and not data.get('tenant_id'):
         tenant_id = get_tenant_id_from_request(request)
         if tenant_id:
             data['tenant_id'] = tenant_id
-    
+
     # Create model with tenant ID included
     new_item = Model(**data)
     db.add(new_item)
@@ -129,58 +281,191 @@ pip install -r requirements.txt
 # Setup environment variables
 cp .env.example .env
 
-# Edit .env with your configuration values
-# Required: DATABASE_URL, CLOUDINARY_URL, TWILIO_AUTH_TOKEN
-
-# Run migrations
+# Run database migrations
 alembic upgrade head
+```
 
-# Start development server
+### Environment Variables
+
+Required environment variables in `.env`:
+```
+DATABASE_URL=postgresql://user:password@localhost/dbname
+PROJECT_NAME=Conversational Commerce
+ENVIRONMENT=development
+BACKEND_CORS_ORIGINS=["http://localhost:3000"]
+```
+
+### Running the Application
+
+```bash
+# Start the development server
 uvicorn app.main:app --reload
+
+# Run tests
+pytest
+
+# Run linting
+flake8
 ```
 
-### Working with Migrations
+## 📚 API Documentation
 
-#### Create New Migration
+Once the application is running, you can access:
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
+- OpenAPI JSON: `http://localhost:8000/api/v1/openapi.json`
 
-```bash
-alembic revision --autogenerate -m "Description of changes"
-```
+### 🔍 Real-Time Monitoring System
 
-#### Apply Migrations
+The platform implements a comprehensive real-time monitoring system to track activities, detect anomalies, and maintain system security.
 
-```bash
-alembic upgrade head
-```
+#### 1. Activity Tracking
 
-## 🧪 Testing
+- **Activity Tracker Middleware**
+  - Tracks all API requests and responses
+  - Records user actions, resource access, and system events
+  - Captures detailed metadata for each activity
+  - Stores activities in the audit log
 
-### Unit Tests
+- **Activity Types**
+  - User authentication
+  - Resource creation/modification/deletion
+  - API calls
+  - System events
+  - Security events
 
-```bash
-pytest tests/unit
-```
+#### 2. Rules Engine
 
-### Integration Tests
+- **Rule Management**
+  - Create, update, and delete monitoring rules
+  - Define conditions based on activity patterns
+  - Set severity levels (LOW, MEDIUM, HIGH, CRITICAL)
+  - Enable/disable rules per tenant
 
-```bash
-pytest tests/integration
-```
+- **Rule Conditions**
+  - Field-based conditions
+  - Time-based conditions
+  - Pattern matching
+  - Threshold monitoring
+  - Custom operators
 
-### End-to-End Tests
+- **Rule Evaluation**
+  - Real-time evaluation of activities
+  - Historical data analysis
+  - Cooldown periods to prevent alert fatigue
+  - Severity-based notification channels
 
-```bash
-pytest tests/e2e
-```
+#### 3. WebSocket Service
 
-### Test Tenant Isolation
+- **Real-time Updates**
+  - WebSocket connections for live monitoring
+  - Tenant-specific channels
+  - Activity broadcasting
+  - Connection management
 
-```bash
-pytest tests/integration/test_tenant_rls.py
-```
+- **Connection Features**
+  - Automatic reconnection
+  - Heartbeat mechanism
+  - Connection state management
+  - Error handling
 
-## 📝 API Documentation
+### 🔔 Notification System
 
-When running the development server, API documentation is available at:
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
+The platform provides a multi-channel notification system to keep users informed about important events and alerts.
+
+#### 1. Notification Channels
+
+- **In-App Notifications**
+  - Real-time WebSocket delivery
+  - Priority-based styling
+  - Interactive notifications
+  - Mark as read functionality
+
+- **Email Notifications**
+  - HTML and plain text support
+  - Priority-based subject lines
+  - Detailed message formatting
+  - Tenant-specific email templates
+
+- **SMS Notifications**
+  - Twilio integration
+  - Priority-based delivery
+  - Concise message formatting
+  - Delivery status tracking
+
+#### 2. Notification Features
+
+- **Priority Levels**
+  - URGENT (red)
+  - HIGH (orange)
+  - MEDIUM (blue)
+  - LOW (green)
+
+- **Notification Management**
+  - Mark as read/unread
+  - Delete notifications
+  - Filter by priority
+  - Search functionality
+
+- **Notification Center**
+  - Real-time updates
+  - Unread count badge
+  - Priority indicators
+  - Detailed view with metadata
+
+#### 3. Integration with Rules Engine
+
+- **Automatic Notifications**
+  - Rule-triggered alerts
+  - Severity-based channel selection
+  - Cooldown periods
+  - Detailed context in messages
+
+- **Notification Templates**
+  - Rule-specific templates
+  - Dynamic content insertion
+  - Multi-language support
+  - Tenant customization
+
+### 🛡️ Security Features
+
+The platform implements several security features to protect tenant data and system integrity.
+
+#### 1. Rate Limiting
+
+- **Per-Tenant Limits**
+  - Requests per minute
+  - Requests per hour
+  - Requests per day
+  - Custom limits per tenant
+
+- **Rate Limit Headers**
+  - Remaining requests
+  - Reset times
+  - Limit information
+
+#### 2. Resource Quotas
+
+- **Storage Limits**
+  - Per-tenant storage quotas
+  - Usage tracking
+  - Automatic cleanup
+
+- **API Usage**
+  - Call limits
+  - Usage tracking
+  - Quota enforcement
+
+#### 3. Activity Monitoring
+
+- **Suspicious Activity Detection**
+  - Pattern recognition
+  - Anomaly detection
+  - Automated alerts
+  - Response actions
+
+- **Audit Logging**
+  - Comprehensive activity tracking
+  - User action logging
+  - System event logging
+  - Security event logging

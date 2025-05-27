@@ -174,6 +174,14 @@ backend/
 
 ## 🔄 Recent Updates
 
+### Real-Time Activity Monitoring Implementation (May 2025)
+
+- **WebSocket Service**: Built a WebSocket-based real-time activity monitoring system
+- **Activity Tracking Middleware**: Implemented middleware to capture and process API activities
+- **Monitoring Dashboard**: Created an admin-level dashboard for viewing activity data
+- **Alert Notifications**: Added intelligent alerting based on activity patterns and thresholds
+- **Rules Engine**: Implemented a configurable rules system for detecting suspicious activities
+
 ### Multi-Tenant Architecture Implementation (May 2025)
 
 - **PostgreSQL Row-Level Security**: Implemented database-level tenant isolation using PostgreSQL RLS
@@ -200,6 +208,24 @@ backend/
 - **Responsive Layout**: All pages properly respond to various device sizes
 
 ## 💻 Development Workflow
+
+### Admin Monitoring Dashboard
+
+The platform includes a hidden admin monitoring dashboard that provides real-time activity tracking, historical activity browsing, and alert management. This feature is not linked from the main navigation and is intended for administrative use only.
+
+- **Access URL**: `/admin/monitoring`
+- **Backend**: Fully implemented with WebSockets for real-time updates
+- **Known Issues**: The frontend dashboard has TypeScript errors due to UI component mismatches. These need to be resolved before the dashboard can be used in production.
+
+#### TypeScript Component Issues
+
+There are currently TypeScript errors in the monitoring dashboard related to UI component imports. The main issues are:
+
+1. Case sensitivity mismatches (e.g., `Button.tsx` vs `button.tsx`)
+2. Missing UI components that need to be created or adapted
+3. Import paths that need to be standardized across the application
+
+These issues don't affect the core functionality of the platform and can be addressed when the admin monitoring features are needed.
 
 ### Common Tasks
 
