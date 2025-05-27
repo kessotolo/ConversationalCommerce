@@ -7,6 +7,7 @@ A high-growth commerce platform for African markets that seamlessly integrates m
 - **Seller Authentication**: Secure JWT-based authentication through Clerk with role-based access control
 - **Product Management**: Full CRUD operations with rich media support and mobile camera integration
 - **WhatsApp Integration**: Direct customer engagement through conversational commerce
+- **Multi-Platform Social Sharing**: Product sharing across WhatsApp, Instagram, TikTok, Facebook, Twitter, and Telegram with branded QR codes
 - **Mobile-First Design**: Optimized interface with bottom navigation for primary devices used in African markets
 - **Multi-Media Support**: Images, video, and WhatsApp status content handling with direct camera capture
 - **Advanced Security**: Comprehensive audit logging, request monitoring, optimistic locking, and PostgreSQL Row-Level Security (RLS) for tenant isolation
@@ -46,6 +47,24 @@ The platform is designed with a mobile-first approach, recognizing that most use
 - **WhatsApp-Centric**: Deep integration with the most popular messaging platform in target markets
 
 ## 🔄 Recent Updates
+
+### May 2025: Multi-Platform Social Sharing
+- **Cross-Platform Social Features**: Added comprehensive sharing capabilities for products
+  - WhatsApp sharing with direct messaging and UTM tracking
+  - Instagram sharing with caption generation and story instructions
+  - TikTok sharing with profile links and content suggestions
+  - Facebook sharing with customizable quotes and hashtags
+  - Twitter/X sharing with text and hashtag options
+  - Telegram messaging integration
+  - Branded QR code generation with logo embedding
+
+- **Enhanced UTM Tracking**: Complete campaign, source, and medium tracking across all sharing platforms
+
+- **ShareButtons Component**: Created unified React component to provide consistent sharing experience
+  - Support for both compact and full display modes
+  - Copy functionality for links and captions
+  - Customizable QR code generation
+  - Complete error handling
 
 ### May 2025: Next.js and Material UI v7 Compatibility
 - **Material UI v7 Integration**: Updated components to use the latest Material UI v7 API
