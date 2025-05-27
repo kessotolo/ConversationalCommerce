@@ -45,6 +45,29 @@ The platform is designed with a mobile-first approach, recognizing that most use
 - **Offline Capabilities**: Core functionality works with intermittent connectivity
 - **WhatsApp-Centric**: Deep integration with the most popular messaging platform in target markets
 
+## 🔄 Recent Updates
+
+### May 2025: Next.js and Material UI v7 Compatibility
+- **Material UI v7 Integration**: Updated components to use the latest Material UI v7 API
+  - Fixed Grid component usage with proper syntax
+  - Updated ListItem and related components to follow v7 patterns
+  - Improved component styling approaches compatible with MUI v7
+
+- **Next.js Optimization**:
+  - Replaced React Router with Next.js routing system
+  - Updated environment variable references from React App format to Next.js format
+  - Added client-side safety checks for browser-specific operations
+
+- **WebSocket and Real-time Features**:
+  - Enhanced WebSocket connections to safely handle client-side rendering
+  - Improved toast notification system for real-time alerts
+  - Fixed tenant isolation in monitoring components
+
+- **Build Process Improvements**:
+  - Streamlined build process with proper TypeScript type checking
+  - Replaced axios with native fetch API where needed
+  - Added missing dependencies including Twilio for backend notifications
+
 ## 🚀 Getting Started
 
 ### Prerequisites
