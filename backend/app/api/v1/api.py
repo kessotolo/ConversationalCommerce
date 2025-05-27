@@ -1,9 +1,12 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import dashboard, products, orders
-from app.api.v1.endpoints import conversation, ai_config
+
+from app.api.v1.endpoints import dashboard, products, orders, conversation, ai_config
 from app.api.v1.endpoints import batch_operations, products_keyset
 from app.api.v1.endpoints import activities
 from app.api.v1.endpoints import websocket
+from app.api.v1.endpoints.violation import router as violation_router
+from app.api.v1.endpoints.behavior import router as behavior_router
+from app.api.v1.endpoints.content_moderation import router as content_moderation_router
 
 api_router = APIRouter()
 
@@ -16,3 +19,6 @@ api_router.include_router(conversation.router, tags=["conversations"])
 api_router.include_router(ai_config.router, tags=["ai-config"])
 api_router.include_router(activities.router, tags=["monitoring"], prefix="/admin")
 api_router.include_router(websocket.router, tags=["websocket"])
+api_router.include_router(violation_router, tags=["violations"])
+api_router.include_router(behavior_router, tags=["behavior"], prefix="/behavior")
+api_router.include_router(content_moderation_router, tags=["content-moderation"], prefix="/content")

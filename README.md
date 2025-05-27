@@ -12,6 +12,10 @@ A high-growth commerce platform for African markets that seamlessly integrates m
 - **Advanced Security**: Comprehensive audit logging, request monitoring, optimistic locking, and PostgreSQL Row-Level Security (RLS) for tenant isolation
 - **High Performance**: Efficient keyset pagination, database indexing, and batch operations
 - **Robust Error Handling**: Standardized error responses and centralized exception management
+- **Content Moderation**: AI-powered content filtering with customizable rules and manual review workflows
+- **Behavior Analysis**: Pattern detection for suspicious activities with evidence collection and review
+- **Violation Management**: Progressive enforcement system with warning to ban escalation
+- **Real-Time Monitoring**: WebSocket-based activity monitoring with alerting and notification
 
 ## 🛠️ Tech Stack
 
@@ -135,14 +139,28 @@ frontend/
 │   │   │   ├── products/ # Product management
 │   │   │   ├── orders/   # Order management
 │   │   │   ├── messages/ # WhatsApp messaging
-│   │   │   └── settings/ # Store settings
+│   │   │   ├── settings/ # Store settings
+│   │   │   └── moderation/ # Content review & enforcement
+│   │   ├── admin/        # Admin-only routes
+│   │   │   └── monitoring/ # Activity monitoring dashboard
 │   │   └── storefront/   # Customer-facing storefront
 │   ├── components/       # Reusable UI components
 │   │   ├── dashboard/    # Dashboard components
 │   │   ├── layout/       # Layout components (Sidebar, MobileNav)
-│   │   └── ui/           # Base UI components
+│   │   ├── ui/           # Base UI components
+│   │   ├── monitoring/   # Activity monitoring components
+│   │   │   ├── ActivityDashboard.tsx # Real-time activity display
+│   │   │   ├── NotificationCenter.tsx # Alert notifications
+│   │   │   └── RulesManager.tsx # Alert rule configuration
+│   │   └── moderation/   # Content moderation components
+│   │       ├── ContentReview.tsx # Review interface
+│   │       ├── ViolationsTable.tsx # Violation management
+│   │       └── RulesConfig.tsx # Filter rule configuration
+│   ├── hooks/            # Custom React hooks
+│   │   └── useWebSocket.ts # WebSocket connection hook
 │   ├── lib/              # Utility functions
 │   └── types/            # TypeScript types
+│       └── monitoring.ts  # Types for monitoring system
 ├── next.config.js        # Next.js configuration
 └── tailwind.config.js    # TailwindCSS configuration
 ```
@@ -151,36 +169,70 @@ frontend/
 
 ```
 backend/
-├── alembic/             # Database migrations
+├── alembic/                 # Database migrations
 ├── app/
-│   ├── api/             # API endpoints
-│   │   ├── v1/          # API version 1
-│   │   │   ├── products/
-│   │   │   ├── orders/
-│   │   │   ├── messages/
-│   │   │   └── users/
-│   ├── core/            # Core functionality
-│   │   ├── auth/        # Authentication
-│   │   ├── config/      # Configuration
-│   │   ├── db/          # Database
-│   │   ├── errors/      # Error handling
-│   │   └── utils/       # Utilities
-│   ├── models/          # Database models
-│   ├── schemas/         # Pydantic schemas
-│   └── services/        # Business logic
-├── tests/               # Test suite
-└── main.py              # Application entry point
+│   ├── api/                 # API endpoints
+│   │   ├── v1/              # API version 1
+│   │   │   ├── products/    # Product management
+│   │   │   ├── orders/      # Order management
+│   │   │   ├── messages/    # WhatsApp messaging
+│   │   │   ├── users/       # User management
+│   │   │   ├── violation.py # Violation management
+│   │   │   ├── behavior.py  # Behavior analysis
+│   │   │   ├── content_moderation.py # Content filtering
+│   │   │   ├── activities.py # Activity history
+│   │   │   └── websocket.py # WebSocket endpoints
+│   ├── core/                # Core functionality
+│   │   ├── auth/            # Authentication
+│   │   ├── config/          # Configuration
+│   │   ├── db/              # Database
+│   │   ├── errors/          # Error handling
+│   │   ├── content/         # Content analysis
+│   │   ├── behavior/        # Behavior analysis
+│   │   ├── enforcement/     # Violation enforcement
+│   │   ├── monitoring/      # Activity monitoring
+│   │   ├── middleware/      # Request middleware
+│   │   ├── notifications/   # Alert notifications
+│   │   ├── websocket/       # WebSocket connections
+│   │   └── utils/           # Utilities
+│   ├── models/              # Database models
+│   │   ├── content_filter.py # Content filtering models
+│   │   ├── behavior_analysis.py # Behavior detection models
+│   │   ├── violation.py     # Violation tracking models
+│   │   └── audit_log.py     # Activity logging models
+│   ├── schemas/             # Pydantic schemas
+│   └── services/            # Business logic
+├── tests/                   # Test suite
+└── main.py                  # Application entry point
 ```
 
 ## 🔄 Recent Updates
 
-### Real-Time Activity Monitoring Implementation (May 2025)
+### Comprehensive Protection System Implementation (May 2025)
 
-- **WebSocket Service**: Built a WebSocket-based real-time activity monitoring system
-- **Activity Tracking Middleware**: Implemented middleware to capture and process API activities
-- **Monitoring Dashboard**: Created an admin-level dashboard for viewing activity data
-- **Alert Notifications**: Added intelligent alerting based on activity patterns and thresholds
-- **Rules Engine**: Implemented a configurable rules system for detecting suspicious activities
+- **Content Moderation System**:
+  - AI-powered content filtering using Detoxify, TextBlob, and spaCy for toxicity, sentiment, and language analysis
+  - Customizable filtering rules with field-specific conditions and severity levels
+  - Multi-stage review workflow with pending, approved, and rejected states
+  - Tenant-isolated moderation policies for each merchant
+
+- **Behavior Analysis System**:
+  - Pattern detection engine for identifying suspicious user activities
+  - Evidence collection and storage for review and enforcement
+  - Confidence scoring system for reducing false positives
+  - Review interface for manual verification of detected patterns
+
+- **Violation Management**:
+  - Progressive enforcement system (warning → temporary ban → permanent ban)
+  - Automatic escalation based on violation history and severity
+  - Violation dashboard with filtering by type, severity, and status
+  - Statistics and trend analysis for platform-wide insights
+
+- **Real-Time Monitoring**:
+  - WebSocket-based activity monitoring with tenant isolation
+  - Intelligent alerting based on configurable thresholds
+  - In-app, email, and WhatsApp notification delivery
+  - Audit logging for security-sensitive operations
 
 ### Multi-Tenant Architecture Implementation (May 2025)
 

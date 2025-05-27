@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, Integer, BigInteger
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 from app.db.base_class import Base
 import uuid
 
@@ -31,3 +32,15 @@ class Tenant(Base):
     api_calls_minute = Column(BigInteger, default=0, nullable=False)
     # ISO format timestamp of last reset
     last_api_reset = Column(String, nullable=True)
+    
+    # Relationships for behavior analysis system
+    behavior_patterns = relationship("BehaviorPattern", back_populates="tenant")
+    pattern_detections = relationship("PatternDetection", back_populates="tenant")
+    evidence = relationship("Evidence", back_populates="tenant")
+    
+    # Relationships for content moderation
+    content_filter_rules = relationship("ContentFilterRule", back_populates="tenant")
+    content_analysis_results = relationship("ContentAnalysisResult", back_populates="tenant")
+    
+    # Relationship for violations
+    violations = relationship("Violation", back_populates="tenant")

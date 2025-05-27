@@ -1,7 +1,8 @@
+from typing import Callable, Dict, Any
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
-from app.core.websocket.monitoring import activity_monitor
-from datetime import datetime, timezone
+from app.core.behavior.behavior_analysis import behavior_analysis_service
+import time
 import json
 import logging
 
@@ -9,78 +10,138 @@ logger = logging.getLogger(__name__)
 
 
 class ActivityTrackerMiddleware(BaseHTTPMiddleware):
-    """Middleware for tracking and broadcasting activities"""
-
-    async def dispatch(self, request: Request, call_next):
-        # Skip tracking for certain paths
-        if self._should_skip_tracking(request.url.path):
-            return await call_next(request)
-
-        # Get tenant and user info from request state
-        tenant_id = getattr(request.state, 'tenant_id', None)
-        user_id = getattr(request.state, 'user_id', None)
-
-        if not tenant_id or not user_id:
-            return await call_next(request)
-
-        # Track the request
-        start_time = datetime.now(timezone.utc)
-
-        # Process the request
-        response = await call_next(request)
-
-        # Calculate duration
-        duration = (datetime.now(timezone.utc) - start_time).total_seconds()
-
-        # Create activity record
-        activity = {
-            "user_id": user_id,
-            "tenant_id": tenant_id,
-            "action": request.method,
-            "resource_type": self._get_resource_type(request.url.path),
-            "resource_id": self._get_resource_id(request.url.path),
-            "details": {
-                "path": str(request.url.path),
-                "method": request.method,
-                "status_code": response.status_code,
-                "duration": duration,
-                "ip_address": request.client.host if request.client else None,
-                "user_agent": request.headers.get("user-agent")
-            },
-            "timestamp": start_time.isoformat()
+    def __init__(self, app, skip_paths: set = None):
+        super().__init__(app)
+        self.skip_paths = skip_paths or {
+            '/docs',
+            '/redoc',
+            '/openapi.json',
+            '/health',
+            '/metrics'
         }
 
-        # Process the activity asynchronously
+    async def dispatch(
+        self,
+        request: Request,
+        call_next: Callable
+    ) -> Response:
+        # Skip tracking for certain paths
+        if request.url.path in self.skip_paths:
+            return await call_next(request)
+
+        # Get tenant and user info
+        tenant_id = request.headers.get('X-Tenant-ID')
+        user_id = getattr(request.state, 'user_id', None)
+
+        # Track request start time
+        start_time = time.time()
+
         try:
-            await activity_monitor.process_activity(activity)
+            # Process the request
+            response = await call_next(request)
+
+            # Calculate request duration
+            duration = time.time() - start_time
+
+            # Collect activity data
+            activity_data = await self._collect_activity_data(
+                request,
+                response,
+                duration
+            )
+
+            # Analyze behavior
+            await self._analyze_behavior(
+                request,
+                tenant_id,
+                user_id,
+                activity_data
+            )
+
+            return response
+
         except Exception as e:
-            logger.error(f"Error processing activity: {str(e)}")
+            logger.error(f"Error in activity tracking: {str(e)}")
+            return await call_next(request)
 
-        return response
+    async def _collect_activity_data(
+        self,
+        request: Request,
+        response: Response,
+        duration: float
+    ) -> Dict[str, Any]:
+        """Collect activity data from request and response"""
+        try:
+            # Get request body if available
+            body = None
+            if request.method in ['POST', 'PUT', 'PATCH']:
+                try:
+                    body = await request.json()
+                except:
+                    pass
 
-    def _should_skip_tracking(self, path: str) -> bool:
-        """Determine if the path should be skipped for tracking"""
-        skip_paths = [
-            "/health",
-            "/docs",
-            "/redoc",
-            "/openapi.json",
-            "/ws/monitoring"  # Skip WebSocket endpoint itself
-        ]
-        return any(path.startswith(skip_path) for skip_path in skip_paths)
+            # Get query parameters
+            query_params = dict(request.query_params)
 
-    def _get_resource_type(self, path: str) -> str:
-        """Extract resource type from path"""
-        # Example: /api/v1/products -> products
-        parts = path.strip("/").split("/")
-        if len(parts) >= 3:
-            return parts[-1]
-        return "unknown"
+            # Get response status
+            status_code = response.status_code
 
-    def _get_resource_id(self, path: str) -> str:
-        """Extract resource ID from path if present"""
-        # Example: /api/v1/products/123 -> 123
-        parts = path.strip("/").split("/")
-        if len(parts) >= 4:
-            return parts[-1]
-        return "none"
+            # Collect headers
+            headers = dict(request.headers)
+            # Remove sensitive headers
+            sensitive_headers = {
+                'authorization',
+                'cookie',
+                'x-api-key',
+                'x-secret-key'
+            }
+            for header in sensitive_headers:
+                headers.pop(header, None)
+
+            return {
+                'type': 'api_request',
+                'method': request.method,
+                'path': request.url.path,
+                'query_params': query_params,
+                'body': body,
+                'headers': headers,
+                'status_code': status_code,
+                'duration': duration,
+                'timestamp': time.time()
+            }
+
+        except Exception as e:
+            logger.error(f"Error collecting activity data: {str(e)}")
+            return {
+                'type': 'api_request',
+                'method': request.method,
+                'path': request.url.path,
+                'error': str(e),
+                'timestamp': time.time()
+            }
+
+    async def _analyze_behavior(
+        self,
+        request: Request,
+        tenant_id: str,
+        user_id: str,
+        activity_data: Dict[str, Any]
+    ) -> None:
+        """Analyze behavior using the behavior analysis service"""
+        try:
+            if not tenant_id:
+                return
+
+            # Get database session
+            db = request.state.db
+
+            # Analyze behavior
+            await behavior_analysis_service.analyze_behavior(
+                db=db,
+                tenant_id=tenant_id,
+                user_id=user_id,
+                activity_data=activity_data
+            )
+
+        except Exception as e:
+            logger.error(f"Error analyzing behavior: {str(e)}")

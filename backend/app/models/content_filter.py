@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, Integer, Boolean, JSON, ForeignKey, DateTime, Enum
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime
 import uuid
 from app.db.base_class import Base
@@ -9,7 +10,7 @@ class ContentFilterRule(Base):
     __tablename__ = "content_filter_rules"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    tenant_id = Column(String, ForeignKey("tenants.id"), nullable=False)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
     name = Column(String, nullable=False)
     description = Column(String)
     # product, message, review, etc.
@@ -35,7 +36,7 @@ class ContentAnalysisResult(Base):
     __tablename__ = "content_analysis_results"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    tenant_id = Column(String, ForeignKey("tenants.id"), nullable=False)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
     rule_id = Column(String, ForeignKey("content_filter_rules.id"))
     content_type = Column(String, nullable=False)
     content_id = Column(String, nullable=False)
@@ -46,7 +47,7 @@ class ContentAnalysisResult(Base):
     result = Column(JSON, nullable=False)  # analysis results
     status = Column(String, nullable=False)  # passed, flagged, rejected
     review_status = Column(String)  # pending, approved, rejected
-    reviewed_by = Column(String, ForeignKey("users.id"))
+    reviewed_by = Column(UUID(as_uuid=True), ForeignKey("users.id"))
     reviewed_at = Column(DateTime)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow,

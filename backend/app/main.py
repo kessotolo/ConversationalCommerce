@@ -129,7 +129,17 @@ def create_app() -> FastAPI:
     app.add_middleware(RateLimitMiddleware)
 
     # Add activity tracking middleware
-    app.add_middleware(ActivityTrackerMiddleware)
+    app.add_middleware(
+        ActivityTrackerMiddleware,
+        skip_paths={
+            '/docs',
+            '/redoc',
+            '/openapi.json',
+            '/health',
+            '/metrics',
+            '/ws/monitoring'
+        }
+    )
 
     # Add tenant middleware
     app.add_middleware(TenantMiddleware)

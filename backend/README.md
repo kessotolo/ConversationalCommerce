@@ -1,6 +1,51 @@
 # Backend Service for Conversational Commerce Platform
 
-This backend service powers the Conversational Commerce platform, providing a high-performance API with robust security and multi-tenant architecture.
+## 🚀 Monitoring, Moderation, Enforcement & Dashboard System (2024-03-21)
+
+This platform now includes a robust, extensible, and modern system for real-time monitoring, content moderation, behavior analysis, progressive enforcement, and staff review. Key features:
+
+### 1. Behavior & Content Monitoring Foundation
+- **Activity Tracking Middleware:** Captures all API activity, collects request/response data, and feeds it into the behavior analysis engine.
+- **Audit Logging:** Tracks security-sensitive operations and user actions for compliance and review.
+
+### 2. Content Moderation System
+- **Content Filter Rules & Analysis:** Supports text, sentiment, language, and toxicity analysis (now with real Detoxify integration). Rules engine for pattern matching, thresholds, and custom actions (flag, reject, require review).
+- **Review Workflow:** Manual review queue, reviewer assignment, review status tracking, and notifications.
+- **API Endpoints:** Manage rules, analyze content, review results, and query moderation history.
+- **Database Migrations:** Tables for filter rules and analysis results, with proper indexing and tenant isolation.
+
+### 3. Behavior Analysis & Pattern Detection
+- **Behavior Pattern Models:** Define suspicious/risky behaviors with conditions, severity, thresholds, and cooldowns.
+- **Pattern Detection & Evidence Collection:** Automated detection, confidence scoring, and evidence gathering (activity, system metrics, user history).
+- **Review & Notification:** Review workflow for detections, with in-app notifications for staff.
+- **API Endpoints:** Manage patterns, analyze activity, review detections, and list history.
+- **Database Migrations:** Tables for patterns, detections, and evidence.
+
+### 4. Enforcement & Progressive Actions
+- **Violation Model & Tracking:** Tracks violations (content, behavior, security) with severity, action, status, and resolution notes.
+- **Escalation & Enforcement Logic:** Automatic escalation from warning → temp ban → perm ban based on violation history. Enforcement actions: disables user accounts, sets ban durations, and logs all actions.
+- **Integration:** Behavior analysis and rules engine now automatically create and escalate violations when detections occur.
+- **API Endpoints:** List, filter, retrieve, and resolve violations (with notes).
+- **Database Migrations:** Table for violations, with indexes for fast queries.
+
+### 5. Analytics & Dashboarding
+- **Statistics & Trends Endpoints:** Backend endpoints for violation counts by type, severity, action, and status. Time-series endpoint for violation trends (for dashboard charts).
+- **Frontend Violation Dashboard:** React component for listing, filtering, and reviewing violations. Statistics and trends visualizations. Dialog for viewing and resolving violations with notes.
+
+### 6. Security & Resource Controls
+- **Tenant-Aware Rate Limiting & Quotas:** Per-tenant API rate limits, resource quotas, and usage tracking.
+- **Progressive Trust System (Planned):** Foundation for trust levels, verification, and feature gating.
+
+### 7. Real-Time Monitoring & Notification
+- **WebSocket Service:** Real-time activity monitoring and alerting.
+- **Notification System:** In-app, email, and SMS notifications for alerts, reviews, and escalations.
+
+### 8. Codebase Improvements
+- **Pydantic Schemas:** For all new models and endpoints.
+- **API Router Registration:** All new endpoints are registered and ready for use.
+- **Frontend Types:** TypeScript types for violations, stats, and trends.
+
+---
 
 ## 🔐 Multi-Tenant Architecture with PostgreSQL RLS
 
@@ -469,3 +514,111 @@ The platform implements several security features to protect tenant data and sys
   - User action logging
   - System event logging
   - Security event logging
+
+### 🛡️ Content Moderation System
+
+The platform implements a comprehensive content moderation system to ensure content quality and compliance.
+
+#### 1. Content Analysis Service
+
+- **Text Analysis**
+  - Pattern matching
+  - Regular expression support
+  - Token analysis
+  - Stop word filtering
+
+- **Sentiment Analysis**
+  - Polarity detection
+  - Subjectivity analysis
+  - Threshold-based flagging
+
+- **Language Analysis**
+  - Entity recognition
+  - Part-of-speech tagging
+  - Noun phrase extraction
+  - Linguistic feature detection
+
+- **Toxicity Detection**
+  - Toxic language detection
+  - Category-based analysis
+  - Score-based flagging
+
+#### 2. Filter Rules Engine
+
+- **Rule Management**
+  - Create, update, and delete rules
+  - Enable/disable rules
+  - Rule prioritization
+  - Tenant-specific rules
+
+- **Rule Types**
+  - Text pattern matching
+  - Sentiment thresholds
+  - Language requirements
+  - Toxicity thresholds
+
+- **Rule Actions**
+  - Flag for review
+  - Auto-reject
+  - Require manual review
+  - Custom actions
+
+#### 3. Content Review Workflow
+
+- **Review Process**
+  - Manual review queue
+  - Review status tracking
+  - Reviewer assignment
+  - Review history
+
+- **Review Actions**
+  - Approve content
+  - Reject content
+  - Request changes
+  - Escalate to admin
+
+- **Review Notifications**
+  - Review requests
+  - Status updates
+  - Action notifications
+  - Escalation alerts
+
+#### 4. Automated Content Checking
+
+- **Real-time Analysis**
+  - Immediate content checking
+  - Batch processing
+  - Scheduled scans
+  - Historical content review
+
+- **Analysis Results**
+  - Detailed analysis reports
+  - Match explanations
+  - Confidence scores
+  - Action recommendations
+
+- **Integration Points**
+  - Product listings
+  - Customer reviews
+  - Messages
+  - User-generated content
+
+#### 5. Content Moderation Dashboard
+
+- **Overview**
+  - Pending reviews
+  - Recent actions
+  - Statistics
+  - Performance metrics
+
+- **Review Interface**
+  - Content preview
+  - Analysis details
+  - Action buttons
+  - Comment system
+
+- **Management Tools**
+  - Rule configuration
+  - User management
+  - Settings
+  - Reports

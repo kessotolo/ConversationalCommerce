@@ -5,7 +5,7 @@ import asyncio
 from datetime import datetime, timezone, timedelta
 from uuid import UUID
 import logging
-from app.core.security.dependencies import get_current_user
+from app.core.security.dependencies import require_auth
 from app.core.security.clerk import ClerkTokenData
 from app.models.audit_log import AuditLog
 from app.db.session import SessionLocal
@@ -278,7 +278,7 @@ activity_monitor = ActivityMonitor(connection_manager)
 async def get_websocket_endpoint(
     websocket: WebSocket,
     tenant_id: str,
-    current_user: ClerkTokenData = Depends(get_current_user)
+    current_user: ClerkTokenData = Depends(require_auth)
 ):
     """WebSocket endpoint for real-time monitoring"""
     try:
