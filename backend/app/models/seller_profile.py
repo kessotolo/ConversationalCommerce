@@ -17,3 +17,5 @@ class SellerProfile(Base):
     instagram_handle = Column(String, nullable=True)
     facebook_page = Column(String, nullable=True)
     tiktok_handle = Column(String, nullable=True)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey(
+        "tenants.id"), nullable=False)

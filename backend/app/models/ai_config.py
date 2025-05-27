@@ -10,6 +10,8 @@ class AIConfig(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     merchant_id = Column(UUID(as_uuid=True),
                          ForeignKey("users.id"), nullable=False)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey(
+        "tenants.id"), nullable=False)
     style_tone = Column(String, nullable=True)
     auto_reply_enabled = Column(Boolean, default=False)
     # Could be JSON for more structure

@@ -23,7 +23,7 @@ class OrderSource(str, enum.Enum):
 
 class Order(Base):
     __tablename__ = "orders"
-    
+
     # Define table indexes for better query performance
     __table_args__ = (
         Index('idx_whatsapp_order', 'whatsapp_number', 'message_id'),
@@ -35,7 +35,10 @@ class Order(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"))
-    seller_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    seller_id = Column(UUID(as_uuid=True), ForeignKey(
+        "users.id"), nullable=False)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey(
+        "tenants.id"), nullable=False)
 
     # WhatsApp-specific fields
     message_id = Column(String, nullable=True)  # WhatsApp message ID
@@ -61,13 +64,13 @@ class Order(Base):
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    
+
     # Additional fields for dashboard functionality
     is_deleted = Column(Boolean, default=False)
     notification_sent = Column(Boolean, default=False)
     payment_status = Column(String, default="pending")
     tracking_number = Column(String, nullable=True)
     shipping_carrier = Column(String, nullable=True)
-    
+
     # Version column for optimistic locking - prevents concurrent modifications
     version = Column(Integer, default=0, nullable=False)

@@ -8,7 +8,7 @@ from app.db.base_class import Base
 
 class Product(Base):
     __tablename__ = "products"
-    
+
     # Define table indexes for better query performance
     __table_args__ = (
         Index('idx_product_seller', 'seller_id'),
@@ -25,6 +25,8 @@ class Product(Base):
     image_url = Column(String, nullable=True)
     seller_id = Column(UUID(as_uuid=True), ForeignKey(
         "users.id"), nullable=False)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey(
+        "tenants.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow,
                         onupdate=datetime.utcnow)

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from sqlalchemy.orm import Session
 from uuid import UUID
 from typing import List
@@ -42,6 +42,7 @@ router = APIRouter()
              )
 async def create_product_endpoint(
     product_in: ProductCreate,
+    request: Request,
     db: Session = Depends(get_db),
     user: ClerkTokenData = Depends(require_auth),
 ):
@@ -60,8 +61,8 @@ async def create_product_endpoint(
         # Assign the user ID from the token to the product
         product_in.seller_id = UUID(user.sub)
         
-        # Create the product
-        product = create_product(db, product_in)
+        # Create the product and pass request for tenant context
+        product = create_product(db, product_in, request)
         return product
     except ValueError as e:
         # This could happen if the UUID conversion fails

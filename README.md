@@ -9,7 +9,7 @@ A high-growth commerce platform for African markets that seamlessly integrates m
 - **WhatsApp Integration**: Direct customer engagement through conversational commerce
 - **Mobile-First Design**: Optimized interface with bottom navigation for primary devices used in African markets
 - **Multi-Media Support**: Images, video, and WhatsApp status content handling with direct camera capture
-- **Advanced Security**: Comprehensive audit logging, request monitoring, and optimistic locking
+- **Advanced Security**: Comprehensive audit logging, request monitoring, optimistic locking, and PostgreSQL Row-Level Security (RLS) for tenant isolation
 - **High Performance**: Efficient keyset pagination, database indexing, and batch operations
 - **Robust Error Handling**: Standardized error responses and centralized exception management
 
@@ -173,6 +173,15 @@ backend/
 ```
 
 ## 🔄 Recent Updates
+
+### Multi-Tenant Architecture Implementation (May 2025)
+
+- **PostgreSQL Row-Level Security**: Implemented database-level tenant isolation using PostgreSQL RLS
+- **Tenant Context Middleware**: Added middleware to extract and validate tenant information from requests
+- **Database Session Variables**: Used PostgreSQL session variables to enforce tenant boundaries
+- **Secure Service Layer**: Updated services to automatically apply tenant context to all operations
+- **Security Testing**: Added integration tests to verify tenant isolation effectiveness
+- **Public API Exemptions**: Configured exemptions for public endpoints like health checks and documentation
 
 ### Mobile Interface Improvements (May 2025)
 

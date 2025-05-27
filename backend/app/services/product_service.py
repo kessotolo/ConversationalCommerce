@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from app.models.product import Product as ProductModel
 from app.schemas.product import ProductCreate, ProductUpdate, ProductSearchParams
 from uuid import UUID
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Request
 from typing import List, Optional, Tuple, Dict, Any
 from datetime import datetime, timezone
 from sqlalchemy import or_, desc, asc, and_, update, func
@@ -13,6 +13,7 @@ from app.core.exceptions import (
     ProductValidationError,
     DatabaseError
 )
+from app.db.session import get_tenant_id_from_request
 
 # Add a new exception for optimistic locking conflicts
 class ConcurrentModificationError(Exception):
@@ -20,13 +21,14 @@ class ConcurrentModificationError(Exception):
     pass
 
 
-def create_product(db: Session, product_in: ProductCreate) -> ProductModel:
+def create_product(db: Session, product_in: ProductCreate, request: Request = None) -> ProductModel:
     """
     Create a new product.
 
     Args:
         db: Database session
         product_in: Product creation data
+        request: FastAPI request object for tenant context
 
     Returns:
         Created product
@@ -43,6 +45,12 @@ def create_product(db: Session, product_in: ProductCreate) -> ProductModel:
         for field in ['image_url', 'video_url', 'whatsapp_status_url', 'instagram_story_url', 'storefront_url']:
             if field in product_data and product_data[field] is not None:
                 product_data[field] = str(product_data[field])
+        
+        # Ensure tenant_id is set from request context
+        if request and not product_data.get('tenant_id'):
+            tenant_id = get_tenant_id_from_request(request)
+            if tenant_id:
+                product_data['tenant_id'] = tenant_id
         
         # Create the product model
         product = ProductModel(**product_data)

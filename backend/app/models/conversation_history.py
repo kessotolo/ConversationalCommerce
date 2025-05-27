@@ -27,3 +27,5 @@ class ConversationHistory(Base):
     sender_type = Column(Enum(SenderType), nullable=False)
     channel = Column(Enum(ChannelType), nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey(
+        "tenants.id"), nullable=False)
