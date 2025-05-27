@@ -179,8 +179,11 @@ export default function OrderDetailPage() {
       }
     };
     
-    fetchOrder();
-  }, [params.id]);
+    // Only fetch if we have a valid ID
+    if (params?.id) {
+      fetchOrder();
+    }
+  }, [params?.id]);
 
   const updateOrderStatus = async (newStatus: OrderStatus) => {
     if (!order) return;
