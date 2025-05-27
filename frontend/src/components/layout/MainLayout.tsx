@@ -50,7 +50,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     <List>
                         {menuItems.map((item) => (
                             <ListItem
-                                button
+                                component="button"
                                 key={item.text}
                                 onClick={() => router.push(item.path)}
                             >

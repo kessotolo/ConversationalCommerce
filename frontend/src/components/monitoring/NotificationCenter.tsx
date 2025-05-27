@@ -38,9 +38,16 @@ const NotificationCenter: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
 
-    // WebSocket connection
+    const [tenantId, setTenantId] = useState<string>('');
+    
+    // Get tenant ID from localStorage (client-side only)
+    useEffect(() => {
+        setTenantId(localStorage.getItem('tenant_id') || '');
+    }, []);
+    
+    // WebSocket connection - only establish when tenantId is available
     const { lastMessage } = useWebSocket(
-        `${process.env.REACT_APP_WS_URL}/ws/monitoring/${localStorage.getItem('tenant_id')}`
+        tenantId ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/ws/monitoring/${tenantId}` : ''
     );
 
     useEffect(() => {

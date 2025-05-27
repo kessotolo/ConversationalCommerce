@@ -1,5 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody, Button, TextField, Select, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress } from '@mui/material';
+import { 
+    Box, 
+    Typography, 
+    Paper, 
+    Table, 
+    TableHead, 
+    TableRow, 
+    TableCell, 
+    TableBody, 
+    Button, 
+    TextField, 
+    Select, 
+    MenuItem, 
+    Dialog, 
+    DialogTitle, 
+    DialogContent, 
+    DialogActions, 
+    CircularProgress,
+    Chip
+} from '@mui/material';
 import axios from 'axios';
 
 interface Violation {
@@ -35,168 +54,253 @@ const ViolationDashboard: React.FC = () => {
     const [violations, setViolations] = useState<Violation[]>([]);
     const [stats, setStats] = useState<ViolationStats | null>(null);
     const [trends, setTrends] = useState<ViolationTrend[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [selected, setSelected] = useState<Violation | null>(null);
-    const [resolveNotes, setResolveNotes] = useState('');
-    const [filters, setFilters] = useState({ status: '', action: '', severity: '' });
+    const [loading, setLoading] = useState(true);
+    const [selectedViolation, setSelectedViolation] = useState<Violation | null>(null);
+    const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+    const [filters, setFilters] = useState({
+        status: '',
+        action: '',
+        severity: '',
+        type: ''
+    });
 
     useEffect(() => {
-        fetchViolations();
-        fetchStats();
-        fetchTrends();
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                const tenantId = localStorage.getItem('tenant_id') || '';
+                const query = new URLSearchParams(filters as Record<string, string>).toString();
+                const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+                
+                const [violationsRes, statsRes, trendsRes] = await Promise.all([
+                    axios.get(`${baseUrl}/api/v1/monitoring/violations?tenant_id=${tenantId}&${query}`),
+                    axios.get(`${baseUrl}/api/v1/monitoring/violations/stats?tenant_id=${tenantId}`),
+                    axios.get(`${baseUrl}/api/v1/monitoring/violations/trends?tenant_id=${tenantId}`)
+                ]);
+
+                setViolations(violationsRes.data);
+                setStats(statsRes.data);
+                setTrends(trendsRes.data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        // Only run in browser environment
+        if (typeof window !== 'undefined') {
+            fetchData();
+        }
     }, [filters]);
 
-    const fetchViolations = async () => {
-        setLoading(true);
-        const params = Object.fromEntries(Object.entries(filters).filter(([_, v]) => v));
-        const res = await axios.get('/api/v1/violation/violations', { params });
-        setViolations(res.data);
-        setLoading(false);
+    const handleViewDetails = (violation: Violation) => {
+        setSelectedViolation(violation);
+        setDetailDialogOpen(true);
     };
 
-    const fetchStats = async () => {
-        const res = await axios.get('/api/v1/violation/violations/stats');
-        setStats(res.data);
+    const handleCloseDetails = () => {
+        setDetailDialogOpen(false);
     };
 
-    const fetchTrends = async () => {
-        const res = await axios.get('/api/v1/violation/violations/trends');
-        setTrends(res.data);
+    const getSeverityColor = (severity: string) => {
+        switch (severity.toLowerCase()) {
+            case 'critical': return 'error';
+            case 'high': return 'error';
+            case 'medium': return 'warning';
+            case 'low': return 'info';
+            default: return 'default';
+        }
     };
 
-    const handleResolve = async () => {
-        if (!selected) return;
-        await axios.put(`/api/v1/violation/violations/${selected.id}/resolve`, { notes: resolveNotes });
-        setSelected(null);
-        setResolveNotes('');
-        fetchViolations();
-        fetchStats();
+    const getStatusColor = (status: string) => {
+        switch (status.toLowerCase()) {
+            case 'active': return 'error';
+            case 'resolved': return 'success';
+            default: return 'default';
+        }
     };
+
+    if (loading) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+                <CircularProgress />
+            </Box>
+        );
+    }
 
     return (
-        <Box>
-            <Typography variant="h4" gutterBottom>Violation Dashboard</Typography>
+        <Box sx={{ p: 3 }}>
+            <Typography variant="h5" sx={{ mb: 3 }}>Security Violations Dashboard</Typography>
+            
             {stats && (
-                <Paper sx={{ p: 2, mb: 2 }}>
-                    <Typography variant="h6">Statistics</Typography>
-                    <Box sx={{ display: 'flex', gap: 4 }}>
-                        <Box>Total: {stats.total}</Box>
-                        <Box>Active: {stats.by_status?.active || 0}</Box>
-                        <Box>Resolved: {stats.by_status?.resolved || 0}</Box>
-                        <Box>By Severity: {Object.entries(stats.by_severity).map(([k, v]) => `${k}: ${v}`).join(', ')}</Box>
-                    </Box>
-                </Paper>
+                <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+                    <Paper sx={{ p: 2, flexGrow: 1 }}>
+                        <Typography variant="subtitle1">Total Violations</Typography>
+                        <Typography variant="h4">{stats.total}</Typography>
+                    </Paper>
+                    <Paper sx={{ p: 2, flexGrow: 1 }}>
+                        <Typography variant="subtitle1">Active</Typography>
+                        <Typography variant="h4">{stats.by_status.active || 0}</Typography>
+                    </Paper>
+                    <Paper sx={{ p: 2, flexGrow: 1 }}>
+                        <Typography variant="subtitle1">Critical</Typography>
+                        <Typography variant="h4">{stats.by_severity.critical || 0}</Typography>
+                    </Paper>
+                </Box>
             )}
+            
             {trends.length > 0 && (
                 <Paper sx={{ p: 2, mb: 2 }}>
                     <Typography variant="h6">Trends (last 30 days)</Typography>
-                    <Box sx={{ display: 'flex', gap: 2 }}>
+                    <Box sx={{ display: 'flex', gap: 2, overflowX: 'auto', py: 2 }}>
                         {trends.map(t => (
-                            <Box key={t.date} sx={{ textAlign: 'center' }}>
-                                <div>{t.date}</div>
-                                <div>{t.count}</div>
+                            <Box key={t.date} sx={{ textAlign: 'center', minWidth: '60px' }}>
+                                <Typography variant="caption">{t.date}</Typography>
+                                <Typography>{t.count}</Typography>
                             </Box>
                         ))}
                     </Box>
                 </Paper>
             )}
+            
             <Paper sx={{ p: 2 }}>
-                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                    <Select value={filters.status} onChange={e => setFilters(f => ({ ...f, status: e.target.value }))} displayEmpty>
+                <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+                    <Select 
+                        value={filters.status} 
+                        onChange={e => setFilters(f => ({ ...f, status: e.target.value }))} 
+                        displayEmpty
+                        size="small"
+                    >
                         <MenuItem value=''>All Status</MenuItem>
                         <MenuItem value='active'>Active</MenuItem>
                         <MenuItem value='resolved'>Resolved</MenuItem>
                     </Select>
-                    <Select value={filters.action} onChange={e => setFilters(f => ({ ...f, action: e.target.value }))} displayEmpty>
+                    
+                    <Select 
+                        value={filters.action} 
+                        onChange={e => setFilters(f => ({ ...f, action: e.target.value }))} 
+                        displayEmpty
+                        size="small"
+                    >
                         <MenuItem value=''>All Actions</MenuItem>
                         <MenuItem value='warning'>Warning</MenuItem>
                         <MenuItem value='temp_ban'>Temp Ban</MenuItem>
                         <MenuItem value='perm_ban'>Perm Ban</MenuItem>
                     </Select>
-                    <Select value={filters.severity} onChange={e => setFilters(f => ({ ...f, severity: e.target.value }))} displayEmpty>
+                    
+                    <Select 
+                        value={filters.severity} 
+                        onChange={e => setFilters(f => ({ ...f, severity: e.target.value }))} 
+                        displayEmpty
+                        size="small"
+                    >
                         <MenuItem value=''>All Severity</MenuItem>
                         <MenuItem value='low'>Low</MenuItem>
                         <MenuItem value='medium'>Medium</MenuItem>
                         <MenuItem value='high'>High</MenuItem>
                         <MenuItem value='critical'>Critical</MenuItem>
                     </Select>
+                    
+                    <Select 
+                        value={filters.type} 
+                        onChange={e => setFilters(f => ({ ...f, type: e.target.value }))} 
+                        displayEmpty
+                        size="small"
+                    >
+                        <MenuItem value=''>All Types</MenuItem>
+                        <MenuItem value='rate_limit'>Rate Limit</MenuItem>
+                        <MenuItem value='suspicious_access'>Suspicious Access</MenuItem>
+                        <MenuItem value='data_leak'>Data Leak</MenuItem>
+                    </Select>
                 </Box>
-                {loading ? <CircularProgress /> : (
-                    <Table>
-                        <TableHead>
+                
+                <Table size="small">
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>ID</TableCell>
+                            <TableCell>Type</TableCell>
+                            <TableCell>Severity</TableCell>
+                            <TableCell>Status</TableCell>
+                            <TableCell>User</TableCell>
+                            <TableCell>Created</TableCell>
+                            <TableCell>Action</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {violations.length === 0 ? (
                             <TableRow>
-                                <TableCell>ID</TableCell>
-                                <TableCell>User</TableCell>
-                                <TableCell>Type</TableCell>
-                                <TableCell>Severity</TableCell>
-                                <TableCell>Action</TableCell>
-                                <TableCell>Status</TableCell>
-                                <TableCell>Start</TableCell>
-                                <TableCell>End</TableCell>
-                                <TableCell>Details</TableCell>
-                                <TableCell>Resolve</TableCell>
+                                <TableCell colSpan={7} align="center">No violations found</TableCell>
                             </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {violations.map(v => (
+                        ) : (
+                            violations.map(v => (
                                 <TableRow key={v.id}>
-                                    <TableCell>{v.id.slice(0, 8)}</TableCell>
-                                    <TableCell>{v.user_id || '-'}</TableCell>
+                                    <TableCell>{v.id.substring(0, 8)}</TableCell>
                                     <TableCell>{v.type}</TableCell>
-                                    <TableCell>{v.severity}</TableCell>
-                                    <TableCell>{v.action}</TableCell>
-                                    <TableCell>{v.status}</TableCell>
-                                    <TableCell>{v.start_at.slice(0, 10)}</TableCell>
-                                    <TableCell>{v.end_at ? v.end_at.slice(0, 10) : '-'}</TableCell>
                                     <TableCell>
-                                        <Button size="small" onClick={() => setSelected(v)}>View</Button>
+                                        <Chip 
+                                            label={v.severity} 
+                                            size="small" 
+                                            color={getSeverityColor(v.severity) as any}
+                                        />
                                     </TableCell>
                                     <TableCell>
-                                        {v.status === 'active' && (
-                                            <Button size="small" color="success" onClick={() => setSelected(v)}>Resolve</Button>
-                                        )}
+                                        <Chip 
+                                            label={v.status} 
+                                            size="small" 
+                                            color={getStatusColor(v.status) as any}
+                                        />
+                                    </TableCell>
+                                    <TableCell>{v.user_id || 'N/A'}</TableCell>
+                                    <TableCell>{new Date(v.created_at).toLocaleString()}</TableCell>
+                                    <TableCell>
+                                        <Button 
+                                            size="small" 
+                                            variant="outlined" 
+                                            onClick={() => handleViewDetails(v)}
+                                        >
+                                            View
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                )}
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
             </Paper>
-            <Dialog open={!!selected} onClose={() => setSelected(null)} maxWidth="md" fullWidth>
+            
+            <Dialog open={detailDialogOpen} onClose={handleCloseDetails} maxWidth="md" fullWidth>
                 <DialogTitle>Violation Details</DialogTitle>
                 <DialogContent>
-                    {selected && (
-                        <Box>
-                            <Typography>ID: {selected.id}</Typography>
-                            <Typography>User: {selected.user_id}</Typography>
-                            <Typography>Type: {selected.type}</Typography>
-                            <Typography>Severity: {selected.severity}</Typography>
-                            <Typography>Action: {selected.action}</Typography>
-                            <Typography>Status: {selected.status}</Typography>
-                            <Typography>Reason: {selected.reason}</Typography>
-                            <Typography>Start: {selected.start_at}</Typography>
-                            <Typography>End: {selected.end_at || '-'}</Typography>
-                            <Typography>Details:</Typography>
-                            <pre style={{ background: '#eee', padding: 8 }}>{JSON.stringify(selected.details, null, 2)}</pre>
-                            {selected.status === 'active' && (
-                                <TextField
-                                    label="Resolution Notes"
-                                    value={resolveNotes}
-                                    onChange={e => setResolveNotes(e.target.value)}
-                                    fullWidth
-                                    multiline
-                                    minRows={2}
-                                    sx={{ mt: 2 }}
-                                />
+                    {selectedViolation && (
+                        <Box sx={{ pt: 2 }}>
+                            <Typography variant="subtitle1">ID: {selectedViolation.id}</Typography>
+                            <Typography variant="subtitle1">Type: {selectedViolation.type}</Typography>
+                            <Typography variant="subtitle1">Severity: {selectedViolation.severity}</Typography>
+                            <Typography variant="subtitle1">Status: {selectedViolation.status}</Typography>
+                            <Typography variant="subtitle1">Action: {selectedViolation.action}</Typography>
+                            {selectedViolation.reason && (
+                                <Typography variant="subtitle1">Reason: {selectedViolation.reason}</Typography>
+                            )}
+                            <Typography variant="subtitle1">Start: {new Date(selectedViolation.start_at).toLocaleString()}</Typography>
+                            {selectedViolation.end_at && (
+                                <Typography variant="subtitle1">End: {new Date(selectedViolation.end_at).toLocaleString()}</Typography>
+                            )}
+                            {selectedViolation.details && (
+                                <>
+                                    <Typography variant="subtitle1" sx={{ mt: 2 }}>Details:</Typography>
+                                    <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
+                                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
+                                            {JSON.stringify(selectedViolation.details, null, 2)}
+                                        </pre>
+                                    </Paper>
+                                </>
                             )}
                         </Box>
                     )}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setSelected(null)}>Close</Button>
-                    {selected && selected.status === 'active' && (
-                        <Button onClick={handleResolve} color="success">Resolve</Button>
-                    )}
+                    <Button onClick={handleCloseDetails}>Close</Button>
                 </DialogActions>
             </Dialog>
         </Box>

@@ -17,32 +17,42 @@ export const useWebSocket = (url: string): WebSocketHook => {
     const [isConnected, setIsConnected] = useState(false);
 
     useEffect(() => {
-        const ws = new WebSocket(url);
+        // Only create WebSocket in browser environment and with valid URL
+        if (typeof window !== 'undefined' && url) {
+            try {
+                const ws = new WebSocket(url);
 
-        ws.onopen = () => {
-            console.log('WebSocket connected');
-            setIsConnected(true);
-        };
+                ws.onopen = () => {
+                    console.log('WebSocket connected');
+                    setIsConnected(true);
+                };
 
-        ws.onclose = () => {
-            console.log('WebSocket disconnected');
-            setIsConnected(false);
-        };
+                ws.onclose = () => {
+                    console.log('WebSocket disconnected');
+                    setIsConnected(false);
+                };
 
-        ws.onmessage = (event) => {
-            setLastMessage(event);
-        };
+                ws.onmessage = (event) => {
+                    setLastMessage(event);
+                };
 
-        ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
-            setIsConnected(false);
-        };
+                ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    setIsConnected(false);
+                };
 
-        setSocket(ws);
+                setSocket(ws);
 
-        return () => {
-            ws.close();
-        };
+                return () => {
+                    ws.close();
+                };
+            } catch (error) {
+                console.error('Failed to create WebSocket connection:', error);
+                return () => {};
+            }
+        }
+
+        return () => {};
     }, [url]);
 
     const sendMessage = useCallback((message: any) => {

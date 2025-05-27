@@ -17,6 +17,7 @@ import {
     List,
     ListItem,
     ListItemText,
+    ListItemSecondaryAction,
     Chip,
 } from '@mui/material';
 import {
@@ -58,7 +59,7 @@ const RulesManager: React.FC<RulesManagerProps> = ({ tenantId }) => {
     const handleOpenDialog = (rule?: Rule) => {
         if (rule) {
             setEditingRule(rule);
-            setFormData({ ...rule });
+            setFormData(rule);
         } else {
             setEditingRule(null);
             setFormData({
@@ -73,14 +74,17 @@ const RulesManager: React.FC<RulesManagerProps> = ({ tenantId }) => {
 
     const handleCloseDialog = () => {
         setOpenDialog(false);
+        setEditingRule(null);
+        setFormData({});
     };
 
-    const handleSave = async () => {
+    const handleSubmit = async () => {
         try {
-            const method = editingRule ? 'PUT' : 'POST';
             const url = editingRule
-                ? `/api/v1/monitoring/rules/${editingRule.id}?tenant_id=${tenantId}`
-                : `/api/v1/monitoring/rules?tenant_id=${tenantId}`;
+                ? `/api/v1/monitoring/rules/${editingRule.id}`
+                : '/api/v1/monitoring/rules';
+
+            const method = editingRule ? 'PUT' : 'POST';
 
             const response = await fetch(url, {
                 method,
@@ -120,12 +124,14 @@ const RulesManager: React.FC<RulesManagerProps> = ({ tenantId }) => {
 
     const getSeverityColor = (severity: RuleSeverity) => {
         switch (severity) {
-            case RuleSeverity.LOW:
-                return 'info';
-            case RuleSeverity.MEDIUM:
-                return 'warning';
-            case RuleSeverity.HIGH:
+            case RuleSeverity.CRITICAL:
                 return 'error';
+            case RuleSeverity.HIGH:
+                return 'warning';
+            case RuleSeverity.MEDIUM:
+                return 'info';
+            case RuleSeverity.LOW:
+                return 'success';
             default:
                 return 'default';
         }
@@ -133,8 +139,8 @@ const RulesManager: React.FC<RulesManagerProps> = ({ tenantId }) => {
 
     return (
         <Box sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="h5">Alert Rules</Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+                <Typography variant="h5">Monitoring Rules</Typography>
                 <Button
                     variant="contained"
                     startIcon={<AddIcon />}
@@ -147,38 +153,34 @@ const RulesManager: React.FC<RulesManagerProps> = ({ tenantId }) => {
             <Paper>
                 <List>
                     {rules.map((rule) => (
-                        <ListItem
-                            key={rule.id}
-                            secondaryAction={
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <Chip
-                                        label={rule.severity}
-                                        color={getSeverityColor(rule.severity)}
-                                        size="small"
-                                        sx={{ mr: 1 }}
-                                    />
-                                    <IconButton
-                                        edge="end"
-                                        aria-label="edit"
-                                        onClick={() => handleOpenDialog(rule)}
-                                        sx={{ mr: 1 }}
-                                    >
-                                        <EditIcon />
-                                    </IconButton>
-                                    <IconButton
-                                        edge="end"
-                                        aria-label="delete"
-                                        onClick={() => handleDelete(rule.id)}
-                                    >
-                                        <DeleteIcon />
-                                    </IconButton>
-                                </Box>
-                            }
-                        >
+                        <ListItem key={rule.id}>
                             <ListItemText
                                 primary={rule.name}
                                 secondary={rule.description}
                             />
+                            <ListItemSecondaryAction>
+                                <Chip
+                                    label={rule.severity}
+                                    color={getSeverityColor(rule.severity)}
+                                    size="small"
+                                    sx={{ mr: 1 }}
+                                />
+                                <IconButton
+                                    edge="end"
+                                    aria-label="edit"
+                                    onClick={() => handleOpenDialog(rule)}
+                                    sx={{ mr: 1 }}
+                                >
+                                    <EditIcon />
+                                </IconButton>
+                                <IconButton
+                                    edge="end"
+                                    aria-label="delete"
+                                    onClick={() => handleDelete(rule.id)}
+                                >
+                                    <DeleteIcon />
+                                </IconButton>
+                            </ListItemSecondaryAction>
                         </ListItem>
                     ))}
                 </List>
@@ -208,19 +210,23 @@ const RulesManager: React.FC<RulesManagerProps> = ({ tenantId }) => {
                             <InputLabel>Severity</InputLabel>
                             <Select
                                 value={formData.severity}
-                                label="Severity"
                                 onChange={(e) => setFormData({ ...formData, severity: e.target.value as RuleSeverity })}
+                                label="Severity"
                             >
-                                <MenuItem value={RuleSeverity.LOW}>Low</MenuItem>
-                                <MenuItem value={RuleSeverity.MEDIUM}>Medium</MenuItem>
-                                <MenuItem value={RuleSeverity.HIGH}>High</MenuItem>
+                                {Object.values(RuleSeverity).map((severity) => (
+                                    <MenuItem key={severity} value={severity}>
+                                        {severity}
+                                    </MenuItem>
+                                ))}
                             </Select>
                         </FormControl>
                     </Box>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseDialog}>Cancel</Button>
-                    <Button onClick={handleSave} variant="contained">Save</Button>
+                    <Button onClick={handleSubmit} variant="contained">
+                        {editingRule ? 'Update' : 'Create'}
+                    </Button>
                 </DialogActions>
             </Dialog>
         </Box>
