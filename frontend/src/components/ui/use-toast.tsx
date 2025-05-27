@@ -18,6 +18,13 @@ type ToasterToast = ToastProps & {
 const TOAST_LIMIT = 5;
 const TOAST_REMOVE_DELAY = 5000;
 
+type ToastContextType = {
+  toast: (props: ToastProps) => string;
+  dismiss: (id: string) => void;
+};
+
+const ToastContext = React.createContext<ToastContextType | undefined>(undefined);
+
 type ToasterProps = {
   children: React.ReactNode;
 };
@@ -48,34 +55,26 @@ export function ToastProvider({ children }: ToasterProps) {
   };
 
   return (
-    <React.createContext.Provider value={{ toast, dismiss: (id) => setToasts((toasts) => toasts.filter((t) => t.id !== id)) }}>
+    <ToastContext.Provider value={{ toast, dismiss: (id) => setToasts((toasts) => toasts.filter((t) => t.id !== id)) }}>
       {children}
       <div className="fixed top-0 right-0 z-50 flex flex-col gap-2 w-full max-w-sm p-4">
-        {toasts.map((toast) => (
+        {toasts.map((t) => (
           <Toast
-            key={toast.id}
-            title={toast.title}
-            description={toast.description}
-            variant={toast.variant}
-            onDismiss={() => toast.dismiss()}
+            key={t.id}
+            title={t.title}
+            description={t.description}
+            variant={t.variant}
+            onDismiss={() => setToasts((toasts) => toasts.filter((toast) => toast.id !== t.id))}
             className="mb-2"
           />
         ))}
       </div>
-    </React.createContext.Provider>
+    </ToastContext.Provider>
   );
 }
 
 export const useToast = () => {
-  const context = React.useContext(
-    React.createContext<{
-      toast: (props: ToastProps) => string;
-      dismiss: (id: string) => void;
-    }>({
-      toast: () => "",
-      dismiss: () => {},
-    })
-  );
+  const context = React.useContext(ToastContext);
 
   if (!context) {
     throw new Error("useToast must be used within a ToastProvider");

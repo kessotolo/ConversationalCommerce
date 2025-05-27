@@ -73,14 +73,14 @@ const ViolationDashboard: React.FC = () => {
                 const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
                 
                 const [violationsRes, statsRes, trendsRes] = await Promise.all([
-                    axios.get(`${baseUrl}/api/v1/monitoring/violations?tenant_id=${tenantId}&${query}`),
-                    axios.get(`${baseUrl}/api/v1/monitoring/violations/stats?tenant_id=${tenantId}`),
-                    axios.get(`${baseUrl}/api/v1/monitoring/violations/trends?tenant_id=${tenantId}`)
+                    fetch(`${baseUrl}/api/v1/monitoring/violations?tenant_id=${tenantId}&${query}`).then(res => res.json()),
+                    fetch(`${baseUrl}/api/v1/monitoring/violations/stats?tenant_id=${tenantId}`).then(res => res.json()),
+                    fetch(`${baseUrl}/api/v1/monitoring/violations/trends?tenant_id=${tenantId}`).then(res => res.json())
                 ]);
 
-                setViolations(violationsRes.data);
-                setStats(statsRes.data);
-                setTrends(trendsRes.data);
+                setViolations(violationsRes);
+                setStats(statsRes);
+                setTrends(trendsRes);
             } catch (error) {
                 console.error('Error fetching data:', error);
             } finally {
