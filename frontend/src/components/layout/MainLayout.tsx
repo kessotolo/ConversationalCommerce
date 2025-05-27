@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, AppBar, Toolbar, Typography, IconButton, Drawer, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
 import { Menu as MenuIcon, Dashboard, ShoppingCart, People, Settings } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import NotificationCenter from '../monitoring/NotificationCenter';
 
 interface MainLayoutProps {
@@ -10,7 +10,7 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     const [drawerOpen, setDrawerOpen] = React.useState(false);
-    const navigate = useNavigate();
+    const router = useRouter();
 
     const menuItems = [
         { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
@@ -52,7 +52,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                             <ListItem
                                 button
                                 key={item.text}
-                                onClick={() => navigate(item.path)}
+                                onClick={() => router.push(item.path)}
                             >
                                 <ListItemIcon>{item.icon}</ListItemIcon>
                                 <ListItemText primary={item.text} />
