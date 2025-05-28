@@ -1,5 +1,56 @@
 # Backend Service for Conversational Commerce Platform
 
+## 🧠 NLP Capabilities & Requirements (2025-05-28)
+
+The platform includes advanced NLP (Natural Language Processing) capabilities for content analysis, moderation, and user interaction. These features require specific language models to function properly.
+
+### Required NLP Models
+
+- **spaCy Model**: `en_core_web_sm` - Used for entity recognition, part-of-speech tagging, and linguistic analysis
+- **NLTK Data**: Various datasets for tokenization, stopwords, and POS tagging
+- **Detoxify**: For toxicity detection in user-generated content
+
+### Ensuring Full NLP Capabilities
+
+There are several ways to ensure all required NLP models are available:
+
+#### Option 1: Use the Provided Setup Script
+```bash
+# Download all required models and start the application
+./backend/scripts/start_with_nlp.sh
+```
+
+#### Option 2: Download Models Separately
+```bash
+# Just download the required models
+python backend/scripts/download_nlp_models.py
+
+# Then start the application normally
+cd backend && uvicorn app.main:app --reload
+```
+
+#### Option 3: Manual Installation
+```bash
+python -m spacy download en_core_web_sm
+python -m nltk.downloader punkt stopwords averaged_perceptron_tagger
+pip install detoxify
+```
+
+### Troubleshooting
+
+If you encounter NLP-related errors:
+
+1. Verify model installations:
+   ```bash
+   python backend/scripts/download_nlp_models.py --verify
+   ```
+
+2. Check application logs for specific error messages
+
+3. The application will still function with limited NLP capabilities if models cannot be loaded
+
+---
+
 ## 🏪 Multi-Tenant Storefront System (2025-05-28)
 
 The platform now includes a comprehensive multi-tenant storefront infrastructure with advanced caching, custom domain support, and optimized performance. This enables merchants to have fully customized storefronts while maintaining proper tenant isolation and security.

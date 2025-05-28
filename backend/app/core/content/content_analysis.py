@@ -21,21 +21,51 @@ nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('averaged_perceptron_tagger')
 
-# Initialize spaCy model variable
-nlp = None
-
-# Try to load spaCy model with graceful fallback
-try:
-    nlp = spacy.load("en_core_web_sm")
-    logging.info("Successfully loaded spaCy model 'en_core_web_sm'")
-except OSError:
+# SpaCy model initialization with proper error handling
+def initialize_spacy():
+    """Initialize spaCy model with proper error handling and installation attempt"""
+    try:
+        # Try to load the model directly
+        nlp = spacy.load("en_core_web_sm")
+        logging.info("Successfully loaded spaCy model 'en_core_web_sm'")
+        return nlp
+    except OSError:
+        logging.warning("SpaCy model 'en_core_web_sm' not found. Attempting to download...")
+        try:
+            # Try to download the model - proper way using Python API instead of CLI
+            import subprocess
+            import sys
+            
+            logging.info("Downloading spaCy model using subprocess...")
+            result = subprocess.run(
+                [sys.executable, "-m", "spacy", "download", "en_core_web_sm"],
+                capture_output=True,
+                text=True
+            )
+            
+            if result.returncode == 0:
+                logging.info("Successfully downloaded spaCy model. Loading...")
+                nlp = spacy.load("en_core_web_sm")
+                logging.info("Successfully loaded spaCy model after download")
+                return nlp
+            else:
+                logging.error(f"Failed to download spaCy model: {result.stderr}")
+        except Exception as download_error:
+            logging.error(f"Error during spaCy model download: {str(download_error)}")
+    except Exception as e:
+        logging.error(f"Unknown error loading spaCy model: {str(e)}")
+    
     logging.warning(
-        "SpaCy model 'en_core_web_sm' not found. NLP features will be limited.\n"
-        "To install: python -m spacy download en_core_web_sm"
+        "\n==========================================================\n"
+        "IMPORTANT: NLP capabilities will be limited without spaCy model.\n"
+        "To enable full NLP analysis, run the following command:\n"
+        "python backend/scripts/download_nlp_models.py\n"
+        "==========================================================\n"
     )
-except Exception as e:
-    logging.error(f"Error loading spaCy model: {str(e)}")
-    logging.warning("NLP features will be limited due to spaCy model loading error")
+    return None
+
+# Initialize spaCy model
+nlp = initialize_spacy()
 
 logger = logging.getLogger(__name__)
 
