@@ -3,7 +3,7 @@ import time
 import ssl
 import socket
 import asyncio
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional, Tuple, Callable
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp

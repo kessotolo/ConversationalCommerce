@@ -93,7 +93,14 @@ The platform now includes a comprehensive multi-tenant storefront infrastructure
 - **Image Optimization:** Responsive image sizing and transformation system
 - **Variant Handling:** Structured organization of product variants and options
 
-### 5. Error Handling & Security
+### 5. Tenant Theme Configuration System
+
+- **StorefrontTheme Model:** Comprehensive theme model with color schemes, typography, layout settings, and component styles
+- **Theme Variations:** Support for multiple theme variations per tenant (default, dark mode, minimal, etc.)
+- **Theme Preview Mode:** Session-based theme preview capability for testing themes before applying
+- **Theme Application Service:** APIs for creating, updating, and applying themes to storefronts
+
+### 6. Error Handling & Security
 
 - **Custom Error Pages:** Branded error pages for invalid subdomains, inactive tenants, etc.
 - **Domain Security:** Verification of domain ownership and SSL status

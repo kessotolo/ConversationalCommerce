@@ -48,6 +48,41 @@ The platform is designed with a mobile-first approach, recognizing that most use
 
 ## 🔄 Recent Updates
 
+### May 2025: Multi-Tenant Storefront System
+- **Complete Storefront Infrastructure**:
+  - Multi-tenant storefront with subdomain support (`tenant.domain.com`) and custom domain verification
+  - Tenant isolation with PostgreSQL Row-Level Security (RLS)
+  - Redis-based caching layer with performance optimization
+  - Comprehensive error handling with custom error pages
+
+- **Domain Verification System**:
+  - DNS verification for custom domains with TXT record validation
+  - SSL certificate verification and monitoring
+  - Automated background verification service
+  
+- **Storefront Content API**:
+  - Tenant-aware endpoints with proper caching headers
+  - Featured products, categories, and navigation menus
+  - Product catalog with advanced filtering and pagination
+  - Search functionality with NLP-enhanced results
+
+- **Robust NLP Capabilities**:
+  - Advanced content analysis using spaCy and NLTK
+  - Graceful fallback mechanisms for missing models
+  - Dedicated model download script with verification
+  - Startup script to ensure models are available
+
+```bash
+# Install NLP models automatically
+./backend/scripts/download_nlp_models.py
+
+# Verify NLP model installation
+./backend/scripts/download_nlp_models.py --verify
+
+# Start application with NLP support
+./backend/scripts/start_with_nlp.sh
+```
+
 ### May 2025: Enhanced Sharing Features
 - **WhatsApp Share Link Generator**:
   - Secure share link generation with UTM tracking

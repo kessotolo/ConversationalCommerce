@@ -74,7 +74,7 @@ def get_tenant_context(request: Request) -> Dict[str, Any]:
     }
 
 
-def get_current_tenant_id(request: Request = Depends()) -> uuid.UUID:
+def get_current_tenant_id(request: Request) -> uuid.UUID:
     """
     Get the current tenant ID from the request context.
     Raises an HTTPException if no tenant context is found.
