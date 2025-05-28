@@ -333,7 +333,7 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
             </Box>
             
             <Grid container spacing={2}>
-              <Grid item xs={6}>
+              <Grid sx={{ display: 'flex', flexDirection: 'column' }}>
                 <Typography variant="body2">QR Code Size:</Typography>
                 <ButtonGroup size="small" sx={{ mt: 1 }}>
                   {[6, 10, 14].map(size => (
@@ -348,7 +348,7 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
                 </ButtonGroup>
               </Grid>
               
-              <Grid item xs={6}>
+              <Grid sx={{ display: 'flex', flexDirection: 'column' }}>
                 <Typography variant="body2">Include Logo:</Typography>
                 <ButtonGroup size="small" sx={{ mt: 1 }}>
                   <Button 
@@ -432,7 +432,7 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
             {activeDialog === 'all' ? (
               <Grid container spacing={2} sx={{ mt: 1 }}>
                 {platforms.map(platform => (
-                  <Grid item xs={6} sm={4} key={platform.id}>
+                  <Grid sx={{ display: 'flex', flexDirection: 'column' }} key={platform.id}>
                     <Card 
                       variant="outlined" 
                       sx={{ 
@@ -480,7 +480,7 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
       
       <Grid container spacing={2}>
         {platforms.map(platform => (
-          <Grid item xs={6} sm={4} md={3} key={platform.id}>
+          <Grid sx={{ display: 'flex', flexDirection: 'column' }} key={platform.id}>
             <Button
               variant="outlined"
               startIcon={platform.icon}
@@ -519,7 +519,7 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
           {activeDialog === 'all' ? (
             <Grid container spacing={2} sx={{ mt: 1 }}>
               {platforms.map(platform => (
-                <Grid item xs={6} sm={4} key={platform.id}>
+                <Grid sx={{ display: 'flex', flexDirection: 'column' }} key={platform.id}>
                   <Card 
                     variant="outlined" 
                     sx={{ 
