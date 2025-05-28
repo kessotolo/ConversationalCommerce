@@ -48,6 +48,64 @@ The platform is designed with a mobile-first approach, recognizing that most use
 
 ## 🔄 Recent Updates
 
+### May 2025: Enhanced Sharing Features
+- **WhatsApp Share Link Generator**:
+  - Secure share link generation with UTM tracking
+  - Tenant verification requirement
+  - Share event logging for analytics
+  - Campaign, source, and medium tracking
+  - Storefront URL integration
+
+  **API Endpoint:**
+  ```http
+  GET /api/v1/share/whatsapp-link?product_id=PRODUCT_ID&campaign=CAMPAIGN&source=SOURCE&medium=MEDIUM
+  ```
+  **Query Parameters:**
+  - `product_id` (required): The product to share
+  - `campaign` (optional): UTM campaign name
+  - `source` (optional): UTM source (e.g., whatsapp)
+  - `medium` (optional): UTM medium (e.g., share)
+
+  **Example Usage:**
+  ```http
+  GET /api/v1/share/whatsapp-link?product_id=123&campaign=launch&source=whatsapp&medium=share
+  ```
+  **Response:**
+  ```json
+  {
+    "whatsapp_link": "https://wa.me/?text=Check%20out%20this%20product%3A%20https%3A%2F%2Fstorefront.com%2Fp%2F123%3Futm_campaign%3Dlaunch%26utm_source%3Dwhatsapp%26utm_medium%3Dshare"
+  }
+  ```
+
+- **QR Code Generator**:
+  - Customizable QR code sizes
+  - Tenant verification requirement
+  - Event logging for tracking
+  - Storefront URL integration
+  - Secure link generation
+
+  **API Endpoint:**
+  ```http
+  GET /api/v1/share/qr-code?product_id=PRODUCT_ID&size=SIZE
+  ```
+  **Query Parameters:**
+  - `product_id` (required): The product to generate a QR code for
+  - `size` (optional): Size of the QR code in pixels (default: 256)
+
+  **Example Usage:**
+  ```http
+  GET /api/v1/share/qr-code?product_id=123&size=300
+  ```
+  **Response:**
+  - Returns a PNG image of the QR code for the product share link
+
+- **Share Service Layer**:
+  - Centralized share functionality
+  - Tenant isolation
+  - Comprehensive error handling
+  - Audit logging integration
+  - Rate limiting support
+
 ### May 2025: Multi-Platform Social Sharing
 - **Cross-Platform Social Features**: Added comprehensive sharing capabilities for products
   - WhatsApp sharing with direct messaging and UTM tracking
@@ -65,6 +123,9 @@ The platform is designed with a mobile-first approach, recognizing that most use
   - Copy functionality for links and captions
   - Customizable QR code generation
   - Complete error handling
+  - Optimized for Vercel deployment with compatible lucide-react icons
+  - TypeScript-compatible with proper type checking
+  - Responsive design for mobile and desktop views
 
 ### May 2025: Next.js and Material UI v7 Compatibility
 - **Material UI v7 Integration**: Updated components to use the latest Material UI v7 API
