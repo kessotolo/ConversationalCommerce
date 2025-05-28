@@ -48,5 +48,8 @@ class Tenant(Base):
     # Relationship for violations
     violations = relationship("Violation", back_populates="tenant")
     
+    # Relationship for complaints
+    complaints = relationship("Complaint", back_populates="tenant")
+    
     # Relationship for storefront
     storefront_config = relationship("StorefrontConfig", back_populates="tenant", uselist=False, cascade="all, delete-orphan")

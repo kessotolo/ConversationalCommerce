@@ -41,21 +41,39 @@ class RedisCache:
             # Get Redis settings from environment
             redis_url = settings.REDIS_URL if hasattr(settings, "REDIS_URL") else "redis://localhost:6379/0"
             
-            # Create Redis client
+            # Check if REDIS_DISABLED is set
+            redis_disabled = getattr(settings, "REDIS_DISABLED", False)
+            if redis_disabled:
+                logger.info("Redis cache is disabled by configuration")
+                self._initialized = False
+                return
+                
+            # Create Redis client with timeout
             self._redis_client = redis.from_url(
                 redis_url, 
                 encoding="utf-8", 
-                decode_responses=True
+                decode_responses=True,
+                socket_connect_timeout=3.0,  # 3 second timeout for connection
+                socket_keepalive=True
             )
             
-            # Test connection
-            await self._redis_client.ping()
-            logger.info("Redis cache initialized successfully")
-            
-            self._initialized = True
+            try:
+                # Test connection with timeout
+                await asyncio.wait_for(self._redis_client.ping(), timeout=2.0)
+                logger.info("Redis cache initialized successfully")
+                self._initialized = True
+            except asyncio.TimeoutError:
+                logger.warning("Redis connection timed out - continuing without cache")
+                self._initialized = False
+                self._redis_client = None
+            except Exception as e:
+                logger.warning(f"Redis ping failed - continuing without cache: {str(e)}")
+                self._initialized = False
+                self._redis_client = None
         except Exception as e:
-            logger.error(f"Failed to initialize Redis cache: {str(e)}")
+            logger.warning(f"Failed to initialize Redis cache - continuing without cache: {str(e)}")
             self._initialized = False
+            self._redis_client = None
     
     @property
     def is_available(self) -> bool:
