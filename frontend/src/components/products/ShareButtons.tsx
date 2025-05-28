@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 import {
-  WhatsApp as WhatsAppIcon,
-  Facebook as FacebookIcon,
-  Twitter as TwitterIcon,
-  Telegram as TelegramIcon,
-  Instagram as InstagramIcon,
-  TikTok as TikTokIcon,
-  QrCode as QrCodeIcon,
-  Share as ShareIcon,
-  Copy as CopyIcon,
-  Check as CheckIcon
+  MessageCircle,
+  Facebook,
+  Twitter,
+  Send,
+  Camera,
+  Share2,
+  QrCode,
+  Copy,
+  Check
 } from 'lucide-react';
 import {
   Button,
@@ -29,12 +28,11 @@ import {
   Grid,
   Snackbar
 } from '@mui/material';
-import Image from 'next/image';
 
-// Define icons for platforms that aren't in lucide-react
+// Custom TikTok icon
 const TikTokIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M19.321 7.40997C17.9076 7.40997 16.6331 6.87341 15.6826 5.97845C14.732 5.08349 14.1666 3.88213 14.1666 2.54913H10.4786V15.0366C10.4786 15.3333 10.4137 15.6269 10.2878 15.8981C10.1619 16.1693 9.97787 16.4119 9.74742 16.6101C9.51697 16.8082 9.24817 16.9575 8.95846 17.0483C8.66874 17.1392 8.36425 17.1696 8.0624 17.1376C7.76055 17.1056 7.46899 17.0118 7.20642 16.8619C6.94385 16.7119 6.71628 16.5088 6.53982 16.2657C6.36335 16.0225 6.24248 15.7448 6.18641 15.453C6.13035 15.1612 6.14043 14.8614 6.21591 14.5739C6.2914 14.2864 6.43042 14.0176 6.62362 13.7851C6.81682 13.5526 7.06006 13.3612 7.33608 13.2229C7.6121 13.0846 7.91402 13.0018 8.22336 12.9797C8.5327 12.9576 8.84395 12.9967 9.13767 13.095L9.13767 9.67C8.52493 9.55689 7.89403 9.58256 7.29282 9.74544C6.69161 9.90833 6.13587 10.2043 5.66449 10.6126C5.1931 11.0209 4.81769 11.5316 4.5648 12.105C4.31191 12.6783 4.18828 13.2996 4.20288 13.9253C4.21747 14.551 4.37002 15.1661 4.65029 15.7278C4.93056 16.2895 5.33035 16.7831 5.82213 17.1702C6.31391 17.5574 6.88511 17.8285 7.49538 17.9645C8.10565 18.1005 8.7396 18.0982 9.34841 17.9577C9.95722 17.8172 10.5263 17.5418 11.015 17.1511C11.5037 16.7603 11.8995 16.2638 12.1751 15.7003C12.4507 15.1368 12.5982 14.5207 12.6075 13.8949V8.3685C13.4514 9.01209 14.4353 9.41855 15.47 9.54998C16.5047 9.68141 17.5537 9.53391 18.5117 9.12139V5.72137C18.1139 5.82365 17.701 5.86045 17.2917 5.83044C16.6319 5.77941 16.0009 5.56104 15.4661 5.19994C14.9314 4.83885 14.5133 4.34809 14.2563 3.7809C14.2563 3.7809 14.6233 7.40997 19.321 7.40997Z" fill="currentColor"/>
+    <path d="M19.321 7.40997C17.9076 7.40997 16.6331 6.87341 15.6826 5.97845C14.732 5.08349 14.1666 3.88213 14.1666 2.54913H10.4786V15.0366C10.4786 15.3333 10.4137 15.6269 10.2878 15.8981C10.1619 16.1693 9.97787 16.4119 9.74742 16.6101C9.51697 16.8082 9.24817 16.9575 8.95846 17.0483C8.66874 17.1392 8.36425 17.1696 8.0624 17.1376C7.76055 17.1056 7.46899 17.0118 7.20642 16.8619C6.94385 16.7119 6.71628 16.5088 6.53982 16.2657C6.36335 16.0225 6.24248 15.7448 6.18641 15.453C6.13035 15.1612 6.14043 14.8614 6.21591 14.5739C6.2914 14.2864 6.43042 14.0176 6.62362 13.7851C6.81682 13.5526 7.06006 13.3612 7.33608 13.2229C7.6121 13.0846 7.91402 13.0018 8.22336 12.9797C8.5327 12.9576 8.84395 12.9967 9.13767 13.095V9.67C8.52493 9.55689 7.89403 9.58256 7.29282 9.74544C6.69161 9.90833 6.13587 10.2043 5.66449 10.6126C5.1931 11.0209 4.81769 11.5316 4.5648 12.105C4.31191 12.6783 4.18828 13.2996 4.20288 13.9253C4.21747 14.551 4.37002 15.1661 4.65029 15.7278C4.93056 16.2895 5.33035 16.7831 5.82213 17.1702C6.31391 17.5574 6.88511 17.8285 7.49538 17.9645C8.10565 18.1005 8.7396 18.0982 9.34841 17.9577C9.95722 17.8172 10.5263 17.5418 11.015 17.1511C11.5037 16.7603 11.8995 16.2638 12.1751 15.7003C12.4507 15.1368 12.5982 14.5207 12.6075 13.8949V8.3685C13.4514 9.01209 14.4353 9.41855 15.47 9.54998C16.5047 9.68141 17.5537 9.53391 18.5117 9.12139V5.72137C18.1139 5.82365 17.701 5.86045 17.2917 5.83044C16.6319 5.77941 16.0009 5.56104 15.4661 5.19994C14.9314 4.83885 14.5133 4.34809 14.2563 3.7809C14.2563 3.7809 14.6233 7.40997 19.321 7.40997Z" fill="currentColor"/>
   </svg>
 );
 
@@ -73,28 +71,28 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
     {
       id: 'whatsapp',
       name: 'WhatsApp',
-      icon: <WhatsAppIcon />,
+      icon: <MessageCircle />,
       color: '#25D366',
       endpoint: '/api/v1/share/whatsapp-link'
     },
     {
       id: 'facebook',
       name: 'Facebook',
-      icon: <FacebookIcon />,
+      icon: <Facebook />,
       color: '#1877F2',
       endpoint: '/api/v1/share/facebook-link'
     },
     {
       id: 'twitter',
       name: 'Twitter',
-      icon: <TwitterIcon />,
+      icon: <Twitter />,
       color: '#1DA1F2',
       endpoint: '/api/v1/share/twitter-link'
     },
     {
       id: 'instagram',
       name: 'Instagram',
-      icon: <InstagramIcon />,
+      icon: <Camera />,
       color: '#E4405F',
       endpoint: '/api/v1/share/instagram-share'
     },
@@ -108,14 +106,14 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
     {
       id: 'telegram',
       name: 'Telegram',
-      icon: <TelegramIcon />,
+      icon: <Send />,
       color: '#0088cc',
       endpoint: '/api/v1/share/telegram-link'
     },
     {
       id: 'qr-code',
       name: 'QR Code',
-      icon: <QrCodeIcon />,
+      icon: <QrCode />,
       color: '#555555',
       endpoint: '/api/v1/share/qr-code'
     }
@@ -217,42 +215,47 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
             <Button 
               variant="contained" 
               color="primary" 
-              href={data.link} 
+              href={data?.link || "#"} 
               target="_blank"
               startIcon={platforms.find(p => p.id === platformId)?.icon}
               sx={{ mb: 2 }}
+              disabled={!data?.link}
             >
               Open in {platforms.find(p => p.id === platformId)?.name}
             </Button>
             
-            <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
-              Or copy this link:
-            </Typography>
-            
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-              <Typography
-                variant="body2"
-                sx={{
-                  p: 1,
-                  bgcolor: 'background.paper',
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: 1,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  maxWidth: '300px'
-                }}
-              >
-                {data.link}
-              </Typography>
-              <IconButton 
-                onClick={() => copyToClipboard(data.link)}
-                color="primary"
-                size="small"
-              >
-                {copySuccess ? <CheckIcon size={18} /> : <CopyIcon size={18} />}
-              </IconButton>
-            </Box>
+            {data?.link && (
+              <>
+                <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
+                  Or copy this link:
+                </Typography>
+                
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      p: 1,
+                      bgcolor: 'background.paper',
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      borderRadius: 1,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      maxWidth: '300px'
+                    }}
+                  >
+                    {data.link}
+                  </Typography>
+                  <IconButton 
+                    onClick={() => copyToClipboard(data.link || "")}
+                    color="primary"
+                    size="small"
+                  >
+                    {copySuccess ? <Check size={18} /> : <Copy size={18} />}
+                  </IconButton>
+                </Box>
+              </>
+            )}
           </Box>
         );
         
@@ -260,7 +263,7 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
       case 'tiktok':
         return (
           <Box sx={{ textAlign: 'center' }}>
-            {data.profile_link && (
+            {data?.profile_link && (
               <Button 
                 variant="contained" 
                 color="primary" 
@@ -273,7 +276,7 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
               </Button>
             )}
             
-            {data.caption && (
+            {data?.caption && (
               <>
                 <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
                   Caption for your post:
@@ -296,17 +299,19 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
                     size="small"
                     sx={{ position: 'absolute', top: 8, right: 8 }}
                   >
-                    {copySuccess ? <CheckIcon size={18} /> : <CopyIcon size={18} />}
+                    {copySuccess ? <Check size={18} /> : <Copy size={18} />}
                   </IconButton>
                 </Box>
               </>
             )}
             
-            <Alert severity="info" sx={{ mt: 2, textAlign: 'left' }}>
-              <Typography variant="body2">
-                {data.instructions}
-              </Typography>
-            </Alert>
+            {data?.instructions && (
+              <Alert severity="info" sx={{ mt: 2, textAlign: 'left' }}>
+                <Typography variant="body2">
+                  {data.instructions}
+                </Typography>
+              </Alert>
+            )}
           </Box>
         );
         
@@ -327,7 +332,7 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
               />
             </Box>
             
-            <Grid container spacing={2} alignItems="center">
+            <Grid container spacing={2}>
               <Grid item xs={6}>
                 <Typography variant="body2">QR Code Size:</Typography>
                 <ButtonGroup size="small" sx={{ mt: 1 }}>
@@ -407,7 +412,7 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
             }}
             disabled={loading}
           >
-            <ShareIcon />
+            <Share2 />
           </IconButton>
         </ButtonGroup>
 
