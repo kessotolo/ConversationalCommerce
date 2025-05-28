@@ -21,13 +21,21 @@ nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('averaged_perceptron_tagger')
 
-# Load spaCy model
+# Initialize spaCy model variable
+nlp = None
+
+# Try to load spaCy model with graceful fallback
 try:
     nlp = spacy.load("en_core_web_sm")
+    logging.info("Successfully loaded spaCy model 'en_core_web_sm'")
 except OSError:
-    logging.warning("Downloading spaCy model...")
-    spacy.cli.download("en_core_web_sm")
-    nlp = spacy.load("en_core_web_sm")
+    logging.warning(
+        "SpaCy model 'en_core_web_sm' not found. NLP features will be limited.\n"
+        "To install: python -m spacy download en_core_web_sm"
+    )
+except Exception as e:
+    logging.error(f"Error loading spaCy model: {str(e)}")
+    logging.warning("NLP features will be limited due to spaCy model loading error")
 
 logger = logging.getLogger(__name__)
 
@@ -130,15 +138,26 @@ class ContentAnalysisService:
         value: str
     ) -> Dict[str, Any]:
         """Perform the specified type of analysis on the content"""
-        if analysis_type == 'text':
-            return self._analyze_text(content, value)
-        elif analysis_type == 'sentiment':
-            return self._analyze_sentiment(content)
-        elif analysis_type == 'language':
-            return self._analyze_language(content)
-        elif analysis_type == 'toxicity':
-            return self._analyze_toxicity(content)
-        return {}
+        try:
+            if analysis_type == 'contains':
+                return self._analyze_text(content, value)
+            elif analysis_type == 'regex':
+                return self._analyze_text(content, f"/{value}/")
+            elif analysis_type == 'sentiment':
+                return self._analyze_sentiment(content)
+            elif analysis_type == 'language':
+                result = self._analyze_language(content)
+                # If analysis was limited due to missing spaCy, log it
+                if result.get('limited_analysis'):
+                    logger.info(f"Performed limited language analysis due to missing spaCy model")
+                return result
+            elif analysis_type == 'toxicity':
+                return self._analyze_toxicity(content)
+            else:
+                return {'error': f'Unknown analysis type: {analysis_type}'}
+        except Exception as e:
+            logger.error(f"Error performing {analysis_type} analysis: {str(e)}")
+            return {'error': f"Analysis failed: {str(e)}", 'analysis_type': analysis_type}
 
     def _analyze_text(self, content: str, pattern: str) -> Dict[str, Any]:
         """Analyze text content for patterns"""
@@ -180,6 +199,23 @@ class ContentAnalysisService:
 
     def _analyze_language(self, content: str) -> Dict[str, Any]:
         """Analyze language and linguistic features"""
+        # If spaCy model is not available, use basic analysis instead
+        if nlp is None:
+            logger.warning("SpaCy model not available for language analysis, using basic analysis")
+            # Fallback to basic TextBlob analysis
+            try:
+                blob = TextBlob(content)
+                return {
+                    'entities': [],  # Empty as we can't do NER without spaCy
+                    'noun_phrases': blob.noun_phrases,  # TextBlob can extract some noun phrases
+                    'pos_tags': blob.tags,  # TextBlob provides basic POS tagging
+                    'limited_analysis': True  # Flag indicating limited analysis
+                }
+            except Exception as e:
+                logger.error(f"Error in fallback language analysis: {str(e)}")
+                return {'error': str(e), 'limited_analysis': True}
+        
+        # If spaCy is available, use full analysis
         try:
             doc = nlp(content)
             return {
