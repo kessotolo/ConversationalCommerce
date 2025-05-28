@@ -43,3 +43,6 @@ class Product(Base):
     is_featured = Column(Boolean, default=False)
     # Version column for optimistic locking - prevents concurrent modifications
     version = Column(Integer, default=0, nullable=False)
+    
+    # Relationships
+    complaints = relationship("Complaint", back_populates="product")

@@ -74,3 +74,6 @@ class Order(Base):
 
     # Version column for optimistic locking - prevents concurrent modifications
     version = Column(Integer, default=0, nullable=False)
+    
+    # Relationships
+    complaints = relationship("Complaint", back_populates="order")

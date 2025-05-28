@@ -19,3 +19,4 @@ class User(Base):
     violations = relationship("Violation", back_populates="user", foreign_keys="[Violation.user_id]")
     reviewed_pattern_detections = relationship("PatternDetection", back_populates="reviewer", foreign_keys="[PatternDetection.reviewed_by]")
     reviewed_content_analyses = relationship("ContentAnalysisResult", back_populates="reviewer", foreign_keys="[ContentAnalysisResult.reviewed_by]")
+    complaints = relationship("Complaint", back_populates="user")
