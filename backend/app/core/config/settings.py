@@ -29,6 +29,16 @@ class Settings(BaseSettings):
     TWILIO_ACCOUNT_SID: str
     TWILIO_AUTH_TOKEN: str
     TWILIO_PHONE_NUMBER: str
+    
+    # Storefront Settings
+    BASE_DOMAIN: str = "localhost"
+    ENABLE_STOREFRONT: bool = True
+    SUBDOMAIN_SEPARATOR: str = "."  # How subdomains are separated in local dev
+    
+    # Redis and Caching Settings
+    REDIS_URL: str = "redis://localhost:6379/0"
+    ENABLE_CACHE: bool = True
+    CACHE_EXPIRATION: int = 300  # Default cache expiration in seconds
     TWILIO_WHATSAPP_FROM: str = ""  # WhatsApp number with country code (no +)
 
     # CORS

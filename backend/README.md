@@ -1,5 +1,54 @@
 # Backend Service for Conversational Commerce Platform
 
+## 🏪 Multi-Tenant Storefront System (2025-05-28)
+
+The platform now includes a comprehensive multi-tenant storefront infrastructure with advanced caching, custom domain support, and optimized performance. This enables merchants to have fully customized storefronts while maintaining proper tenant isolation and security.
+
+### 1. Multi-Tenant Storefront Architecture
+
+- **Tenant-Specific Storefronts:** Each tenant gets a unique storefront with customizable subdomains and custom domains
+- **Subdomain Resolution:** Automatic tenant detection via subdomain or custom domain with proper tenant isolation
+- **Domain Verification:** DNS-based ownership verification and SSL certificate validation for custom domains
+- **Custom Themes & Layouts:** Tenant-specific themes, layouts, and branding capabilities
+
+### 2. Redis-Based Caching Layer
+
+- **Tenant-Isolated Cache:** All cached data is properly isolated by tenant to prevent data leakage
+- **Multi-Level Caching Strategy:**
+  - Short-term caching (5 min) for frequently changing content (products)
+  - Medium-term caching (1 hour) for occasionally changing content (categories, navigation)
+  - Long-term caching (2+ hours) for rarely changing content (layout, metadata)
+- **Intelligent Cache Invalidation:** Targeted invalidation when products or configuration changes
+- **ETag Support:** Optimized responses with ETag-based conditional requests to reduce bandwidth
+
+### 3. Storefront Content API
+
+- **Complete RESTful API:** Comprehensive endpoints for all storefront content needs
+- **Performance Optimization:** Cache headers, ETags, and conditional responses
+- **Content Types:**
+  - Storefront metadata and SEO information
+  - Layout configuration
+  - Navigation menus
+  - Featured products
+  - Category listings
+  - Product details with variants
+  - Related and recommended products
+  - Search functionality
+
+### 4. Product Catalog System
+
+- **Advanced Filtering:** Categories, collections, tags, price ranges
+- **Optimized Pagination:** Efficient database queries for large catalogs
+- **Image Optimization:** Responsive image sizing and transformation system
+- **Variant Handling:** Structured organization of product variants and options
+
+### 5. Error Handling & Security
+
+- **Custom Error Pages:** Branded error pages for invalid subdomains, inactive tenants, etc.
+- **Domain Security:** Verification of domain ownership and SSL status
+- **Progressive Rate Limiting:** Tenant-specific API rate limits and fair usage policies
+- **Tenant Isolation:** Strict tenant boundary enforcement at all layers
+
 ## 🚀 Monitoring, Moderation, Enforcement & Dashboard System (2024-03-21)
 
 This platform now includes a robust, extensible, and modern system for real-time monitoring, content moderation, behavior analysis, progressive enforcement, and staff review. Key features:

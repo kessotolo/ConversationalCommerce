@@ -4,7 +4,11 @@ from app.api.v1.api import api_router
 from app.core.config.settings import Settings, get_settings
 from app.core.middleware.rate_limit import RateLimitMiddleware
 from app.core.middleware.activity_tracker import ActivityTrackerMiddleware
+from app.middleware.subdomain_middleware import SubdomainMiddleware
+from app.middleware.domain_verification import DomainVerificationMiddleware, verification_service
 from app.core.errors.exception_handlers import register_exception_handlers
+from app.middleware.storefront_errors import StorefrontError, handle_storefront_error
+from app.core.cache.redis_cache import redis_cache
 from starlette.middleware.base import BaseHTTPMiddleware
 from dotenv import load_dotenv
 from pathlib import Path
@@ -110,17 +114,44 @@ class TenantMiddleware(BaseHTTPMiddleware):
         return any(path == public_path or path.startswith(f"{public_path}/") for public_path in public_paths)
 
 
+async def initialize_cache():
+    """Initialize Redis cache on startup."""
+    logger.info("Initializing Redis cache...")
+    await redis_cache.initialize()
+    logger.info(f"Redis cache initialized. Available: {redis_cache.is_available}")
+
+
+async def start_domain_verification():
+    """Start domain verification service on startup."""
+    logger.info("Starting domain verification service...")
+    await verification_service.start()
+    logger.info("Domain verification service started")
+
+
+async def stop_domain_verification():
+    """Stop domain verification service on shutdown."""
+    logger.info("Stopping domain verification service...")
+    await verification_service.stop()
+    logger.info("Domain verification service stopped")
+
+
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
     app = FastAPI(
         title=settings.PROJECT_NAME,
         openapi_url=f"{settings.API_V1_STR}/openapi.json",
         # Add debug flag based on environment
-        debug=(settings.ENVIRONMENT != "production")
+        debug=(settings.ENVIRONMENT != "production"),
+        # Add event handlers for startup and shutdown
+        on_startup=[initialize_cache, start_domain_verification],
+        on_shutdown=[stop_domain_verification]
     )
 
     # Register exception handlers
     register_exception_handlers(app)
+    
+    # Register storefront error handler
+    app.add_exception_handler(StorefrontError, handle_storefront_error)
 
     # Add request timing middleware
     app.add_middleware(RequestTimingMiddleware)
@@ -143,6 +174,19 @@ def create_app() -> FastAPI:
 
     # Add tenant middleware
     app.add_middleware(TenantMiddleware)
+    
+    # Add domain verification middleware
+    app.add_middleware(
+        DomainVerificationMiddleware,
+        exclude_paths=["/api/", "/admin/", "/_next/", "/static/", "/docs/", "/redoc/"]
+    )
+    
+    # Add subdomain resolution middleware for multi-tenant storefronts
+    app.add_middleware(
+        SubdomainMiddleware,
+        base_domain=settings.BASE_DOMAIN if hasattr(settings, 'BASE_DOMAIN') else "example.com",
+        exclude_paths=["/api/", "/admin/", "/_next/", "/static/", "/docs/", "/redoc/"]
+    )
 
     # Set up CORS
     app.add_middleware(

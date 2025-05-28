@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, BigInteger
+from sqlalchemy import Column, String, Integer, BigInteger, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.db.base_class import Base
@@ -9,6 +9,9 @@ class Tenant(Base):
     __tablename__ = "tenants"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String, unique=True, nullable=False)
+    
+    # Storefront settings
+    storefront_enabled = Column(Boolean, default=True, nullable=False)
 
     # Rate limiting quotas
     requests_per_minute = Column(Integer, default=60, nullable=False)
@@ -44,3 +47,6 @@ class Tenant(Base):
     
     # Relationship for violations
     violations = relationship("Violation", back_populates="tenant")
+    
+    # Relationship for storefront
+    storefront_config = relationship("StorefrontConfig", back_populates="tenant", uselist=False, cascade="all, delete-orphan")

@@ -45,5 +45,11 @@ nltk==3.8.1
 detoxify==0.5.2
 spacy==3.7.0
 
+# Redis and Caching
+redis==5.0.1
+fastapi-cache2==0.2.1
+async-timeout==4.0.3
+dnspython==2.4.2
+
 # Testing
 pytest-cov==4.1.0
