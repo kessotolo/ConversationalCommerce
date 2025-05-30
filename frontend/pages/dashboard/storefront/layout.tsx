@@ -3,11 +3,26 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { useTheme } from '@/contexts/ThemeContext';
 import StorefrontLinks from '@/components/dashboard/StorefrontLinks';
 import Link from 'next/link';
-import { ChevronLeft, Save, Layout as LayoutIcon, Eye, DragDropIcon, ArrowUpDown, Columns, Rows } from 'lucide-react';
+import { ChevronLeft, Save, Layout as LayoutIcon, Eye, ArrowUpDown, Columns, Rows } from 'lucide-react';
 
 // Create a custom DragDropIcon since it's not in lucide-react
-const DragDropIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+interface DragDropIconProps {
+  className?: string;
+}
+
+const DragDropIcon: React.FC<DragDropIconProps> = ({ className }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    width="24" 
+    height="24" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round"
+    className={className}
+  >
     <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
     <rect x="9" y="3" width="6" height="4" rx="1" />
     <path d="M12 12v6" />
@@ -34,7 +49,7 @@ function LayoutCustomizationContent() {
     return <div className="p-6">Loading layout information...</div>;
   }
 
-  const moveSection = (id, direction) => {
+  const moveSection = (id: string, direction: 'up' | 'down') => {
     const newSections = [...sections];
     const index = newSections.findIndex(section => section.id === id);
     
@@ -73,7 +88,7 @@ function LayoutCustomizationContent() {
     setSections(newSections);
   };
 
-  const toggleSection = (id) => {
+  const toggleSection = (id: string) => {
     // Don't allow disabling header or footer
     if (id === 'header' || id === 'footer') return;
     
