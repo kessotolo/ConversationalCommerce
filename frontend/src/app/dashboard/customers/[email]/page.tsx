@@ -10,13 +10,9 @@ const mockOrders = [
     { id: '3', customerName: 'John Doe', email: 'john@example.com', phone: '+234 123 456 7890', amount: 210.75, date: '2025-05-23T09:15:00' },
 ];
 
-interface CustomerDetailPageProps {
-    params: {
-        email: string;
-    }
-}
-
-export default function CustomerDetailPage({ params }: CustomerDetailPageProps) {
+export default async function CustomerDetailPage(
+    { params }: { params: { email: string } }
+) {
     const email = decodeURIComponent(params.email);
     const customerOrders = mockOrders.filter(o => o.email === email);
     if (customerOrders.length === 0) {
