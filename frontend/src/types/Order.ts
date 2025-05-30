@@ -1,10 +1,8 @@
-import * as React from 'react';
-// @ts-nocheck
-// DO NOT MODIFY: This file is manually maintained
 // Order type definitions
+// Using UUID type for ID fields as per project standardization
 
 export interface OrderItem {
-  id: string;
+  id: string; // UUID
   productName: string;
   quantity: number;
   price: number;
@@ -23,7 +21,7 @@ export interface Customer {
 export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 
 export interface Order {
-  id: string;
+  id: string; // UUID
   customer: Customer;
   items: OrderItem[];
   total: number;

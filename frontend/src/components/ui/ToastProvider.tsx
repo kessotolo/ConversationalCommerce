@@ -1,13 +1,13 @@
 import * as React from 'react';
-import { ToastContext, ToastContextType } from '@/components/ui/ToastProvider';import { React } from 'react';import React, { createContext, useState, useContext } from 'react';
-import { Toast, ToastProps } from './toast';
+import { createContext, useState, useContext } from 'react';
+import { Toast, ToastProps } from './Toast';
 
-type ToastContextType = {
+export type ToastContextType = {
   toast: (props: ToastProps) => void;
   dismiss: (id: string) => void;
 };
 
-const ToastContext = createContext<ToastContextType>({
+export const ToastContext = createContext<ToastContextType>({
   toast: () => {},
   dismiss: () => {},
 });

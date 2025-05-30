@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { ThemeContext, ThemeContextType } from '@/contexts/ThemeContext';
-import { TenantContext } from '@/contexts/TenantContext';import { React } from 'react';import { ThemeProviderProps } from '@/components/ThemeProvider';import { Check } from 'lucide-react';
-import { Theme } from '../types/theme';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { TenantContext } from '@/contexts/TenantContext';
+import { Theme } from '../types/Theme';
 import { useTenant } from './TenantContext';
 import { defaultTheme } from '../utils/defaultTheme';
 
-interface ThemeContextType {
+export interface ThemeContextType {
   theme: Theme;
   isLoading: boolean;
   error: Error | null;
@@ -16,7 +16,7 @@ interface ThemeContextType {
   availableThemes?: Theme[];
 }
 
-const ThemeContext = createContext<ThemeContextType>({
+export const ThemeContext = createContext<ThemeContextType>({
   theme: defaultTheme,
   isLoading: true,
   error: null,
@@ -27,7 +27,7 @@ const ThemeContext = createContext<ThemeContextType>({
   availableThemes: [],
 });
 
-interface ThemeProviderProps {
+export interface ThemeProviderProps {
   children: React.ReactNode;
 }
 

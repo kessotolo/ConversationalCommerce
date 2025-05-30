@@ -1,17 +1,15 @@
-import * as React from 'react';
-// @ts-nocheck
-// DO NOT MODIFY: This file is manually maintained
 // Notification type definitions
+// Using UUID type for ID fields as per project standardization
 
 export interface Notification {
-  id: string;
+  id: string; // UUID
   type: 'info' | 'success' | 'warning' | 'error';
   title: string;
   message: string;
   read: boolean;
   createdAt: string;
   link?: string;
-  relatedEntityId?: string;
+  relatedEntityId?: string; // UUID if present
   relatedEntityType?: 'order' | 'product' | 'customer' | 'message';
 }
 

@@ -1,7 +1,5 @@
 import * as React from 'react';
-import { ToastContext, ToastContextType } from '@/components/ui/ToastProvider';
-import { ToasterToast } from '@/components/ui/use-toast';
-import { Toast, ToastProps } from "./toast";
+import { Toast, ToastProps } from "./Toast";
 
 type ToastActionElement = React.ReactElement;
 
@@ -10,7 +8,7 @@ export type ToastType = ToastProps & {
   dismiss: () => void;
 };
 
-type ToasterToast = ToastProps & {
+export type ToasterToast = ToastProps & {
   id: string;
   title?: React.ReactNode;
   description?: React.ReactNode;
@@ -20,12 +18,12 @@ type ToasterToast = ToastProps & {
 const TOAST_LIMIT = 5;
 const TOAST_REMOVE_DELAY = 5000;
 
-type ToastContextType = {
+export type ToastContextType = {
   toast: (props: ToastProps) => string;
   dismiss: (id: string) => void;
 };
 
-const ToastContext = React.createContext<ToastContextType | undefined>(undefined);
+export const ToastContext = React.createContext<ToastContextType | undefined>(undefined);
 
 type ToasterProps = {
   children: React.ReactNode;
@@ -37,8 +35,7 @@ export function ToastProvider({ children }: ToasterProps) {
   const toast = ({ ...props }: ToastProps) => {
     const id = Math.random().toString(36).substring(2, 9);
     
-    const update = (toast: ToasterToast) =>
-      setToasts((toasts) => toasts.map((t) => (t.id === toast.id ? { ...t, ...toast } : t)));
+    // Removed unused update function
     
     const dismiss = (toastId: string) => {
       setToasts((toasts) => toasts.filter((t) => t.id !== toastId));

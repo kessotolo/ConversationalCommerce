@@ -1,9 +1,7 @@
-import * as React from 'react';
-// @ts-nocheck
-// DO NOT MODIFY: This file is manually maintained
 // Product type definitions
+// Using UUID type for ID fields as per project standardization
 export interface Product {
-  id: string;
+  id: string; // UUID
   name: string;
   price: number;
   image: string;
@@ -17,7 +15,7 @@ export interface Product {
 }
 
 export interface ProductVariation {
-  id: string;
+  id: string; // UUID
   name: string;
   price?: number; // Optional price override
   attributes: {
@@ -28,7 +26,7 @@ export interface ProductVariation {
 }
 
 export interface ProductCategory {
-  id: string;
+  id: string; // UUID
   name: string;
   description?: string;
   parentId?: string;

@@ -1,10 +1,8 @@
-import * as React from 'react';
-// @ts-nocheck
-// DO NOT MODIFY: This file is manually maintained
 // File type definitions
+// Using UUID type for ID fields as per project standardization
 
 export interface FileType {
-  id: string;
+  id: string; // UUID
   name: string;
   size: number;
   type: string;
@@ -25,7 +23,7 @@ export interface UploadedFile {
 }
 
 export interface FileUploadResponse {
-  id: string;
+  id: string; // UUID
   url: string;
   name: string;
   size: number;
