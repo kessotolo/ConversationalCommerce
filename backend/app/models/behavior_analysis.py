@@ -9,7 +9,7 @@ from app.db.base_class import Base
 class BehaviorPattern(Base):
     __tablename__ = "behavior_patterns"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
     name = Column(String, nullable=False)
     description = Column(String)
@@ -31,9 +31,9 @@ class BehaviorPattern(Base):
 class PatternDetection(Base):
     __tablename__ = "pattern_detections"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
-    pattern_id = Column(String, ForeignKey(
+    pattern_id = Column(UUID(as_uuid=True), ForeignKey(
         "behavior_patterns.id"), nullable=False)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     detection_type = Column(String, nullable=False)  # user, system, security
@@ -60,9 +60,9 @@ class PatternDetection(Base):
 class Evidence(Base):
     __tablename__ = "evidence"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
-    detection_id = Column(String, ForeignKey(
+    detection_id = Column(UUID(as_uuid=True), ForeignKey(
         "pattern_detections.id"), nullable=False)
     evidence_type = Column(String, nullable=False)  # log, activity, metric
     source = Column(String, nullable=False)  # system, user, security

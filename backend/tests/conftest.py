@@ -1,9 +1,11 @@
-from app.db.session import get_db
+from app.db.session import get_db, SessionLocal as AppSessionLocal
 from app.core.security.clerk import ClerkTokenData
 from app.core.security.dependencies import require_auth
 from app.main import create_app
 from app.db.base_class import Base
 from app.core.middleware.rate_limit import RateLimitMiddleware
+from app.core.config.settings import Settings
+from app.db import session as db_session_module
 import os
 import sys
 import pytest
@@ -18,10 +20,13 @@ from uuid import uuid4, UUID
 backend_dir = str(Path(__file__).parent.parent)
 sys.path.insert(0, backend_dir)
 
-# Test database URL - Use PostgreSQL for compatibility with UUID and other PostgreSQL features
+# Set testing environment variable
+os.environ['TESTING'] = 'True'
+
+# Test database URL - Use local PostgreSQL database for testing
 TEST_DATABASE_URL = os.environ.get(
     "TEST_DATABASE_URL",
-    "postgresql://postgres:postgres@localhost/test_conversational_commerce"
+    "postgresql://postgres:postgres@localhost/conversational_commerce"
 )
 
 # Create test engine
@@ -39,10 +44,11 @@ TestingSessionLocal = sessionmaker(
     bind=engine
 )
 
-# Test user data
+# Test data
 # Use a fixed UUID for consistent testing
 TEST_USER_ID = UUID("00000000-0000-0000-0000-000000000001")  # Consistent test UUID
 TEST_USER_EMAIL = "test@example.com"
+TEST_TENANT_ID = UUID("00000000-0000-0000-0000-000000000010")  # Consistent test tenant UUID
 
 
 @pytest.fixture(scope="session")
@@ -73,9 +79,23 @@ def db_session(db_engine):
 def client(db_session):
     # Create a new FastAPI application for each test
     app = create_app()
+    
+    # Patch the database session to use our test database
+    original_session_local = db_session_module.SessionLocal
+    original_engine = db_session_module.engine
+    
+    # Replace with our test versions
+    db_session_module.SessionLocal = TestingSessionLocal
+    db_session_module.engine = engine
+    
+    # Also force DATABASE_URL to use our test database in any new Settings instances
+    os.environ['POSTGRES_SERVER'] = 'localhost'
+    os.environ['POSTGRES_USER'] = 'postgres'
+    os.environ['POSTGRES_PASSWORD'] = 'postgres'
+    os.environ['POSTGRES_DB'] = 'conversational_commerce'
 
-    # Add rate limiting middleware with a lower limit for tests
-    app.add_middleware(RateLimitMiddleware, requests_per_minute=5)
+    # Add rate limiting middleware for tests
+    app.add_middleware(RateLimitMiddleware)
 
     # Override the get_db dependency
     def override_get_db():
@@ -108,17 +128,47 @@ def client(db_session):
     with TestClient(app) as test_client:
         yield test_client
 
-    # Clear overrides
+    # Clean up
     app.dependency_overrides.clear()
-
-
-@pytest.fixture
-def auth_headers():
-    return {"Authorization": "Bearer test_token"}
+    
+    # Restore original database connection
+    db_session_module.SessionLocal = original_session_local
+    db_session_module.engine = original_engine
 
 
 @pytest.fixture(scope="function")
-def test_user(db_session):
+def auth_headers():
+    # Create auth headers with test token and tenant ID
+    return {
+        "Authorization": "Bearer test_token",
+        "X-Tenant-ID": str(TEST_TENANT_ID)
+    }
+
+
+@pytest.fixture(scope="function")
+def test_tenant(db_session):
+    """Create a test tenant for use throughout tests."""
+    from app.models.tenant import Tenant
+    
+    # Check if the test tenant already exists
+    test_tenant = db_session.query(Tenant).filter(Tenant.id == TEST_TENANT_ID).first()
+    
+    if not test_tenant:
+        # Create a test tenant
+        test_tenant = Tenant(
+            id=TEST_TENANT_ID,
+            name="Test Tenant",
+            subdomain="test",
+            status="active"
+        )
+        db_session.add(test_tenant)
+        db_session.commit()
+    
+    return test_tenant
+
+
+@pytest.fixture(scope="function")
+def test_user(db_session, test_tenant):
     """Create test users in the database and ensure they exist throughout tests.
     
     This fixture creates two users with consistent UUIDs:
@@ -128,6 +178,7 @@ def test_user(db_session):
     The main test user is returned, but both are available in the database.
     """
     from app.models.user import User
+    from app.core.security.password import get_password_hash
     
     # Force-delete any existing users first to avoid conflicts
     db_session.query(User).filter(User.id.in_([TEST_USER_ID, UUID("00000000-0000-0000-0000-000000000002")])).delete(synchronize_session=False)

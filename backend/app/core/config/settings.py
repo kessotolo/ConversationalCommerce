@@ -53,7 +53,16 @@ class Settings(BaseSettings):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        if not self.DATABASE_URL:
+        
+        # Check if we're in a test environment
+        is_test = os.getenv('TESTING', '').lower() in ('true', '1', 't', 'yes', 'y')
+        
+        # If we're in a test environment, use the test database URL
+        if is_test:
+            test_db_url = os.environ.get("TEST_DATABASE_URL", "postgresql://postgres:postgres@localhost/conversational_commerce")
+            self.DATABASE_URL = test_db_url
+        # Otherwise use the configured database URL
+        elif not self.DATABASE_URL:
             self.DATABASE_URL = f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
 
 def is_test_environment() -> bool:

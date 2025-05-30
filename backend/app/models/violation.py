@@ -9,10 +9,10 @@ from app.db.base_class import Base
 class Violation(Base):
     __tablename__ = "violations"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
-    detection_id = Column(String, ForeignKey(
+    detection_id = Column(UUID(as_uuid=True), ForeignKey(
         "pattern_detections.id"), nullable=True)
     type = Column(String, nullable=False)  # e.g., content, behavior, security
     severity = Column(String, nullable=False)  # low, medium, high, critical

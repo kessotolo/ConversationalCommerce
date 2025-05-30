@@ -2,11 +2,16 @@ from pydantic_settings import BaseSettings
 from functools import lru_cache
 from typing import Optional
 from pydantic import BaseModel, ConfigDict
+import os
 
 
 class TestSettings(BaseSettings):
-    # Test settings for database
-    DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/test_db"
+    # Test settings for database - use local PostgreSQL for testing
+    POSTGRES_SERVER: str = os.getenv("POSTGRES_SERVER", "localhost")
+    POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
+    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "postgres")
+    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "conversational_commerce")
+    DATABASE_URL: str = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}/{POSTGRES_DB}"
     
     # Override any other settings needed for testing
     API_V1_STR: str = "/api/v1"

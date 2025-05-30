@@ -3,6 +3,7 @@ import time
 import ssl
 import socket
 import asyncio
+import os
 from typing import Dict, Any, List, Optional, Tuple, Callable
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -261,13 +262,21 @@ class DomainVerificationService:
     
     async def _verification_loop(self):
         """Main verification loop."""
+        # Skip verification in test environments
+        is_test = os.getenv('TESTING', '').lower() in ('true', '1', 't', 'yes', 'y')
+        if is_test:
+            # Just sleep forever in test mode
+            while self._running:
+                await asyncio.sleep(60)
+                
+        # Normal verification loop
         while self._running:
             try:
                 await self._verify_all_domains()
             except Exception as e:
-                logger.error(f"Error in domain verification loop: {str(e)}")
+                logger.error(f"Error in domain verification loop: {e}")
             
-            # Wait for next verification interval
+            # Sleep until next verification cycle
             await asyncio.sleep(self.verification_interval)
     
     async def _verify_all_domains(self):

@@ -9,7 +9,7 @@ from app.db.base_class import Base
 class ContentFilterRule(Base):
     __tablename__ = "content_filter_rules"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
     name = Column(String, nullable=False)
     description = Column(String)
@@ -35,9 +35,9 @@ class ContentFilterRule(Base):
 class ContentAnalysisResult(Base):
     __tablename__ = "content_analysis_results"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
-    rule_id = Column(String, ForeignKey("content_filter_rules.id"))
+    rule_id = Column(UUID(as_uuid=True), ForeignKey("content_filter_rules.id"))
     content_type = Column(String, nullable=False)
     content_id = Column(String, nullable=False)
     field = Column(String, nullable=False)

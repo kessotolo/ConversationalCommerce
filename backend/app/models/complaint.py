@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, Integer, Boolean, JSON, ForeignKey, DateTime
 from sqlalchemy.types import Enum as SQLAlchemyEnum
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
@@ -23,11 +24,11 @@ class ComplaintTier(str, enum.Enum):
 class Complaint(Base):
     __tablename__ = "complaints"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    tenant_id = Column(String, ForeignKey("tenants.id"), nullable=False)
-    user_id = Column(String, ForeignKey("users.id"), nullable=True)
-    product_id = Column(String, ForeignKey("products.id"), nullable=True)
-    order_id = Column(String, ForeignKey("orders.id"), nullable=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"), nullable=True)
+    order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id"), nullable=True)
     type = Column(String, nullable=False)  # product, order, user, other
     status = Column(SQLAlchemyEnum(ComplaintStatus), default=ComplaintStatus.pending)
     tier = Column(SQLAlchemyEnum(ComplaintTier), default=ComplaintTier.tier1)
