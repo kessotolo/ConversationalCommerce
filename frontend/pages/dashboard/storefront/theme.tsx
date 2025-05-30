@@ -15,7 +15,10 @@ function ThemeCustomizationContent() {
   const [accentColor, setAccentColor] = useState(theme?.colors?.accent || '#EC4899');
   const [backgroundColor, setBackgroundColor] = useState(theme?.colors?.background || '#F9FAFB');
   const [textColor, setTextColor] = useState(theme?.colors?.text || '#111827');
-  
+  const [errorColor, setErrorColor] = useState(theme?.colors?.error || '#ef4444');
+  const [successColor, setSuccessColor] = useState(theme?.colors?.success || '#22c55e');
+  const [warningColor, setWarningColor] = useState(theme?.colors?.warning || '#f59e0b');
+
   if (isLoading) {
     return <div className="p-6">Loading theme information...</div>;
   }
@@ -23,25 +26,29 @@ function ThemeCustomizationContent() {
   const handleSave = async () => {
     try {
       setIsSaving(true);
-      
+
       // Prepare updated theme data
       const updatedTheme = {
         ...theme,
         colors: {
+          ...(theme?.colors || {}), // Preserve any other color properties
           primary: primaryColor,
           secondary: secondaryColor,
           accent: accentColor,
           background: backgroundColor,
-          text: textColor
+          text: textColor,
+          error: errorColor,
+          success: successColor,
+          warning: warningColor,
         }
       };
-      
+
       // Here you would call your API to save the theme
       // await themeService.updateTheme(updatedTheme);
-      
+
       // Update local theme state
       setTheme(updatedTheme);
-      
+
       // Show success message
       alert('Theme updated successfully!');
     } catch (error) {
@@ -61,7 +68,7 @@ function ThemeCustomizationContent() {
           </Link>
           <h1 className="text-2xl font-bold">Theme Settings</h1>
         </div>
-        
+
         <div className="flex items-center space-x-3">
           <Link
             href="/preview"
@@ -71,7 +78,7 @@ function ThemeCustomizationContent() {
             <Eye size={18} />
             <span>Preview</span>
           </Link>
-          
+
           <button
             onClick={handleSave}
             disabled={isSaving}
@@ -82,7 +89,7 @@ function ThemeCustomizationContent() {
           </button>
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left column - Settings */}
         <div className="lg:col-span-2 space-y-6">
@@ -92,7 +99,7 @@ function ThemeCustomizationContent() {
               <Palette className="mr-2" size={20} />
               Colors
             </h2>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -114,7 +121,7 @@ function ThemeCustomizationContent() {
                   <div className="text-sm text-gray-500">Main brand color</div>
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Secondary Color
@@ -135,7 +142,7 @@ function ThemeCustomizationContent() {
                   <div className="text-sm text-gray-500">Supporting color</div>
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Accent Color
@@ -156,7 +163,7 @@ function ThemeCustomizationContent() {
                   <div className="text-sm text-gray-500">Highlight color</div>
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Background Color
@@ -177,7 +184,7 @@ function ThemeCustomizationContent() {
                   <div className="text-sm text-gray-500">Page background</div>
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Text Color
@@ -198,13 +205,76 @@ function ThemeCustomizationContent() {
                   <div className="text-sm text-gray-500">Main text color</div>
                 </div>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Error Color
+                </label>
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="color"
+                    value={errorColor}
+                    onChange={(e) => setErrorColor(e.target.value)}
+                    className="h-10 w-10 rounded border"
+                  />
+                  <input
+                    type="text"
+                    value={errorColor}
+                    onChange={(e) => setErrorColor(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-md w-32"
+                  />
+                  <div className="text-sm text-gray-500">Error state</div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Success Color
+                </label>
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="color"
+                    value={successColor}
+                    onChange={(e) => setSuccessColor(e.target.value)}
+                    className="h-10 w-10 rounded border"
+                  />
+                  <input
+                    type="text"
+                    value={successColor}
+                    onChange={(e) => setSuccessColor(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-md w-32"
+                  />
+                  <div className="text-sm text-gray-500">Success state</div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Warning Color
+                </label>
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="color"
+                    value={warningColor}
+                    onChange={(e) => setWarningColor(e.target.value)}
+                    className="h-10 w-10 rounded border"
+                  />
+                  <input
+                    type="text"
+                    value={warningColor}
+                    onChange={(e) => setWarningColor(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-md w-32"
+                  />
+                  <div className="text-sm text-gray-500">Warning state</div>
+                </div>
+              </div>
             </div>
           </div>
-          
+
           {/* Theme presets */}
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-lg font-medium mb-4">Theme Presets</h2>
-            
+
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {[
                 { id: 'default', name: 'Default', primary: '#6366F1', secondary: '#8B5CF6', accent: '#EC4899' },
@@ -221,9 +291,8 @@ function ThemeCustomizationContent() {
                     setSecondaryColor(presetTheme.secondary);
                     setAccentColor(presetTheme.accent);
                   }}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    selectedTheme === presetTheme.id ? 'border-blue-500' : 'border-gray-200 hover:border-gray-300'
-                  }`}
+                  className={`p-4 rounded-lg border-2 transition-all ${selectedTheme === presetTheme.id ? 'border-blue-500' : 'border-gray-200 hover:border-gray-300'
+                    }`}
                 >
                   <div className="flex space-x-2 mb-2">
                     <div className="w-4 h-4 rounded-full" style={{ backgroundColor: presetTheme.primary }}></div>
@@ -236,23 +305,23 @@ function ThemeCustomizationContent() {
             </div>
           </div>
         </div>
-        
+
         {/* Right column - Preview and links */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <StorefrontLinks className="mb-4" />
           </div>
-          
+
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-medium mb-4">Theme Preview</h3>
-            
+
             <div className="rounded-lg border p-4 overflow-hidden">
               <div style={{ backgroundColor }} className="p-4 rounded-lg mb-4">
                 <div style={{ color: textColor }} className="mb-4">
                   <h4 className="font-bold text-lg mb-1">Sample Heading</h4>
                   <p className="text-sm">This is how your text will appear</p>
                 </div>
-                
+
                 <div className="flex space-x-2 mb-4">
                   <button
                     style={{ backgroundColor: primaryColor, color: 'white' }}
@@ -267,7 +336,7 @@ function ThemeCustomizationContent() {
                     Secondary
                   </button>
                 </div>
-                
+
                 <div
                   style={{ backgroundColor: accentColor, color: 'white' }}
                   className="text-xs px-2 py-1 rounded inline-block"
