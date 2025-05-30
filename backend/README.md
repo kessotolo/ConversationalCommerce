@@ -1,5 +1,30 @@
 # Backend Service for Conversational Commerce Platform
 
+## 📱 Mobile-First Deployment
+
+This backend is optimized for mobile-first deployment targeting African markets, with consideration for:
+- Intermittent connectivity
+- Lower bandwidth environments
+- Scalable infrastructure
+- Multi-platform deployment support
+
+### Deployment Entry Points
+
+Multiple entry points are provided for compatibility across deployment platforms:
+- `server.py` - Universal entry point with explicit Python path handling
+- `asgi.py` - Simple ASGI entry point for uvicorn
+- `wsgi.py` - WSGI compatibility layer
+
+### Deployment Instructions
+
+```bash
+# Local development
+uvicorn app.main:app --reload
+
+# Production deployment
+python server.py
+```
+
 ## 🧠 NLP Capabilities & Requirements (2025-05-28)
 
 The platform includes advanced NLP (Natural Language Processing) capabilities for content analysis, moderation, and user interaction. These features require specific language models to function properly.
