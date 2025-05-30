@@ -40,6 +40,7 @@ rsa>=4.9.0
 spacy==3.7.2
 nltk==3.8.1
 textblob==0.17.1
+detoxify==0.5.2
 # Install language models with: python -m spacy download en_core_web_sm
 # Install nltk data with: python -c "import nltk; nltk.download('punkt'); nltk.download('wordnet')"
 

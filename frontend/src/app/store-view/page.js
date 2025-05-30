@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { productService } from '@/lib/api';
 import ProductCard from '@/components/storefront/ProductCard';
 import { useCart } from '@/lib/cart';
 
-export default function StoreViewPage() {
+// Component that uses searchParams (must be wrapped in Suspense)
+function StoreContent() {
   const searchParams = useSearchParams();
   const merchantId = searchParams.get('id');
   
@@ -27,7 +28,7 @@ export default function StoreViewPage() {
       setError(null);
       // Here you would typically filter products by merchant ID
       const response = await productService.getProducts();
-      setProducts(response.data);
+      setProducts(response.data || []);
     } catch (error) {
       console.error('Error fetching products:', error);
       setError('Failed to load products. Please try again later.');
@@ -93,21 +94,30 @@ export default function StoreViewPage() {
       <h1 className="text-3xl font-bold mb-6">Store Products</h1>
       <p className="mb-6 text-gray-600">Merchant ID: {merchantId}</p>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {products.length === 0 ? (
-          <div className="col-span-full text-center py-10">
-            <p className="text-gray-500">No products available at this time.</p>
-          </div>
-        ) : (
-          products.map((product) => (
+      {products.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {products.map((product) => (
             <ProductCard
               key={product.id}
               product={product}
               onAddToCart={() => handleAddToCart(product)}
             />
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-10">
+          <p className="text-gray-600">No products available.</p>
+        </div>
+      )}
     </div>
+  );
+}
+
+// Main page component with Suspense boundary
+export default function StoreViewPage() {
+  return (
+    <Suspense fallback={<div className="text-center p-4">Loading store...</div>}>
+      <StoreContent />
+    </Suspense>
   );
 }
