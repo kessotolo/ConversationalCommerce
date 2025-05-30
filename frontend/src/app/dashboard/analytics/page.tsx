@@ -30,6 +30,7 @@ import {
 } from 'chart.js';
 import { Line, Bar, Pie } from 'react-chartjs-2';
 import Link from 'next/link';
+import { StatCard } from '@/components/dashboard/StatCard';
 
 // Register ChartJS components
 ChartJS.register(
