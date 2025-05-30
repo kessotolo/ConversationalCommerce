@@ -1,5 +1,5 @@
 from typing import Dict, Any, Optional
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 import uuid
 from app.utils.domain_validator import validate_subdomain, validate_domain
 
@@ -13,7 +13,8 @@ class StorefrontConfigBase(BaseModel):
     layout_config: Optional[Dict[str, Any]] = Field(None, description="Layout configuration")
     social_links: Optional[Dict[str, str]] = Field(None, description="Social media links")
 
-    @validator("subdomain_name")
+    @field_validator("subdomain_name")
+    @classmethod
     def validate_subdomain_name(cls, v):
         if v is not None:
             is_valid, error = validate_subdomain(v)
@@ -21,7 +22,8 @@ class StorefrontConfigBase(BaseModel):
                 raise ValueError(error)
         return v
 
-    @validator("custom_domain")
+    @field_validator("custom_domain")
+    @classmethod
     def validate_custom_domain(cls, v):
         if v is not None:
             is_valid, error = validate_domain(v)
@@ -44,7 +46,7 @@ class StorefrontConfigResponse(StorefrontConfigBase):
     domain_verified: bool
     
     class Config:
-        orm_mode = True
+        model_config = ConfigDict(from_attributes=True)
 
 
 class DomainVerificationRequest(BaseModel):

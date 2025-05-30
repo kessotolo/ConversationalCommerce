@@ -1,5 +1,5 @@
 from typing import Optional, Dict, Any, List
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 
 
@@ -39,8 +39,7 @@ class BehaviorPatternResponse(BehaviorPatternBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PatternDetectionBase(BaseModel):
@@ -62,8 +61,7 @@ class PatternDetectionResponse(PatternDetectionBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class DetectionReviewUpdate(BaseModel):
@@ -86,5 +84,4 @@ class EvidenceResponse(EvidenceBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)

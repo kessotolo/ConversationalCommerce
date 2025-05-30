@@ -1,5 +1,5 @@
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 import uuid
 from datetime import datetime
 
@@ -17,8 +17,7 @@ class ProductBase(BaseModel):
     images: Optional[List[str]] = None
     is_featured: bool
     
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ProductDetail(ProductBase):
@@ -32,8 +31,7 @@ class RelatedProducts(BaseModel):
     product: ProductDetail
     related_products: List[ProductBase]
     
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CategoryInfo(BaseModel):
@@ -49,8 +47,7 @@ class PaginatedProducts(BaseModel):
     page_size: int
     total_pages: int
     
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class StorefrontMetadata(BaseModel):
@@ -66,8 +63,7 @@ class StorefrontMetadata(BaseModel):
 class StorefrontLayout(BaseModel):
     layout_config: Dict[str, Any]
     
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class MenuItem(BaseModel):
@@ -83,4 +79,4 @@ class NavigationMenu(BaseModel):
 
 
 # Update forward reference for nested menus
-MenuItem.update_forward_refs()
+MenuItem.model_rebuild()

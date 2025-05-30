@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator, ConfigDict
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from typing import Optional, List, Dict, Any
 from datetime import datetime, date
 from uuid import UUID
@@ -21,7 +21,8 @@ class WhatsAppOrderCreate(OrderBase):
     message_id: str
     conversation_id: str
 
-    @validator('whatsapp_number', 'buyer_phone')
+    @field_validator('whatsapp_number', 'buyer_phone')
+    @classmethod
     def validate_phone_number(cls, v):
         # Basic phone number validation
         if not v.replace('+', '').replace('-', '').replace(' ', '').isdigit():
@@ -35,8 +36,11 @@ class OrderCreate(OrderBase):
         description="Source of the order. Use OrderSource.website for storefront orders."
     )
 
-    @validator('order_source')
-    def validate_order_source(cls, v, values):
+    @field_validator('order_source')
+    @classmethod
+    def validate_order_source(cls, v, info):
+        # Get values from info.data
+        values = info.data
         # For website orders, email is required
         if v == OrderSource.website and not values.get('buyer_email'):
             raise ValueError('Email is required for website orders')

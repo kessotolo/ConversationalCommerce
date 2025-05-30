@@ -1,5 +1,5 @@
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 import uuid
 from datetime import datetime
 
@@ -35,8 +35,7 @@ class StorefrontProductBase(BaseModel):
     transformed_images: Optional[List[ImageVariation]] = None
     is_featured: bool
     
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class StorefrontProductDetail(StorefrontProductBase):
@@ -47,8 +46,7 @@ class StorefrontProductDetail(StorefrontProductBase):
     variant_options: Optional[List[ProductVariantOption]] = None
     base_product_id: Optional[uuid.UUID] = None
     
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class VariantGroup(BaseModel):
@@ -66,8 +64,7 @@ class StorefrontProductWithVariants(BaseModel):
     related_products: List[StorefrontProductBase]
     recommended_products: List[StorefrontProductBase]
     
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PaginatedStorefrontProducts(BaseModel):
@@ -78,8 +75,7 @@ class PaginatedStorefrontProducts(BaseModel):
     page_size: int
     total_pages: int
     
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CollectionInfo(BaseModel):
