@@ -373,31 +373,29 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
+          {/* Mobile Bottom Nav */}
+          <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-lg flex justify-around items-center py-2 z-50 sm:hidden">
+            <Link href="/dashboard" className="flex flex-col items-center text-[#6C9A8B]">
+              <svg className="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7m-9 2v8m4-8v8m5 0a2 2 0 002-2V7a2 2 0 00-2-2h-3.5a2 2 0 00-2 2v1" /></svg>
+              <span className="text-xs">Home</span>
+            </Link>
+            <Link href="/dashboard/orders" className="flex flex-col items-center text-gray-400">
+              <svg className="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h18" /></svg>
+              <span className="text-xs">Orders</span>
+            </Link>
+            <Link href="/dashboard/products" className="flex flex-col items-center text-gray-400">
+              <svg className="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 13V7a2 2 0 00-2-2H6a2 2 0 00-2 2v6m16 0v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6m16 0H4" /></svg>
+              <span className="text-xs">Products</span>
+            </Link>
+            <Link href="/dashboard/messages" className="flex flex-col items-center text-gray-400">
+              <svg className="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></svg>
+              <span className="text-xs">Messages</span>
+            </Link>
+            <Link href="/dashboard/profile" className="flex flex-col items-center text-gray-400">
+              <svg className="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" /></svg>
+              <span className="text-xs">Profile</span>
+            </Link>
+          </div>
         </DashboardLayout>
-
-      {/* Mobile Bottom Nav */}
-      <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-lg flex justify-around items-center py-2 z-50 sm:hidden">
-        <Link href="/dashboard" className="flex flex-col items-center text-[#6C9A8B]">
-          <svg className="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7m-9 2v8m4-8v8m5 0a2 2 0 002-2V7a2 2 0 00-2-2h-3.5a2 2 0 00-2 2v1" /></svg>
-          <span className="text-xs">Home</span>
-        </Link>
-        <Link href="/dashboard/orders" className="flex flex-col items-center text-gray-400">
-          <svg className="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h18" /></svg>
-          <span className="text-xs">Orders</span>
-        </Link>
-        <Link href="/dashboard/products" className="flex flex-col items-center text-gray-400">
-          <svg className="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 13V7a2 2 0 00-2-2H6a2 2 0 00-2 2v6m16 0v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6m16 0H4" /></svg>
-          <span className="text-xs">Products</span>
-        </Link>
-        <Link href="/dashboard/messages" className="flex flex-col items-center text-gray-400">
-          <svg className="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></svg>
-          <span className="text-xs">Messages</span>
-        </Link>
-        <Link href="/dashboard/profile" className="flex flex-col items-center text-gray-400">
-          <svg className="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" /></svg>
-          <span className="text-xs">Profile</span>
-        </Link>
-      </div>
-    </DashboardLayout>
   );
 }
