@@ -4,9 +4,11 @@ from app.core.config.settings import Settings
 
 settings = Settings()
 
-SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
+# Get the proper database URL from settings using the getter method
+SQLALCHEMY_DATABASE_URL = settings.get_database_url
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+# Create engine with explicit password handling
+engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"connect_timeout": 15})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 

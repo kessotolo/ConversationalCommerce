@@ -262,19 +262,26 @@ class DomainVerificationService:
     
     async def _verification_loop(self):
         """Main verification loop."""
-        # Skip verification in test environments
+        # Skip verification in test environments or development environments
         is_test = os.getenv('TESTING', '').lower() in ('true', '1', 't', 'yes', 'y')
-        if is_test:
-            # Just sleep forever in test mode
+        is_dev = os.getenv('ENVIRONMENT', 'development').lower() == 'development'
+        
+        if is_test or is_dev:
+            logger.info(f"Domain verification loop running in passive mode (Test: {is_test}, Dev: {is_dev})")
+            # Just sleep forever in test/dev mode
             while self._running:
                 await asyncio.sleep(60)
                 
         # Normal verification loop
         while self._running:
             try:
+                # Try to verify all domains, with more robust error handling
                 await self._verify_all_domains()
             except Exception as e:
                 logger.error(f"Error in domain verification loop: {e}")
+                # Add a longer sleep period after errors to prevent rapid retries
+                await asyncio.sleep(300)  # 5 minutes
+                continue
             
             # Sleep until next verification cycle
             await asyncio.sleep(self.verification_interval)

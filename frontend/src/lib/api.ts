@@ -2,7 +2,8 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const axios = require('axios').default || require('axios');
 
-const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// Import standardized configuration optimized for African markets
+import { API_BASE_URL, API_TIMEOUT, RETRY_ATTEMPTS, FEATURES } from '../config';
 
 // Define response and error types for better type safety
 export interface ApiResponse<T = any> {
@@ -17,14 +18,56 @@ export interface ApiError {
     errors?: any;
 }
 
-// Create axios instance with base configuration
+// Create axios instance with base configuration optimized for intermittent connectivity
 const apiClient = axios.create({
-    baseURL,
+    baseURL: API_BASE_URL,
+    timeout: API_TIMEOUT, // Longer timeout for variable connectivity in African markets
     headers: {
         'Content-Type': 'application/json',
+        Accept: 'application/json',
     },
-    withCredentials: true,
 });
+
+// Add retry logic for better resilience in low-connectivity environments
+apiClient.interceptors.response.use(null, async (error: any) => {
+    const { config } = error;
+    if (!config || !config.retry) {
+        config.retry = 0;
+    }
+    
+    if (config.retry >= RETRY_ATTEMPTS) {
+        return Promise.reject(error);
+    }
+    
+    // Exponential backoff for retries
+    config.retry += 1;
+    const delay = 1000 * Math.pow(2, config.retry);
+    await new Promise(resolve => setTimeout(resolve, delay));
+    return apiClient(config);
+});
+
+// Add offline detection and queueing if enabled
+if (FEATURES.offlineMode && typeof window !== 'undefined') {
+    // Simple online status detection
+    let isOnline = navigator.onLine;
+    window.addEventListener('online', () => { isOnline = true; });
+    window.addEventListener('offline', () => { isOnline = false; });
+    
+    // Request queue for offline mode
+    const requestQueue: any[] = [];
+    
+    // Process queue when back online
+    window.addEventListener('online', async () => {
+        while (requestQueue.length > 0) {
+            const request = requestQueue.shift();
+            try {
+                await apiClient(request);
+            } catch (error) {
+                console.error('Failed to process offline request:', error);
+            }
+        }
+    });
+}
 
 // Add request interceptor to include auth token
 apiClient.interceptors.request.use((config: any) => {

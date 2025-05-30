@@ -37,17 +37,26 @@ class RedisCache:
         if self._initialized:
             return
         
+        # Set to not available by default
+        self._redis_client = None
+        self._is_available = False
+        self._initialized = True
+        
+        # Check if we should disable Redis in production
+        if settings.ENVIRONMENT == "production" and getattr(settings, "DISABLE_REDIS_IN_PRODUCTION", False):
+            logger.info("Redis cache is disabled in production by configuration")
+            return
+        
+        # Check if REDIS_DISABLED is set (general setting)
+        redis_disabled = getattr(settings, "REDIS_DISABLED", False)
+        if redis_disabled:
+            logger.info("Redis cache is disabled by configuration")
+            return
+            
         try:
             # Get Redis settings from environment
             redis_url = settings.REDIS_URL if hasattr(settings, "REDIS_URL") else "redis://localhost:6379/0"
             
-            # Check if REDIS_DISABLED is set
-            redis_disabled = getattr(settings, "REDIS_DISABLED", False)
-            if redis_disabled:
-                logger.info("Redis cache is disabled by configuration")
-                self._initialized = False
-                return
-                
             # Create Redis client with timeout
             self._redis_client = redis.from_url(
                 redis_url, 

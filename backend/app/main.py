@@ -127,8 +127,17 @@ class TenantMiddleware(BaseHTTPMiddleware):
 async def initialize_cache():
     """Initialize Redis cache on startup."""
     logger.info("Initializing Redis cache...")
-    await redis_cache.initialize()
-    logger.info(f"Redis cache initialized. Available: {redis_cache.is_available}")
+    try:
+        await redis_cache.initialize()
+        if redis_cache.is_available:
+            logger.info(f"Redis cache successfully initialized and connected")
+        else:
+            logger.warning("Redis cache initialization completed, but cache is not available")
+    except Exception as e:
+        logger.warning(f"Redis cache initialization failed, continuing without cache: {str(e)}")
+        # Still mark as initialized to prevent repeated attempts
+        redis_cache._initialized = True
+        redis_cache._is_available = False
 
 
 async def start_domain_verification():
