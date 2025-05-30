@@ -24,6 +24,61 @@ The `pages/api` directory is mapped to `/api/*`. Files in this directory are tre
 
 This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Multi-Tenancy & Tenant Resolution
+
+This application supports multi-tenancy through a comprehensive tenant resolution system:
+
+### Subdomain Generation
+
+When a seller registers, the system automatically generates a subdomain from their business name:
+
+- Subdomains are created by converting the business name to lowercase, replacing spaces with hyphens, and removing special characters
+- If a subdomain is already taken, a number or random string is appended (e.g., "joes-coffee-2")
+- Each store is accessible via its subdomain (e.g., `joes-coffee.yourplatform.com`)
+
+### Custom Domain Support
+
+Sellers can also point their purchased domains to their storefront:
+
+- The platform detects both subdomain and custom domain access
+- Domain ownership verification is done via DNS records
+- Stores are accessible via both their subdomain and custom domain
+
+### Storefront Management
+
+The dashboard provides a comprehensive interface for managing and viewing storefronts:
+
+- **Customize Storefront**: Access via the sidebar to edit storefront settings and appearance
+- **View Live Storefront**: Direct link to the public-facing storefront with clear visual indicators
+- **Smart Placeholder Handling**: System provides guidance when using placeholder or default domains
+- **Enhanced UI**: Color-coded action buttons with improved accessibility and user experience
+
+### Development Testing
+
+For local development and testing:
+
+```
+# Test with a specific tenant
+http://localhost:3000?subdomain=tenant1
+
+# Default tenant
+http://localhost:3000
+```
+
+### Implementation Architecture
+
+- **Middleware**: Detects the access method (subdomain vs custom domain)
+- **Context Provider**: Makes tenant info available throughout the app
+- **Theme System**: Loads tenant-specific themes based on tenant resolution
+- **UUID Support**: All models use PostgreSQL UUID types for primary and foreign keys
+
+### Future Implementations
+
+- Admin interface for sellers to manage their custom domains
+- Automatic SSL certificate provisioning for custom domains
+- DNS configuration wizard for sellers
+- Enhanced storefront customization options
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

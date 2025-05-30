@@ -67,12 +67,12 @@ export function MobileNav() {
             
             <div className="space-y-4">
               <Link 
-                href="/storefront" 
+                href="/dashboard/storefront" 
                 className="flex items-center p-3 hover:bg-gray-100 rounded-lg"
                 onClick={() => setShowMenu(false)}
               >
                 <Store className="h-5 w-5 mr-3 text-primary" />
-                <span>View Storefront</span>
+                <span>Customize Storefront</span>
               </Link>
               
               <Link 

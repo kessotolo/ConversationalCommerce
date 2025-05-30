@@ -90,11 +90,11 @@ export function Sidebar() {
         <div className="flex-shrink-0 flex flex-col border-t p-4 space-y-4">
           {/* Storefront Link */}
           <Link 
-            href="/storefront" 
+            href="/dashboard/storefront" 
             className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
           >
             <Store className="mr-3 flex-shrink-0 h-5 w-5" />
-            View Storefront
+            Customize Storefront
           </Link>
           
           {/* Account Info */}
