@@ -1,4 +1,4 @@
-import React from 'react';
+import { ThemeContext } from '@/contexts/ThemeContext';import { Typography } from '@mui/material';import React from 'react';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import StorefrontLinks from '@/components/dashboard/StorefrontLinks';
 import { useTheme } from '@/contexts/ThemeContext';

@@ -1,6 +1,8 @@
+import * as React from 'react';
 "use client";
+import { Icon } from '@/components/icons';
+import { LogOut, MessageCircle, Package, ShoppingBag, Store, User } from 'lucide-react';
 
-import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';

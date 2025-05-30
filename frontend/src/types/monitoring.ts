@@ -1,4 +1,5 @@
-export enum RuleSeverity {
+import * as React from 'react';
+import { Activity } from 'lucide-react';export enum RuleSeverity {
     LOW = "low",
     MEDIUM = "medium",
     HIGH = "high",

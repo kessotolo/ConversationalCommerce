@@ -1,4 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { Record } from 'react';import * as React from 'react';
+import { Paper } from '@mui/material';
+import { NotificationCenter } from '@/components/monitoring/NotificationCenter';import { Notification } from '@/types/notification';
+import { CloseIcon, ErrorIcon, InfoIcon, NotificationsIcon, SuccessIcon, WarningIcon } from '@mui/icons-material';
+import { Badge, Box, Chip, Divider, Drawer, IconButton, List, ListItem, ListItemIcon, ListItemText, Typography } from '@mui/material';import { CheckCircle } from 'lucide-react';
 import {
     Box,
     Paper,

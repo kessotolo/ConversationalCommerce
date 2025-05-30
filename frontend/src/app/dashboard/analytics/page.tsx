@@ -1,9 +1,11 @@
+import * as React from 'react';
 'use client';
+import { ArrowUpRight, Calendar, DollarSign, Download, Search, ShoppingBag, Store, Users } from 'lucide-react';
+import { Product } from '@/types/product';
 
-import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { DashboardHeader } from '@/components/layout/DashboardHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/Button';
 import {
   BarChart3,

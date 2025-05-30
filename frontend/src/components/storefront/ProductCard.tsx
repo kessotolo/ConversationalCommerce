@@ -1,3 +1,5 @@
+import * as React from 'react';
+import { ThemeContext } from '@/contexts/ThemeContext';import { Product } from '@/types/product';
 import Image from 'next/image';
 import { useState } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';

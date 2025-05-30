@@ -1,21 +1,15 @@
+import React from 'react';import React from 'react';import * as React from 'react';
 'use client';
-
-import React, { useState, useRef } from 'react';
+import { NewProduct } from '@/pages/dashboard/products/add';
+import { ArrowLeft, Camera, Check, Globe, MessageSquare, Save, Store, Trash2, Upload } from 'lucide-react';
+import { File } from '@/types/file';
+import { Product } from '@/types/product';
+import Image from 'next/image';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { 
-  ArrowLeft, 
-  Save, 
-  Camera, 
-  Upload,
-  Trash2,
-  Check,
-  MessageSquare,
-  Globe
-} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import { Card, CardContent } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface NewProduct {
   name: string;

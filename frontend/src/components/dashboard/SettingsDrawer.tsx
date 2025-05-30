@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import * as React from 'react';
+import { Settings } from 'lucide-react';
+import { Notification } from '@/types/notification';
+import { Drawer } from '@mui/material';import { Users } from 'lucide-react';
 import { X, Store, CreditCard, User, Bell, Globe } from 'lucide-react';
 
 const categories = [

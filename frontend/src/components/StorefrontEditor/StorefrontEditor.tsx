@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import * as React from 'react';
+import { List } from '@mui/material';import { StorefrontEditorProps } from '@/components/StorefrontEditor/StorefrontEditor';import React, { useState } from 'react';
 import { Tab } from '@headlessui/react';
 import DraftManagement from './DraftManagement/DraftManagement';
 import VersionHistory from './VersionHistory/VersionHistory';

@@ -1,28 +1,39 @@
-export interface Violation {
-    id: string;
-    type: string;
-    severity: string;
-    action: string;
-    status: string;
-    reason?: string;
-    details?: any;
-    start_at: string;
-    end_at?: string;
-    user_id?: string;
-    detection_id?: string;
-    created_at: string;
-    updated_at: string;
+import { Violation, ViolationStats, ViolationTrend } from '@/components/monitoring/ViolationDashboard';export interface Violation {
+  id: string;
+  type: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  status: 'active' | 'resolved' | 'false_positive';
+  created_at: string;
+  reason: string;
+  details: any;
+  start_at: string;
+  end_at: string;
+  user_id: string;
+  detection_id: string;
 }
 
 export interface ViolationStats {
-    total: number;
-    by_type: Record<string, number>;
-    by_severity: Record<string, number>;
-    by_action: Record<string, number>;
-    by_status: Record<string, number>;
+  total: number;
+  by_severity: {
+    low: number;
+    medium: number;
+    high: number;
+    critical: number;
+  };
+  by_status: {
+    active: number;
+    resolved: number;
+    false_positive: number;
+  };
 }
 
 export interface ViolationTrend {
-    date: string;
-    count: number;
+  date: string;
+  count: number;
+  by_severity: {
+    low: number;
+    medium: number;
+    high: number;
+    critical: number;
+  };
 }

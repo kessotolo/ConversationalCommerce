@@ -17,6 +17,9 @@
  */
 
 'use client';
+import { Component, Error } from 'react';
+import { React } from 'react';
+import { Product } from '@/types/product';
 
 import { useState, useEffect } from 'react';
 import { productService } from '@/lib/api';

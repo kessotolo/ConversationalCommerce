@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { Record } from 'react';import * as React from 'react';
+import { TextField } from '@mui/material';import { Violation, ViolationStats, ViolationTrend } from '@/components/monitoring/ViolationDashboard';
+import { Box, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Paper, Select, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';import { User } from 'lucide-react';
 import { 
     Box, 
     Typography, 

@@ -1,4 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { Record } from 'react';import * as React from 'react';
+import { FormControl, InputLabel, MenuItem, Select, TextField } from '@mui/material';
+import { ErrorIcon, InfoIcon, WarningIcon } from '@mui/icons-material';import { ActivityStats } from '@/components/monitoring/ActivityDashboard';
+import { Box, Chip, Grid, IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
+import { RefreshIcon } from '@mui/icons-material';import { Activity } from 'lucide-react';import { User, Users } from 'lucide-react';
 import {
     Box,
     Paper,

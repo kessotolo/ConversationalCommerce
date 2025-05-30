@@ -1,4 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { Error } from 'react';import { Store, User } from 'lucide-react';import type { NextApiRequest, NextApiResponse } from 'next';
 
 type HasTenantResponse = {
   hasTenant: boolean;

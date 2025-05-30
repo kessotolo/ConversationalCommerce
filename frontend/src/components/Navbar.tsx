@@ -1,4 +1,6 @@
+import * as React from 'react';
 'use client';
+import { Navbar } from '@/components/Navbar';
 
 import Link from 'next/link';
 import { UserButton, useUser } from '@clerk/nextjs';

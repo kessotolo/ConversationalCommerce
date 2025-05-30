@@ -1,4 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { DraftManagement } from '@/components/StorefrontEditor/DraftManagement/DraftManagement';import * as React from 'react';
+import { DraftDetail } from '@/components/StorefrontEditor/DraftManagement/DraftDetail';
+import { Select } from '@mui/material';import { DraftDetailProps } from '@/components/StorefrontEditor/DraftManagement/DraftDetail';import { CalendarIcon, CheckIcon, ClockIcon, ExclamationTriangleIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { Check, Save } from 'lucide-react';
 import { Draft, UUID, DraftStatus } from '../../../types/storefrontEditor';
 import { updateDraft } from '../../../lib/api/storefrontEditor';
 import { 

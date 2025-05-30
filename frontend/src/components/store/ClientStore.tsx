@@ -1,4 +1,6 @@
+import * as React from 'react';
 'use client';
+import { Product } from '@/types/product';
 
 import { useState, useEffect } from 'react';
 import { productService } from '@/lib/api';

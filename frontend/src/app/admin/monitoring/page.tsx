@@ -1,10 +1,13 @@
+import * as React from 'react';
 'use client';
+import { Activity } from 'lucide-react';
+import { ActivityEvent } from '@/components/admin/ActivityEvent';
+import { User, Users } from 'lucide-react';
 
-import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { useToast, ToastProvider } from '@/components/ui/ToastProvider';

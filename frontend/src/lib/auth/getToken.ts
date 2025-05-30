@@ -1,4 +1,4 @@
-import { useAuth } from '@clerk/nextjs';
+import * as React from 'react';
 
 export async function getToken(): Promise<string | null> {
     try {

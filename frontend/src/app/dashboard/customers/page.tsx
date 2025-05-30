@@ -1,5 +1,8 @@
+import * as React from 'react';
 'use client';
-import React, { useState } from 'react';
+import { React, Record } from 'react';
+import { Phone } from 'lucide-react';
+import { Order } from '@/types/order';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Users, Search, ChevronRight } from 'lucide-react';
 import Link from 'next/link';

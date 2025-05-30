@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { VersionHistory } from '@/components/StorefrontEditor/VersionHistory/VersionHistory';import * as React from 'react';
+import { VersionCompare } from '@/components/StorefrontEditor/VersionHistory/VersionCompare';
+import { React, Record } from 'react';import { VersionCompareProps } from '@/components/StorefrontEditor/VersionHistory/VersionCompare';import React, { useState, useEffect } from 'react';
 import { Version, UUID, VersionDiff } from '../../../types/storefrontEditor';
 import { compareVersions } from '../../../lib/api/storefrontEditor';
 import { ArrowsRightLeftIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';

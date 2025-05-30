@@ -1,4 +1,11 @@
+import * as React from 'react';
 'use client';
+import { Activity } from 'lucide-react';
+import { Button } from '@mui/material';
+import { OnboardingChecklist } from '@/components/dashboard/OnboardingChecklist';
+import { Order } from '@/types/order';
+import { Product } from '@/types/product';
+import { Upload } from 'lucide-react';
 
 import { useAuth } from '@/utils/auth-utils';
 import { useState } from 'react';

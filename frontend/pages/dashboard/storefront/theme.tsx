@@ -1,4 +1,7 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import { ThemeContext } from '@/contexts/ThemeContext';
+import { Component, Error } from 'react';import { React } from 'react';
+import { Settings } from 'lucide-react';
+import { Button } from '@mui/material';import React, { useState, useEffect, lazy, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { useTheme } from '@/contexts/ThemeContext';

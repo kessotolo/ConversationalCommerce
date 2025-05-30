@@ -1,4 +1,7 @@
-import { useMemo } from 'react';
+import * as React from 'react';
+import { ThemeContext } from '@/contexts/ThemeContext';import { Button } from '@mui/material';
+import { Card } from '@/components/ui/card';
+import { Product } from '@/types/product';import { useMemo } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 
 /**

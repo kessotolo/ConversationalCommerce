@@ -1,4 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { TenantContext } from '@/contexts/TenantContext';
+import { Error } from 'react';import { Store } from 'lucide-react';
+import { Record } from 'react';import type { NextApiRequest, NextApiResponse } from 'next';
 
 type Tenant = {
   id: string; // UUID format from backend

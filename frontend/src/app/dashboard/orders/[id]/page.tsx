@@ -1,35 +1,12 @@
+import * as React from 'react';
 'use client';
-
-import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+// React is automatically imported by Next.js
+import { Settings, AlertTriangle, ArrowLeft, Calendar, Check, Clock, DollarSign, MapPin, MessageSquare, Package, Phone, Printer, RefreshCw, Send, Truck, User, X } from 'lucide-react';
+import { Order } from '@/types/order';
 import { useParams, useRouter } from 'next/navigation';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { 
-  ArrowLeft, 
-  Package, 
-  Truck, 
-  Check, 
-  X, 
-  Clock, 
-  MessageSquare, 
-  Printer, 
-  RefreshCw,
-  ClipboardList,
-  AlertTriangle,
-  User,
-  Phone,
-  MapPin,
-  DollarSign,
-  Calendar
-} from 'lucide-react';
+import { ClipboardList } from 'lucide-react';
 import Link from 'next/link';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';
@@ -257,43 +234,38 @@ export default function OrderDetailPage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex justify-center items-center h-96">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-      </DashboardLayout>
+      <div className="flex justify-center items-center h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
     );
   }
 
   if (error || !order) {
     return (
-      <DashboardLayout>
-        <div className="p-6 max-w-4xl mx-auto">
-          <div className="mb-6">
-            <Link href="/dashboard/orders" className="flex items-center text-gray-600 hover:text-gray-900">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Orders
-            </Link>
-          </div>
-          
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center h-64">
-              <AlertTriangle className="h-12 w-12 text-red-500 mb-4" />
-              <h2 className="text-xl font-bold mb-2">Failed to load order</h2>
-              <p className="text-gray-500 mb-4">{error || 'Order not found'}</p>
-              <Button onClick={() => router.push('/dashboard/orders')}>
-                Return to Orders
-              </Button>
-            </CardContent>
-          </Card>
+      <div className="p-6 max-w-4xl mx-auto">
+        <div className="mb-6">
+          <Link href="/dashboard/orders" className="flex items-center text-gray-600 hover:text-gray-900">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Orders
+          </Link>
         </div>
-      </DashboardLayout>
+        
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center h-64">
+            <AlertTriangle className="h-12 w-12 text-red-500 mb-4" />
+            <h2 className="text-xl font-bold mb-2">Failed to load order</h2>
+            <p className="text-gray-500 mb-4">{error || 'Order not found'}</p>
+            <Button onClick={() => router.push('/dashboard/orders')}>
+              Return to Orders
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
-      <div className="p-4 md:p-6 max-w-6xl mx-auto">
+    <div className="p-4 md:p-6 max-w-6xl mx-auto">
         <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center">
           <div>
             <Link href="/dashboard/orders" className="flex items-center text-gray-600 hover:text-gray-900 mb-2">
@@ -646,6 +618,5 @@ export default function OrderDetailPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
-  );
-}
+    );
+  }

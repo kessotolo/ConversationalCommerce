@@ -1,4 +1,8 @@
-import React, { useState } from 'react';
+import { VersionDetailProps } from '@/components/StorefrontEditor/VersionHistory/VersionDetail';
+import { ArrowUturnLeftIcon, CheckIcon, ClipboardDocumentIcon, ClockIcon, ExclamationTriangleIcon, TagIcon, UserIcon } from '@heroicons/react/24/outline';import * as React from 'react';
+import { Copy } from 'lucide-react';import { VersionHistory } from '@/components/StorefrontEditor/VersionHistory/VersionHistory';
+import { VersionDetail } from '@/components/StorefrontEditor/VersionHistory/VersionDetail';
+import { User } from 'lucide-react';
 import { Version, UUID } from '../../../types/storefrontEditor';
 import { 
   ArrowUturnLeftIcon, 

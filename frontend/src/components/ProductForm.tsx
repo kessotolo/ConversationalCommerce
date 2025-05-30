@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import { File } from '@/types/File';import * as React from 'react';
+import { Product } from '@/types/product';
+import { Image } from 'next/image';
 import ImageUploader from './ImageUploader';
 import { productService } from '@/lib/api';
 

@@ -1,6 +1,10 @@
+import * as React from 'react';
 // Using dynamic import approach for axios like in the main API file
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const axios = require('axios').default || require('axios');
+import { Component } from 'react';
+import { Store } from 'lucide-react';
+import { Permissions } from '@/components/StorefrontEditor/Permissions/Permissions';
 import { API_BASE_URL, API_TIMEOUT, RETRY_ATTEMPTS, FEATURES } from '../../config';
 
 // Create optimized axios instance for storefront editor

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { File } from '@/types/File';import * as React from 'react';
 
 interface ImageUploaderProps {
     onImageSelect: (file: File) => void;

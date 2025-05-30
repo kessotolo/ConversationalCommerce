@@ -1,3 +1,4 @@
+import * as React from 'react';
 /**
  * Frontend Configuration
  * 
@@ -6,6 +7,7 @@
  * - Timeout settings appropriate for variable connectivity
  * - Cache durations optimized for data conservation
  */
+import { Image } from 'next/image';
 
 // API Configuration
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';

@@ -1,4 +1,5 @@
-import React from 'react';
+import * as React from 'react';
+import { Product } from '@/types/product';
 import Image from 'next/image';
 import { Edit, Trash2 } from 'lucide-react';
 

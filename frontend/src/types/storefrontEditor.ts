@@ -1,4 +1,13 @@
+import { BannerLogoManagement } from '@/components/StorefrontEditor/BannerLogoManagement/BannerLogoManagement';
+import { Record } from 'react';import * as React from 'react';
 // Using UUID type for consistency with backend
+import { DraftManagement } from '@/components/StorefrontEditor/DraftManagement/DraftManagement';
+import { VersionHistory } from '@/components/StorefrontEditor/VersionHistory/VersionHistory';
+import { Component } from 'react';
+import { DraftList } from '@/components/StorefrontEditor/DraftManagement/DraftList';
+import { VersionList } from '@/components/StorefrontEditor/VersionHistory/VersionList';
+import { BannerList } from '@/components/StorefrontEditor/BannerLogoManagement/BannerList';
+import { LogoList } from '@/components/StorefrontEditor/BannerLogoManagement/LogoList';
 export type UUID = string; // UUID represented as string but validated as UUID on backend
 
 // Draft/Publish Types

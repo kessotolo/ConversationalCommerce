@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import * as React from 'react';
+import { ThemeContext, ThemeContextType } from '@/contexts/ThemeContext';
+import { TenantContext } from '@/contexts/TenantContext';import { React } from 'react';import { ThemeProviderProps } from '@/components/ThemeProvider';import { Check } from 'lucide-react';
 import { Theme } from '../types/theme';
 import { useTenant } from './TenantContext';
 import { defaultTheme } from '../utils/defaultTheme';

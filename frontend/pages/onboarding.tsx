@@ -1,3 +1,4 @@
+import { Error } from 'react';import { Check } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth, useUser } from '@clerk/nextjs';

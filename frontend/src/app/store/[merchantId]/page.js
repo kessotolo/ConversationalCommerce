@@ -12,6 +12,8 @@
  * - It renders a simple UI with a link to the full store view
  */
 
+import { Component } from 'react';
+import { Store } from 'lucide-react';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';

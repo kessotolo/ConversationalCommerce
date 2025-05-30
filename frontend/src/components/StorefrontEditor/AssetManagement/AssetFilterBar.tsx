@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { AssetFilterBarProps } from '@/components/StorefrontEditor/AssetManagement/AssetFilterBar';
+import { AssetManagement } from '@/components/StorefrontEditor/AssetManagement/AssetManagement';
+import { Search } from 'lucide-react';import * as React from 'react';
+import { AssetFilterBar } from '@/components/StorefrontEditor/AssetManagement/AssetFilterBar';
 import { AssetType } from '../../../types/storefrontEditor';
 import { MagnifyingGlassIcon, FunnelIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
 

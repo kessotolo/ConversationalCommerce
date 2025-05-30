@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { formatCurrency } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { MessageSquare, Globe, ShoppingBag } from 'lucide-react';

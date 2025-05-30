@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { DraftManagement } from '@/components/StorefrontEditor/DraftManagement/DraftManagement';import * as React from 'react';
+import { CreateDraftModal } from '@/components/StorefrontEditor/DraftManagement/CreateDraftModal';import { CreateDraftModalProps } from '@/components/StorefrontEditor/DraftManagement/CreateDraftModal';import React, { useState } from 'react';
 import { createDraft } from '../../../lib/api/storefrontEditor';
 import { UUID } from '../../../types/storefrontEditor';
 import { XMarkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';

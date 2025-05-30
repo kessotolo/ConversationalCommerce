@@ -1,6 +1,10 @@
+import * as React from 'react';
 "use client";
+import { Divider } from '@mui/material';
+import { Icon } from '@/components/icons';
+import { Settings } from 'lucide-react';
+import { MessageCircle, Package, ShoppingBag, Store, User, Users } from 'lucide-react';
 
-import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';

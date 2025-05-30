@@ -1,6 +1,10 @@
+import * as React from 'react';
 'use client';
+import { Select } from '@mui/material';
+import { Check, Eye, MessageSquare, Package, RefreshCcw, Search, Truck } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Order } from '@/types/order';
 
-import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import Link from 'next/link';
 import {
@@ -8,7 +12,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle
-} from '@/components/ui/Card';
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';

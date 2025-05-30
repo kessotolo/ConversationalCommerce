@@ -1,8 +1,11 @@
+import * as React from 'react';
 // Try dynamic import as a workaround
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const axios = require('axios').default || require('axios');
 
 // Import standardized configuration optimized for African markets
+import { Product } from '@/types/product';
+import { Order } from '@/types/order';
 import { API_BASE_URL, API_TIMEOUT, RETRY_ATTEMPTS, FEATURES } from '../config';
 
 // Define response and error types for better type safety

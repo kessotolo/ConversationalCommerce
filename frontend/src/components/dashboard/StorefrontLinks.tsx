@@ -1,4 +1,6 @@
-import React from 'react';
+import * as React from 'react';
+import { TenantContext } from '@/contexts/TenantContext';
+import { Copy } from 'lucide-react';import { Check } from 'lucide-react';
 import { ExternalLink, Eye, QrCode, Settings, Edit } from 'lucide-react';
 import { useTenant } from '@/contexts/TenantContext';
 
