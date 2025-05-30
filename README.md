@@ -22,16 +22,26 @@ A high-growth commerce platform for African markets that seamlessly integrates m
 
 ### Backend
 - **FastAPI**: High-performance Python framework
-- **PostgreSQL**: Reliable relational database
-- **SQLAlchemy**: ORM for database interactions
+- **PostgreSQL**: Reliable relational database with native UUID support
+  - **UUID Standardization**: All models use PostgreSQL UUID(as_uuid=True) for primary and foreign keys
+  - **Row-Level Security**: Tenant isolation through PostgreSQL RLS policies
+  - **Railway Hosting**: Remote PostgreSQL database hosted on Railway
+- **SQLAlchemy**: ORM for database interactions with relationship management
+  - **One-to-One Relationships**: Proper cascade behavior between related models
+  - **Migrations**: Complex migration scripts for UUID data type transitions
 - **Cloudinary**: Media storage and transformation
 - **Twilio**: WhatsApp messaging integration
 
 ### Frontend
-- **Next.js**: React framework with SSR capabilities
+- **Next.js 15**: React framework with App Router architecture
+  - **Client/Server Components**: Proper separation following Next.js best practices
+  - **Dynamic Routing**: Type-safe parameter handling in dynamic routes
 - **TailwindCSS**: Utility-first CSS for rapid UI development
-- **TypeScript**: Type-safe JavaScript
+- **TypeScript**: Type-safe JavaScript with strict type checking
 - **Clerk**: Authentication and user management
+  - **Custom Auth Utilities**: Centralized auth-utils.tsx for consistent authentication
+  - **Middleware Integration**: Custom authentication middleware for App Router
+  - **UUID Compatibility**: Proper handling of UUID-based user identification
 - **Chart.js**: Data visualization for analytics
 - **Lucide React**: Icon library for consistent UI
 
@@ -47,6 +57,18 @@ The platform is designed with a mobile-first approach, recognizing that most use
 - **WhatsApp-Centric**: Deep integration with the most popular messaging platform in target markets
 
 ## 🔄 Recent Updates
+
+### May 2025: Database UUID Standardization & Authentication Improvements
+- **UUID Standardization**: All database models now use PostgreSQL native UUID types
+  - Primary and foreign keys converted from String to UUID(as_uuid=True)
+  - Improved database integrity and performance with native UUID types
+  - Complex migration process to handle existing String-based UUID values
+
+- **Authentication System Overhaul**:
+  - Centralized authentication with custom auth-utils.tsx
+  - Fixed Next.js App Router compatibility issues
+  - Proper client/server component separation
+  - Streamlined tenant-specific authentication flow
 
 ### May 2025: Streamlined Seller Onboarding & Theme System
 - **Low-Friction Onboarding Flow**:

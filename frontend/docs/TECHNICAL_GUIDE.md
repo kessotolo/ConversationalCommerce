@@ -135,24 +135,46 @@ The Storefront Editor allows sellers to customize their storefronts:
 
 ### PostgreSQL with UUID Identifiers
 
-The platform uses PostgreSQL with UUID primary keys for all entities, providing:
+The platform has standardized on PostgreSQL's native UUID data type for all database primary and foreign keys, providing:
 
 - **Global Uniqueness**: Ensures IDs are unique across the system
 - **Security**: Non-sequential IDs prevent enumeration attacks
 - **Distribution**: Supports distributed systems without ID collisions
 - **Migration Friendly**: Simplifies database migrations and sharding
+- **Consistency**: All models follow the same UUID pattern
 
 Implementation:
 
 ```python
-# Backend model example
+# Backend model example with standardized UUID
 class User(Base):
     __tablename__ = "users"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String, unique=True, index=True)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
     # Other fields...
+
+# Example of relationship with UUID foreign key
+class Tenant(Base):
+    __tablename__ = "tenants"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String, nullable=False)
+    # One-to-one relationship with cascade delete
+    storefront_config = relationship("StorefrontConfig", back_populates="tenant", uselist=False, cascade="all, delete-orphan")
 ```
+
+#### UUID Migration Strategy
+
+A complex migration process was implemented to transition from String-based UUID representations to native PostgreSQL UUID data types:
+
+1. **Data Preservation**: Temporary columns created to store original values
+2. **Type Conversion**: String UUIDs converted to native UUID format
+3. **Foreign Key Updates**: All references updated to maintain relational integrity
+4. **Validation**: Data verification to ensure successful migration
+
+This standardization improves database performance, ensures type consistency, and enables more reliable relationships between entities.
 
 ### Multi-tenant Schema
 
@@ -177,8 +199,35 @@ The database follows a multi-tenant architecture:
 
 ### Authentication and Authorization
 
-- **JWT Authentication**: Secure, stateless authentication with JWT tokens
+#### Authentication Architecture
+
+- **Clerk Integration**: Secure authentication service with support for various authentication methods
+- **Centralized Auth Utilities**: Custom `auth-utils.tsx` providing consistent authentication throughout the application
+- **Next.js App Router Compatible**: Authentication system designed to work with Next.js 15 App Router architecture
+- **UUID Compatibility**: Authentication system designed to work with the database UUID standardization
+
+```typescript
+// auth-utils.tsx - Centralized authentication utilities
+import { useAuth as useClerkAuth, useUser } from '@clerk/nextjs';
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const { isLoaded: isAuthLoaded, userId } = useClerkAuth();
+  const { user, isLoaded: isUserLoaded } = useUser();
+  // Proper handling of loading states and authentication
+  // Implementation details that support UUID standardization
+}
+
+// Custom hook for consistent auth access
+export function useAuth() {
+  return useContext(AuthContext);
+}
+```
+
+#### Authorization System
+
 - **Role-based Authorization**: Access control based on user roles
+- **Tenant-Scoped Permissions**: Permissions limited to specific tenant contexts
+- **Feature-based Access Control**: Granular control over feature access
 - **Scope-based Permissions**: Fine-grained permissions for specific actions
 - **Tenant Isolation**: Users can only access their own tenant's data
 
@@ -433,9 +482,37 @@ async def create_logo(tenant_id: UUID, data: LogoCreate) -> Logo:
 ### CI/CD Pipeline
 
 - **Build Process**: Automated builds for frontend and backend
+  - **UUID Compatibility**: Build process validates UUID format consistency
+  - **Authentication Checks**: Verifies Clerk integration and middleware configuration
+  - **App Router Compatibility**: Ensures proper client/server component separation
 - **Testing**: Automated unit and integration tests
+  - **Database Schema Tests**: Validates UUID field type consistency
+  - **Authentication Flow Tests**: Confirms proper authentication behavior
+  - **Tenant Isolation Tests**: Ensures data isolation between tenants
 - **Linting**: Code quality checks with ESLint and Black
+- **Type Checking**: TypeScript strict mode enforcement during build
 - **Deployment**: Automated deployment to staging and production
+  - **Database Migration Handling**: Special handling for UUID migration
+  - **Staged Rollout**: Progressive deployment to minimize impact
+
+#### Build and Deployment Considerations
+
+The following considerations are critical during the build and deployment process:
+
+1. **Database Migration Sequence**:
+   - Execute UUID migration scripts before application deployment
+   - Verify data integrity after migration completion
+   - Maintain backward compatibility during transition period
+
+2. **Authentication System Updates**:
+   - Update Clerk environment variables before deployment
+   - Ensure middleware compatibility with Next.js App Router
+   - Test authentication flows thoroughly post-deployment
+
+3. **Client/Server Component Separation**:
+   - Next.js build will fail if client components incorrectly import server components
+   - Authentication components must be properly marked as client components
+   - Dynamic route parameters must be properly typed and handled
 
 ### Containerization
 

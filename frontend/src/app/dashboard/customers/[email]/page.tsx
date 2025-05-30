@@ -5,6 +5,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { ChevronLeft, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useAuth } from '@/utils/auth-utils';
 
 // Mock orders data (should match main customers page)
 const mockOrders = [
@@ -14,8 +15,25 @@ const mockOrders = [
 ];
 
 export default function CustomerDetailPage() {
+    const { isLoading, isAuthenticated } = useAuth();
     const params = useParams();
     const email = params?.email ? decodeURIComponent(Array.isArray(params.email) ? params.email[0] : params.email) : '';
+    
+    // Handle loading state
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-[#fdfcf7]">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#6C9A8B]"></div>
+            </div>
+        );
+    }
+    
+    // Handle unauthenticated state
+    if (!isAuthenticated) {
+        // Will be handled by the auth utility's redirect
+        return null;
+    }
+    
     const customerOrders = mockOrders.filter(o => o.email === email);
     if (customerOrders.length === 0) {
         return (

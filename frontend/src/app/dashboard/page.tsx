@@ -1,6 +1,6 @@
 'use client';
 
-import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/nextjs';
+import { useAuth } from '@/utils/auth-utils';
 import { useState } from 'react';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -221,10 +221,25 @@ export default function Dashboard() {
   // Optionally, track which section to open in settings
   // const [settingsSection, setSettingsSection] = useState<string | null>(null);
 
+  const { isLoading, isAuthenticated } = useAuth();
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#fdfcf7]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#6C9A8B]"></div>
+      </div>
+    );
+  }
+
+  // Handle unauthenticated state
+  if (!isAuthenticated) {
+    // Will be handled by the auth utility's redirect
+    return null;
+  }
+
   return (
-    <>
-      <SignedIn>
-        <DashboardLayout>
+    <DashboardLayout>
           <div className="min-h-screen bg-[#fdfcf7] py-6 px-2 sm:px-6 lg:px-8">
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
@@ -359,10 +374,6 @@ export default function Dashboard() {
             </div>
           </div>
         </DashboardLayout>
-      </SignedIn>
-      <SignedOut>
-        <RedirectToSignIn />
-      </SignedOut>
 
       {/* Mobile Bottom Nav */}
       <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-lg flex justify-around items-center py-2 z-50 sm:hidden">
@@ -387,6 +398,6 @@ export default function Dashboard() {
           <span className="text-xs">Profile</span>
         </Link>
       </div>
-    </>
+    </DashboardLayout>
   );
 }

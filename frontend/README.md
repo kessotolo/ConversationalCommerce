@@ -1,4 +1,23 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# Conversational Commerce Frontend
+
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app). The frontend implements a mobile-first design optimized for African markets with WhatsApp integration and multilingual support.
+
+## Technical Requirements
+
+### Authentication System
+- **Clerk Integration**: Secure authentication using Clerk with custom session management
+- **Role-Based Access**: Different interfaces and permissions for sellers and admin users
+- **Centralized Auth Utilities**: Custom auth-utils.tsx providing consistent authentication throughout the application
+
+### Database UUID Standardization
+- **UUID-Based Keys**: All models standardized on UUID types for database primary and foreign keys
+- **PostgreSQL Native UUIDs**: Using PostgreSQL's UUID data type (UUID(as_uuid=True)) instead of string representations
+- **Consistent Database Relationships**: Proper one-to-one relationships between models (e.g., Tenant and StorefrontConfig)
+
+### Next.js App Router
+- **Client and Server Components**: Proper separation of client and server components
+- **Dynamic Routing**: Type-safe parameter handling in dynamic routes
+- **Authentication Middleware**: Custom middleware for tenant identification and authentication
 
 ## Getting Started
 
@@ -163,14 +182,40 @@ The editor implements a role-based access control system with four primary roles
 
 Permissions can be scoped to specific sections (themes, layouts, content, etc.) for fine-grained access control.
 
+## Deployment
+
+### Build Process
+
+```bash
+# Build the application for production
+npm run build
+
+# Start the production server
+npm start
+```
+
+### UUID Migration Considerations
+
+The application has standardized on UUID types for database primary and foreign keys. During deployment, be aware of the following:
+
+1. **Database Schema**: Ensure your PostgreSQL database supports the migration from String-based UUIDs to native UUID data types
+2. **Data Migration**: Use the provided migration scripts to convert existing String UUIDs to native PostgreSQL UUIDs
+3. **API Consistency**: All API endpoints have been updated to expect and return properly formatted UUIDs
+
+### Authentication Deployment Notes
+
+1. **Environment Variables**: Ensure all Clerk-related environment variables are properly set in your deployment environment
+2. **Middleware Configuration**: The authentication middleware is configured to handle multi-tenancy with UUID-based tenant identification
+3. **Client/Server Component Separation**: The application properly separates client and server components for optimal performance
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
 
 - [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
 
 ## Deploy on Vercel
 
