@@ -1,4 +1,7 @@
 import Image from 'next/image';
+import { useState } from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useThemeStyles } from '../../hooks/useThemeStyles';
 
 interface Product {
     id: string;
@@ -16,9 +19,27 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
+    const { theme } = useTheme();
+    const styles = useThemeStyles();
+    const [isHovered, setIsHovered] = useState(false);
+    
+    // Combine default styles with hover state styles when needed
+    const cardStyle = {
+        ...styles.productCard.style,
+        ...(isHovered ? styles.productCard.hoverStyle : {})
+    };
+
     return (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="relative h-48">
+        <div 
+            className={styles.productCard.className}
+            style={cardStyle}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
+            <div 
+                className={styles.productCard.imageContainer.className}
+                style={styles.productCard.imageContainer.style}
+            >
                 {product.image_url ? (
                     <Image
                         src={product.image_url}
@@ -27,27 +48,50 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
                         className="object-cover"
                     />
                 ) : (
-                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                        <span className="text-gray-400">No image</span>
+                    <div 
+                        className="w-full h-full flex items-center justify-center"
+                        style={{ backgroundColor: `${theme.colors.secondary}15` }}
+                    >
+                        <span style={{ color: theme.colors.secondary }}>No image</span>
                     </div>
                 )}
                 {!product.is_available && (
-                    <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-sm">
+                    <div 
+                        className="absolute top-2 right-2 px-2 py-1 rounded text-sm"
+                        style={styles.productCard.badge.style}
+                    >
                         Out of Stock
                     </div>
                 )}
             </div>
-            <div className="p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">{product.name}</h3>
-                <p className="text-gray-600 text-sm mb-2 line-clamp-2">{product.description}</p>
-                <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-gray-900">
+            <div className={styles.productCard.content.className}>
+                <h3 style={styles.productCard.title.style}>
+                    {product.name}
+                </h3>
+                <p style={styles.productCard.description.style}>
+                    {product.description}
+                </p>
+                <div className="flex items-center justify-between mt-2">
+                    <span style={styles.productCard.price.style}>
                         ${product.price.toFixed(2)}
                     </span>
                     {product.is_available && (
                         <button
                             onClick={onAddToCart}
-                            className="px-4 py-2 bg-violet-600 text-white rounded-md hover:bg-violet-700 transition-colors"
+                            style={{
+                                backgroundColor: theme.colors.primary,
+                                color: theme.componentStyles.button.primary.text,
+                                borderRadius: theme.componentStyles.button.primary.borderRadius,
+                                padding: theme.componentStyles.button.primary.padding,
+                                border: 'none',
+                                transition: 'background-color 0.2s ease-in-out',
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = theme.componentStyles.button.primary.hoverBackground;
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = theme.colors.primary;
+                            }}
                         >
                             Add to Cart
                         </button>

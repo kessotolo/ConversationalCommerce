@@ -1,8 +1,17 @@
-from sqlalchemy import Column, String, Boolean, ForeignKey, UniqueConstraint, Index, JSON
+from sqlalchemy import Column, String, Boolean, ForeignKey, UniqueConstraint, Index, JSON, Enum, DateTime
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from app.db.base_class import Base
 import uuid
+import enum
+
+class StorefrontStatus(enum.Enum):
+    """Status enum for storefront configurations"""
+    DRAFT = "draft"
+    PUBLISHED = "published"
+    SCHEDULED = "scheduled"
+    ARCHIVED = "archived"
 
 class StorefrontConfig(Base):
     """Configuration for tenant-specific storefronts."""
@@ -14,6 +23,14 @@ class StorefrontConfig(Base):
     custom_domain = Column(String(255), nullable=True)
     domain_verified = Column(Boolean, default=False)
     
+    # Publishing workflow fields
+    status = Column(Enum(StorefrontStatus), default=StorefrontStatus.DRAFT, nullable=False)
+    published_at = Column(DateTime(timezone=True), nullable=True)
+    scheduled_publish_at = Column(DateTime(timezone=True), nullable=True)
+    published_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
     # Storefront metadata
     meta_title = Column(String(255), nullable=True)
     meta_description = Column(String(500), nullable=True)
@@ -23,6 +40,7 @@ class StorefrontConfig(Base):
     
     # Relationships
     tenant = relationship("Tenant", back_populates="storefront_config")
+    drafts = relationship("StorefrontDraft", back_populates="storefront_config", cascade="all, delete-orphan")
     
     # Layout components - structured as JSON with component types and their configurations
     layout_config = Column(JSONB, nullable=False, default=lambda: {

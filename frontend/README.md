@@ -79,6 +79,90 @@ http://localhost:3000
 - DNS configuration wizard for sellers
 - Enhanced storefront customization options
 
+## Storefront Editor
+
+The Storefront Editor is a comprehensive tool that allows sellers to customize and manage their storefronts. It follows a modular architecture with several interconnected components.
+
+### Core Components
+
+#### StorefrontEditor
+
+The main container component that provides a tabbed interface for accessing different editing features:
+
+- **Asset Management**: Upload and manage media assets
+- **Draft Management**: Create and manage draft configurations
+- **Version History**: Track and restore previous versions
+- **Permissions**: Manage user roles and access control
+- **Banner & Logo Management**: Create and manage visual elements
+
+### Data Flow Architecture
+
+The Storefront Editor follows a clear data flow pattern:
+
+1. **API Layer**: Located in `src/lib/api/storefrontEditor.ts`
+2. **Type Definitions**: Located in `src/types/storefrontEditor.ts`
+3. **Component Layer**: Organized in `src/components/StorefrontEditor/`
+
+All API requests use UUID identifiers for consistency with the backend PostgreSQL implementation.
+
+### Banner & Logo Management
+
+This feature provides a unified interface for managing visual elements of the storefront.
+
+#### BannerLogoManagement
+
+A tabbed interface that switches between Banner and Logo management:
+
+```
+BannerLogoManagement
+├── BannerManagement (Tab 1)
+│   ├── BannerList
+│   ├── BannerDetail
+│   └── CreateBannerModal
+└── LogoManagement (Tab 2)
+    ├── LogoList
+    ├── LogoDetail
+    └── CreateLogoModal
+```
+
+#### Banner Management Features
+
+- Create, edit, publish, and delete banners
+- Filter banners by type, status, and search term
+- Schedule banners with start/end dates
+- Target specific audience segments
+- Reorder banners via drag-and-drop
+- Select from uploaded assets for banner images
+
+#### Logo Management Features
+
+- Manage different logo types (primary, secondary, footer, mobile, favicon)
+- Schedule logos with start/end dates
+- View and filter the logo collection
+- Select from uploaded assets for logo images
+- Configure display settings for responsive behavior
+
+### Dependencies
+
+The Storefront Editor uses the following key libraries:
+
+- **@headlessui/react**: For accessible UI components like tabs, modals, and dropdowns
+- **@heroicons/react**: For consistent iconography throughout the interface
+- **react-dnd**: For drag-and-drop functionality in banner ordering
+- **react-dnd-html5-backend**: HTML5 backend for react-dnd
+- **axios**: For API requests with proper error handling
+
+### Permissions Model
+
+The editor implements a role-based access control system with four primary roles:
+
+- **Viewer**: Can view storefront configurations but not edit
+- **Editor**: Can create and edit drafts but not publish
+- **Publisher**: Can publish drafts to live storefronts
+- **Admin**: Has full access including user permission management
+
+Permissions can be scoped to specific sections (themes, layouts, content, etc.) for fine-grained access control.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

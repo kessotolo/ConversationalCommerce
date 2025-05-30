@@ -48,6 +48,36 @@ The platform is designed with a mobile-first approach, recognizing that most use
 
 ## 🔄 Recent Updates
 
+### May 2025: Streamlined Seller Onboarding & Theme System
+- **Low-Friction Onboarding Flow**:
+  - Minimal 4-5 field signup process focused on essential business information
+  - Real-time subdomain generation and preview as users type their store name
+  - Automatic tenant creation with default theme assignment
+  - Pre-filled form data from authentication provider
+  - Mobile-optimized design for African market users
+  - Intelligent user flow with existing tenant detection
+
+- **Theme Context Provider**:
+  - Complete theme system with context providers for accessing theme values throughout the app
+  - Default theme fallback for new tenants and error states
+  - Theme preview capability with cookie-based storage
+  - Responsive design utilities through the `useThemeStyles` hook
+  - Component-specific styling derived from theme values
+
+- **Multi-Tenant Architecture**:
+  - Enhanced tenant resolution with both subdomain and custom domain support
+  - Automatic subdomain generation from business names with conflict resolution
+  - Middleware for extracting tenant information from request headers
+  - Context providers to make tenant data available throughout the app
+  - API routes for tenant lookup by subdomain or custom domain
+
+- **Theme-Aware Components**:
+  - ProductCard component refactored to consume theme values
+  - Dynamic styling based on tenant branding
+  - Interactive hover states and animations using theme colors
+  - Consistent typography and spacing using theme values
+  - Accessibility improvements with tenant-defined contrast ratios
+
 ### May 2025: Multi-Tenant Storefront System
 - **Complete Storefront Infrastructure**:
   - Multi-tenant storefront with subdomain support (`tenant.domain.com`) and custom domain verification

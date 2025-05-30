@@ -1,7 +1,7 @@
 import React from 'react';
-import { ThemeProvider } from '../../../src/components/ThemeProvider';
-import StorefrontLinks from '../../../src/components/dashboard/StorefrontLinks';
-import { useTheme } from '../../../src/contexts/ThemeContext';
+import { ThemeProvider } from '@/components/ThemeProvider';
+import StorefrontLinks from '@/components/dashboard/StorefrontLinks';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Palette, Layout, Type, Navigation, Image, Settings } from 'lucide-react';
 import Link from 'next/link';
 

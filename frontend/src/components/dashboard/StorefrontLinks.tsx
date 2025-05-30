@@ -1,6 +1,6 @@
 import React from 'react';
 import { ExternalLink, Eye, QrCode, Settings, Edit } from 'lucide-react';
-import { useTenant } from '../../contexts/TenantContext';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface StorefrontLinksProps {
   className?: string;
