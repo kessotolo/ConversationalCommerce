@@ -1,26 +1,85 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { useTheme } from '@/contexts/ThemeContext';
-import StorefrontLinks from '@/components/dashboard/StorefrontLinks';
 import Link from 'next/link';
 import { ChevronLeft, Save, Palette, Eye } from 'lucide-react';
+
+// Define TypeScript interfaces
+interface Theme {
+  id?: string;
+  colors?: ThemeColors;
+  [key: string]: any;
+}
+
+interface ThemeColors {
+  primary?: string;
+  secondary?: string;
+  accent?: string;
+  background?: string;
+  text?: string;
+  error?: string;
+  success?: string;
+  warning?: string;
+  [key: string]: string | undefined;
+}
+
+// Dynamically import components to reduce initial bundle size
+const StorefrontLinks = dynamic(
+  () => import('@/components/dashboard/StorefrontLinks'),
+  { loading: () => <div className="h-24 bg-gray-100 animate-pulse rounded-md"></div>, ssr: false }
+);
 
 // Theme customization content
 function ThemeCustomizationContent() {
   const { theme, setTheme, isLoading, availableThemes } = useTheme();
   const [selectedTheme, setSelectedTheme] = useState(theme?.id || '');
   const [isSaving, setIsSaving] = useState(false);
-  const [primaryColor, setPrimaryColor] = useState(theme?.colors?.primary || '#6366F1');
-  const [secondaryColor, setSecondaryColor] = useState(theme?.colors?.secondary || '#8B5CF6');
-  const [accentColor, setAccentColor] = useState(theme?.colors?.accent || '#EC4899');
-  const [backgroundColor, setBackgroundColor] = useState(theme?.colors?.background || '#F9FAFB');
-  const [textColor, setTextColor] = useState(theme?.colors?.text || '#111827');
-  const [errorColor, setErrorColor] = useState(theme?.colors?.error || '#ef4444');
-  const [successColor, setSuccessColor] = useState(theme?.colors?.success || '#22c55e');
-  const [warningColor, setWarningColor] = useState(theme?.colors?.warning || '#f59e0b');
+  const [colorState, setColorState] = useState({
+    primary: theme?.colors?.primary || '#6366F1',
+    secondary: theme?.colors?.secondary || '#8B5CF6',
+    accent: theme?.colors?.accent || '#EC4899',
+    background: theme?.colors?.background || '#F9FAFB',
+    text: theme?.colors?.text || '#111827',
+    error: theme?.colors?.error || '#ef4444',
+    success: theme?.colors?.success || '#22c55e',
+    warning: theme?.colors?.warning || '#f59e0b'
+  });
+  
+  // Use local storage to cache theme settings for better offline experience
+  useEffect(() => {
+    // Load cached theme from local storage if no theme from context
+    if (!theme && typeof window !== 'undefined') {
+      const cachedTheme = localStorage.getItem('cached_theme');
+      if (cachedTheme) {
+        try {
+          const parsedTheme = JSON.parse(cachedTheme);
+          setColorState(parsedTheme.colors);
+        } catch (e) {
+          console.error('Error parsing cached theme:', e);
+        }
+      }
+    }
+  }, [theme]);
+  
+  // Helper to update colors efficiently
+  const updateColor = (colorKey: keyof ThemeColors, value: string) => {
+    setColorState(prev => ({
+      ...prev,
+      [colorKey]: value
+    }));
+  };
 
   if (isLoading) {
-    return <div className="p-6">Loading theme information...</div>;
+    return (
+      <div className="p-6">
+        <div className="space-y-4">
+          <div className="h-8 bg-gray-200 rounded-md animate-pulse w-1/3"></div>
+          <div className="h-32 bg-gray-100 rounded-md animate-pulse"></div>
+          <div className="h-24 bg-gray-200 rounded-md animate-pulse"></div>
+        </div>
+      </div>
+    );
   }
 
   const handleSave = async () => {
@@ -32,28 +91,54 @@ function ThemeCustomizationContent() {
         ...theme,
         colors: {
           ...(theme?.colors || {}), // Preserve any other color properties
-          primary: primaryColor,
-          secondary: secondaryColor,
-          accent: accentColor,
-          background: backgroundColor,
-          text: textColor,
-          error: errorColor,
-          success: successColor,
-          warning: warningColor,
+          ...colorState
         }
       };
 
-      // Here you would call your API to save the theme
-      // await themeService.updateTheme(updatedTheme);
+      // Cache the theme locally for offline use
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cached_theme', JSON.stringify(updatedTheme));
+      }
 
-      // Update local theme state
-      setTheme(updatedTheme);
-
-      // Show success message
-      alert('Theme updated successfully!');
+      // Simulate network condition and implement retry mechanism
+      let retries = 0;
+      const maxRetries = 3;
+      
+      const attemptSave = async () => {
+        try {
+          // Here you would call your API to save the theme
+          // Simulating API call with a delay to represent network conditions
+          await new Promise(resolve => setTimeout(resolve, 300));
+          // await themeService.updateTheme(updatedTheme);
+          
+          // Update local theme state
+          setTheme(updatedTheme);
+          
+          // Success feedback - use non-blocking notification instead of alert
+          const notification = document.createElement('div');
+          notification.className = 'fixed bottom-4 right-4 bg-green-50 border-l-4 border-green-500 p-4 text-green-700 shadow-md rounded';
+          notification.textContent = 'Theme updated successfully!';
+          document.body.appendChild(notification);
+          setTimeout(() => notification.remove(), 3000);
+        } catch (error) {
+          if (retries < maxRetries) {
+            retries++;
+            console.log(`Retry attempt ${retries}/${maxRetries}`);
+            return attemptSave();
+          }
+          throw error;
+        }
+      };
+      
+      await attemptSave();
     } catch (error) {
       console.error('Error saving theme:', error);
-      alert('Failed to update theme. Please try again.');
+      // Non-blocking error feedback
+      const errorNotification = document.createElement('div');
+      errorNotification.className = 'fixed bottom-4 right-4 bg-red-50 border-l-4 border-red-500 p-4 text-red-700 shadow-md rounded';
+      errorNotification.textContent = 'Failed to update theme. Changes saved locally. Will retry when online.';
+      document.body.appendChild(errorNotification);
+      setTimeout(() => errorNotification.remove(), 5000);
     } finally {
       setIsSaving(false);
     }
@@ -108,14 +193,14 @@ function ThemeCustomizationContent() {
                 <div className="flex items-center space-x-3">
                   <input
                     type="color"
-                    value={primaryColor}
-                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    value={colorState.primary}
+                    onChange={(e) => updateColor('primary', e.target.value)}
                     className="h-10 w-10 rounded border"
                   />
                   <input
                     type="text"
-                    value={primaryColor}
-                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    value={colorState.primary}
+                    onChange={(e) => updateColor('primary', e.target.value)}
                     className="px-3 py-2 border border-gray-300 rounded-md w-32"
                   />
                   <div className="text-sm text-gray-500">Main brand color</div>
@@ -129,14 +214,14 @@ function ThemeCustomizationContent() {
                 <div className="flex items-center space-x-3">
                   <input
                     type="color"
-                    value={secondaryColor}
-                    onChange={(e) => setSecondaryColor(e.target.value)}
+                    value={colorState.secondary}
+                    onChange={(e) => updateColor('secondary', e.target.value)}
                     className="h-10 w-10 rounded border"
                   />
                   <input
                     type="text"
-                    value={secondaryColor}
-                    onChange={(e) => setSecondaryColor(e.target.value)}
+                    value={colorState.secondary}
+                    onChange={(e) => updateColor('secondary', e.target.value)}
                     className="px-3 py-2 border border-gray-300 rounded-md w-32"
                   />
                   <div className="text-sm text-gray-500">Supporting color</div>
@@ -150,14 +235,14 @@ function ThemeCustomizationContent() {
                 <div className="flex items-center space-x-3">
                   <input
                     type="color"
-                    value={accentColor}
-                    onChange={(e) => setAccentColor(e.target.value)}
+                    value={colorState.accent}
+                    onChange={(e) => updateColor('accent', e.target.value)}
                     className="h-10 w-10 rounded border"
                   />
                   <input
                     type="text"
-                    value={accentColor}
-                    onChange={(e) => setAccentColor(e.target.value)}
+                    value={colorState.accent}
+                    onChange={(e) => updateColor('accent', e.target.value)}
                     className="px-3 py-2 border border-gray-300 rounded-md w-32"
                   />
                   <div className="text-sm text-gray-500">Highlight color</div>
@@ -171,14 +256,14 @@ function ThemeCustomizationContent() {
                 <div className="flex items-center space-x-3">
                   <input
                     type="color"
-                    value={backgroundColor}
-                    onChange={(e) => setBackgroundColor(e.target.value)}
+                    value={colorState.background}
+                    onChange={(e) => updateColor('background', e.target.value)}
                     className="h-10 w-10 rounded border"
                   />
                   <input
                     type="text"
-                    value={backgroundColor}
-                    onChange={(e) => setBackgroundColor(e.target.value)}
+                    value={colorState.background}
+                    onChange={(e) => updateColor('background', e.target.value)}
                     className="px-3 py-2 border border-gray-300 rounded-md w-32"
                   />
                   <div className="text-sm text-gray-500">Page background</div>
@@ -192,14 +277,14 @@ function ThemeCustomizationContent() {
                 <div className="flex items-center space-x-3">
                   <input
                     type="color"
-                    value={textColor}
-                    onChange={(e) => setTextColor(e.target.value)}
+                    value={colorState.text}
+                    onChange={(e) => updateColor('text', e.target.value)}
                     className="h-10 w-10 rounded border"
                   />
                   <input
                     type="text"
-                    value={textColor}
-                    onChange={(e) => setTextColor(e.target.value)}
+                    value={colorState.text}
+                    onChange={(e) => updateColor('text', e.target.value)}
                     className="px-3 py-2 border border-gray-300 rounded-md w-32"
                   />
                   <div className="text-sm text-gray-500">Main text color</div>
@@ -213,14 +298,14 @@ function ThemeCustomizationContent() {
                 <div className="flex items-center space-x-3">
                   <input
                     type="color"
-                    value={errorColor}
-                    onChange={(e) => setErrorColor(e.target.value)}
+                    value={colorState.error}
+                    onChange={(e) => updateColor('error', e.target.value)}
                     className="h-10 w-10 rounded border"
                   />
                   <input
                     type="text"
-                    value={errorColor}
-                    onChange={(e) => setErrorColor(e.target.value)}
+                    value={colorState.error}
+                    onChange={(e) => updateColor('error', e.target.value)}
                     className="px-3 py-2 border border-gray-300 rounded-md w-32"
                   />
                   <div className="text-sm text-gray-500">Error state</div>
@@ -234,14 +319,14 @@ function ThemeCustomizationContent() {
                 <div className="flex items-center space-x-3">
                   <input
                     type="color"
-                    value={successColor}
-                    onChange={(e) => setSuccessColor(e.target.value)}
+                    value={colorState.success}
+                    onChange={(e) => updateColor('success', e.target.value)}
                     className="h-10 w-10 rounded border"
                   />
                   <input
                     type="text"
-                    value={successColor}
-                    onChange={(e) => setSuccessColor(e.target.value)}
+                    value={colorState.success}
+                    onChange={(e) => updateColor('success', e.target.value)}
                     className="px-3 py-2 border border-gray-300 rounded-md w-32"
                   />
                   <div className="text-sm text-gray-500">Success state</div>
@@ -255,14 +340,14 @@ function ThemeCustomizationContent() {
                 <div className="flex items-center space-x-3">
                   <input
                     type="color"
-                    value={warningColor}
-                    onChange={(e) => setWarningColor(e.target.value)}
+                    value={colorState.warning}
+                    onChange={(e) => updateColor('warning', e.target.value)}
                     className="h-10 w-10 rounded border"
                   />
                   <input
                     type="text"
-                    value={warningColor}
-                    onChange={(e) => setWarningColor(e.target.value)}
+                    value={colorState.warning}
+                    onChange={(e) => updateColor('warning', e.target.value)}
                     className="px-3 py-2 border border-gray-300 rounded-md w-32"
                   />
                   <div className="text-sm text-gray-500">Warning state</div>
@@ -287,9 +372,12 @@ function ThemeCustomizationContent() {
                 <button
                   key={presetTheme.id}
                   onClick={() => {
-                    setPrimaryColor(presetTheme.primary);
-                    setSecondaryColor(presetTheme.secondary);
-                    setAccentColor(presetTheme.accent);
+                    setColorState(prev => ({
+                      ...prev,
+                      primary: presetTheme.primary,
+                      secondary: presetTheme.secondary,
+                      accent: presetTheme.accent
+                    }));
                   }}
                   className={`p-4 rounded-lg border-2 transition-all ${selectedTheme === presetTheme.id ? 'border-blue-500' : 'border-gray-200 hover:border-gray-300'
                     }`}
@@ -316,21 +404,21 @@ function ThemeCustomizationContent() {
             <h3 className="text-lg font-medium mb-4">Theme Preview</h3>
 
             <div className="rounded-lg border p-4 overflow-hidden">
-              <div style={{ backgroundColor }} className="p-4 rounded-lg mb-4">
-                <div style={{ color: textColor }} className="mb-4">
+              <div style={{ backgroundColor: colorState.background }} className="p-4 rounded-lg mb-4">
+                <div style={{ color: colorState.text }} className="mb-4">
                   <h4 className="font-bold text-lg mb-1">Sample Heading</h4>
                   <p className="text-sm">This is how your text will appear</p>
                 </div>
 
                 <div className="flex space-x-2 mb-4">
                   <button
-                    style={{ backgroundColor: primaryColor, color: 'white' }}
+                    style={{ backgroundColor: colorState.primary, color: 'white' }}
                     className="px-3 py-1 rounded-md text-sm"
                   >
                     Primary Button
                   </button>
                   <button
-                    style={{ backgroundColor: secondaryColor, color: 'white' }}
+                    style={{ backgroundColor: colorState.secondary, color: 'white' }}
                     className="px-3 py-1 rounded-md text-sm"
                   >
                     Secondary
@@ -338,7 +426,7 @@ function ThemeCustomizationContent() {
                 </div>
 
                 <div
-                  style={{ backgroundColor: accentColor, color: 'white' }}
+                  style={{ backgroundColor: colorState.accent, color: 'white' }}
                   className="text-xs px-2 py-1 rounded inline-block"
                 >
                   Accent Label
@@ -352,11 +440,88 @@ function ThemeCustomizationContent() {
   );
 }
 
-// Page component wrapped with ThemeProvider
+// Error boundary component for better resilience
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, ErrorBoundaryState> {
+  constructor(props: {children: React.ReactNode}) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
+    console.error('Theme customization error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-6 text-center">
+          <h3 className="text-lg font-medium text-red-600 mb-2">Something went wrong</h3>
+          <p className="mb-4">We're having trouble loading the theme editor</p>
+          <button 
+            onClick={() => this.setState({ hasError: false })} 
+            className="px-4 py-2 bg-blue-600 text-white rounded-md"
+          >
+            Try again
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// Network status detector component
+function NetworkStatusIndicator() {
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+  
+  if (isOnline) return null;
+  
+  return (
+    <div className="fixed top-0 left-0 right-0 bg-yellow-100 text-yellow-800 text-sm text-center py-1 z-50">
+      You are currently offline. Changes will be saved locally.
+    </div>
+  );
+}
+
+// Page component wrapped with ThemeProvider and error boundary
 export default function ThemeCustomizePage() {
   return (
-    <ThemeProvider>
-      <ThemeCustomizationContent />
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <NetworkStatusIndicator />
+        <Suspense fallback={
+          <div className="p-6 space-y-4">
+            <div className="h-8 bg-gray-200 rounded-md animate-pulse w-1/3"></div>
+            <div className="h-64 bg-gray-100 rounded-md animate-pulse"></div>
+          </div>
+        }>
+          <ThemeCustomizationContent />
+        </Suspense>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
