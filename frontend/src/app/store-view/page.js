@@ -5,12 +5,14 @@ import { useSearchParams } from 'next/navigation';
 import { productService } from '@/lib/api';
 import ProductCard from '@/components/storefront/ProductCard';
 import { useCart } from '@/lib/cart';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
 // Component that uses searchParams (must be wrapped in Suspense)
 function StoreContent() {
   const searchParams = useSearchParams();
   const merchantId = searchParams.get('id');
-  
+
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -90,25 +92,36 @@ function StoreContent() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-6">Store Products</h1>
-      <p className="mb-6 text-gray-600">Merchant ID: {merchantId}</p>
-      
-      {products.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onAddToCart={() => handleAddToCart(product)}
-            />
-          ))}
+    <div className="min-h-screen bg-[#fdfcf7]">
+      {/* Header with Back to Home */}
+      <header className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4 bg-white/80 backdrop-blur border-b border-gray-100 mb-8">
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard" className="inline-flex items-center gap-2 text-[#6C9A8B] font-semibold hover:underline text-sm sm:text-base">
+            <ArrowLeft className="h-5 w-5" />
+            <span className="hidden sm:inline">Back to Home</span>
+          </Link>
+          <span className="ml-4 text-xl font-bold text-gray-900 font-sans">ConvoCommerce</span>
         </div>
-      ) : (
-        <div className="text-center py-10">
-          <p className="text-gray-600">No products available.</p>
-        </div>
-      )}
+      </header>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 className="text-3xl font-bold mb-6">Store Products</h1>
+        <p className="mb-6 text-gray-600">Merchant ID: {merchantId}</p>
+        {products.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={() => handleAddToCart(product)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-10">
+            <p className="text-gray-600">No products available.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -5,13 +5,13 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { DashboardHeader } from '@/components/layout/DashboardHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Users, 
-  ShoppingBag, 
-  Calendar, 
-  Download, 
+import {
+  BarChart3,
+  TrendingUp,
+  Users,
+  ShoppingBag,
+  Calendar,
+  Download,
   PieChart,
   ArrowUpRight,
   DollarSign
@@ -29,6 +29,7 @@ import {
   Filler,
 } from 'chart.js';
 import { Line, Bar, Pie } from 'react-chartjs-2';
+import Link from 'next/link';
 
 // Register ChartJS components
 ChartJS.register(
@@ -103,7 +104,8 @@ const mockCustomerAcquisition = {
 
 export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState<'7days' | '30days' | '90days' | 'custom'>('30days');
-  
+  const [hasData] = useState(true); // Set to false to test empty state
+
   const lineOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -142,165 +144,153 @@ export default function AnalyticsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-          <DashboardHeader 
-            title="Analytics" 
-            subtitle="Track your store performance"
-          />
-          
-          {/* Date Range Selector */}
-          <div className="mt-4 md:mt-0 flex items-center space-x-2 bg-muted/20 p-1 rounded-md">
-            <button 
-              onClick={() => setDateRange('7days')}
-              className={`px-3 py-1 text-sm rounded-md ${dateRange === '7days' ? 'bg-primary text-white' : 'hover:bg-muted'}`}
-            >
-              7 Days
-            </button>
-            <button 
-              onClick={() => setDateRange('30days')}
-              className={`px-3 py-1 text-sm rounded-md ${dateRange === '30days' ? 'bg-primary text-white' : 'hover:bg-muted'}`}
-            >
-              30 Days
-            </button>
-            <button 
-              onClick={() => setDateRange('90days')}
-              className={`px-3 py-1 text-sm rounded-md ${dateRange === '90days' ? 'bg-primary text-white' : 'hover:bg-muted'}`}
-            >
-              90 Days
-            </button>
-            <button 
-              onClick={() => setDateRange('custom')}
-              className={`px-3 py-1 text-sm rounded-md ${dateRange === 'custom' ? 'bg-primary text-white' : 'hover:bg-muted'}`}
-            >
-              Custom
-            </button>
+      <div className="space-y-8">
+        {/* Header Row */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-2">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-1">Analytics</h1>
+            <p className="text-gray-500 text-sm">Track your store performance</p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+            <div className="flex items-center space-x-2 bg-[#f7faf9] p-1 rounded-md">
+              <button
+                onClick={() => setDateRange('7days')}
+                className={`px-3 py-1 text-sm rounded-md ${dateRange === '7days' ? 'bg-[#6C9A8B] text-white' : 'hover:bg-[#e8f6f1]'}`}
+              >
+                7 Days
+              </button>
+              <button
+                onClick={() => setDateRange('30days')}
+                className={`px-3 py-1 text-sm rounded-md ${dateRange === '30days' ? 'bg-[#6C9A8B] text-white' : 'hover:bg-[#e8f6f1]'}`}
+              >
+                30 Days
+              </button>
+              <button
+                onClick={() => setDateRange('90days')}
+                className={`px-3 py-1 text-sm rounded-md ${dateRange === '90days' ? 'bg-[#6C9A8B] text-white' : 'hover:bg-[#e8f6f1]'}`}
+              >
+                90 Days
+              </button>
+              <button
+                onClick={() => setDateRange('custom')}
+                className={`px-3 py-1 text-sm rounded-md ${dateRange === 'custom' ? 'bg-[#6C9A8B] text-white' : 'hover:bg-[#e8f6f1]'}`}
+              >
+                Custom
+              </button>
+            </div>
+            <Button onClick={exportReport} variant="outline" size="sm" className="flex items-center">
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
           </div>
         </div>
-        
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4 flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Revenue</p>
-                <h3 className="text-2xl font-bold">₦45,670</h3>
-                <p className="text-xs flex items-center text-green-600">
-                  <ArrowUpRight className="h-3 w-3 mr-1" />
-                  +12.5% from last period
-                </p>
+        {/* Empty State */}
+        {!hasData ? (
+          <div className="flex flex-col items-center justify-center py-24">
+            <img src="/empty-box.svg" alt="No analytics data" className="w-32 h-32 mb-6 opacity-80" />
+            <h2 className="text-xl font-semibold mb-2">No analytics data yet</h2>
+            <p className="text-gray-500 mb-6">Analytics will appear here as your store gets orders and customers.</p>
+          </div>
+        ) : (
+          <>
+            {/* Stats Overview */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Link href="/dashboard/orders" className="rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-5 flex flex-col items-start hover:shadow-md transition cursor-pointer">
+                <StatCard
+                  title="Total Orders"
+                  value="85"
+                  icon={<ShoppingBag className="h-5 w-5 text-[#6C9A8B]" />}
+                  change={12}
+                  trend="up"
+                  subtitle="Last 30 days"
+                />
+              </Link>
+              <Link href="/dashboard/analytics?tab=finance" className="rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-5 flex flex-col items-start hover:shadow-md transition cursor-pointer">
+                <StatCard
+                  title="Total Revenue"
+                  value="₦6,674.55"
+                  icon={<DollarSign className="h-5 w-5 text-[#6C9A8B]" />}
+                  change={8}
+                  trend="up"
+                  subtitle="Last 30 days"
+                />
+              </Link>
+              <Link href="/dashboard/customers" className="rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-5 flex flex-col items-start hover:shadow-md transition cursor-pointer">
+                <StatCard
+                  title="Customers"
+                  value="63"
+                  icon={<Users className="h-5 w-5 text-[#6C9A8B]" />}
+                  change={5}
+                  trend="up"
+                  subtitle="Last 30 days"
+                />
+              </Link>
+              <div className="rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-5 flex flex-col items-start">
+                <StatCard
+                  title="Conversion Rate"
+                  value="54%"
+                  icon={<ArrowUpRight className="h-5 w-5 text-[#6C9A8B]" />}
+                  change={-2}
+                  trend="down"
+                  subtitle="Last 30 days"
+                />
               </div>
-              <div className="p-2 bg-blue-100 rounded-full">
-                <DollarSign className="h-5 w-5 text-blue-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4 flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Orders</p>
-                <h3 className="text-2xl font-bold">256</h3>
-                <p className="text-xs flex items-center text-green-600">
-                  <ArrowUpRight className="h-3 w-3 mr-1" />
-                  +8.3% from last period
-                </p>
-              </div>
-              <div className="p-2 bg-green-100 rounded-full">
-                <ShoppingBag className="h-5 w-5 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4 flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">New Customers</p>
-                <h3 className="text-2xl font-bold">87</h3>
-                <p className="text-xs flex items-center text-green-600">
-                  <ArrowUpRight className="h-3 w-3 mr-1" />
-                  +15.2% from last period
-                </p>
-              </div>
-              <div className="p-2 bg-purple-100 rounded-full">
-                <Users className="h-5 w-5 text-purple-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4 flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Conversion Rate</p>
-                <h3 className="text-2xl font-bold">5.4%</h3>
-                <p className="text-xs flex items-center text-red-600">
-                  <ArrowUpRight className="h-3 w-3 mr-1 transform rotate-90" />
-                  -2.1% from last period
-                </p>
-              </div>
-              <div className="p-2 bg-yellow-100 rounded-full">
-                <TrendingUp className="h-5 w-5 text-yellow-600" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        
-        {/* Sales Trend Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex justify-between">
-              <span>Sales Trend</span>
-              <Button onClick={exportReport} variant="outline" size="sm" className="flex items-center">
-                <Download className="h-4 w-4 mr-2" />
-                Export Report
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80">
-              <Line data={mockSalesData} options={lineOptions} />
             </div>
-          </CardContent>
-        </Card>
-        
-        {/* Two-column layout for analytics */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Channel Performance */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Channel Performance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64">
-                <Pie data={mockChannelData} options={pieOptions} />
-              </div>
-            </CardContent>
-          </Card>
-          
-          {/* Product Performance */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Top Products</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64">
-                <Bar data={mockProductPerformance} options={barOptions} />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        
-        {/* Customer Acquisition */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Customer Acquisition</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-64">
-              <Pie data={mockCustomerAcquisition} options={pieOptions} />
+            {/* Sales Trend Chart */}
+            <Card className="rounded-2xl border border-[#e6f0eb] shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex justify-between items-center">
+                  <span>Sales Trend</span>
+                  <Button onClick={exportReport} variant="outline" size="sm" className="flex items-center">
+                    <Download className="h-4 w-4 mr-2" />
+                    Export Report
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80">
+                  <Line data={mockSalesData} options={lineOptions} />
+                </div>
+              </CardContent>
+            </Card>
+            {/* Two-column layout for analytics */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Channel Performance */}
+              <Card className="rounded-2xl border border-[#e6f0eb] shadow-sm">
+                <CardHeader>
+                  <CardTitle>Channel Performance</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64">
+                    <Pie data={mockChannelData} options={pieOptions} />
+                  </div>
+                </CardContent>
+              </Card>
+              {/* Product Performance */}
+              <Card className="rounded-2xl border border-[#e6f0eb] shadow-sm">
+                <CardHeader>
+                  <CardTitle>Top Products</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64">
+                    <Bar data={mockProductPerformance} options={barOptions} />
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
+            {/* Customer Acquisition */}
+            <Card className="rounded-2xl border border-[#e6f0eb] shadow-sm">
+              <CardHeader>
+                <CardTitle>Customer Acquisition</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64">
+                  <Pie data={mockCustomerAcquisition} options={pieOptions} />
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
     </DashboardLayout>
   );

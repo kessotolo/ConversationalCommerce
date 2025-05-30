@@ -2,13 +2,14 @@ import React from 'react';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import StorefrontLinks from '@/components/dashboard/StorefrontLinks';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Palette, Layout, Type, Navigation, Image, Settings } from 'lucide-react';
+import { Palette, Layout, Type, Navigation, Image, Settings, Sparkles, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
 
 // Layout component to use theme context
 function StorefrontCustomizeContent() {
   const { theme, isLoading } = useTheme();
-  
+
   if (isLoading) {
     return <div className="p-6">Loading theme information...</div>;
   }
@@ -54,107 +55,52 @@ function StorefrontCustomizeContent() {
   ];
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Customize Storefront</h1>
-        
-        <Link
-          href={`https://${theme.subdomain || 'default'}.${process.env.NEXT_PUBLIC_BASE_DOMAIN || 'yourplatform.com'}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-        >
-          <span>View Live Site</span>
-        </Link>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left column - Links */}
-        <div className="md:col-span-1">
-          <div className="bg-white rounded-lg shadow p-6">
-            <StorefrontLinks />
-          </div>
-        </div>
-        
-        {/* Right column - Customization options */}
-        <div className="md:col-span-2">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-medium mb-4">Customization Options</h2>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {customizationOptions.map((option, index) => (
-                <Link
-                  key={index}
-                  href={option.href}
-                  className="flex items-start p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <div className="mr-4 text-blue-600">
-                    {option.icon}
-                  </div>
-                  <div>
-                    <h3 className="font-medium">{option.title}</h3>
-                    <p className="text-sm text-gray-500">{option.description}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-          
-          <div className="mt-6 bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-medium mb-4">Current Theme Preview</h2>
-            
-            <div 
-              className="border rounded-lg p-4 overflow-hidden"
-              style={{ 
-                backgroundColor: theme.colors.background,
-                color: theme.colors.text
-              }}
-            >
-              <div 
-                className="h-16 mb-4 rounded" 
-                style={{ 
-                  backgroundColor: theme.colors.primary,
-                  color: 'white',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontFamily: theme.typography.fontFamily.heading,
-                  fontWeight: theme.typography.fontWeight.bold
-                }}
-              >
-                Header Area
-              </div>
-              
-              <div className="flex items-center gap-4 mb-4">
-                <button
-                  style={{
-                    backgroundColor: theme.colors.primary,
-                    color: theme.componentStyles.button.primary.text,
-                    border: theme.componentStyles.button.primary.border,
-                    borderRadius: theme.componentStyles.button.primary.borderRadius,
-                    padding: theme.componentStyles.button.primary.padding,
-                  }}
-                >
-                  Primary Button
-                </button>
-                
-                <button
-                  style={{
-                    backgroundColor: theme.componentStyles.button.secondary.background,
-                    color: theme.componentStyles.button.secondary.text,
-                    border: theme.componentStyles.button.secondary.border,
-                    borderRadius: theme.componentStyles.button.secondary.borderRadius,
-                    padding: theme.componentStyles.button.secondary.padding,
-                  }}
-                >
-                  Secondary Button
-                </button>
+    <DashboardLayout>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold text-gray-900 mb-8">Customize Storefront</h1>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Customization Options */}
+          <div className="md:col-span-2 flex flex-col gap-8">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">What would you like to customize?</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {customizationOptions.map((option, index) => (
+                  <Link
+                    key={index}
+                    href={option.href}
+                    className="group relative flex flex-col items-start p-6 bg-white rounded-2xl shadow-lg border border-[#e6f0eb] hover:shadow-2xl hover:border-[#6C9A8B] transition-all cursor-pointer min-h-[140px]"
+                    style={{ minHeight: 140 }}
+                  >
+                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-[#e8f6f1] mb-3 group-hover:bg-[#6C9A8B] transition-all">
+                      {React.cloneElement(option.icon, { className: 'w-7 h-7', color: '#6C9A8B' })}
+                    </div>
+                    <h3 className="font-bold text-lg text-gray-900 mb-1 group-hover:text-[#6C9A8B]">{option.title}</h3>
+                    <p className="text-gray-500 text-sm">{option.description}</p>
+                    <span className="absolute top-4 right-4 text-xs text-[#6C9A8B] opacity-0 group-hover:opacity-100 transition-opacity">Customize</span>
+                  </Link>
+                ))}
               </div>
             </div>
           </div>
+          {/* Live Theme Preview Panel */}
+          <aside className="md:col-span-1">
+            <div className="bg-white rounded-2xl shadow-lg p-5 border border-[#e6f0eb] w-full max-w-xs mx-auto">
+              <h2 className="text-base font-semibold text-gray-900 mb-3">Live Theme Preview</h2>
+              <div className="border rounded-xl p-4 overflow-hidden" style={{ backgroundColor: theme.colors.background, color: theme.colors.text }}>
+                <div className="h-12 mb-3 rounded-xl flex items-center justify-center" style={{ backgroundColor: theme.colors.primary, color: 'white', fontFamily: theme.typography.fontFamily.heading, fontWeight: theme.typography.fontWeight.bold }}>
+                  Storefront Header
+                </div>
+                <div className="flex items-center gap-3 mb-3">
+                  <button style={{ backgroundColor: theme.colors.primary, color: theme.componentStyles.button.primary.text, border: theme.componentStyles.button.primary.border, borderRadius: theme.componentStyles.button.primary.borderRadius, padding: theme.componentStyles.button.primary.padding }}>Primary</button>
+                  <button style={{ backgroundColor: theme.componentStyles.button.secondary.background, color: theme.componentStyles.button.secondary.text, border: theme.componentStyles.button.secondary.border, borderRadius: theme.componentStyles.button.secondary.borderRadius, padding: theme.componentStyles.button.secondary.padding }}>Secondary</button>
+                </div>
+                <div className="bg-[#f5f9f7] rounded-lg p-3 text-xs text-gray-500 text-center">This is a live preview of your theme settings.</div>
+              </div>
+            </div>
+          </aside>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
 

@@ -4,15 +4,15 @@ import React, { useState, useRef, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { 
-  Search, 
-  ChevronDown, 
-  Send, 
-  Image as ImageIcon, 
-  MessageCircle, 
-  Phone, 
-  Video, 
-  MoreVertical, 
+import {
+  Search,
+  ChevronDown,
+  Send,
+  Image as ImageIcon,
+  MessageCircle,
+  Phone,
+  Video,
+  MoreVertical,
   Clock,
   Check,
   CheckCheck
@@ -29,7 +29,9 @@ const mockConversations = [
     lastMessage: 'Do you have this in red color?',
     unread: 2,
     timestamp: '2025-05-25T15:30:00',
-    avatar: 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg'
+    avatar: 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg',
+    orderId: 'ORD-001',
+    orderStatus: 'processing', // mock order status
   },
   {
     id: '2',
@@ -38,7 +40,9 @@ const mockConversations = [
     lastMessage: 'Thanks for the quick delivery!',
     unread: 0,
     timestamp: '2025-05-24T12:15:00',
-    avatar: 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg'
+    avatar: 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg',
+    orderId: 'ORD-002',
+    orderStatus: 'delivered',
   },
   {
     id: '3',
@@ -47,7 +51,9 @@ const mockConversations = [
     lastMessage: 'When will my order arrive?',
     unread: 1,
     timestamp: '2025-05-25T09:45:00',
-    avatar: 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg'
+    avatar: 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg',
+    orderId: 'ORD-003',
+    orderStatus: 'pending',
   },
   {
     id: '4',
@@ -56,7 +62,9 @@ const mockConversations = [
     lastMessage: "I'd like to place an order for...",
     unread: 0,
     timestamp: '2025-05-23T16:20:00',
-    avatar: 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg'
+    avatar: 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg',
+    orderId: null,
+    orderStatus: null,
   }
 ];
 
@@ -119,7 +127,7 @@ export default function MessagesPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Filter conversations based on search term
-  const filteredConversations = conversations.filter(conv => 
+  const filteredConversations = conversations.filter(conv =>
     conv.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     conv.phone.includes(searchTerm)
   );
@@ -135,12 +143,12 @@ export default function MessagesPage() {
   const fetchConversations = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       // This is where you would make a real API call
       // const response = await conversationService.getConversations();
       // setConversations(response.data);
-      
+
       // Simulate API call with mock data
       setTimeout(() => {
         setConversations(mockConversations);
@@ -178,20 +186,20 @@ export default function MessagesPage() {
 
     // Simulate API call for message delivery status
     setTimeout(() => {
-      setMessages(prev => 
-        prev.map(msg => 
-          msg.id === messageToSend.id 
-            ? { ...msg, status: 'sent' } 
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.id === messageToSend.id
+            ? { ...msg, status: 'sent' }
             : msg
         )
       );
-      
+
       // Then simulate delivered status
       setTimeout(() => {
-        setMessages(prev => 
-          prev.map(msg => 
-            msg.id === messageToSend.id 
-              ? { ...msg, status: 'delivered' } 
+        setMessages(prev =>
+          prev.map(msg =>
+            msg.id === messageToSend.id
+              ? { ...msg, status: 'delivered' }
               : msg
           )
         );
@@ -227,26 +235,34 @@ export default function MessagesPage() {
     }
   };
 
+  // Helper: get selected conversation object
+  const selectedConvObj = conversations.find(c => c.id === selectedConversation);
+  // Helper: get last message date
+  const lastMsgDate = messages.length > 0 ? new Date(messages[messages.length - 1].timestamp) : null;
+  // Helper: is expired (order closed or >2 weeks old)
+  const isOrderClosed = selectedConvObj && (selectedConvObj.orderStatus === 'delivered' || selectedConvObj.orderStatus === 'cancelled');
+  const isMsgTooOld = lastMsgDate ? (Date.now() - lastMsgDate.getTime() > 14 * 24 * 60 * 60 * 1000) : false;
+  const isExpired = !!isOrderClosed || isMsgTooOld;
+
   return (
     <DashboardLayout>
       <div className="h-[calc(100vh-4rem)] flex flex-col">
-        <div className="flex h-full">
+        <div className="flex h-full bg-[#f7faf9] rounded-2xl shadow-sm border border-[#e6f0eb] overflow-hidden">
           {/* Conversations sidebar */}
-          <div className="w-full sm:w-80 md:w-96 border-r flex flex-col bg-gray-50">
-            <div className="p-4 border-b">
+          <div className="w-full sm:w-80 md:w-96 border-r flex flex-col bg-[#f7faf9]">
+            <div className="p-4 border-b bg-white">
               <h1 className="text-lg font-semibold mb-4">Messages</h1>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search conversations..."
-                  className="pl-10 pr-4 py-2 w-full border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="pl-10 pr-4 py-2 w-full border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6C9A8B] bg-[#f7faf9]"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
             </div>
-            
             <div className="flex-1 overflow-y-auto">
               {isLoading ? (
                 <div className="flex justify-center items-center h-32">
@@ -256,12 +272,10 @@ export default function MessagesPage() {
                 filteredConversations.map((conv) => (
                   <button
                     key={conv.id}
-                    className={`w-full text-left px-4 py-3 border-b hover:bg-gray-100 flex items-start ${
-                      selectedConversation === conv.id ? 'bg-blue-50' : ''
-                    }`}
+                    className={`w-full text-left px-4 py-3 border-b flex items-start rounded-none transition-all duration-150 ${selectedConversation === conv.id ? 'bg-[#e8f6f1] border-l-4 border-[#6C9A8B]' : 'hover:bg-gray-100'}`}
                     onClick={() => handleSelectConversation(conv.id)}
                   >
-                    <div className="relative h-12 w-12 rounded-full overflow-hidden bg-gray-300 mr-3 flex-shrink-0">
+                    <div className="relative h-12 w-12 rounded-full overflow-hidden bg-gray-300 mr-3 flex-shrink-0 border border-[#e6f0eb]">
                       {conv.avatar ? (
                         <Image src={conv.avatar} alt={conv.customerName} fill className="object-cover" />
                       ) : (
@@ -278,17 +292,17 @@ export default function MessagesPage() {
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 truncate">{conv.lastMessage}</p>
-                      <p className="text-xs text-gray-500 mt-1">{conv.phone}</p>
+                      <p className="text-xs text-gray-400 mt-1">{conv.phone}</p>
                     </div>
                     {conv.unread > 0 && (
-                      <span className="ml-2 bg-blue-500 text-white text-xs font-medium rounded-full h-5 w-5 flex items-center justify-center">
+                      <span className="ml-2 bg-[#6C9A8B] text-white text-xs font-medium rounded-full h-5 w-5 flex items-center justify-center">
                         {conv.unread}
                       </span>
                     )}
                   </button>
                 ))
               ) : (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-gray-400">
                   No conversations found
                 </div>
               )}
@@ -302,23 +316,30 @@ export default function MessagesPage() {
                 {/* Chat header */}
                 <div className="px-4 py-3 border-b flex justify-between items-center bg-white">
                   <div className="flex items-center">
-                    <div className="relative h-10 w-10 rounded-full overflow-hidden bg-gray-300 mr-3">
-                      <Image 
-                        src={
-                          conversations.find(c => c.id === selectedConversation)?.avatar || 
-                          'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg'
-                        } 
-                        alt="Customer" 
-                        fill 
-                        className="object-cover" 
+                    <div className="relative h-10 w-10 rounded-full overflow-hidden bg-gray-300 mr-3 border border-[#e6f0eb]">
+                      <Image
+                        src={selectedConvObj?.avatar || 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg'}
+                        alt="Customer"
+                        fill
+                        className="object-cover"
                       />
                     </div>
                     <div>
-                      <h3 className="font-medium">
-                        {conversations.find(c => c.id === selectedConversation)?.customerName}
+                      <h3 className="font-medium flex items-center gap-2">
+                        {selectedConvObj?.customerName}
+                        {selectedConvObj?.orderId && (
+                          <a
+                            href={`/dashboard/orders/${selectedConvObj.orderId}`}
+                            className="text-xs px-2 py-1 rounded bg-[#e8f6f1] text-[#6C9A8B] font-semibold hover:underline"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Order #{selectedConvObj.orderId}
+                          </a>
+                        )}
                       </h3>
-                      <p className="text-xs text-gray-500">
-                        {conversations.find(c => c.id === selectedConversation)?.phone}
+                      <p className="text-xs text-gray-400">
+                        {selectedConvObj?.phone}
                       </p>
                     </div>
                   </div>
@@ -334,27 +355,31 @@ export default function MessagesPage() {
                     </Button>
                   </div>
                 </div>
+                {/* Expiry banner */}
+                {isExpired && (
+                  <div className="bg-yellow-50 border-b border-yellow-200 text-yellow-800 text-sm px-4 py-2 text-center">
+                    This conversation is closed. You can no longer send messages.
+                  </div>
+                )}
 
                 {/* Messages area */}
-                <div className="flex-1 p-4 overflow-y-auto bg-gray-100">
+                <div className="flex-1 p-4 overflow-y-auto bg-[#f7faf9]">
                   <div className="space-y-4">
                     {messages.map((message) => (
                       <div
                         key={message.id}
-                        className={`flex ${
-                          message.sender === 'store' ? 'justify-end' : 'justify-start'
-                        }`}
+                        className={`flex ${message.sender === 'store' ? 'justify-end' : 'justify-start'
+                          }`}
                       >
                         <div
-                          className={`max-w-[75%] rounded-lg px-4 py-2 ${
-                            message.sender === 'store'
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-white border border-gray-200 text-gray-800'
-                          }`}
+                          className={`max-w-[75%] rounded-2xl px-4 py-2 shadow-sm ${message.sender === 'store'
+                            ? 'bg-[#6C9A8B] text-white'
+                            : 'bg-white border border-[#e6f0eb] text-gray-800'
+                            }`}
                         >
                           <p>{message.content}</p>
                           <div className="text-xs mt-1 flex justify-end items-center space-x-1">
-                            <span className={message.sender === 'store' ? 'text-blue-100' : 'text-gray-500'}>
+                            <span className={message.sender === 'store' ? 'text-[#e8f6f1]' : 'text-gray-400'}>
                               {formatDate(message.timestamp, 'time')}
                             </span>
                             {message.sender === 'store' && renderMessageStatus(message.status)}
@@ -367,13 +392,13 @@ export default function MessagesPage() {
                 </div>
 
                 {/* Quick replies */}
-                <div className="px-4 py-2 border-t border-b bg-gray-50">
+                <div className="px-4 py-2 border-t border-b bg-[#f7faf9]">
                   <p className="text-xs text-gray-500 mb-2">Quick Replies:</p>
                   <div className="flex overflow-x-auto space-x-2 pb-2">
                     {quickReplies.map((reply, index) => (
                       <button
                         key={index}
-                        className="px-3 py-1 border rounded-full text-sm whitespace-nowrap hover:bg-gray-100"
+                        className="px-3 py-1 border border-[#e6f0eb] rounded-full text-sm whitespace-nowrap hover:bg-[#e8f6f1] transition-colors"
                         onClick={() => insertQuickReply(reply)}
                       >
                         {reply.length > 30 ? reply.substring(0, 30) + '...' : reply}
@@ -391,7 +416,7 @@ export default function MessagesPage() {
                     <input
                       type="text"
                       placeholder="Type a message..."
-                      className="flex-1 border rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#6C9A8B] bg-[#f7faf9]"
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
                       onKeyDown={(e) => {
@@ -400,11 +425,15 @@ export default function MessagesPage() {
                           sendMessage();
                         }
                       }}
+                      disabled={isLoading || isExpired}
                     />
                     <Button
-                      className="ml-2 h-10 w-10 p-0 rounded-full"
+                      variant="default"
+                      size="sm"
+                      className="h-10 w-10 p-0 ml-2 bg-[#6C9A8B] hover:bg-[#588074] text-white rounded-full"
                       onClick={sendMessage}
-                      disabled={!newMessage.trim()}
+                      disabled={isLoading || !newMessage.trim() || isExpired}
+                      title="Send"
                     >
                       <Send className="h-5 w-5" />
                     </Button>
@@ -412,12 +441,10 @@ export default function MessagesPage() {
                 </div>
               </>
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-gray-500">
-                <MessageCircle className="h-16 w-16 mb-4 text-gray-300" />
-                <h3 className="text-lg font-medium mb-2">Your Conversations</h3>
-                <p className="text-center max-w-md mb-6">
-                  Select a conversation from the list to view messages and reply to your customers.
-                </p>
+              <div className="flex flex-1 flex-col items-center justify-center text-center bg-white">
+                <MessageCircle className="w-16 h-16 text-[#e6f0eb] mb-4" />
+                <h2 className="text-xl font-semibold mb-2 text-gray-700">No conversation selected</h2>
+                <p className="text-gray-400 mb-6">Select a conversation to view and reply to messages.</p>
               </div>
             )}
           </div>

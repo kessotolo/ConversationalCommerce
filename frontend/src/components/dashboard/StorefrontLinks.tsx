@@ -8,7 +8,7 @@ interface StorefrontLinksProps {
 
 export default function StorefrontLinks({ className }: StorefrontLinksProps) {
   const { tenant, isLoading } = useTenant();
-  
+
   if (isLoading || !tenant) {
     return (
       <div className={`animate-pulse ${className}`}>
@@ -21,40 +21,40 @@ export default function StorefrontLinks({ className }: StorefrontLinksProps) {
   const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'yourplatform.com';
   const isDefaultDomain = baseDomain === 'yourplatform.com';
   const isDefaultSubdomain = tenant.subdomain === 'default';
-  
+
   const subdomainUrl = `https://${tenant.subdomain}.${baseDomain}`;
   const customDomainUrl = tenant.customDomain ? `https://${tenant.customDomain}` : null;
-  
+
   // Check if we're using default/placeholder values
   const usingPlaceholders = isDefaultDomain || isDefaultSubdomain;
-  
+
   return (
     <div className={className}>
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Your Storefront</h3>
-        
+
         {usingPlaceholders && (
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-md mb-4">
             <p className="text-amber-800 text-sm">
-              <strong>Note:</strong> Your storefront is currently using placeholder values. 
+              <strong>Note:</strong> Your storefront is currently using placeholder values.
               To set up your actual storefront URL, please customize your store settings.
             </p>
-            <a 
-              href="/dashboard/settings" 
+            <a
+              href="/dashboard/settings"
               className="text-sm text-blue-600 hover:underline mt-2 inline-block"
             >
               Configure store settings
             </a>
           </div>
         )}
-        
+
         {/* Subdomain URL */}
         <div className="flex flex-col space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-500">Subdomain URL</span>
             <div className="flex space-x-2">
               {/* View actual storefront (eye icon) */}
-              <a 
+              <a
                 href={usingPlaceholders ? "#" : subdomainUrl}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -64,9 +64,9 @@ export default function StorefrontLinks({ className }: StorefrontLinksProps) {
               >
                 <Eye size={18} />
               </a>
-              
+
               {/* Edit storefront (edit icon) */}
-              <a 
+              <a
                 href="/dashboard/storefront/customize"
                 className="p-1 rounded-full flex items-center justify-center w-8 h-8 text-green-600 hover:bg-green-50"
                 title="Edit storefront"
@@ -93,7 +93,7 @@ export default function StorefrontLinks({ className }: StorefrontLinksProps) {
             {usingPlaceholders ? (
               <span className="text-gray-500 italic">{subdomainUrl} <small>(placeholder)</small></span>
             ) : (
-              <a 
+              <a
                 href={subdomainUrl}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -104,14 +104,14 @@ export default function StorefrontLinks({ className }: StorefrontLinksProps) {
             )}
           </div>
         </div>
-        
+
         {/* Custom Domain URL (if available) */}
         {customDomainUrl && (
           <div className="flex flex-col space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">Custom Domain</span>
               <div className="flex space-x-2">
-                <a 
+                <a
                   href={customDomainUrl}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -137,7 +137,7 @@ export default function StorefrontLinks({ className }: StorefrontLinksProps) {
               </div>
             </div>
             <div className="flex items-center">
-              <a 
+              <a
                 href={customDomainUrl}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -148,12 +148,12 @@ export default function StorefrontLinks({ className }: StorefrontLinksProps) {
             </div>
           </div>
         )}
-        
+
         {/* Settings link */}
         <div className="pt-2">
-          <a 
-            href="/dashboard/storefront/settings"
-            className="text-sm text-gray-600 hover:text-gray-900 flex items-center"
+          <a
+            href="/dashboard/storefront/customize"
+            className="text-sm text-[#6C9A8B] font-semibold hover:text-[#4e6e5e] flex items-center"
           >
             <Settings size={16} className="mr-1" />
             Customize storefront

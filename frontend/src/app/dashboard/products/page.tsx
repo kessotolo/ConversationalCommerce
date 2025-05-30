@@ -1,248 +1,228 @@
-'use client';
-
+"use client";
 import React, { useState } from 'react';
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  Edit, 
-  ChevronRight,
-  Trash2,
-  Copy
-} from 'lucide-react';
+import { Plus, Search, Edit, Trash2, BadgeCheck, BadgeX } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import Link from 'next/link';
-import { ProductCard } from '@/components/products/ProductCard';
-import { Button } from '@/components/ui/Button';
 
+// Product type
 interface Product {
   id: string;
   name: string;
   price: number;
-  image: string;
-  description: string;
-  inStock: boolean;
-  category: string;
+  image_url: string;
+  status: 'Active' | 'Draft';
+  inventory: number;
 }
 
-// Mock products data
-const mockProducts: Product[] = [
+// Mocked product data
+const MOCK_PRODUCTS: Product[] = [
   {
     id: '1',
-    name: 'Organic Bananas',
-    price: 1.99,
-    image: 'https://images.unsplash.com/photo-1587132137056-bfbf0166836e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8YmFuYW5hfGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60',
-    description: 'Fresh organic bananas from local farms.',
-    inStock: true,
-    category: 'Fruits'
+    name: 'Premium Coffee Blend',
+    price: 14.99,
+    image_url: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?q=80&w=500',
+    status: 'Active',
+    inventory: 120,
   },
   {
     id: '2',
-    name: 'Premium Coffee Beans',
-    price: 12.99,
-    image: 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8Y29mZmVlJTIwYmVhbnN8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60',
-    description: 'Freshly roasted premium coffee beans.',
-    inStock: true,
-    category: 'Beverages'
+    name: 'Organic Green Tea',
+    price: 9.99,
+    image_url: 'https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?q=80&w=500',
+    status: 'Active',
+    inventory: 80,
   },
   {
     id: '3',
-    name: 'Whole Wheat Bread',
-    price: 3.49,
-    image: 'https://images.unsplash.com/photo-1586444248892-4aa5712a2660?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8YnJlYWR8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60',
-    description: 'Freshly baked whole wheat bread.',
-    inStock: true,
-    category: 'Bakery'
-  }
+    name: 'Handcrafted Ceramic Mug',
+    price: 24.99,
+    image_url: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?q=80&w=500',
+    status: 'Draft',
+    inventory: 0,
+  },
 ];
 
-export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>(mockProducts);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterCategory, setFilterCategory] = useState('');
-  const [channelFilter, setChannelFilter] = useState<'all' | 'whatsapp' | 'web'>('all');
-  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  
-  // Categories derived from products
-  const categories = Array.from(new Set(products.map(p => p.category)));
-  
-  // Filter products based on search, category and channel
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          product.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory ? product.category === filterCategory : true;
-    // In a real implementation, this would filter based on product channel visibility
-    // Here we're just simulating it with a basic condition
-    const matchesChannel = channelFilter === 'all' ? true : true;
-    return matchesSearch && matchesCategory && matchesChannel;
-  });
-  
-  // Delete product handler
-  const handleDeleteProduct = (id: string) => {
-    if (confirm('Are you sure you want to delete this product?')) {
-      // In production, this would call an API endpoint
-      setIsLoading(true);
-      setTimeout(() => {
-        setProducts(products.filter(p => p.id !== id));
-        setIsLoading(false);
-      }, 500);
+type AddProductModalProps = {
+  open: boolean;
+  onClose: () => void;
+  onAdd: (product: Product) => void;
+};
+
+function AddProductModal({ open, onClose, onAdd, editingProduct }: AddProductModalProps & { editingProduct?: Product | null }) {
+  const isEditing = !!editingProduct;
+  const [name, setName] = useState(editingProduct?.name || '');
+  const [price, setPrice] = useState(editingProduct?.price?.toString() || '');
+  const [image, setImage] = useState(editingProduct?.image_url || '');
+  const [status, setStatus] = useState<'Active' | 'Draft'>(editingProduct?.status || 'Active');
+  const [inventory, setInventory] = useState(editingProduct?.inventory?.toString() || '');
+
+  React.useEffect(() => {
+    if (editingProduct) {
+      setName(editingProduct.name);
+      setPrice(editingProduct.price.toString());
+      setImage(editingProduct.image_url);
+      setStatus(editingProduct.status);
+      setInventory(editingProduct.inventory.toString());
+    } else {
+      setName(''); setPrice(''); setImage(''); setStatus('Active'); setInventory('');
+    }
+  }, [editingProduct, open]);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const product: Product = {
+      id: editingProduct ? editingProduct.id : Date.now().toString(),
+      name,
+      price: parseFloat(price),
+      image_url: image,
+      status,
+      inventory: parseInt(inventory, 10),
+    };
+    onAdd(product);
+    onClose();
+  };
+
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+        <h2 className="text-xl font-bold mb-4">{isEditing ? 'Edit Product' : 'Add Product'}</h2>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <input className="border rounded-lg px-3 py-2" placeholder="Product name" value={name} onChange={e => setName(e.target.value)} required />
+          <input className="border rounded-lg px-3 py-2" placeholder="Price" type="number" min="0" step="0.01" value={price} onChange={e => setPrice(e.target.value)} required />
+          <input className="border rounded-lg px-3 py-2" placeholder="Image URL" value={image} onChange={e => setImage(e.target.value)} />
+          <input className="border rounded-lg px-3 py-2" placeholder="Inventory" type="number" min="0" value={inventory} onChange={e => setInventory(e.target.value)} required />
+          <select className="border rounded-lg px-3 py-2" value={status} onChange={e => setStatus(e.target.value as 'Active' | 'Draft')}>
+            <option value="Active">Active</option>
+            <option value="Draft">Draft</option>
+          </select>
+          <div className="flex gap-2 justify-end mt-2">
+            <button type="button" className="px-4 py-2 rounded-lg bg-gray-100" onClick={onClose}>Cancel</button>
+            <button type="submit" className="px-4 py-2 rounded-lg bg-[#6C9A8B] text-white font-semibold">{isEditing ? 'Save changes' : 'Add'}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default function ProductsDashboardPage() {
+  const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
+  const [search, setSearch] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+  const filtered = products.filter(p =>
+    p.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleAddOrEditProduct = (product: Product) => {
+    if (editingProduct) {
+      setProducts(products.map(p => (p.id === product.id ? product : p)));
+      setEditingProduct(null);
+    } else {
+      setProducts([product, ...products]);
     }
   };
-  
-  // Duplicate product handler
-  const handleDuplicateProduct = (id: string) => {
-    const productToDuplicate = products.find(p => p.id === id);
-    if (productToDuplicate) {
-      setIsLoading(true);
-      // In production, this would call an API endpoint
-      setTimeout(() => {
-        const newProduct = {
-          ...productToDuplicate,
-          id: `${parseInt(productToDuplicate.id) + 100}`, // Just for demo purposes
-          name: `${productToDuplicate.name} (Copy)`
-        };
-        setProducts([...products, newProduct]);
-        setIsLoading(false);
-      }, 500);
+
+  const handleDelete = (id: string) => {
+    const product = products.find(p => p.id === id);
+    if (!product) return;
+    const confirmed = window.confirm(`Are you sure you want to delete "${product.name}"? This action cannot be undone.`);
+    if (confirmed) {
+      setProducts(products.filter(p => p.id !== id));
     }
   };
-  
-  // Bulk selection handler
-  const toggleSelectProduct = (id: string) => {
-    setSelectedProducts(prev => 
-      prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
-    );
+
+  const handleOpenAdd = () => {
+    setEditingProduct(null);
+    setModalOpen(true);
   };
-  
-  // Bulk delete handler
-  const handleBulkDelete = () => {
-    if (selectedProducts.length === 0) return;
-    
-    if (confirm(`Are you sure you want to delete ${selectedProducts.length} products?`)) {
-      setIsLoading(true);
-      // In production, this would call an API endpoint
-      setTimeout(() => {
-        setProducts(products.filter(p => !selectedProducts.includes(p.id)));
-        setSelectedProducts([]);
-        setIsLoading(false);
-      }, 500);
-    }
+
+  const handleOpenEdit = (product: Product) => {
+    setEditingProduct(product);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setEditingProduct(null);
   };
 
   return (
     <DashboardLayout>
-      <div className="space-y-4 px-4">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Products</h1>
-          <Link href="/dashboard/products/add" className="bg-primary text-white p-2 rounded-full shadow-lg">
-            <Plus size={24} />
-          </Link>
-        </div>
-        
-        {/* Channel Visibility Toggle */}
-        <div className="flex overflow-x-auto pb-2 bg-muted/20 p-1 rounded-md">
-          <button
-            onClick={() => setChannelFilter('all')}
-            className={`px-4 py-2 text-sm font-medium rounded-md whitespace-nowrap ${channelFilter === 'all' ? 'bg-primary text-white' : 'text-gray-700'}`}
-          >
-            All Channels
-          </button>
-          <button
-            onClick={() => setChannelFilter('whatsapp')}
-            className={`px-4 py-2 text-sm font-medium rounded-md whitespace-nowrap ${channelFilter === 'whatsapp' ? 'bg-primary text-white' : 'text-gray-700'}`}
-          >
-            WhatsApp
-          </button>
-          <button
-            onClick={() => setChannelFilter('web')}
-            className={`px-4 py-2 text-sm font-medium rounded-md whitespace-nowrap ${channelFilter === 'web' ? 'bg-primary text-white' : 'text-gray-700'}`}
-          >
-            Web
-          </button>
-        </div>
-        
-        {/* Search and filters */}
-        <div className="flex flex-col sm:flex-row gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full border rounded-md"
-            />
-          </div>
-          <div className="relative">
-            <select
-              value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
-              className="pl-4 pr-8 py-2 border rounded-md appearance-none"
-            >
-              <option value="">All Categories</option>
-              {categories.map(category => (
-                <option key={category} value={category}>{category}</option>
-              ))}
-            </select>
-            <ChevronRight className="absolute right-3 top-1/2 transform -translate-y-1/2 rotate-90 text-gray-400" size={16} />
-          </div>
-        </div>
-        
-        {/* Bulk Actions */}
-        {selectedProducts.length > 0 && (
-          <div className="flex items-center justify-between bg-blue-50 p-3 rounded-md shadow-sm">
-            <span className="text-sm font-medium">{selectedProducts.length} products selected</span>
-            <div className="flex space-x-2">
-              <Button 
-                variant="destructive" 
-                size="sm" 
-                onClick={handleBulkDelete} 
-                disabled={isLoading}
-                className="flex items-center"
-              >
-                <Trash2 className="h-4 w-4 mr-1" />
-                Delete
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setSelectedProducts([])} 
-                className="flex items-center"
-              >
-                Cancel
-              </Button>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">Products</h1>
+          <div className="flex gap-2 items-center w-full sm:w-auto">
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+              <input
+                className="pl-10 pr-3 py-2 rounded-lg border border-gray-200 w-full focus:outline-none focus:ring-2 focus:ring-[#6C9A8B] bg-white"
+                placeholder="Search products..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
             </div>
+            <button
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#6C9A8B] text-white font-semibold shadow hover:bg-[#588074] transition"
+              onClick={handleOpenAdd}
+            >
+              <Plus size={18} /> Add product
+            </button>
+          </div>
+        </div>
+        {filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl shadow-inner border border-gray-100">
+            <img src="/empty-box.svg" alt="No products" className="w-32 h-32 mb-6 opacity-80" />
+            <h2 className="text-xl font-semibold mb-2">No products yet</h2>
+            <p className="text-gray-500 mb-6">Start adding products to see them listed here.</p>
+            <button
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#6C9A8B] text-white font-semibold shadow hover:bg-[#588074] transition"
+              onClick={handleOpenAdd}
+            >
+              <Plus size={18} /> Add your first product
+            </button>
+          </div>
+        ) : (
+          <div className="overflow-x-auto bg-white rounded-2xl shadow border border-gray-100">
+            <table className="min-w-full divide-y divide-gray-100">
+              <thead className="bg-[#f7faf9]">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inventory</th>
+                  <th className="px-6 py-3" />
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-100">
+                {filtered.map(product => (
+                  <tr key={product.id} className="hover:bg-[#f7faf9] transition">
+                    <td className="px-6 py-4">
+                      <img src={product.image_url} alt={product.name} className="w-14 h-14 object-cover rounded-lg border border-gray-100" />
+                    </td>
+                    <td className="px-6 py-4 font-semibold text-gray-900">{product.name}</td>
+                    <td className="px-6 py-4">
+                      {product.status === 'Active' ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-100"><BadgeCheck size={14} /> Active</span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200"><BadgeX size={14} /> Draft</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">${product.price.toFixed(2)}</td>
+                    <td className="px-6 py-4">{product.inventory}</td>
+                    <td className="px-6 py-4 flex gap-2">
+                      <button className="p-2 rounded hover:bg-gray-100 text-gray-500" title="Edit" onClick={() => handleOpenEdit(product)}><Edit size={16} /></button>
+                      <button className="p-2 rounded hover:bg-red-50 text-red-500" title="Delete" onClick={() => handleDelete(product.id)}><Trash2 size={16} /></button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
-
-        {/* Products List with Swipe Actions */}
-        <div className="space-y-1 pb-16">
-          {isLoading && (
-            <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
-              <div className="bg-white p-4 rounded-md shadow-lg">
-                <p>Processing...</p>
-              </div>
-            </div>
-          )}
-          
-          {filteredProducts.length === 0 ? (
-            <div className="text-center p-8 border rounded-md bg-white">
-              <p>No products found. Try a different search.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredProducts.map(product => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onDelete={handleDeleteProduct}
-                  onDuplicate={handleDuplicateProduct}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        <AddProductModal open={modalOpen} onClose={handleCloseModal} onAdd={handleAddOrEditProduct} editingProduct={editingProduct} />
       </div>
     </DashboardLayout>
   );

@@ -3,20 +3,20 @@
 import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import Link from 'next/link';
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle
 } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';
-import { 
-  Search, 
-  Filter, 
-  RefreshCcw, 
-  ChevronDown, 
+import {
+  Search,
+  Filter,
+  RefreshCcw,
+  ChevronDown,
   Eye,
   MessageSquare,
   Package,
@@ -118,17 +118,18 @@ export default function OrdersPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
 
   // Fetch orders with API integration structure (using mock data for now)
   const fetchOrders = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       // This is where you would make a real API call
       // const response = await orderService.getOrders();
       // setOrders(response.data);
-      
+
       // Simulate API call with mock data
       setTimeout(() => {
         setOrders(mockOrders);
@@ -142,27 +143,27 @@ export default function OrdersPage() {
 
   // Filter orders based on search term and status
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = 
-      order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const matchesSearch =
+      order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.phone.includes(searchTerm);
-    
+
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
-    
+
     return matchesSearch && matchesStatus;
   });
 
   // Function to update order status
   const updateOrderStatus = async (orderId: string, newStatus: OrderStatus) => {
     setIsLoading(true);
-    
+
     try {
       // This is where you would make a real API call
       // await orderService.updateOrderStatus(orderId, newStatus);
-      
+
       // Simulate API call
       setTimeout(() => {
-        setOrders(orders.map(order => 
+        setOrders(orders.map(order =>
           order.id === orderId ? { ...order, status: newStatus } : order
         ));
         setIsLoading(false);
@@ -172,11 +173,58 @@ export default function OrdersPage() {
       setIsLoading(false);
     }
   };
-  
+
   // Function to message customer via WhatsApp
   const messageCustomer = (phone: string) => {
     // In production, this would use the Twilio API
     window.open(`https://wa.me/${phone.replace(/[^0-9]/g, '')}`, '_blank');
+  };
+
+  // Bulk selection handlers
+  const isAllSelected = filteredOrders.length > 0 && selectedOrders.length === filteredOrders.length;
+  const isIndeterminate = selectedOrders.length > 0 && selectedOrders.length < filteredOrders.length;
+
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedOrders([]);
+    } else {
+      setSelectedOrders(filteredOrders.map(order => order.id));
+    }
+  };
+
+  const toggleSelectOrder = (id: string) => {
+    setSelectedOrders(prev =>
+      prev.includes(id) ? prev.filter(oid => oid !== id) : [...prev, id]
+    );
+  };
+
+  // Bulk action example: Mark selected as shipped
+  const handleBulkMarkShipped = () => {
+    setOrders(orders.map(order =>
+      selectedOrders.includes(order.id) && order.status === 'processing'
+        ? { ...order, status: 'shipped' }
+        : order
+    ));
+    setSelectedOrders([]);
+  };
+
+  // Bulk action example: Delete selected (with confirm)
+  const handleBulkDelete = () => {
+    if (selectedOrders.length === 0) return;
+    if (window.confirm(`Are you sure you want to delete ${selectedOrders.length} orders? This cannot be undone.`)) {
+      setOrders(orders.filter(order => !selectedOrders.includes(order.id)));
+      setSelectedOrders([]);
+    }
+  };
+
+  // Bulk action example: Mark selected as processing
+  const handleBulkMarkProcessing = () => {
+    setOrders(orders.map(order =>
+      selectedOrders.includes(order.id) && order.status === 'pending'
+        ? { ...order, status: 'processing' }
+        : order
+    ));
+    setSelectedOrders([]);
   };
 
   return (
@@ -273,6 +321,27 @@ export default function OrdersPage() {
           </div>
         )}
 
+        {/* Bulk Action Bar */}
+        {selectedOrders.length > 0 && (
+          <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 shadow-sm">
+            <span className="font-medium text-blue-800">{selectedOrders.length} order{selectedOrders.length > 1 ? 's' : ''} selected</span>
+            <div className="flex gap-2 flex-wrap">
+              <Button size="sm" variant="outline" onClick={handleBulkMarkProcessing} disabled={selectedOrders.length === 0}>
+                Mark as Processing
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleBulkMarkShipped} disabled={selectedOrders.length === 0}>
+                Mark as Shipped
+              </Button>
+              <Button size="sm" variant="destructive" onClick={handleBulkDelete} disabled={selectedOrders.length === 0}>
+                Delete
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setSelectedOrders([])}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Orders list */}
         <Card>
           <CardHeader className="pb-2">
@@ -285,9 +354,18 @@ export default function OrdersPage() {
               </div>
             ) : filteredOrders.length > 0 ? (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-sm min-w-[800px]">
                   <thead>
                     <tr className="border-b">
+                      <th className="py-3 px-4">
+                        <input
+                          type="checkbox"
+                          checked={isAllSelected}
+                          ref={el => { if (el) el.indeterminate = isIndeterminate; }}
+                          onChange={toggleSelectAll}
+                          aria-label="Select all orders"
+                        />
+                      </th>
                       <th className="text-left py-3 px-4 font-medium">Order ID</th>
                       <th className="text-left py-3 px-4 font-medium">Customer</th>
                       <th className="text-left py-3 px-4 font-medium">Date</th>
@@ -299,8 +377,20 @@ export default function OrdersPage() {
                   </thead>
                   <tbody>
                     {filteredOrders.map((order) => (
-                      <tr key={order.id} className="border-b hover:bg-gray-50">
-                        <td className="py-3 px-4">{order.id}</td>
+                      <tr key={order.id} className={`border-b hover:bg-[#f7faf9] transition ${selectedOrders.includes(order.id) ? 'bg-blue-50' : ''}`}>
+                        <td className="py-3 px-4">
+                          <input
+                            type="checkbox"
+                            checked={selectedOrders.includes(order.id)}
+                            onChange={() => toggleSelectOrder(order.id)}
+                            aria-label={`Select order ${order.id}`}
+                          />
+                        </td>
+                        <td className="py-3 px-4 font-mono text-xs">
+                          <Link href={`/dashboard/orders/${order.id}`} className="text-blue-700 hover:underline" title="View Order Details">
+                            {order.id}
+                          </Link>
+                        </td>
                         <td className="py-3 px-4">
                           <div>{order.customerName}</div>
                           <div className="text-xs text-gray-500">{formatPhoneNumber(order.phone)}</div>
@@ -320,10 +410,10 @@ export default function OrdersPage() {
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </Link>
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
-                              className="h-8 w-8 p-0" 
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0"
                               title="Message Customer"
                               onClick={() => messageCustomer(order.phone)}
                             >
@@ -331,10 +421,10 @@ export default function OrdersPage() {
                             </Button>
                             {/* Quick status update buttons */}
                             {order.status === 'pending' && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                className="h-8 w-8 p-0 text-blue-600" 
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 w-8 p-0 text-blue-600"
                                 title="Mark as Processing"
                                 onClick={() => updateOrderStatus(order.id, 'processing')}
                               >
@@ -342,10 +432,10 @@ export default function OrdersPage() {
                               </Button>
                             )}
                             {order.status === 'processing' && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                className="h-8 w-8 p-0 text-purple-600" 
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 w-8 p-0 text-purple-600"
                                 title="Mark as Shipped"
                                 onClick={() => updateOrderStatus(order.id, 'shipped')}
                               >
@@ -353,10 +443,10 @@ export default function OrdersPage() {
                               </Button>
                             )}
                             {order.status === 'shipped' && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                className="h-8 w-8 p-0 text-green-600" 
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 w-8 p-0 text-green-600"
                                 title="Mark as Delivered"
                                 onClick={() => updateOrderStatus(order.id, 'delivered')}
                               >
@@ -371,8 +461,10 @@ export default function OrdersPage() {
                 </table>
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500">
-                No orders found matching your criteria
+              <div className="flex flex-col items-center justify-center py-24">
+                <img src="/empty-box.svg" alt="No orders" className="w-32 h-32 mb-6 opacity-80" />
+                <h2 className="text-xl font-semibold mb-2">No orders found</h2>
+                <p className="text-gray-500 mb-6">Orders will appear here as customers make purchases.</p>
               </div>
             )}
           </CardContent>

@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -17,7 +18,7 @@
 body {
     color: rgb(var(--foreground-rgb));
     background: rgb(var(--background-rgb));
-    font-family: var(--font-geist-sans);
+    font-family: 'Inter', system-ui, sans-serif;
 }
 
 code {
@@ -30,5 +31,5 @@ code {
 }
 
 .font-sans {
-    font-family: var(--font-geist-sans);
+    font-family: 'Inter', system-ui, sans-serif;
 }
