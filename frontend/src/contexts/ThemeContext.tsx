@@ -8,8 +8,10 @@ interface ThemeContextType {
   isLoading: boolean;
   error: Error | null;
   previewTheme: Theme | null;
+  setTheme: (theme: Theme) => void;
   setPreviewTheme: (theme: Theme | null) => void;
   clearPreviewTheme: () => void;
+  availableThemes?: Theme[];
 }
 
 const ThemeContext = createContext<ThemeContextType>({
@@ -17,8 +19,10 @@ const ThemeContext = createContext<ThemeContextType>({
   isLoading: true,
   error: null,
   previewTheme: null,
+  setTheme: () => {},
   setPreviewTheme: () => {},
   clearPreviewTheme: () => {},
+  availableThemes: [],
 });
 
 interface ThemeProviderProps {
@@ -87,6 +91,47 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   // The actual theme is either the preview theme (if set) or the tenant's theme
   const activeTheme = previewTheme || theme;
 
+  // Mock available themes for now - in a real implementation, these would be fetched from an API
+  const availableThemes: Theme[] = [
+    defaultTheme,
+    {
+      id: 'dark',
+      name: 'Dark Mode',
+      description: 'A dark theme for low light environments',
+      colors: {
+        primary: '#3B82F6',
+        secondary: '#6366F1',
+        accent: '#EC4899',
+        background: '#111827',
+        text: '#F9FAFB',
+        error: '#ef4444',
+        success: '#22c55e',
+        warning: '#f59e0b',
+      },
+      typography: { ...defaultTheme.typography },
+      layout: { ...defaultTheme.layout },
+      componentStyles: { ...defaultTheme.componentStyles }
+    },
+    {
+      id: 'light',
+      name: 'Light Mode',
+      description: 'A light theme for standard usage',
+      colors: {
+        primary: '#6366F1',
+        secondary: '#8B5CF6',
+        accent: '#EC4899',
+        background: '#F9FAFB',
+        text: '#111827',
+        error: '#ef4444',
+        success: '#22c55e',
+        warning: '#f59e0b',
+      },
+      typography: { ...defaultTheme.typography },
+      layout: { ...defaultTheme.layout },
+      componentStyles: { ...defaultTheme.componentStyles }
+    }
+  ];
+
   return (
     <ThemeContext.Provider 
       value={{ 
@@ -94,8 +139,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         isLoading, 
         error, 
         previewTheme, 
+        setTheme,
         setPreviewTheme,
-        clearPreviewTheme
+        clearPreviewTheme,
+        availableThemes
       }}
     >
       {children}
