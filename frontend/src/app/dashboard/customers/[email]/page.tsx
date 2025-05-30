@@ -1,7 +1,10 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { ChevronLeft, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
 // Mock orders data (should match main customers page)
 const mockOrders = [
@@ -10,10 +13,9 @@ const mockOrders = [
     { id: '3', customerName: 'John Doe', email: 'john@example.com', phone: '+234 123 456 7890', amount: 210.75, date: '2025-05-23T09:15:00' },
 ];
 
-export default async function CustomerDetailPage(
-    { params }: { params: { email: string } }
-) {
-    const email = decodeURIComponent(params.email);
+export default function CustomerDetailPage() {
+    const params = useParams();
+    const email = params?.email ? decodeURIComponent(Array.isArray(params.email) ? params.email[0] : params.email) : '';
     const customerOrders = mockOrders.filter(o => o.email === email);
     if (customerOrders.length === 0) {
         return (
