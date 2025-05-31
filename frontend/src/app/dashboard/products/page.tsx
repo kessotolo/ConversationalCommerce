@@ -1,7 +1,9 @@
 "use client";
 
-import React from 'react';import React from 'react';import React from 'react';import { FormEvent } from 'react';
-import React from 'react';import * as React from 'react';
+import React, { FormEvent } from 'react';
+
+
+
 // Removed circular import;
 // Removed self-import
 import { Image } from 'next/image';

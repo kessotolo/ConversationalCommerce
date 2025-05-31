@@ -1,8 +1,9 @@
+import React, { FC, useState, useEffect } from 'react';
 // Removed self-import
-import { FC } from 'react';
+
 import { List, Select } from '@mui/material';
 import { User } from 'lucide-react';import * as React from 'react';
-import { useState, useEffect } from 'react';
+
 import { getPermissions } from '../../../lib/api/StorefrontEditor';
 import { UUID, UserPermission, StorefrontRole } from '../../../types/StorefrontEditor';
 import PermissionList from './PermissionList';

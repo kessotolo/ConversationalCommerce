@@ -1,3 +1,4 @@
+import { Component, Error, useState, useEffect } from 'react';
 /**
  * StoreContent - Client Component for Conversational Commerce Platform
  * 
@@ -17,11 +18,11 @@
  */
 
 'use client';
-import { Component, Error } from 'react';
+
 
 // Removed circular import;
 
-import { useState, useEffect } from 'react';
+
 import { productService } from '@/lib/api';
 import ProductCard from '@/components/storefront/ProductCard';
 import { useCart } from '@/lib/cart';

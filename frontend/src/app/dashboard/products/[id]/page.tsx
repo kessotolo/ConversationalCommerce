@@ -1,5 +1,6 @@
-import React from 'react';import React from 'react';import React from 'react';import { ChangeEvent } from 'react';
-import React from 'react';import * as React from 'react';
+import React, { ChangeEvent } from 'react';
+
+
 'use client';
 // Removed circular import;
 import { ArrowLeft, Camera, Save, Trash2, Upload } from 'lucide-react';

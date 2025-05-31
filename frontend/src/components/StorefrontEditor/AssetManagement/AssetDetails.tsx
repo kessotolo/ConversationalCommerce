@@ -1,7 +1,8 @@
-import React from 'react';import React from 'react';import { ChangeEvent, FC, FormEvent } from 'react';
-import React from 'react';
+import React, { ChangeEvent, FC, FormEvent } from 'react';
+
+
 // Removed self-import// Removed self-import
-import React from 'react';import * as React from 'react';
+
 import { CheckCircleIcon } from '@heroicons/react/24/outline';import { ArrowTopRightOnSquareIcon, BoltIcon, DocumentIcon, DocumentTextIcon, FilmIcon, MusicalNoteIcon, PencilIcon, PhotoIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Check, Save } from 'lucide-react';
 import { Asset, UUID, AssetType } from '../../../types/StorefrontEditor';

@@ -1,8 +1,9 @@
+import React, { FC, useState } from 'react';
 // Removed self-import// Removed self-import
 import { ArrowUturnLeftIcon, CheckIcon, ClipboardDocumentIcon, ClockIcon, ExclamationTriangleIcon, TagIcon, UserIcon } from '@heroicons/react/24/outline';
-import { FC } from 'react';
+
 import { User } from 'lucide-react';import * as React from 'react';
-import { useState } from 'react';
+
 import { Version, UUID } from '../../../types/StorefrontEditor';
 import { 
   ArrowUturnLeftIcon,

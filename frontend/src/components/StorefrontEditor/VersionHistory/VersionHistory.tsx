@@ -1,7 +1,8 @@
+import React, { FC, useState, useEffect } from 'react';
 // Removed self-import
-import { FC } from 'react';
+
 import { List, Select } from '@mui/material';import * as React from 'react';
-import { useState, useEffect } from 'react';
+
 import { getVersions, restoreVersion } from '../../../lib/api/StorefrontEditor';
 import { Version, UUID } from '../../../types/StorefrontEditor';
 import VersionList from './VersionList';

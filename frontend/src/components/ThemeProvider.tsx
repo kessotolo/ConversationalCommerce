@@ -1,7 +1,7 @@
-import { CustomThemeProvider, ThemeProviderProps } from '@/components/ThemeProvider';
+import * as React from 'react';
+import { FC, ReactNode } from 'react';
 import { TenantContext } from '@/contexts/TenantContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
-import { FC, ReactNode } from 'react';import * as React from 'react';
 import { TenantProvider } from '../contexts/TenantContext';
 import { ThemeProvider as CustomThemeProvider } from '../contexts/ThemeContext';
 

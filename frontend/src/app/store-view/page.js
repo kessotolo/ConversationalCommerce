@@ -1,8 +1,10 @@
 'use client';
 
-import { Component, Error } from 'react';
-import { Store } from 'lucide-react';
 import { useState, useEffect, Suspense } from 'react';
+
+
+import { Store } from 'lucide-react';
+
 import { useSearchParams } from 'next/navigation';
 import { productService } from '@/lib/api';
 import ProductCard from '@/components/storefront/ProductCard';

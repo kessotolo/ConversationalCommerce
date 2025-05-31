@@ -2,21 +2,10 @@
 
 import * as React from 'react';
 import { Icon } from '@/components/icons';
-import { LogOut, MessageCircle, Package, ShoppingBag, Store, User } from 'lucide-react';
-
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
-import { UserButton } from '@clerk/nextjs';
-
-// Import icons
 import { 
-  Home, 
-  Package, 
-  ShoppingBag, 
+  LogOut, 
   MessageCircle, 
   MoreHorizontal,
-  LogOut,
   User,
   Store
 } from 'lucide-react';

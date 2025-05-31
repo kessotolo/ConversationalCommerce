@@ -1,7 +1,8 @@
+import React, { FC, useState, useEffect } from 'react';
 // Removed self-import
-import { FC } from 'react';
+
 import { Upload } from 'lucide-react';import * as React from 'react';
-import { useState, useEffect } from 'react';
+
 import { getAssets } from '../../../lib/api/StorefrontEditor';
 import { Asset, UUID, AssetType } from '../../../types/StorefrontEditor';
 import AssetGrid from './AssetGrid';

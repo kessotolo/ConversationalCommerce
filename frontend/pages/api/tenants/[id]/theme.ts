@@ -1,5 +1,6 @@
+import { Error, Record } from 'react';
 import { ThemeContext } from '@/contexts/ThemeContext';
-import { Error } from 'react';import { Record } from 'react';import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from 'next';
 import { Theme } from '../../../../src/types/theme';
 
 type ErrorResponse = {

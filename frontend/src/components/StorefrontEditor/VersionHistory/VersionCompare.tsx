@@ -1,6 +1,7 @@
+import React, { FC, JSX, Record, useState, useEffect } from 'react';
 // Removed self-import// Removed self-import
-import { FC, JSX, Record } from 'react';import * as React from 'react';
-import { useState, useEffect } from 'react';
+import * as React from 'react';
+
 import { Version, UUID, VersionDiff } from '../../../types/StorefrontEditor';
 import { compareVersions } from '../../../lib/api/StorefrontEditor';
 import { ArrowsRightLeftIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';

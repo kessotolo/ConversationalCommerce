@@ -1,5 +1,6 @@
-import { Error } from 'react';import { Check } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Error, useEffect, useState } from 'react';
+import { Check } from 'lucide-react';
+
 import { useRouter } from 'next/router';
 import { useAuth, useUser } from '@clerk/nextjs';
 import OnboardingForm from '../src/components/onboarding/OnboardingForm';

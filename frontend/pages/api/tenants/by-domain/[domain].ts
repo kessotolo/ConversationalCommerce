@@ -1,5 +1,6 @@
+import { Error, Record } from 'react';
 import { TenantContext } from '@/contexts/TenantContext';
-import { Error } from 'react';import { Record } from 'react';import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 type Tenant = {
   id: string; // UUID format from backend

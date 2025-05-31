@@ -1,5 +1,6 @@
-import React from 'react';import React from 'react';import React from 'react';import { ChangeEvent } from 'react';
-import React from 'react';import * as React from 'react';
+import React, { ChangeEvent } from 'react';
+
+
 'use client';
 import { NewProduct } from '@/pages/dashboard/products/add';
 import { ArrowLeft, Camera, Check, Globe, MessageSquare, Save, Store, Trash2, Upload } from 'lucide-react';

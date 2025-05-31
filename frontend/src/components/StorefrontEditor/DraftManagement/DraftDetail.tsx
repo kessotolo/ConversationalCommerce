@@ -1,10 +1,11 @@
-import React from 'react';import React from 'react';
+import React, { ChangeEvent, FC, FormEvent, useState } from 'react';
+
 // Removed self-import// Removed self-import
-import { ChangeEvent, FC, FormEvent } from 'react';
-import React from 'react';
+
+
 import { CalendarIcon, CheckIcon, ClockIcon, ExclamationTriangleIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { Select } from '@mui/material';import * as React from 'react';
-import { useState } from 'react';
+
 import { Draft, UUID, DraftStatus } from '../../../types/StorefrontEditor';
 import { updateDraft } from '../../../lib/api/StorefrontEditor';
 import { 

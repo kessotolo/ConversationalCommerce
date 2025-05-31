@@ -1,6 +1,7 @@
-import React from 'react';// Removed self-import
-import { ChangeEvent, FC, FormEvent } from 'react';
-import React from 'react';import React, { useState, ChangeEvent, FC, FormEvent } from 'react';
+import React, { ChangeEvent, FC, FormEvent, useState } from 'react';
+// Removed self-import
+
+
 import { User } from 'lucide-react';
 import Permissions from '@/components/StorefrontEditor/Permissions/Permissions';
 import { assignRole } from '../../../lib/api/StorefrontEditor';

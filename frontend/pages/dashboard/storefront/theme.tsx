@@ -1,9 +1,10 @@
+import React, { ReactNode, Component, Error, Button } from 'react';
 import { ErrorBoundary, ErrorBoundaryState } from '@/components/ErrorBoundary';
 import { NetworkStatusIndicator } from '@/components/ui/NetworkStatusIndicator';
-import { ReactNode } from 'react';import { ThemeContext } from '@/contexts/ThemeContext';
-import { Component, Error } from 'react';import { React } from 'react';
+import { ThemeContext } from '@/contexts/ThemeContext';
+
 import { Settings } from 'lucide-react';
-import { Button } from '@mui/material';import React, { useState, useEffect, lazy, Suspense } from 'react';
+
 import dynamic from 'next/dynamic';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { useTheme } from '@/contexts/ThemeContext';
