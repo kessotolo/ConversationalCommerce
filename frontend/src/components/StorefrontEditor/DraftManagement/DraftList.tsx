@@ -1,5 +1,7 @@
 import React from 'react';
-import { Draft, UUID, DraftStatus } from '../../../types/storefrontEditor';
+import type { Draft } from '@/modules/storefront/models/draft';
+import type { UUID } from '@/modules/core/models/base';
+import { Status } from '@/modules/core/models/base';
 
 interface DraftListProps {
   drafts: Draft[];
@@ -14,28 +16,29 @@ const DraftList: React.FC<DraftListProps> = ({
   selectedDraftId, 
   onDraftSelect 
 }) => {
-  // Format date
-  const formatDate = (dateString: string): string => {
+  // Format date helper
+  const formatDate = (dateString?: string): string => {
+    if (!dateString) return 'N/A';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
+    return new Intl.DateTimeFormat('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    }).format(date);
   };
 
   // Get status badge class based on status
-  const getStatusBadgeClass = (status: DraftStatus): string => {
+  const getStatusBadgeClass = (status: Status): string => {
     switch (status) {
-      case DraftStatus.DRAFT:
+      case Status.DRAFT:
         return 'bg-gray-100 text-gray-800';
-      case DraftStatus.PENDING:
+      case Status.PENDING:
         return 'bg-yellow-100 text-yellow-800';
-      case DraftStatus.PUBLISHED:
+      case Status.PUBLISHED:
         return 'bg-green-100 text-green-800';
-      case DraftStatus.SCHEDULED:
+      case Status.SCHEDULED:
         return 'bg-blue-100 text-blue-800';
-      case DraftStatus.ARCHIVED:
+      case Status.ARCHIVED:
         return 'bg-gray-100 text-gray-600';
       default:
         return 'bg-gray-100 text-gray-800';

@@ -1,0 +1,9 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Run architecture verification as part of pre-commit
+echo "🔍 Verifying architecture..."
+npm run verify:architecture || (echo "❌ Architecture verification failed. Please fix the issues before committing." && exit 1)
+
+# Continue with other pre-commit checks
+npm run lint

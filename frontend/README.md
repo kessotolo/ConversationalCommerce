@@ -2,6 +2,164 @@
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app). The frontend implements a mobile-first design optimized for African markets with WhatsApp integration and multilingual support.
 
+## 🌍 African Market Performance Optimizations
+
+This application is specifically optimized for users in African markets where connectivity may be limited:
+
+- **Dynamic Imports**: Non-critical components use lazy loading to reduce initial bundle size
+- **Offline Resilience**: Theme settings are cached in localStorage for use during connectivity issues
+- **Network Status Detection**: Visual indicators inform users when they're offline
+- **Retry Mechanism**: API calls implement retries with graceful fallbacks
+- **Loading States**: Skeleton loading placeholders improve perceived performance
+- **Error Boundaries**: Proper error handling ensures the application remains usable during failures
+- **Non-blocking Notifications**: Toast notifications replace blocking alerts for better UX
+
+## 🏗️ Modular Monolith Architecture
+
+The frontend follows a modular monolith architecture with the following key components:
+
+### Module Structure
+
+The codebase is organized into distinct modules with clear boundaries:
+
+- **Core**: Base types, utilities, and cross-cutting concerns
+- **Tenant**: Merchant configuration and management
+- **Conversation**: Messaging system for customer engagement
+- **Product**: Product catalog management
+- **Order**: Order processing and transactions
+- **Storefront**: Storefront configuration and customization
+- **Theme**: Theming engine and configuration
+- **Monitoring**: System monitoring and alerts
+
+Each module contains its own:
+- **Models**: Domain models and types
+- **Services**: Business logic and data access
+- **Components**: UI components specific to the module
+- **Utils**: Helper functions for the module
+
+### Module Boundaries
+
+The following defines which modules can import from which others:
+
+- **Core**: Cannot import from other modules (base module)
+- **Tenant**: Can import from Core
+- **Conversation**: Can import from Core, Tenant
+- **Product**: Can import from Core, Tenant
+- **Order**: Can import from Core, Tenant, Product
+- **Storefront**: Can import from Core, Tenant, Product, Order
+- **Theme**: Can import from Core, Tenant
+- **Monitoring**: Can import from Core
+
+### Core Domain Models
+
+#### Type System Structure
+- **Foundational types** located at `src/modules/core/models/base.ts` form the backbone of our type system
+- **Domain-specific types** should extend these base types for consistency and maintainability
+- **Path aliases** available in tsconfig.json allow for cleaner imports via `@/modules/core/models/base`
+
+#### Core Types
+- **UUID**: `type UUID = string` - standardized ID type used across backend and frontend
+- **Entity**: Base interface with `id`, `created_at`, and `updated_at` properties
+- **TenantScoped**: Extends Entity with `tenant_id` for multi-tenant data
+- **Draftable**: Extends Entity with draft/publish workflow properties
+- **Money**: Type for currency operations with amount and currency code
+- **Result<T>**: Error handling pattern for consistent API responses
+- **PaginatedResult<T>**: Standard wrapper for paginated data collections
+- **Status**: Common enum for entity statuses (active, draft, published, etc.)
+
+#### Import Guidelines
+
+```typescript
+// CORRECT: Direct module imports with type imports where appropriate
+import type { UUID, Entity } from '@/modules/core/models/base';
+import { Status } from '@/modules/core/models/base';
+import type { Banner } from '@/modules/storefront/models/banner';
+
+// Extend base types for domain models
+export interface Product extends TenantScoped {
+  name: string;
+  description: string;
+  price: number;
+  // No need to specify id, tenant_id, created_at, updated_at
+}
+
+// Use PaginatedResult for list types
+export type ProductList = PaginatedResult<Product>;
+```
+
+#### Best Practices
+- Always import types from `@core/models/base` instead of redefining them
+- Domain types should extend Entity, TenantScoped, or Draftable as appropriate
+- Use PaginatedResult<T> for all paginated list responses
+- Organize domain models within their respective module directories (e.g., `@product/models/*`)
+- Prefer composition over inheritance for complex types
+
+### Module Structure
+
+The application is organized into domain-specific modules, each with a consistent internal structure:
+
+```
+src/modules/
+├── core/              # Foundational types and utilities
+│   ├── models/        # Base type definitions
+│   ├── services/      # Core services
+│   └── utils/         # Shared utilities
+├── tenant/            # Merchant management
+│   ├── models/        # Tenant-specific types
+│   ├── services/      # Tenant services
+│   └── components/    # Tenant-specific UI
+├── conversation/      # Messaging functionality
+├── product/           # Product catalog
+└── order/             # Order processing
+```
+
+#### Module Organization Guidelines
+
+- Each module should maintain its own models directory for domain-specific types
+- Domain types should extend core types (Entity, TenantScoped, etc.)
+- Types should be organized by domain concept, not by UI component
+- Avoid circular dependencies between modules
+- Use path aliases for cleaner imports (`@core/*`, `@tenant/*`, etc.)
+
+### Service Layer
+- Service interfaces and concrete implementations for each module
+- Includes TenantService, ConversationService, ProductService, OrderService
+
+### Dependency Injection
+- ServiceRegistry and ServiceInitializer manage dependencies between modules
+- Ensures proper module boundaries while maintaining a monolithic deployment
+
+### React Integration
+- ServiceProvider React context makes services accessible throughout the component tree
+- Custom hooks for accessing module services
+
+## Type System Migration & Best Practices
+
+### Migration Status
+
+We've consolidated our type system following this priority order:
+
+1. **UUID Type**: Standardized ID type used across all models
+2. **Entity and TenantScoped**: Base interfaces for consistent domain modeling
+3. **PaginatedResult**: Standard pattern for all paginated data
+4. **Domain-Specific Types**: Updated by module (Storefront, Monitoring, Theme, etc.)
+
+### Type Checking
+
+For strong type checking, run the TypeScript compiler:
+
+```bash
+npm run type-check  # Runs tsc --noEmit to check types without emitting files
+```
+
+### Future Improvements
+
+- **Runtime Validation**: Consider adding Zod schemas to validate data at runtime
+- **API Type Generation**: Automate type generation from backend OpenAPI specs
+- **Strict Null Checks**: Enable strictNullChecks in tsconfig.json for better null safety
+- **Module Boundary Types**: Define clear interface types for cross-module communication
+- **Type Tests**: Add test cases to verify type compatibility with backend models
+
 ## Technical Requirements
 
 ### Authentication System

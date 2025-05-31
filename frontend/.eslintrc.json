@@ -16,7 +16,8 @@
     "plugins": [
         "@typescript-eslint",
         "react",
-        "prettier"
+        "prettier",
+        "import"
     ],
     "settings": {
         "next": {
@@ -28,6 +29,55 @@
     },
     "rules": {
         "prettier/prettier": "error",
-        "react/react-in-jsx-scope": "off"
+        "react/react-in-jsx-scope": "off",
+        
+        /* Module import pattern rules */
+        "no-restricted-imports": ["error", {
+            "patterns": [
+                {
+                    "group": ["**/types/*"],
+                    "message": "Do not import from bridge files. Use direct module imports instead. Example: import { Status } from '@/modules/core/models/base' instead of import { DraftStatus } from '../types/storefrontEditor'"
+                },
+                {
+                    "group": ["**/src/types"],
+                    "message": "Creating new bridge files is not allowed. Create types in their proper module directory."
+                },
+                {
+                    "group": ["@storefront/models/*"],
+                    "importNames": ["default"],
+                    "message": "Do not use default exports for models. Use named exports instead."
+                }
+            ]
+        }],
+        "import/no-deprecated": "warn",
+        "import/order": ["warn", {
+            "groups": [
+                "builtin",
+                "external",
+                "internal",
+                ["parent", "sibling"],
+                "index",
+                "object",
+                "type"
+            ],
+            "pathGroups": [
+                {
+                    "pattern": "@/modules/core/**",
+                    "group": "internal",
+                    "position": "before"
+                },
+                {
+                    "pattern": "@/**",
+                    "group": "internal",
+                    "position": "after"
+                }
+            ],
+            "newlines-between": "always",
+            "alphabetize": { "order": "asc", "caseInsensitive": true }
+        }],
+        "@typescript-eslint/consistent-type-imports": ["warn", { 
+            "prefer": "type-imports", 
+            "disallowTypeAnnotations": false 
+        }]
     }
 }

@@ -1,0 +1,13 @@
+# CODEOWNERS file for ConversationalCommerce
+# This file controls who needs to approve changes to specific parts of the codebase
+
+# Architecture and configuration files require architecture team review
+/frontend/docs/ARCHITECTURE.md @architecture-team
+/frontend/docs/architecture/decisions/ @architecture-team
+/frontend/.eslintrc* @architecture-team
+/frontend/scripts/verify-architecture.js @architecture-team
+/frontend/.cascade @architecture-team
+/frontend/.aiagentrc @architecture-team
+
+# Module boundaries - core module is most sensitive
+/frontend/src/modules/core/ @core-team

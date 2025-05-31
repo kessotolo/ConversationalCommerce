@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { UserPermission, UUID, StorefrontRole, StorefrontSectionType } from '../../../types/storefrontEditor';
+import type { UserPermission } from '@/modules/storefront/models/permission';
+import type { UUID } from '@/modules/core/models/base';
+import { StorefrontRole, StorefrontSectionType } from '@/modules/storefront/models/permission';;
 import { assignRole, setSectionPermission, removePermission } from '../../../lib/api/storefrontEditor';
 import { 
   ShieldCheckIcon, 

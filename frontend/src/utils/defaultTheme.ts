@@ -1,8 +1,10 @@
-import { Theme } from '../types/theme';
+import type { Theme } from '@/modules/theme/models/theme';
 
 export const defaultTheme: Theme = {
+  id: 'default',
   name: 'Default Theme',
   description: 'Default theme used as fallback',
+  created_at: new Date().toISOString(),
   colors: {
     primary: '#3b82f6',
     secondary: '#6b7280',
@@ -34,12 +36,14 @@ export const defaultTheme: Theme = {
       medium: 500,
       semibold: 600,
       bold: 700,
+      extrabold: 800,
     },
     lineHeight: {
-      none: 1,
-      tight: 1.25,
-      normal: 1.5,
-      relaxed: 1.75,
+      none: '1',
+      tight: '1.25',
+      normal: '1.5',
+      relaxed: '1.75',
+      loose: '2',
     },
   },
   layout: {
@@ -50,6 +54,7 @@ export const defaultTheme: Theme = {
       lg: '2rem',
       xl: '3rem',
       '2xl': '4rem',
+      '3xl': '6rem',
     },
     borderRadius: {
       none: '0',

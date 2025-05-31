@@ -1,5 +1,20 @@
 # Backend Service for Conversational Commerce Platform
 
+## 🔑 UUID Standardization
+
+The ConversationalCommerce platform has standardized on UUID types for database primary keys and foreign keys:
+
+- **Native PostgreSQL UUIDs**: All models use UUID(as_uuid=True) instead of String for ID fields
+- **Model Consistency**: Key models like User, SellerProfile, and Order have been updated to use PostgreSQL UUID types
+- **Migration Process**: Complex migration scripts handle the conversion from String-based UUID values to actual UUID data types
+
+## 🤝 Model Relationships
+
+- **Tenant-StorefrontConfig Relationship**: One-to-one relationship between Tenant and StorefrontConfig models
+  - Defined as `storefront_config = relationship("StorefrontConfig", back_populates="tenant", uselist=False, cascade="all, delete-orphan")`
+- **Proper Cascade Behavior**: Ensures that related records are properly deleted when parent records are removed
+- **Testing Approach**: Improved testing for authentication by inspecting endpoint function signatures instead of making direct HTTP requests
+
 ## 📱 Mobile-First Deployment
 
 This backend is optimized for mobile-first deployment targeting African markets, with consideration for:

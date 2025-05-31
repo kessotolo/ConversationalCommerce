@@ -1,5 +1,7 @@
 import React from 'react';
-import { UserPermission, UUID, StorefrontRole } from '../../../types/storefrontEditor';
+import type { UserPermission } from '@/modules/storefront/models/permission';
+import type { UUID } from '@/modules/core/models/base';
+import { StorefrontRole } from '@/modules/storefront/models/permission';;
 import { 
   MagnifyingGlassIcon, 
   FunnelIcon 

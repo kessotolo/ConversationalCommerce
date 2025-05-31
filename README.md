@@ -2,6 +2,14 @@
 
 A high-growth commerce platform for African markets that seamlessly integrates mobile-first storefronts with WhatsApp messaging capabilities. Built for scale with security and performance in mind.
 
+## 📑 Documentation Structure
+
+This project uses a multi-README approach to organize documentation:
+
+- **[Main README](README.md)** (You are here): Project overview, architecture, and key features
+- **[Frontend README](frontend/README.md)**: Frontend tech stack, setup, and development guide
+- **[Backend README](backend/README.md)**: Backend services, APIs, and database information
+
 ## 🌟 Key Features
 
 - **Seller Authentication**: Secure JWT-based authentication through Clerk with role-based access control

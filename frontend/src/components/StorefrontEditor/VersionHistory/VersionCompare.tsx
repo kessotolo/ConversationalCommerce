@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Version, UUID, VersionDiff } from '../../../types/storefrontEditor';
+import type { Version, VersionDiff } from '@/modules/storefront/models/version';
+import type { UUID } from '@/modules/core/models/base';;
 import { compareVersions } from '../../../lib/api/storefrontEditor';
 import { ArrowsRightLeftIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 

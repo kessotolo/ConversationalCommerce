@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AssetType } from '../../../types/storefrontEditor';
+import { AssetType } from '@/modules/storefront/models/asset';
 import { MagnifyingGlassIcon, FunnelIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
 
 interface AssetFilterBarProps {

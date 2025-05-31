@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { uploadAsset } from '../../../lib/api/storefrontEditor';
-import { UUID, AssetType } from '../../../types/storefrontEditor';
+import type { UUID } from '@/modules/core/models/base';
+import { AssetType } from '@/modules/storefront/models/asset';
 import { 
   XMarkIcon, 
   ArrowUpTrayIcon, 

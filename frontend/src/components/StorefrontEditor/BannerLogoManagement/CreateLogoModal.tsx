@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { createLogo, getAssets } from '../../../lib/api/storefrontEditor';
-import { UUID, LogoType, Asset } from '../../../types/storefrontEditor';
+import type { UUID } from '@/modules/core/models/base';
+import type { Asset } from '@/modules/storefront/models/asset';
+import { LogoType } from '@/modules/storefront/models/logo';;
 import { Dialog } from '@headlessui/react';
 import { XMarkIcon, ExclamationTriangleIcon, PhotoIcon } from '@heroicons/react/24/outline';
 

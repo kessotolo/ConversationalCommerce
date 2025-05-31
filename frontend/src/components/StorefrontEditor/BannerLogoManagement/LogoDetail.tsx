@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Logo, UUID, LogoStatus, LogoType, Asset } from '../../../types/storefrontEditor';
+import type { Logo } from '@/modules/storefront/models/logo';
+import type { UUID } from '@/modules/core/models/base';
+import type { Asset } from '@/modules/storefront/models/asset';
+import { LogoStatus, LogoType } from '@/modules/storefront/models/logo';;
 import { updateLogo, getLogo, getAssets } from '../../../lib/api/storefrontEditor';
 import { 
   CheckIcon, 

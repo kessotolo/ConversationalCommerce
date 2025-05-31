@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Tab } from '@headlessui/react';
-import { UUID } from '../../../types/storefrontEditor';
+import type { UUID } from '@/modules/core/models/base';;
 import BannerManagement from './BannerManagement';
 import LogoManagement from './LogoManagement';
 

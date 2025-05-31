@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { getDrafts, publishDraft, deleteDraft } from '../../../lib/api/storefrontEditor';
-import { Draft, UUID, DraftStatus } from '../../../types/storefrontEditor';
+// Direct imports from module sources using path aliases that work with Next.js
+import type { Draft } from '@/modules/storefront/models/draft';
+import type { UUID } from '@/modules/core/models/base';
+import { Status } from '@/modules/core/models/base';
+
+// Status is used for draft status in this component (previously DraftStatus)
 import DraftList from './DraftList';
 import DraftDetail from './DraftDetail';
 import CreateDraftModal from './CreateDraftModal';
@@ -21,7 +26,7 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
   const [limit] = useState(10);
   
   // Filter state
-  const [statusFilter, setStatusFilter] = useState<DraftStatus | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<Status | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Load drafts
@@ -142,9 +147,9 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
                 All
               </button>
               <button 
-                onClick={() => setStatusFilter(DraftStatus.DRAFT)}
+                onClick={() => setStatusFilter(Status.DRAFT)}
                 className={`text-xs px-3 py-1 rounded-full ${
-                  statusFilter === DraftStatus.DRAFT 
+                  statusFilter === Status.DRAFT 
                     ? 'bg-blue-100 text-blue-800' 
                     : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                 }`}
@@ -152,9 +157,9 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
                 Drafts
               </button>
               <button 
-                onClick={() => setStatusFilter(DraftStatus.PENDING)}
+                onClick={() => setStatusFilter(Status.PENDING)}
                 className={`text-xs px-3 py-1 rounded-full ${
-                  statusFilter === DraftStatus.PENDING 
+                  statusFilter === Status.PENDING 
                     ? 'bg-blue-100 text-blue-800' 
                     : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                 }`}
@@ -162,9 +167,9 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
                 Pending
               </button>
               <button 
-                onClick={() => setStatusFilter(DraftStatus.SCHEDULED)}
+                onClick={() => setStatusFilter(Status.SCHEDULED)}
                 className={`text-xs px-3 py-1 rounded-full ${
-                  statusFilter === DraftStatus.SCHEDULED 
+                  statusFilter === Status.SCHEDULED 
                     ? 'bg-blue-100 text-blue-800' 
                     : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                 }`}

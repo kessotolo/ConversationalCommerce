@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Draft, UUID, DraftStatus } from '../../../types/storefrontEditor';
+import type { Draft } from '@/modules/storefront/models/draft';
+import type { UUID } from '@/modules/core/models/base';
+import { Status } from '@/modules/core/models/base';
 import { updateDraft } from '../../../lib/api/storefrontEditor';
 import { 
   ClockIcon, 
@@ -43,9 +45,17 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
   const [scheduleDate, setScheduleDate] = useState('');
   const [scheduleTime, setScheduleTime] = useState('');
 
-  // Format date
-  const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleString();
+  // Format date helper
+  const formatDate = (dateString?: string): string => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', { 
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric'
+    });
   };
 
   // Handle input changes
@@ -162,13 +172,13 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
   };
 
   // Check if draft can be published
-  const canPublish = draft.status === DraftStatus.DRAFT;
+  const canPublish = draft.status === Status.DRAFT;
   
   // Check if draft can be scheduled
-  const canSchedule = draft.status === DraftStatus.DRAFT;
+  const canSchedule = draft.status === Status.DRAFT;
   
   // Check if draft is already scheduled
-  const isAlreadyScheduled = draft.status === DraftStatus.SCHEDULED;
+  const isAlreadyScheduled = draft.status === Status.SCHEDULED;
 
   return (
     <div className="bg-white rounded-lg border shadow-sm overflow-hidden h-full flex flex-col">
@@ -418,13 +428,13 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
               <h4 className="text-sm font-medium text-gray-500 mb-1">Status</h4>
               <div className="flex items-center">
                 <span className={`text-sm px-2.5 py-1 rounded-full capitalize ${
-                  draft.status === DraftStatus.DRAFT
+                  draft.status === Status.DRAFT
                     ? 'bg-gray-100 text-gray-800'
-                    : draft.status === DraftStatus.PENDING
+                    : draft.status === Status.PENDING
                     ? 'bg-yellow-100 text-yellow-800'
-                    : draft.status === DraftStatus.PUBLISHED
+                    : draft.status === Status.PUBLISHED
                     ? 'bg-green-100 text-green-800'
-                    : draft.status === DraftStatus.SCHEDULED
+                    : draft.status === Status.SCHEDULED
                     ? 'bg-blue-100 text-blue-800'
                     : 'bg-gray-100 text-gray-600'
                 }`}>

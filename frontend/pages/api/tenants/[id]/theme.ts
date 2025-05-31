@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { Theme } from '../../../../src/types/theme';
+import { Theme } from '@/modules/theme/models/theme';
 
 type ErrorResponse = {
   error: string;
@@ -30,10 +30,12 @@ export default async function handler(
     // For demo purposes, we'll mock the theme data
     // Replace this with an actual API call to your backend that fetches the StorefrontTheme
     
-    // Default theme for all tenants (should match defaultTheme.ts)
-    const baseTheme = {
+    // Base theme that all tenant themes derive from
+    const baseTheme: Theme = {
+      id: 'default',
       name: 'Default Theme',
       description: 'Default theme used as fallback',
+      created_at: new Date().toISOString(),
       colors: {
         primary: '#3b82f6',
         secondary: '#6b7280',
@@ -65,12 +67,14 @@ export default async function handler(
           medium: 500,
           semibold: 600,
           bold: 700,
+          extrabold: 800,
         },
         lineHeight: {
-          none: 1,
-          tight: 1.25,
-          normal: 1.5,
-          relaxed: 1.75,
+          none: '1',
+          tight: '1.25',
+          normal: '1.5',
+          relaxed: '1.75',
+          loose: '2',
         },
       },
       layout: {
@@ -81,6 +85,7 @@ export default async function handler(
           lg: '2rem',
           xl: '3rem',
           '2xl': '4rem',
+          '3xl': '6rem',
         },
         borderRadius: {
           none: '0',
@@ -165,8 +170,10 @@ export default async function handler(
     const mockThemeData: Record<string, Theme> = {
       '12345678-1234-5678-1234-567812345678': {
         ...baseTheme,
+        id: '12345678-1234-5678-1234-567812345678',
         name: 'Tenant 1 Theme',
         description: 'Custom theme for Tenant 1',
+        created_at: new Date().toISOString(),
         colors: {
           ...baseTheme.colors,
           primary: '#10b981', // Green theme
@@ -175,8 +182,10 @@ export default async function handler(
       },
       '87654321-8765-4321-8765-432187654321': {
         ...baseTheme,
+        id: '87654321-8765-4321-8765-432187654321',
         name: 'Tenant 2 Theme',
         description: 'Custom theme for Tenant 2',
+        created_at: new Date().toISOString(),
         colors: {
           ...baseTheme.colors,
           primary: '#8b5cf6', // Purple theme

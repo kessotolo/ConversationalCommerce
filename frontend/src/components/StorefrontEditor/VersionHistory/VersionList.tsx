@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Version, UUID } from '../../../types/storefrontEditor';
+import type { Version } from '@/modules/storefront/models/version';
+import type { UUID } from '@/modules/core/models/base';;
 import { 
   FunnelIcon, 
   MagnifyingGlassIcon, 

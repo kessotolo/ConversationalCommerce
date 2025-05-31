@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { getLogos, publishLogo, deleteLogo } from '../../../lib/api/storefrontEditor';
-import { Logo, UUID, LogoStatus, LogoType } from '../../../types/storefrontEditor';
+import type { Logo } from '@/modules/storefront/models/logo';
+import type { UUID } from '@/modules/core/models/base';
+import { LogoStatus, LogoType } from '@/modules/storefront/models/logo';;
 import LogoList from './LogoList';
 import LogoDetail from './LogoDetail';
 import CreateLogoModal from './CreateLogoModal';

@@ -6,7 +6,7 @@ import Permissions from './Permissions/Permissions';
 import AssetManagement from './AssetManagement/AssetManagement';
 import BannerLogoManagement from './BannerLogoManagement/BannerLogoManagement';
 import LayoutEditor from './LayoutEditor/LayoutEditor';
-import { UUID } from '../../types/storefrontEditor';
+import type { UUID } from '@/modules/core/models/base';;
 
 interface StorefrontEditorProps {
   tenantId: UUID;

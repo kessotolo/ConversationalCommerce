@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { getPermissions } from '../../../lib/api/storefrontEditor';
-import { UUID, UserPermission, StorefrontRole } from '../../../types/storefrontEditor';
+import type { UUID } from '@/modules/core/models/base';
+import type { UserPermission } from '@/modules/storefront/models/permission';
+import { StorefrontRole } from '@/modules/storefront/models/permission';;
 import PermissionList from './PermissionList';
 import PermissionDetail from './PermissionDetail';
 import AddUserPermission from './AddUserPermission';

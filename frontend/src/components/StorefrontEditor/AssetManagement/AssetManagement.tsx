@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { getAssets } from '../../../lib/api/storefrontEditor';
-import { Asset, UUID, AssetType } from '../../../types/storefrontEditor';
+import type { Asset } from '@/modules/storefront/models/asset';
+import type { UUID } from '@/modules/core/models/base';
+import { AssetType } from '@/modules/storefront/models/asset';
 import AssetGrid from './AssetGrid';
 import AssetUploader from './AssetUploader';
 import AssetFilterBar from './AssetFilterBar';

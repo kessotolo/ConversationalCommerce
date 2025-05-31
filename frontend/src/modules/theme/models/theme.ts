@@ -1,3 +1,5 @@
+import { Entity, UUID } from '@core/models/base';
+
 export interface ThemeColors {
   primary: string;
   secondary: string;
@@ -30,12 +32,14 @@ export interface ThemeTypography {
     medium: number;
     semibold: number;
     bold: number;
+    extrabold: number;
   };
   lineHeight: {
-    none: number;
-    tight: number;
-    normal: number;
-    relaxed: number;
+    none: string;
+    tight: string;
+    normal: string;
+    relaxed: string;
+    loose: string;
   };
 }
 
@@ -47,6 +51,7 @@ export interface ThemeLayout {
     lg: string;
     xl: string;
     '2xl': string;
+    '3xl': string;
   };
   borderRadius: {
     none: string;
@@ -127,11 +132,11 @@ export interface ThemeComponentStyles {
   };
 }
 
-export interface Theme {
-  id?: string;
+export interface Theme extends Entity {
   name: string;
   description?: string;
   subdomain?: string;
+  tenant_id?: UUID; // Optional for global themes
   colors: ThemeColors;
   typography: ThemeTypography;
   layout: ThemeLayout;

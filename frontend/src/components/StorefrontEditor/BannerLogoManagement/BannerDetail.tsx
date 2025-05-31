@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Banner, UUID, BannerStatus, BannerType, TargetAudience, Asset } from '../../../types/storefrontEditor';
+import type { Banner } from '@/modules/storefront/models/banner';
+import type { UUID } from '@/modules/core/models/base';
+import type { Asset } from '@/modules/storefront/models/asset';
+import { BannerStatus, BannerType, TargetAudience } from '@/modules/storefront/models/banner';
 import { updateBanner, getBanner, getAssets } from '../../../lib/api/storefrontEditor';
 import { 
   CheckIcon, 

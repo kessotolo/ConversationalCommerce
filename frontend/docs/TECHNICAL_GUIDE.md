@@ -4,15 +4,25 @@ This comprehensive technical guide covers the entire ConversationalCommerce plat
 
 ## System Architecture Overview
 
-The ConversationalCommerce platform is built with a modern microservices architecture:
+The ConversationalCommerce platform is built with a modular monolith architecture:
 
 ```
 ConversationalCommerce Platform
 ├── Frontend (Next.js)
-│   ├── Multi-tenant Storefront
-│   ├── Seller Dashboard
-│   ├── Admin Portal
-│   └── Storefront Editor
+│   ├── Modules
+│   │   ├── Core
+│   │   ├── Tenant
+│   │   ├── Conversation
+│   │   ├── Product
+│   │   ├── Order
+│   │   ├── Storefront
+│   │   ├── Theme
+│   │   └── Monitoring
+│   ├── Features
+│   │   ├── Multi-tenant Storefront
+│   │   ├── Seller Dashboard
+│   │   ├── Admin Portal
+│   │   └── Storefront Editor
 ├── Backend (FastAPI)
 │   ├── User Management
 │   ├── Product Catalog
@@ -33,20 +43,24 @@ ConversationalCommerce Platform
 1. **Multi-tenancy**: The platform supports multiple sellers with isolated data
 2. **Type Safety**: TypeScript on frontend and Pydantic on backend ensure type safety
 3. **API-First Design**: RESTful APIs with OpenAPI specifications
-4. **Responsive Design**: Mobile-first approach with responsive UI components
-5. **Security**: Role-based access control and data isolation
-6. **Performance**: Optimized database queries and asset delivery
+4. **Modular Monolith**: Clear module boundaries with direct module imports
+5. **Responsive Design**: Mobile-first approach with responsive UI components
+6. **Security**: Role-based access control and data isolation
+7. **Performance**: Optimized database queries and asset delivery
 
 ## Frontend Architecture
 
 ### Technology Stack
 
 - **Framework**: Next.js with React
+- **Architecture**: Modular monolith with clear module boundaries
 - **State Management**: React Context API, local component state
 - **Styling**: Tailwind CSS
 - **API Integration**: Axios
 - **Authentication**: Clerk Authentication
 - **UI Components**: Custom components with Headless UI and Heroicons
+- **Module Structure**: Core, Tenant, Conversation, Product, Order, Storefront, Theme, Monitoring
+- **Type Safety**: TypeScript with strict mode and ESLint rules for architectural compliance
 
 ### Key Features and Components
 
@@ -78,6 +92,41 @@ The Storefront Editor allows sellers to customize their storefronts:
 - **Banner & Logo Management**: Create and manage visual elements
 - **Layout Editor**: Customize page layouts with drag-and-drop
 - **Theme Customization**: Color schemes, typography, and styling
+
+#### Module Structure
+
+The frontend follows a modular monolith architecture with clear module boundaries:
+
+- **Core Module**: Base types (Entity, UUID, etc.), utilities, and cross-cutting concerns
+- **Tenant Module**: Merchant configuration and management
+- **Conversation Module**: Messaging system for customer engagement
+- **Product Module**: Product catalog management
+- **Order Module**: Order processing and transactions
+- **Storefront Module**: Storefront configuration and customization
+- **Theme Module**: Theming engine and configuration
+- **Monitoring Module**: System monitoring and alerts
+
+Each module contains its own:
+- **Models**: Domain models and types
+- **Services**: Business logic and data access
+- **Components**: UI components specific to the module
+- **Utils**: Helper functions for the module
+
+#### Import Guidelines
+
+The codebase follows strict import guidelines to maintain architectural integrity:
+
+- Direct module imports instead of bridge files
+- Type-only imports for interfaces and types
+- Clear module boundaries enforced by ESLint
+- Consistent import organization
+
+Example:
+```typescript
+// Correct pattern
+import type { UUID } from '@/modules/core/models/base';
+import { ProductService } from '@/modules/product/services/ProductService';
+```
 
 ## Backend Architecture
 

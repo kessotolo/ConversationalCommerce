@@ -24,7 +24,8 @@ import {
     Edit as EditIcon,
     Delete as DeleteIcon,
 } from '@mui/icons-material';
-import { Rule, RuleSeverity } from '../../types/monitoring';
+import type { Rule } from '@/modules/monitoring/models/rule';
+import { RuleSeverity } from '@/modules/monitoring/models/rule';;
 
 interface RulesManagerProps {
     tenantId: string;

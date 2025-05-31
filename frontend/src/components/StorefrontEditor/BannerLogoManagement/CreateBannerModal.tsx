@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { createBanner, getAssets } from '../../../lib/api/storefrontEditor';
-import { UUID, BannerType, TargetAudience, Asset } from '../../../types/storefrontEditor';
+import type { UUID } from '@/modules/core/models/base';
+import type { Asset } from '@/modules/storefront/models/asset';
+import { BannerType, TargetAudience } from '@/modules/storefront/models/banner';
 import { XMarkIcon, ExclamationTriangleIcon, PhotoIcon } from '@heroicons/react/24/outline';
 
 interface CreateBannerModalProps {

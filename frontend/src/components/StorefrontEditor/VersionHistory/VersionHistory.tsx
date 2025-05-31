@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getVersions, restoreVersion } from '../../../lib/api/storefrontEditor';
-import { Version, UUID } from '../../../types/storefrontEditor';
+import type { Version } from '@/modules/storefront/models/version';
+import type { UUID } from '@/modules/core/models/base';;
 import VersionList from './VersionList';
 import VersionDetail from './VersionDetail';
 import VersionCompare from './VersionCompare';

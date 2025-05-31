@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Asset, UUID, AssetType } from '../../../types/storefrontEditor';
+import type { Asset } from '@/modules/storefront/models/asset';
+import type { UUID } from '@/modules/core/models/base';
+import { AssetType } from '@/modules/storefront/models/asset';
 import { updateAsset, deleteAsset, optimizeAsset } from '../../../lib/api/storefrontEditor';
 import { 
   XMarkIcon, 
@@ -35,7 +37,8 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, tenantId, onUpdate, 
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Format date
-  const formatDate = (dateString: string): string => {
+  const formatDate = (dateString?: string): string => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleString();
   };
 

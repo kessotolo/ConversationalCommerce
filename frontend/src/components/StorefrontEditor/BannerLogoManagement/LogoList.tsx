@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Logo, UUID, LogoStatus, LogoType } from '../../../types/storefrontEditor';
+import type { Logo } from '@/modules/storefront/models/logo';
+import type { UUID } from '@/modules/core/models/base';
+import { LogoStatus, LogoType } from '@/modules/storefront/models/logo';;
 import { 
   MagnifyingGlassIcon, 
   FunnelIcon 

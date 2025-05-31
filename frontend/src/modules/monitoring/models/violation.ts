@@ -1,5 +1,6 @@
-export interface Violation {
-    id: string;
+import { UUID, Entity } from '@core/models/base';
+
+export interface Violation extends Entity {
     type: string;
     severity: string;
     action: string;
@@ -8,10 +9,8 @@ export interface Violation {
     details?: any;
     start_at: string;
     end_at?: string;
-    user_id?: string;
-    detection_id?: string;
-    created_at: string;
-    updated_at: string;
+    user_id?: UUID;
+    detection_id?: UUID;
 }
 
 export interface ViolationStats {

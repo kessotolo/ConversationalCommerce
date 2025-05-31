@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Theme } from '../types/theme';
+import type { Theme } from '@/modules/theme/models/theme';;
 import { useTenant } from './TenantContext';
 import { defaultTheme } from '../utils/defaultTheme';
 
@@ -98,6 +98,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       id: 'dark',
       name: 'Dark Mode',
       description: 'A dark theme for low light environments',
+      created_at: new Date().toISOString(),
       colors: {
         primary: '#3B82F6',
         secondary: '#6366F1',
@@ -116,6 +117,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       id: 'light',
       name: 'Light Mode',
       description: 'A light theme for standard usage',
+      created_at: new Date().toISOString(),
       colors: {
         primary: '#6366F1',
         secondary: '#8B5CF6',
