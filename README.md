@@ -1,17 +1,53 @@
 # Conversational Commerce Platform
 
-A high-growth commerce platform for African markets that seamlessly integrates mobile-first storefronts with WhatsApp messaging capabilities. Built for scale with security and performance in mind.
+A high-growth commerce platform for African merchants who sell primarily through chat platforms like WhatsApp and Instagram. This mobile-first solution seamlessly integrates storefronts with messaging capabilities, leveraging AI to process orders directly from natural language conversations. Built for scale with security and performance in mind.
+
+## 🚀 Platform Overview
+
+The Conversational Commerce platform allows sellers to:
+- Onboard quickly with a personalized storefront (unique subdomain or custom domain)
+- Upload products using photos or videos directly from mobile devices
+- Process orders received through chat using natural language processing
+- Manage inventory and analyze sales through a comprehensive dashboard
+- Sync content across storefront and messaging channels seamlessly
+
+## 🏗️ Architecture
+
+The platform is built on a **Modular Monolith Architecture** that combines the benefits of a monolithic deployment with clear module boundaries and separation of concerns:
+
+```
+src/
+└── modules/
+    ├── core/                  # Base types, interfaces, and cross-cutting concerns
+    ├── tenant/                # Tenant (merchant) management
+    ├── conversation/          # Messaging and NLP processing
+    ├── product/               # Product catalog management
+    ├── order/                 # Order processing
+    ├── payment/               # Payment processing (future Paystack integration)
+    ├── security/              # Authentication and authorization
+    └── storefront/            # Customer-facing interfaces
+```
+
+### Key Architecture Principles
+
+1. **Module Boundaries**: Each module encapsulates its own models, services, and components
+2. **Domain-Driven Design**: Models represent core business entities and value objects
+3. **Dependency Injection**: Services are registered and retrieved through a central registry
+4. **Separation of Concerns**: Clear distinction between models, services, and UI components
+5. **Multi-Tenant Architecture**: Complete tenant isolation with row-level security
+6. **UUID Standardization**: All models use PostgreSQL native UUID types (UUID(as_uuid=True)) for primary and foreign keys instead of string representations, ensuring data integrity and consistent relationships
 
 ## 🌟 Key Features
 
 - **Seller Authentication**: Secure JWT-based authentication through Clerk with role-based access control
 - **Product Management**: Full CRUD operations with rich media support and mobile camera integration
 - **WhatsApp Integration**: Direct customer engagement through conversational commerce
+- **NLP Order Processing**: AI-powered extraction of intent, quantity, product variant, and buyer info from natural language messages
 - **Multi-Platform Social Sharing**: Product sharing across WhatsApp, Instagram, TikTok, Facebook, Twitter, and Telegram with branded QR codes
 - **Mobile-First Design**: Optimized interface with bottom navigation for primary devices used in African markets
 - **Multi-Media Support**: Images, video, and WhatsApp status content handling with direct camera capture
 - **Advanced Security**: Comprehensive audit logging, request monitoring, optimistic locking, and PostgreSQL Row-Level Security (RLS) for tenant isolation
-- **High Performance**: Efficient keyset pagination, database indexing, and batch operations
+- **High Performance**: Efficient keyset pagination, database indexing, and batch operations optimized for African connectivity challenges
 - **Robust Error Handling**: Standardized error responses and centralized exception management
 - **Content Moderation**: AI-powered content filtering with customizable rules and manual review workflows
 - **Behavior Analysis**: Pattern detection for suspicious activities with evidence collection and review
