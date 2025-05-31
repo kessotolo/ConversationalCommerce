@@ -1,12 +1,15 @@
+import * as React from 'react';
 'use client';
+import { Activity } from 'lucide-react';
+// Removed self-import
+import { User, Users } from 'lucide-react';
 
-import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+// Removed self-import
+// Removed self-import
 import { useToast, ToastProvider } from '@/components/ui/ToastProvider';
 
 interface ActivityEvent {

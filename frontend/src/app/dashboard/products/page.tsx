@@ -1,7 +1,15 @@
 "use client";
-import React, { useState } from 'react';
+
+import React, { FormEvent } from 'react';
+
+
+
+// Removed circular import;
+// Removed self-import
+import { Image } from 'next/image';
+import { Save } from 'lucide-react';
 import { Plus, Search, Edit, Trash2, BadgeCheck, BadgeX } from 'lucide-react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+// Removed self-import
 
 // Product type
 interface Product {

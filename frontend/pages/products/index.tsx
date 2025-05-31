@@ -1,3 +1,5 @@
+import { ThemeContext } from '@/contexts/ThemeContext';import { Product } from '@/types/product';
+import { Store } from 'lucide-react';
 import { useState } from 'react';
 import ProductCard from '../../src/components/storefront/ProductCard';
 import { ThemeProvider } from '../../src/components/ThemeProvider';

@@ -1,4 +1,5 @@
-import React from 'react';
+import * as React from 'react';
+// Removed circular import;import { Search, User } from 'lucide-react';
 import { Bell } from 'lucide-react';
 import { UserButton } from '@clerk/nextjs';
 

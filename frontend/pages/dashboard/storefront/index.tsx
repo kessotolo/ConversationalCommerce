@@ -1,3 +1,5 @@
+import { ThemeContext } from '@/contexts/ThemeContext';import { Card } from '@/components/ui/card';
+import { Store } from 'lucide-react';
 import React from 'react';
 import { ThemeProvider } from '../../../src/components/ThemeProvider';
 import StorefrontLinks from '../../../src/components/dashboard/StorefrontLinks';

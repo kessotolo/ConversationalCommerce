@@ -1,6 +1,9 @@
+import * as React from 'react';
 'use client';
-import React, { useState } from 'react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { React, Record } from 'react';
+import { Phone } from 'lucide-react';
+// Removed circular import;
+// Removed self-import
 import { Users, Search, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 

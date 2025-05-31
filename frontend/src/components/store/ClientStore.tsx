@@ -1,4 +1,6 @@
+import * as React from 'react';
 'use client';
+// Removed circular import;
 
 import { useState, useEffect } from 'react';
 import { productService } from '@/lib/api';

@@ -1,6 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { getAssets } from '../../../lib/api/storefrontEditor';
-import { Asset, UUID, AssetType } from '../../../types/storefrontEditor';
+import React, { FC, useState, useEffect } from 'react';
+// Removed self-import
+
+import { Upload } from 'lucide-react';import * as React from 'react';
+
+import { getAssets } from '../../../lib/api/StorefrontEditor';
+import { Asset, UUID, AssetType } from '../../../types/StorefrontEditor';
 import AssetGrid from './AssetGrid';
 import AssetUploader from './AssetUploader';
 import AssetFilterBar from './AssetFilterBar';

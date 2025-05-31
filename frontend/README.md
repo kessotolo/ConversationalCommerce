@@ -1,6 +1,231 @@
 # Conversational Commerce Frontend
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app). The frontend implements a mobile-first design optimized for African markets with WhatsApp integration and multilingual support.
+This is a [Next.js](https://nextjs.org) project implementing a comprehensive modular monolith architecture optimized for African markets with WhatsApp integration and multilingual support.
+
+## Modular Monolith Architecture
+
+The Conversational Commerce platform uses a modular monolith architecture that combines the benefits of a monolithic deployment with clear module boundaries and separation of concerns.
+
+### Architecture Overview
+
+```
+src/
+└── modules/
+    ├── core/                  # Base types, interfaces, and cross-cutting concerns
+    │   ├── models/            # Core domain entities and value objects
+    │   ├── services/          # Base service interfaces and service registry
+    │   └── components/        # Shared UI components and context providers
+    │
+    ├── tenant/                # Tenant (merchant) management module
+    │   ├── models/            # Tenant domain models
+    │   ├── services/          # Tenant-specific services
+    │   └── components/        # Tenant management UI components
+    │
+    ├── conversation/          # Messaging and chat functionality module
+    │   ├── models/            # Conversation and messaging models
+    │   ├── services/          # Conversation services
+    │   └── components/        # Chat UI components
+    │
+    ├── product/               # Product catalog module
+    │   ├── models/            # Product, category, and collection models
+    │   ├── services/          # Product management services
+    │   └── components/        # Product display and management components
+    │
+    ├── order/                 # Order processing module
+    │   ├── models/            # Order and transaction models
+    │   ├── services/          # Order management services
+    │   └── components/        # Order management UI components
+    │
+    ├── payment/               # Payment processing module (placeholder)
+    │   ├── models/            # Payment models
+    │   ├── services/          # Payment services
+    │   └── components/        # Payment UI components
+    │
+    ├── security/              # Security and authentication module (placeholder)
+    │   ├── models/            # Security models
+    │   ├── services/          # Security services
+    │   └── components/        # Security UI components
+    │
+    └── storefront/            # Customer-facing storefront module (placeholder)
+        ├── models/            # Storefront models
+        ├── services/          # Storefront services
+        └── components/        # Storefront UI components
+```
+
+### Key Architecture Principles
+
+1. **Module Boundaries**: Each module encapsulates its own models, services, and components
+2. **Domain-Driven Design**: Models represent core business entities and value objects
+3. **Dependency Injection**: Services are registered and retrieved through a central registry
+4. **Separation of Concerns**: Clear distinction between models, services, and UI components
+5. **Standard Interfaces**: Consistent patterns for models and services across modules
+
+## Core Domain Models
+
+The foundation of the architecture is in the core domain models:
+
+### Base Types
+
+- **Entity**: Base type for all domain entities with a UUID identifier
+- **TenantScoped**: Interface for entities owned by a specific tenant
+- **Money**: Value object for currency and amount
+- **Result<T>**: Generic result type for success/failure handling
+
+```typescript
+// Example of Entity and TenantScoped interfaces
+export interface Entity {
+  id: UUID;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface TenantScoped {
+  tenantId: UUID;
+}
+```
+
+## Service Layer
+
+Services provide the business logic and data access for each module:
+
+### Service Interfaces
+
+- **IService**: Base interface for all services
+- **IRepository**: Generic CRUD operations
+- **ICache**: Caching interface
+- **IEventBus**: Event publishing and subscription
+- **ILogger**: Logging interface
+- **IFeatureFlag**: Feature flag management
+- **ITenantContext**: Current tenant context
+
+### Module-Specific Services
+
+Each module implements its own services:
+
+- **TenantService**: Manages tenant data and settings
+- **ConversationService**: Handles messaging functionality
+- **ProductService**: Manages product catalog
+- **OrderService**: Processes orders and transactions
+
+```typescript
+// Example of a service interface
+export interface ITenantService extends IService {
+  findBySubdomain(subdomain: string): Promise<Result<Tenant>>;
+  updateSettings(id: UUID, settings: TenantSettings): Promise<Result<Tenant>>;
+  // Additional methods...
+}
+```
+
+## Dependency Injection
+
+The architecture uses a simple service registry for dependency injection:
+
+### ServiceRegistry
+
+A singleton registry that manages service instances:
+
+```typescript
+// Simplified example of the ServiceRegistry
+export class ServiceRegistry {
+  private static instance: ServiceRegistry;
+  private services: Map<string, any> = new Map();
+
+  public static getInstance(): ServiceRegistry {
+    if (!ServiceRegistry.instance) {
+      ServiceRegistry.instance = new ServiceRegistry();
+    }
+    return ServiceRegistry.instance;
+  }
+
+  public register<T>(serviceId: string, service: T): void {
+    this.services.set(serviceId, service);
+  }
+
+  public get<T>(serviceId: string): T {
+    return this.services.get(serviceId) as T;
+  }
+}
+```
+
+### Service Initialization
+
+Services are initialized and registered at application startup:
+
+```typescript
+// Example of service initialization
+export function initializeServices(): void {
+  const registry = ServiceRegistry.getInstance();
+  
+  // Register core services
+  registry.register("tenantService", new TenantServiceImpl());
+  registry.register("conversationService", new ConversationServiceImpl());
+  registry.register("productService", new ProductServiceImpl());
+  registry.register("orderService", new OrderServiceImpl());
+}
+```
+
+## React Integration
+
+The architecture provides seamless integration with React:
+
+### Service Provider
+
+A React context provider makes services available throughout the component tree:
+
+```tsx
+// Example of ServiceProvider
+export const ServiceContext = createContext<{
+  getService: <T>(serviceId: string) => T;
+}>({
+  getService: () => {
+    throw new Error("ServiceContext not initialized");
+  },
+});
+
+export const ServiceProvider: React.FC<{
+  children: React.ReactNode;
+}> = ({ children }) => {
+  const registry = ServiceRegistry.getInstance();
+  
+  const getService = useCallback(<T>(serviceId: string): T => {
+    return registry.get<T>(serviceId);
+  }, []);
+  
+  return (
+    <ServiceContext.Provider value={{ getService }}>
+      {children}
+    </ServiceContext.Provider>
+  );
+};
+```
+
+### Custom Hooks
+
+Custom hooks provide easy access to services in components:
+
+```tsx
+// Example of custom hooks
+export const useTenantService = (): ITenantService => {
+  const { getService } = useContext(ServiceContext);
+  return getService<ITenantService>("tenantService");
+};
+
+export const useConversationService = (): IConversationService => {
+  const { getService } = useContext(ServiceContext);
+  return getService<IConversationService>("conversationService");
+};
+```
+
+## Performance Optimizations
+
+The architecture includes several optimizations for African markets with limited connectivity:
+
+1. **Offline Caching**: Theme settings and critical data cached in localStorage
+2. **Network Status Detection**: Visual indicators for offline status
+3. **Retry Mechanisms**: Graceful retries for API calls with fallbacks
+4. **Skeleton Loading**: Loading placeholders to improve perceived performance
+5. **Error Boundaries**: Graceful failure handling
+6. **Non-Blocking Notifications**: Toast notifications instead of blocking alerts
 
 ## Technical Requirements
 
@@ -35,14 +260,6 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
-
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
-
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
-
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
 ## Multi-Tenancy & Tenant Resolution
 
 This application supports multi-tenancy through a comprehensive tenant resolution system:
@@ -63,15 +280,6 @@ Sellers can also point their purchased domains to their storefront:
 - Domain ownership verification is done via DNS records
 - Stores are accessible via both their subdomain and custom domain
 
-### Storefront Management
-
-The dashboard provides a comprehensive interface for managing and viewing storefronts:
-
-- **Customize Storefront**: Access via the sidebar to edit storefront settings and appearance
-- **View Live Storefront**: Direct link to the public-facing storefront with clear visual indicators
-- **Smart Placeholder Handling**: System provides guidance when using placeholder or default domains
-- **Enhanced UI**: Color-coded action buttons with improved accessibility and user experience
-
 ### Development Testing
 
 For local development and testing:
@@ -83,104 +291,6 @@ http://localhost:3000?subdomain=tenant1
 # Default tenant
 http://localhost:3000
 ```
-
-### Implementation Architecture
-
-- **Middleware**: Detects the access method (subdomain vs custom domain)
-- **Context Provider**: Makes tenant info available throughout the app
-- **Theme System**: Loads tenant-specific themes based on tenant resolution
-- **UUID Support**: All models use PostgreSQL UUID types for primary and foreign keys
-
-### Future Implementations
-
-- Admin interface for sellers to manage their custom domains
-- Automatic SSL certificate provisioning for custom domains
-- DNS configuration wizard for sellers
-- Enhanced storefront customization options
-
-## Storefront Editor
-
-The Storefront Editor is a comprehensive tool that allows sellers to customize and manage their storefronts. It follows a modular architecture with several interconnected components.
-
-### Core Components
-
-#### StorefrontEditor
-
-The main container component that provides a tabbed interface for accessing different editing features:
-
-- **Asset Management**: Upload and manage media assets
-- **Draft Management**: Create and manage draft configurations
-- **Version History**: Track and restore previous versions
-- **Permissions**: Manage user roles and access control
-- **Banner & Logo Management**: Create and manage visual elements
-
-### Data Flow Architecture
-
-The Storefront Editor follows a clear data flow pattern:
-
-1. **API Layer**: Located in `src/lib/api/storefrontEditor.ts`
-2. **Type Definitions**: Located in `src/types/storefrontEditor.ts`
-3. **Component Layer**: Organized in `src/components/StorefrontEditor/`
-
-All API requests use UUID identifiers for consistency with the backend PostgreSQL implementation.
-
-### Banner & Logo Management
-
-This feature provides a unified interface for managing visual elements of the storefront.
-
-#### BannerLogoManagement
-
-A tabbed interface that switches between Banner and Logo management:
-
-```
-BannerLogoManagement
-├── BannerManagement (Tab 1)
-│   ├── BannerList
-│   ├── BannerDetail
-│   └── CreateBannerModal
-└── LogoManagement (Tab 2)
-    ├── LogoList
-    ├── LogoDetail
-    └── CreateLogoModal
-```
-
-#### Banner Management Features
-
-- Create, edit, publish, and delete banners
-- Filter banners by type, status, and search term
-- Schedule banners with start/end dates
-- Target specific audience segments
-- Reorder banners via drag-and-drop
-- Select from uploaded assets for banner images
-
-#### Logo Management Features
-
-- Manage different logo types (primary, secondary, footer, mobile, favicon)
-- Schedule logos with start/end dates
-- View and filter the logo collection
-- Select from uploaded assets for logo images
-- Configure display settings for responsive behavior
-
-### Dependencies
-
-The Storefront Editor uses the following key libraries:
-
-- **@headlessui/react**: For accessible UI components like tabs, modals, and dropdowns
-- **@heroicons/react**: For consistent iconography throughout the interface
-- **react-dnd**: For drag-and-drop functionality in banner ordering
-- **react-dnd-html5-backend**: HTML5 backend for react-dnd
-- **axios**: For API requests with proper error handling
-
-### Permissions Model
-
-The editor implements a role-based access control system with four primary roles:
-
-- **Viewer**: Can view storefront configurations but not edit
-- **Editor**: Can create and edit drafts but not publish
-- **Publisher**: Can publish drafts to live storefronts
-- **Admin**: Has full access including user permission management
-
-Permissions can be scoped to specific sections (themes, layouts, content, etc.) for fine-grained access control.
 
 ## Deployment
 
@@ -199,26 +309,24 @@ npm start
 The application has standardized on UUID types for database primary and foreign keys. During deployment, be aware of the following:
 
 1. **Database Schema**: Ensure your PostgreSQL database supports the migration from String-based UUIDs to native UUID data types
-2. **Data Migration**: Use the provided migration scripts to convert existing String UUIDs to native PostgreSQL UUIDs
-3. **API Consistency**: All API endpoints have been updated to expect and return properly formatted UUIDs
 
-### Authentication Deployment Notes
+## Contributing
 
-1. **Environment Variables**: Ensure all Clerk-related environment variables are properly set in your deployment environment
-2. **Middleware Configuration**: The authentication middleware is configured to handle multi-tenancy with UUID-based tenant identification
-3. **Client/Server Component Separation**: The application properly separates client and server components for optimal performance
+### Adding a New Module
 
-## Learn More
+To add a new module to the architecture:
 
-To learn more about Next.js, take a look at the following resources:
+1. Create the module directory structure in `src/modules/`
+2. Define domain models in the `models/` directory
+3. Implement services in the `services/` directory
+4. Create UI components in the `components/` directory
+5. Update module index files to export the new types and services
+6. Register the module's services in the service initializer
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Code Style Guidelines
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+- Use TypeScript interfaces for domain models
+- Implement services as classes that implement service interfaces
+- Use React functional components with hooks for UI components
+- Follow established naming conventions (e.g., I-prefixed interfaces, service-suffixed services)
+- Document public APIs with JSDoc comments

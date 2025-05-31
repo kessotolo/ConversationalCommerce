@@ -1,4 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { FC, Partial } from 'react';
+import * as React from 'react';
+import { Alert } from '@mui/material';import { RulesManagerProps } from '@/components/monitoring/RulesManager';
+
+import { Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, IconButton, InputLabel, List, ListItem, ListItemText, MenuItem, Paper, Select, TextField, Typography } from '@mui/material';
+import { AddIcon, DeleteIcon, EditIcon } from '@mui/icons-material';import { Save } from 'lucide-react';
 import {
     Box,
     Paper,

@@ -1,6 +1,11 @@
-import React, { useState } from 'react';
-import { createDraft } from '../../../lib/api/storefrontEditor';
-import { UUID } from '../../../types/storefrontEditor';
+import React, { ChangeEvent, FC, FormEvent, useState } from 'react';
+
+// Removed self-import// Removed self-import
+
+
+
+import { createDraft } from '../../../lib/api/StorefrontEditor';
+import { UUID } from '../../../types/StorefrontEditor';
 import { XMarkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 interface CreateDraftModalProps {

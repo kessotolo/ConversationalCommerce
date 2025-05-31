@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
-import { Logo, UUID, LogoStatus, LogoType } from '../../../types/storefrontEditor';
+import { FC, FormEvent } from 'react';// Removed self-importimport * as React from 'react';
+// Removed self-import
+import { List } from '@mui/material';import { LogoListProps } from '@/components/StorefrontEditor/BannerLogoManagement/LogoList';import { FunnelIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { Search } from 'lucide-react';
+import { Logo, UUID, LogoStatus, LogoType } from '../../../types/StorefrontEditor';
 import { 
   MagnifyingGlassIcon, 
   FunnelIcon 

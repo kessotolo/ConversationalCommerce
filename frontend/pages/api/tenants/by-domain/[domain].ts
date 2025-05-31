@@ -1,3 +1,5 @@
+import { Error, Record } from 'react';
+import { TenantContext } from '@/contexts/TenantContext';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 type Tenant = {

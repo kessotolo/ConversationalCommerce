@@ -1,6 +1,13 @@
-import React, { useState } from 'react';
-import { Draft, UUID, DraftStatus } from '../../../types/storefrontEditor';
-import { updateDraft } from '../../../lib/api/storefrontEditor';
+import React, { ChangeEvent, FC, FormEvent, useState } from 'react';
+
+// Removed self-import// Removed self-import
+
+
+import { CalendarIcon, CheckIcon, ClockIcon, ExclamationTriangleIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { Select } from '@mui/material';import * as React from 'react';
+
+import { Draft, UUID, DraftStatus } from '../../../types/StorefrontEditor';
+import { updateDraft } from '../../../lib/api/StorefrontEditor';
 import { 
   ClockIcon, 
   CheckIcon, 
@@ -9,6 +16,7 @@ import {
   CalendarIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
+import { Check, Save } from 'lucide-react';
 
 interface DraftDetailProps {
   draft: Draft;

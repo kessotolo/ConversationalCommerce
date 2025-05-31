@@ -1,5 +1,6 @@
-import React from 'react';
-import { Asset, UUID, AssetType } from '../../../types/storefrontEditor';
+import { FC } from 'react';// Removed self-importimport * as React from 'react';
+// Removed self-importimport { Upload } from 'lucide-react';
+import { Asset, UUID, AssetType } from '../../../types/StorefrontEditor';
 import { DocumentIcon, PhotoIcon, FilmIcon, MusicalNoteIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 
 interface AssetGridProps {

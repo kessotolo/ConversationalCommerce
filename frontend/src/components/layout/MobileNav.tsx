@@ -1,19 +1,11 @@
 "use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
-import { UserButton } from '@clerk/nextjs';
-
-// Import icons
+import * as React from 'react';
+import { Icon } from '@/components/icons';
 import { 
-  Home, 
-  Package, 
-  ShoppingBag, 
+  LogOut, 
   MessageCircle, 
   MoreHorizontal,
-  LogOut,
   User,
   Store
 } from 'lucide-react';

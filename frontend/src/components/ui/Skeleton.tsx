@@ -1,4 +1,6 @@
-import { cn } from "@/lib/utils";
+import React from 'react';import React, { HTMLAttributes } from 'react';
+import { Skeleton } from '@/components/ui/SkeletonLoader';import * as React from 'react';
+import { cn } from '@/lib/utils';
 
 function Skeleton({
   className,

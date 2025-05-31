@@ -1,4 +1,4 @@
-import { Inter } from 'next/font/google'
+import { ReactNode } from 'react';import * as React from 'react';
 import './globals.css'
 import { Providers } from './providers'
 import Navbar from '@/components/Navbar'

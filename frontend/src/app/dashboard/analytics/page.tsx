@@ -1,10 +1,12 @@
+import * as React from 'react';
 'use client';
+import { ArrowUpRight, Calendar, DollarSign, Download, Search, ShoppingBag, Store, Users } from 'lucide-react';
+// Removed circular import;
 
-import React, { useState } from 'react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { DashboardHeader } from '@/components/layout/DashboardHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+// Removed self-import
+// Removed self-import
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+// Removed self-import
 import {
   BarChart3,
   TrendingUp,
@@ -30,7 +32,7 @@ import {
 } from 'chart.js';
 import { Line, Bar, Pie } from 'react-chartjs-2';
 import Link from 'next/link';
-import { StatCard } from '@/components/dashboard/StatCard';
+// Removed self-import
 
 // Register ChartJS components
 ChartJS.register(

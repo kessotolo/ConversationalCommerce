@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useTenant } from './TenantContext';
 
 // Interface for auth with UUID tenant connection
@@ -73,7 +73,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [tenant]);
 
   // Sign in function
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, _password: string) => {
     try {
       setIsLoading(true);
       setError(null);

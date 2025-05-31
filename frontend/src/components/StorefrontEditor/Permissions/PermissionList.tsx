@@ -1,5 +1,9 @@
-import React from 'react';
-import { UserPermission, UUID, StorefrontRole } from '../../../types/storefrontEditor';
+import { FC } from 'react';import * as React from 'react';
+// Removed self-import
+// Removed self-import
+import { List } from '@mui/material';import { PermissionListProps } from '@/components/StorefrontEditor/Permissions/PermissionList';import { FunnelIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { Search, User } from 'lucide-react';
+import { UserPermission, UUID, StorefrontRole } from '../../../types/StorefrontEditor';
 import { 
   MagnifyingGlassIcon, 
   FunnelIcon 

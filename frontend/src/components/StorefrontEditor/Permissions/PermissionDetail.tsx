@@ -1,14 +1,20 @@
-import React, { useState } from 'react';
-import { UserPermission, UUID, StorefrontRole, StorefrontSectionType } from '../../../types/storefrontEditor';
-import { assignRole, setSectionPermission, removePermission } from '../../../lib/api/storefrontEditor';
+import React, { FC, Record, useState } from 'react';
+// Removed self-import
+
+import { CheckIcon, ExclamationTriangleIcon, PencilIcon, ShieldCheckIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
+// Removed self-importimport * as React from 'react';
+
 import { 
   ShieldCheckIcon, 
   TrashIcon, 
   CheckIcon, 
-  ExclamationTriangleIcon,
-  PencilIcon,
+  ExclamationTriangleIcon, 
+  PencilIcon, 
   XMarkIcon
 } from '@heroicons/react/24/outline';
+import { Save, User } from 'lucide-react';
+import { UserPermission, UUID, StorefrontRole, StorefrontSectionType } from '../../../types/StorefrontEditor';
+import { assignRole, setSectionPermission, removePermission } from '../../../lib/api/StorefrontEditor';
 
 interface PermissionDetailProps {
   user: UserPermission;

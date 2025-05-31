@@ -1,6 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { getPermissions } from '../../../lib/api/storefrontEditor';
-import { UUID, UserPermission, StorefrontRole } from '../../../types/storefrontEditor';
+import React, { FC, useState, useEffect } from 'react';
+// Removed self-import
+
+import { List, Select } from '@mui/material';
+import { User } from 'lucide-react';import * as React from 'react';
+
+import { getPermissions } from '../../../lib/api/StorefrontEditor';
+import { UUID, UserPermission, StorefrontRole } from '../../../types/StorefrontEditor';
 import PermissionList from './PermissionList';
 import PermissionDetail from './PermissionDetail';
 import AddUserPermission from './AddUserPermission';
@@ -13,7 +18,6 @@ interface PermissionsProps {
 const Permissions: React.FC<PermissionsProps> = ({ tenantId }) => {
   const [permissions, setPermissions] = useState<UserPermission[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserPermission | null>(null);
-  const [totalUsers, setTotalUsers] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -31,7 +35,6 @@ const Permissions: React.FC<PermissionsProps> = ({ tenantId }) => {
     try {
       const response = await getPermissions(tenantId);
       setPermissions(response.items);
-      setTotalUsers(response.total);
       
       // Select first user if nothing is selected
       if (response.items.length > 0 && !selectedUser) {

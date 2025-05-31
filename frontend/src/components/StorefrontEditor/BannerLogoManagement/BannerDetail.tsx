@@ -1,6 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Banner, UUID, BannerStatus, BannerType, TargetAudience, Asset } from '../../../types/storefrontEditor';
-import { updateBanner, getBanner, getAssets } from '../../../lib/api/storefrontEditor';
+import React, { ChangeEvent, FC, FormEvent } from 'react';
+
+
+// Removed self-import
+// Removed self-importimport * as React from 'react';
+import { Select } from '@mui/material';import { BannerDetailProps } from '@/components/StorefrontEditor/BannerLogoManagement/BannerDetail';import { CalendarIcon, CheckIcon, ExclamationTriangleIcon, LinkIcon, PencilIcon, PhotoIcon, TagIcon, TrashIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+import { Check, Save } from 'lucide-react';
+import { Image } from 'next/image';
+import { Link } from 'next/link';
+// Removed circular import;
+import { Banner, UUID, BannerStatus, BannerType, TargetAudience, Asset } from '../../../types/StorefrontEditor';
+import { updateBanner, getBanner, getAssets } from '../../../lib/api/StorefrontEditor';
 import { 
   CheckIcon, 
   TrashIcon, 

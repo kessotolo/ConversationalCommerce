@@ -1,7 +1,8 @@
+import * as React from 'react';
 'use client';
-
-import React, { useState, useEffect } from 'react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+// React is automatically imported by Next.js
+// Removed circular import;
+// Removed self-import
 import { ChevronLeft, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -37,13 +38,11 @@ export default function CustomerDetailPage() {
     const customerOrders = mockOrders.filter(o => o.email === email);
     if (customerOrders.length === 0) {
         return (
-            <DashboardLayout>
-                <div className="max-w-2xl mx-auto px-4 py-12 text-center">
-                    <Link href="/dashboard/customers" className="inline-flex items-center text-[#6C9A8B] mb-6"><ChevronLeft className="h-4 w-4 mr-1" /> Back to Customers</Link>
-                    <h2 className="text-xl font-bold mb-2">Customer not found</h2>
-                    <p className="text-gray-500">No customer with this email exists.</p>
-                </div>
-            </DashboardLayout>
+            <div className="max-w-2xl mx-auto px-4 py-12 text-center">
+                <Link href="/dashboard/customers" className="inline-flex items-center text-[#6C9A8B] mb-6"><ChevronLeft className="h-4 w-4 mr-1" /> Back to Customers</Link>
+                <h2 className="text-xl font-bold mb-2">Customer not found</h2>
+                <p className="text-gray-500">No customer with this email exists.</p>
+            </div>
         );
     }
     const customer = {

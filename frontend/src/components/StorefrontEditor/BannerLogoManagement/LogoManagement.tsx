@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { getLogos, publishLogo, deleteLogo } from '../../../lib/api/storefrontEditor';
-import { Logo, UUID, LogoStatus, LogoType } from '../../../types/storefrontEditor';
+import React, { FC, List, Select } from 'react';
+// Removed self-import
+// Removed self-importimport * as React from 'react';
+
+import { getLogos, publishLogo, deleteLogo } from '../../../lib/api/StorefrontEditor';
+import { Logo, UUID, LogoStatus, LogoType } from '../../../types/StorefrontEditor';
 import LogoList from './LogoList';
 import LogoDetail from './LogoDetail';
 import CreateLogoModal from './CreateLogoModal';

@@ -1,21 +1,17 @@
-'use client';
+import React, { ChangeEvent } from 'react';
 
-import React, { useState, useRef } from 'react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { 
-  ArrowLeft, 
-  Save, 
-  Camera, 
-  Upload,
-  Trash2,
-  Check,
-  MessageSquare,
-  Globe
-} from 'lucide-react';
+
+'use client';
+import { NewProduct } from '@/pages/dashboard/products/add';
+import { ArrowLeft, Camera, Check, Globe, MessageSquare, Save, Store, Trash2, Upload } from 'lucide-react';
+// Removed circular import;
+// Removed circular import;
+import Image from 'next/image';
+// Removed self-import
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent } from '@/components/ui/Card';
+// Removed self-import
+import { Card, CardContent } from '@/components/ui/card';
 
 interface NewProduct {
   name: string;

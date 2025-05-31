@@ -1,3 +1,6 @@
+import { Error, Record } from 'react';
+import { TenantContext } from '@/contexts/TenantContext';
+import { Store } from 'lucide-react';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 type Tenant = {

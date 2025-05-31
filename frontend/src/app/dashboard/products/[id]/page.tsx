@@ -1,14 +1,11 @@
-'use client';
+import React, { ChangeEvent } from 'react';
 
-import React, { useState, useEffect } from 'react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { 
-  ArrowLeft, 
-  Save, 
-  Trash2, 
-  Camera, 
-  Upload 
-} from 'lucide-react';
+
+'use client';
+// Removed circular import;
+import { ArrowLeft, Camera, Save, Trash2, Upload } from 'lucide-react';
+import Image from 'next/image';
+// Removed circular import;
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 
@@ -145,29 +142,24 @@ export default function ProductPage() {
   
   if (isLoading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+      </div>
     );
   }
   
   if (!product) {
     return (
-      <DashboardLayout>
-        <div className="text-center p-8">
-          <p className="text-lg text-gray-500">Product not found</p>
-          <Link href="/dashboard/products" className="mt-4 inline-block text-primary">
-            Back to Products
-          </Link>
-        </div>
-      </DashboardLayout>
+      <div className="text-center p-8">
+        <p className="text-lg text-gray-500">Product not found</p>
+        <Link href="/dashboard/products" className="mt-4 inline-block text-primary">
+          Back to Products
+        </Link>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
       <div className="space-y-6">
         {/* Header with back button */}
         <div className="flex items-center justify-between">
@@ -334,6 +326,5 @@ export default function ProductPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
-  );
-}
+    );
+  }

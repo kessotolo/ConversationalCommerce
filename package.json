@@ -1,1 +1,24 @@
-{}
+{
+  "name": "conversational-commerce",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WhatsApp-first e-commerce platform optimized for African market",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "test": "cd frontend && npm run test",
+    "lint": "cd frontend && npm run lint",
+    "typecheck": "cd frontend && npm run typecheck",
+    "type-check": "cd frontend && npm run type-check",
+    "fix-imports": "cd frontend && npm run fix-imports",
+    "start": "cd frontend && npm run start"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}

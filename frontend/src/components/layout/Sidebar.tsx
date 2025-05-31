@@ -1,14 +1,10 @@
 "use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
-import { UserButton } from '@clerk/nextjs';
-import {
-  Home,
-  Package,
-  ShoppingBag,
+import * as React from 'react';
+import { Divider } from '@mui/material';
+import { Icon } from '@/components/icons';
+import { Settings } from 'lucide-react';
+import { 
   BarChart,
   MessageCircle,
   Settings,

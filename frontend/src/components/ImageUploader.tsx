@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, { ChangeEvent } from 'react';
+
+
+// Removed circular import;import * as React from 'react';
 
 interface ImageUploaderProps {
     onImageSelect: (file: File) => void;

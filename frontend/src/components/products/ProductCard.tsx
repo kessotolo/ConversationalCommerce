@@ -1,6 +1,7 @@
+import * as React from 'react';
 'use client';
+// Removed circular import;
 
-import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { Edit, Trash2, Copy, MessageSquare, ChevronRight, X } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';

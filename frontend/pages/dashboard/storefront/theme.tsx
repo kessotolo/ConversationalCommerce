@@ -1,4 +1,10 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { ReactNode, Component, Error, Button } from 'react';
+import { ErrorBoundary, ErrorBoundaryState } from '@/components/ErrorBoundary';
+import { NetworkStatusIndicator } from '@/components/ui/NetworkStatusIndicator';
+import { ThemeContext } from '@/contexts/ThemeContext';
+
+import { Settings } from 'lucide-react';
+
 import dynamic from 'next/dynamic';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { useTheme } from '@/contexts/ThemeContext';

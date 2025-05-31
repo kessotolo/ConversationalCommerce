@@ -1,4 +1,5 @@
-import * as React from "react";
+import React from 'react';import React, { HTMLAttributes } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const Card = React.forwardRef<

@@ -1,4 +1,4 @@
-export enum RuleSeverity {
+import Activity from '@/components/monitoring/ActivityDashboard';export enum RuleSeverity {
     LOW = "low",
     MEDIUM = "medium",
     HIGH = "high",

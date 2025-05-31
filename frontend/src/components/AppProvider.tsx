@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
+import * as React from 'react';
+import { AuthContext } from '@/contexts/AuthContext';
 import { ThemeProvider } from './ThemeProvider';
 import { AuthProvider } from '../contexts/AuthContext';
 
