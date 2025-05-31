@@ -1,9 +1,10 @@
+import React from 'react';import React from 'react';import { ChangeEvent, FC, FormEvent } from 'react';
 import React from 'react';
-import { BannerLogoManagement } from '@/components/StorefrontEditor/BannerLogoManagement/BannerLogoManagement';
-import { CreateLogoModal } from '@/components/StorefrontEditor/BannerLogoManagement/CreateLogoModal';import * as React from 'react';
+// Removed self-import
+// Removed self-importimport * as React from 'react';
 import { Select } from '@mui/material';import { CreateLogoModalProps } from '@/components/StorefrontEditor/BannerLogoManagement/CreateLogoModal';import { Image } from 'next/image';
-import { createLogo, getAssets } from '../../../lib/api/storefrontEditor';
-import { UUID, LogoType, Asset } from '../../../types/storefrontEditor';
+import { createLogo, getAssets } from '../../../lib/api/StorefrontEditor';
+import { UUID, LogoType, Asset } from '../../../types/StorefrontEditor';
 import { Dialog } from '@headlessui/react';
 import { XMarkIcon, ExclamationTriangleIcon, PhotoIcon } from '@heroicons/react/24/outline';
 

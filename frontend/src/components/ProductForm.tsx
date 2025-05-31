@@ -1,5 +1,5 @@
-import { File } from '@/types/File';import * as React from 'react';
-import { Product } from '@/types/product';
+import { FormEvent } from 'react';// Removed circular import;import * as React from 'react';
+// Removed circular import;
 import { Image } from 'next/image';
 import ImageUploader from './ImageUploader';
 import { productService } from '@/lib/api';

@@ -1,8 +1,8 @@
-import { AssetFilterBarProps } from '@/components/StorefrontEditor/AssetManagement/AssetFilterBar';
-import { AssetManagement } from '@/components/StorefrontEditor/AssetManagement/AssetManagement';
+import { FC, FormEvent } from 'react';import { AssetFilterBarProps } from '@/components/StorefrontEditor/AssetManagement/AssetFilterBar';
+// Removed self-import
 import { Search } from 'lucide-react';import * as React from 'react';
-import { AssetFilterBar } from '@/components/StorefrontEditor/AssetManagement/AssetFilterBar';
-import { AssetType } from '../../../types/storefrontEditor';
+// Removed self-import
+import { AssetType } from '../../../types/StorefrontEditor';
 import { MagnifyingGlassIcon, FunnelIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
 
 interface AssetFilterBarProps {

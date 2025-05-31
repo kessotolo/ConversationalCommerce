@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { ReactNode } from 'react';import * as React from 'react';
 import { MobileNav } from './MobileNav';
 import { Sidebar } from './Sidebar';
 

@@ -3,12 +3,12 @@ import * as React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 // React is automatically imported by Next.js
 import { Settings, AlertTriangle, ArrowLeft, Calendar, Check, Clock, DollarSign, MapPin, MessageSquare, Package, Phone, Printer, RefreshCw, Send, Truck, User, X } from 'lucide-react';
-import { Order } from '@/types/order';
+// Removed circular import;
 import { useParams, useRouter } from 'next/navigation';
 import { ClipboardList } from 'lucide-react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
+// Removed self-import
+// Removed self-import
 import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';
 
 // Define types

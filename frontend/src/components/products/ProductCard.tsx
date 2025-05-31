@@ -1,6 +1,6 @@
 import * as React from 'react';
 'use client';
-import { Product } from '@/types/product';
+// Removed circular import;
 
 import Link from 'next/link';
 import { Edit, Trash2, Copy, MessageSquare, ChevronRight, X } from 'lucide-react';

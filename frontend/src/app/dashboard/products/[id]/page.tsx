@@ -1,9 +1,10 @@
-import React from 'react';import React from 'react';import * as React from 'react';
+import React from 'react';import React from 'react';import React from 'react';import { ChangeEvent } from 'react';
+import React from 'react';import * as React from 'react';
 'use client';
-import { Product } from '@/types/product';
+// Removed circular import;
 import { ArrowLeft, Camera, Save, Trash2, Upload } from 'lucide-react';
 import Image from 'next/image';
-import { File } from '@/types/file';
+// Removed circular import;
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 

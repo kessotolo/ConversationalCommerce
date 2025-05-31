@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { FC, ReactNode } from 'react';import * as React from 'react';
 import { MainLayoutProps } from '@/components/layout/MainLayout';import { MenuIcon } from '@heroicons/react/24/outline';
 import { Box, AppBar, Toolbar, Typography, IconButton, Drawer, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
 import { Menu as MenuIcon, Dashboard, ShoppingCart, People, Settings } from '@mui/icons-material';

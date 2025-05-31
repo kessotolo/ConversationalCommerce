@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Product } from '@/types/product';
+// Removed circular import;
 import Image from 'next/image';
 import { Edit, Trash2 } from 'lucide-react';
 

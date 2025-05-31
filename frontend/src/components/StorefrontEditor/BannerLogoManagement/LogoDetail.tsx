@@ -1,12 +1,13 @@
+import React from 'react';import React from 'react';import { ChangeEvent, FC, FormEvent } from 'react';
 import React from 'react';
-import { BannerLogoManagement } from '@/components/StorefrontEditor/BannerLogoManagement/BannerLogoManagement';
-import { LogoDetail } from '@/components/StorefrontEditor/BannerLogoManagement/LogoDetail';import * as React from 'react';
+// Removed self-import
+// Removed self-importimport * as React from 'react';
 import { Select } from '@mui/material';
 import { Settings } from 'lucide-react';import { LogoDetailProps } from '@/components/StorefrontEditor/BannerLogoManagement/LogoDetail';import { CheckIcon, ExclamationTriangleIcon, PencilIcon, PhotoIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { Check, Save } from 'lucide-react';
 import { Image } from 'next/image';
-import { Logo, UUID, LogoStatus, LogoType, Asset } from '../../../types/storefrontEditor';
-import { updateLogo, getLogo, getAssets } from '../../../lib/api/storefrontEditor';
+import { Logo, UUID, LogoStatus, LogoType, Asset } from '../../../types/StorefrontEditor';
+import { updateLogo, getLogo, getAssets } from '../../../lib/api/StorefrontEditor';
 import { 
   CheckIcon, 
   TrashIcon, 

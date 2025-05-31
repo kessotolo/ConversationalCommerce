@@ -1,7 +1,6 @@
-import * as React from 'react';
-import { DraftManagement } from '@/components/StorefrontEditor/DraftManagement/DraftManagement';
-import { DraftList } from '@/components/StorefrontEditor/DraftManagement/DraftList';import { DraftListProps } from '@/components/StorefrontEditor/DraftManagement/DraftList';import React from 'react';
-import { Draft, UUID, DraftStatus } from '../../../types/storefrontEditor';
+// Removed self-import// Removed self-import
+import { FC } from 'react';import * as React from 'react';
+import { Draft, UUID, DraftStatus } from '../../../types/StorefrontEditor';
 
 interface DraftListProps {
   drafts: Draft[];

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Order } from '@/types/order';
+// Removed circular import;
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { Badge } from '../ui/Badge';

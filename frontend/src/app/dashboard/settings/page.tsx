@@ -1,13 +1,14 @@
-import React from 'react';import React from 'react';import * as React from 'react';
+import React from 'react';import React from 'react';import React from 'react';import { ChangeEvent } from 'react';
+import React from 'react';import * as React from 'react';
 'use client';
 import { Phone } from 'lucide-react';
-import { Notification } from '@/types/notification';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+// Removed circular import;
+// Removed self-import
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bell, CreditCard, Globe, MessageSquare, Save, Settings, Smartphone, Store, Trash2, Upload, User } from 'lucide-react';
-import { Order } from '@/types/order';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
+// Removed circular import;
+// Removed self-import
+// Removed self-import
 import Image from 'next/image';
 
 // Mock store settings

@@ -1,3 +1,5 @@
+import React from 'react';import { MouseEvent, ReactNode } from 'react';
+import React from 'react';import React, { HTMLAttributes } from 'react';
 import React from 'react';
 import { Select } from '@mui/material';import * as React from 'react';
 import { cn } from "@/lib/utils";
@@ -18,15 +20,9 @@ export function Select({
   children,
   ...props
 }: SelectProps) {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [selectedValue, setSelectedValue] = React.useState(value || defaultValue || "");
+  // State to track dropdown open/close status
+  const [_isOpen, setIsOpen] = React.useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    if (value !== undefined) {
-      setSelectedValue(value);
-    }
-  }, [value]);
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -35,9 +31,11 @@ export function Select({
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    // Using proper type casting for the event handler
+    const typedHandler = handleClickOutside as EventListener;
+    document.addEventListener("mousedown", typedHandler);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("mousedown", typedHandler);
     };
   }, []);
 

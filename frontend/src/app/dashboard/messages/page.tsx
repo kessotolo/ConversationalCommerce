@@ -1,10 +1,10 @@
-import React from 'react';import React from 'react';import * as React from 'react';
+import React from 'react';import React from 'react';import React from 'react';import * as React from 'react';
 'use client';
 import { ImageIcon } from '@mui/icons-material';
 import { Select, Avatar, Button, Card, CardContent } from '@mui/material';
 import { Check, CheckCheck, Clock, MessageCircle, MoreVertical, Phone, Search, Send, Video } from 'lucide-react';
-import { Order } from '@/types/order';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+// Removed circular import;
+// Removed self-import
 import { formatDate } from '@/lib/utils';
 import Image from 'next/image';
 

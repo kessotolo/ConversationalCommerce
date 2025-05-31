@@ -1,7 +1,9 @@
-import { VersionHistory } from '@/components/StorefrontEditor/VersionHistory/VersionHistory';import * as React from 'react';
-import { List, Select } from '@mui/material';import { VersionHistoryProps } from '@/components/StorefrontEditor/VersionHistory/VersionHistory';import React, { useState, useEffect } from 'react';
-import { getVersions, restoreVersion } from '../../../lib/api/storefrontEditor';
-import { Version, UUID } from '../../../types/storefrontEditor';
+// Removed self-import
+import { FC } from 'react';
+import { List, Select } from '@mui/material';import * as React from 'react';
+import { useState, useEffect } from 'react';
+import { getVersions, restoreVersion } from '../../../lib/api/StorefrontEditor';
+import { Version, UUID } from '../../../types/StorefrontEditor';
 import VersionList from './VersionList';
 import VersionDetail from './VersionDetail';
 import VersionCompare from './VersionCompare';
@@ -251,7 +253,6 @@ const VersionHistory: React.FC<VersionHistoryProps> = ({ tenantId }) => {
           ) : selectedVersion ? (
             <VersionDetail
               version={selectedVersion}
-              tenantId={tenantId}
               onRestore={handleRestoreVersion}
             />
           ) : (

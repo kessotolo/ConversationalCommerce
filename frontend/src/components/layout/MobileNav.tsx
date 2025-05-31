@@ -1,5 +1,6 @@
-import * as React from 'react';
 "use client";
+
+import * as React from 'react';
 import { Icon } from '@/components/icons';
 import { LogOut, MessageCircle, Package, ShoppingBag, Store, User } from 'lucide-react';
 

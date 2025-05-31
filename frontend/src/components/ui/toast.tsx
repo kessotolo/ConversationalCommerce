@@ -1,4 +1,6 @@
-import React from 'react';import * as React from 'react';
+import React from 'react';import React, { HTMLAttributes } from 'react';
+// Removed self-import
+// Removed self-importimport * as React from 'react';
 import { cva, type VariantProps } from "class-variance-authority";
 import { X } from "lucide-react";
 

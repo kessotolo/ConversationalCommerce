@@ -1,4 +1,8 @@
-import { Violation, ViolationStats, ViolationTrend } from '@/components/monitoring/ViolationDashboard';export interface Violation {
+// Violation type definitions
+// Import the dashboard component for types but don't name it to avoid conflicts
+import { Violation, ViolationStats, ViolationTrend } from '@/components/monitoring/ViolationDashboard';
+import '@/components/monitoring/ViolationDashboard';
+export interface Violation {
   id: string;
   type: string;
   severity: 'low' | 'medium' | 'high' | 'critical';

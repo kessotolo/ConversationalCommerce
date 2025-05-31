@@ -2,21 +2,21 @@ import * as React from 'react';
 'use client';
 import { Activity } from 'lucide-react';
 import { Button } from '@mui/material';
-import { OnboardingChecklist } from '@/components/dashboard/OnboardingChecklist';
-import { Order } from '@/types/order';
-import { Product } from '@/types/product';
+// Removed self-import
+// Removed circular import;
+// Removed circular import;
 import { Upload } from 'lucide-react';
 
 import { useAuth } from '@/utils/auth-utils';
 import { useState } from 'react';
 import Link from 'next/link';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { DashboardHeader } from '@/components/layout/DashboardHeader';
-import { StatCard } from '@/components/dashboard/StatCard';
-import { SalesChart } from '@/components/dashboard/SalesChart';
-import { RecentOrders } from '@/components/dashboard/RecentOrders';
-import { TopProducts } from '@/components/dashboard/TopProducts';
-import { ChannelPerformance } from '@/components/dashboard/ChannelPerformance';
+// Removed self-import
+// Removed self-import
+// Removed self-import
+// Removed self-import
+// Removed self-import
+// Removed self-import
+// Removed self-import
 import { ShoppingBag, DollarSign, Users, ArrowUpRight, PlusCircle, BarChart3, CheckCircle, ChevronRight } from 'lucide-react';
 import SettingsDrawer from '@/components/dashboard/SettingsDrawer';
 

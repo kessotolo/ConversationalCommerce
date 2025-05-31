@@ -1,4 +1,3 @@
-import * as React from 'react';
 'use client';
 
 import { useAuth } from '@clerk/nextjs';

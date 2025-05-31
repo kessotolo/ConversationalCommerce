@@ -1,6 +1,6 @@
-import { AssetManagement } from '@/components/StorefrontEditor/AssetManagement/AssetManagement';import * as React from 'react';
-import { AssetGrid } from '@/components/StorefrontEditor/AssetManagement/AssetGrid';import { AssetGridProps } from '@/components/StorefrontEditor/AssetManagement/AssetGrid';import { Upload } from 'lucide-react';
-import { Asset, UUID, AssetType } from '../../../types/storefrontEditor';
+import { FC } from 'react';// Removed self-importimport * as React from 'react';
+// Removed self-importimport { Upload } from 'lucide-react';
+import { Asset, UUID, AssetType } from '../../../types/StorefrontEditor';
 import { DocumentIcon, PhotoIcon, FilmIcon, MusicalNoteIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 
 interface AssetGridProps {

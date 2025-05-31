@@ -1,5 +1,6 @@
+import React from 'react';import React from 'react';import { ChangeEvent } from 'react';
 import React from 'react';
-import { File } from '@/types/File';import * as React from 'react';
+// Removed circular import;import * as React from 'react';
 
 interface ImageUploaderProps {
     onImageSelect: (file: File) => void;

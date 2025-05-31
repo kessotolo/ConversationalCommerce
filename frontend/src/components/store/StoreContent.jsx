@@ -18,8 +18,8 @@
 
 'use client';
 import { Component, Error } from 'react';
-import { React } from 'react';
-import { Product } from '@/types/product';
+
+// Removed circular import;
 
 import { useState, useEffect } from 'react';
 import { productService } from '@/lib/api';

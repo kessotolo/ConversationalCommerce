@@ -1,13 +1,14 @@
-import * as React from 'react';
-import { List } from '@mui/material';import { StorefrontEditorProps } from '@/components/StorefrontEditor/StorefrontEditor';import React, { useState } from 'react';
+import { StorefrontEditorProps } from '@/components/StorefrontEditor/StorefrontEditor';
+import { FC } from 'react';
+import { List } from '@mui/material';import * as React from 'react';
+import { useState } from 'react';
 import { Tab } from '@headlessui/react';
 import DraftManagement from './DraftManagement/DraftManagement';
 import VersionHistory from './VersionHistory/VersionHistory';
 import Permissions from './Permissions/Permissions';
 import AssetManagement from './AssetManagement/AssetManagement';
 import BannerLogoManagement from './BannerLogoManagement/BannerLogoManagement';
-import LayoutEditor from './LayoutEditor/LayoutEditor';
-import { UUID } from '../../types/storefrontEditor';
+import { UUID } from '../../types/StorefrontEditor';
 
 interface StorefrontEditorProps {
   tenantId: UUID;
@@ -23,7 +24,6 @@ const StorefrontEditor: React.FC<StorefrontEditorProps> = ({ tenantId }) => {
     { name: 'Permissions', component: <Permissions tenantId={tenantId} /> },
     { name: 'Assets', component: <AssetManagement tenantId={tenantId} /> },
     { name: 'Banners & Logos', component: <BannerLogoManagement tenantId={tenantId} /> },
-    { name: 'Layout Editor', component: <LayoutEditor tenantId={tenantId} /> },
   ];
 
   return (

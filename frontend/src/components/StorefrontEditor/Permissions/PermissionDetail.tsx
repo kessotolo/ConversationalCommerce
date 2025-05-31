@@ -1,19 +1,19 @@
-import { PermissionDetailProps } from '@/components/StorefrontEditor/Permissions/PermissionDetail';
-import { Record } from 'react';
-import { CheckIcon, ExclamationTriangleIcon, PencilIcon, ShieldCheckIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';import * as React from 'react';
-import { Component, Error } from 'react';import { Permissions } from '@/components/StorefrontEditor/Permissions/Permissions';
-import { PermissionDetail } from '@/components/StorefrontEditor/Permissions/PermissionDetail';
-import { Save, User } from 'lucide-react';
-import { UserPermission, UUID, StorefrontRole, StorefrontSectionType } from '../../../types/storefrontEditor';
-import { assignRole, setSectionPermission, removePermission } from '../../../lib/api/storefrontEditor';
+// Removed self-import
+import { FC, Record } from 'react';
+import { CheckIcon, ExclamationTriangleIcon, PencilIcon, ShieldCheckIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
+// Removed self-importimport * as React from 'react';
+import { useState } from 'react';
 import { 
   ShieldCheckIcon, 
   TrashIcon, 
   CheckIcon, 
-  ExclamationTriangleIcon,
-  PencilIcon,
+  ExclamationTriangleIcon, 
+  PencilIcon, 
   XMarkIcon
 } from '@heroicons/react/24/outline';
+import { Save, User } from 'lucide-react';
+import { UserPermission, UUID, StorefrontRole, StorefrontSectionType } from '../../../types/StorefrontEditor';
+import { assignRole, setSectionPermission, removePermission } from '../../../lib/api/StorefrontEditor';
 
 interface PermissionDetailProps {
   user: UserPermission;

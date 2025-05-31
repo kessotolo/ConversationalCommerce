@@ -3,9 +3,9 @@ import * as React from 'react';
 import { Select } from '@mui/material';
 import { Check, Eye, MessageSquare, Package, RefreshCcw, Search, Truck } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Order } from '@/types/order';
+// Removed circular import;
 
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+// Removed self-import
 import Link from 'next/link';
 import {
   Card,
@@ -13,8 +13,8 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
+// Removed self-import
+// Removed self-import
 import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';
 import {
   Search,

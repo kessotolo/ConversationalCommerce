@@ -1,4 +1,4 @@
-import { OptimizedImageProps } from '@/components/OptimizedImage';import * as React from 'react';
+import { FC } from 'react';import { OptimizedImageProps } from '@/components/OptimizedImage';import * as React from 'react';
 import { OptimizedImage } from '@/components/OptimizedImage';
 import Image from 'next/image';
 

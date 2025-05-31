@@ -1,8 +1,8 @@
-import { BannerLogoManagement } from '@/components/StorefrontEditor/BannerLogoManagement/BannerLogoManagement';import * as React from 'react';
-import { LogoList } from '@/components/StorefrontEditor/BannerLogoManagement/LogoList';
+import { FC, FormEvent } from 'react';// Removed self-importimport * as React from 'react';
+// Removed self-import
 import { List } from '@mui/material';import { LogoListProps } from '@/components/StorefrontEditor/BannerLogoManagement/LogoList';import { FunnelIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { Search } from 'lucide-react';
-import { Logo, UUID, LogoStatus, LogoType } from '../../../types/storefrontEditor';
+import { Logo, UUID, LogoStatus, LogoType } from '../../../types/StorefrontEditor';
 import { 
   MagnifyingGlassIcon, 
   FunnelIcon 

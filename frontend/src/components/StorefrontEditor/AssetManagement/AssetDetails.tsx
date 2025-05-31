@@ -1,9 +1,11 @@
-import { AssetDetails, AssetDetailsProps } from '@/components/StorefrontEditor/AssetManagement/AssetDetails';
+import React from 'react';import React from 'react';import { ChangeEvent, FC, FormEvent } from 'react';
+import React from 'react';
+// Removed self-import// Removed self-import
 import React from 'react';import * as React from 'react';
 import { CheckCircleIcon } from '@heroicons/react/24/outline';import { ArrowTopRightOnSquareIcon, BoltIcon, DocumentIcon, DocumentTextIcon, FilmIcon, MusicalNoteIcon, PencilIcon, PhotoIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Check, Save } from 'lucide-react';
-import { Asset, UUID, AssetType } from '../../../types/storefrontEditor';
-import { updateAsset, deleteAsset, optimizeAsset } from '../../../lib/api/storefrontEditor';
+import { Asset, UUID, AssetType } from '../../../types/StorefrontEditor';
+import { updateAsset, deleteAsset, optimizeAsset } from '../../../lib/api/StorefrontEditor';
 import { 
   XMarkIcon, 
   PencilIcon, 

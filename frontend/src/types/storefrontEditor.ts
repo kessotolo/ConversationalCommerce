@@ -1,13 +1,25 @@
-import { BannerLogoManagement } from '@/components/StorefrontEditor/BannerLogoManagement/BannerLogoManagement';
-import { Record } from 'react';import * as React from 'react';
+// Type definitions for the StorefrontEditor components
 // Using UUID type for consistency with backend
-import { DraftManagement } from '@/components/StorefrontEditor/DraftManagement/DraftManagement';
-import { VersionHistory } from '@/components/StorefrontEditor/VersionHistory/VersionHistory';
-import { Component } from 'react';
-import { DraftList } from '@/components/StorefrontEditor/DraftManagement/DraftList';
-import { VersionList } from '@/components/StorefrontEditor/VersionHistory/VersionList';
-import { BannerList } from '@/components/StorefrontEditor/BannerLogoManagement/BannerList';
-import { LogoList } from '@/components/StorefrontEditor/BannerLogoManagement/LogoList';
+// Import removed to avoid circular dependencies;
+// Import removed to avoid circular dependencies;
+// Import removed to avoid circular dependencies;
+// Removed invalid Record import
+// Import removed to avoid circular dependencies;
+// Import removed to avoid circular dependencies;
+// Import removed to avoid circular dependencies;
+// Import removed to avoid circular dependencies;
+
+// Import component types directly but don't use their names to avoid conflicts
+// with the local type definitions below
+import '@/components/StorefrontEditor/DraftManagement/DraftManagement';
+import '@/components/StorefrontEditor/VersionHistory/VersionHistory';
+import '@/components/StorefrontEditor/BannerLogoManagement/BannerLogoManagement';
+// Removed component imports that conflict with local types
+
+// Define Record type since we removed the React import
+type Record<K extends string | number | symbol, T> = {
+  [P in K]: T;
+};
 export type UUID = string; // UUID represented as string but validated as UUID on backend
 
 // Draft/Publish Types

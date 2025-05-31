@@ -1,4 +1,6 @@
-import * as React from 'react';
+// Removed self-import
+import { NetworkStatusContext } from '@/contexts/NetworkStatusContext';
+import { FC } from 'react';import * as React from 'react';
 import { useNetworkStatus } from '@/contexts/NetworkStatusContext';
 import { Wifi, WifiOff, AlertTriangle } from 'lucide-react';
 

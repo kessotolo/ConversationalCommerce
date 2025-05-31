@@ -1,11 +1,11 @@
-import { ShareButtonsProps } from '@/components/products/ShareButtons';
-import { Record } from 'react';import * as React from 'react';
+import { FC } from 'react';import { ShareButtonsProps } from '@/components/products/ShareButtons';
+// Removed invalid Record importimport * as React from 'react';
 import { Copy, Share2 } from 'lucide-react';
 import { ButtonGroup, Snackbar } from '@mui/material';
 import { Facebook, QrCode, TikTokIcon, Twitter } from 'lucide-react';
 import { Alert, Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Grid, IconButton, Typography } from '@mui/material';import { Camera, Check, Download, MessageCircle, Send } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Product } from '@/types/product';
+// Removed circular import;
 import {
   MessageCircle,
   Facebook,

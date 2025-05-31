@@ -1,6 +1,4 @@
-import * as React from 'react';
-import { AuthContext, AuthContextType, AuthUser } from '@/contexts/AuthContext';
-import { TenantContext } from '@/contexts/TenantContext';import { React } from 'react';import { Check, Store, User } from 'lucide-react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useTenant } from './TenantContext';
 
 // Interface for auth with UUID tenant connection
@@ -75,7 +73,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [tenant]);
 
   // Sign in function
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, _password: string) => {
     try {
       setIsLoading(true);
       setError(null);

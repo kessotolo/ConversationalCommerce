@@ -1,7 +1,10 @@
-import { DraftManagement } from '@/components/StorefrontEditor/DraftManagement/DraftManagement';import * as React from 'react';
-import { List, Select } from '@mui/material';import { DraftManagementProps } from '@/components/StorefrontEditor/DraftManagement/DraftManagement';import { Search } from 'lucide-react';
-import { getDrafts, publishDraft, deleteDraft } from '../../../lib/api/storefrontEditor';
-import { Draft, UUID, DraftStatus } from '../../../types/storefrontEditor';
+// Removed self-import
+import { FC } from 'react';
+import { List, Select } from '@mui/material';
+import { Search } from 'lucide-react';import * as React from 'react';
+import { useState, useEffect } from 'react';
+import { getDrafts, publishDraft, deleteDraft } from '../../../lib/api/StorefrontEditor';
+import { Draft, UUID, DraftStatus } from '../../../types/StorefrontEditor';
 import DraftList from './DraftList';
 import DraftDetail from './DraftDetail';
 import CreateDraftModal from './CreateDraftModal';

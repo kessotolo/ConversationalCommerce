@@ -1,8 +1,10 @@
-import React from 'react';
-import { Permissions } from '@/components/StorefrontEditor/Permissions/Permissions';import * as React from 'react';
-import { AddUserPermission } from '@/components/StorefrontEditor/Permissions/AddUserPermission';import { AddUserPermissionProps } from '@/components/StorefrontEditor/Permissions/AddUserPermission';import { User } from 'lucide-react';
-import { assignRole } from '../../../lib/api/storefrontEditor';
-import { UUID, StorefrontRole } from '../../../types/storefrontEditor';
+import React from 'react';// Removed self-import
+import { ChangeEvent, FC, FormEvent } from 'react';
+import React from 'react';import React, { useState, ChangeEvent, FC, FormEvent } from 'react';
+import { User } from 'lucide-react';
+import Permissions from '@/components/StorefrontEditor/Permissions/Permissions';
+import { assignRole } from '../../../lib/api/StorefrontEditor';
+import { UUID, StorefrontRole } from '../../../types/StorefrontEditor';
 import { XMarkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 interface AddUserPermissionProps {

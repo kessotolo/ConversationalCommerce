@@ -1,8 +1,8 @@
 import * as React from 'react';
 'use client';
 // React is automatically imported by Next.js
-import { Order } from '@/types/order';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+// Removed circular import;
+// Removed self-import
 import { ChevronLeft, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';

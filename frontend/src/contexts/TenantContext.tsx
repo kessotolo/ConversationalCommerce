@@ -1,5 +1,4 @@
-import * as React from 'react';
-import { TenantContext, TenantContextType, TenantProviderProps } from '@/contexts/TenantContext';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface Tenant {
   id: string; // UUID format from backend

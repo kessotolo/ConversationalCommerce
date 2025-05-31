@@ -1,7 +1,7 @@
-import { BannerLogoManagement } from '@/components/StorefrontEditor/BannerLogoManagement/BannerLogoManagement';import * as React from 'react';
+import { FC } from 'react';// Removed self-importimport * as React from 'react';
 import { List } from '@mui/material';import { BannerLogoManagementProps } from '@/components/StorefrontEditor/BannerLogoManagement/BannerLogoManagement';import React, { useState } from 'react';
 import { Tab } from '@headlessui/react';
-import { UUID } from '../../../types/storefrontEditor';
+import { UUID } from '../../../types/StorefrontEditor';
 import BannerManagement from './BannerManagement';
 import LogoManagement from './LogoManagement';
 

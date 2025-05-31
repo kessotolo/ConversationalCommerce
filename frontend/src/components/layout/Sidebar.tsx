@@ -1,5 +1,6 @@
-import * as React from 'react';
 "use client";
+
+import * as React from 'react';
 import { Divider } from '@mui/material';
 import { Icon } from '@/components/icons';
 import { Settings } from 'lucide-react';

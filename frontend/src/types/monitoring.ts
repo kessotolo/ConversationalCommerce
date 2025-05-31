@@ -1,5 +1,4 @@
-import * as React from 'react';
-import { Activity } from 'lucide-react';export enum RuleSeverity {
+import Activity from '@/components/monitoring/ActivityDashboard';export enum RuleSeverity {
     LOW = "low",
     MEDIUM = "medium",
     HIGH = "high",

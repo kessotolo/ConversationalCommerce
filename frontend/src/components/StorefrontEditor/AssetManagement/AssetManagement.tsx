@@ -1,7 +1,9 @@
-import { AssetManagement, AssetManagementProps } from '@/components/StorefrontEditor/AssetManagement/AssetManagement';
+// Removed self-import
+import { FC } from 'react';
 import { Upload } from 'lucide-react';import * as React from 'react';
-import { getAssets } from '../../../lib/api/storefrontEditor';
-import { Asset, UUID, AssetType } from '../../../types/storefrontEditor';
+import { useState, useEffect } from 'react';
+import { getAssets } from '../../../lib/api/StorefrontEditor';
+import { Asset, UUID, AssetType } from '../../../types/StorefrontEditor';
 import AssetGrid from './AssetGrid';
 import AssetUploader from './AssetUploader';
 import AssetFilterBar from './AssetFilterBar';

@@ -1,11 +1,14 @@
-import * as React from 'react';
+import { NetworkStatusContext } from '@/contexts/NetworkStatusContext';
+import { ThemeContext } from '@/contexts/ThemeContext';
+// Removed self-import
+import { ReactNode } from 'react';import * as React from 'react';
 'use client';
 
 import { ClerkProvider } from '@clerk/nextjs';
 import { AuthProvider } from '@/utils/AuthUtils';
 import { NetworkStatusProvider } from '@/contexts/NetworkStatusContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
-import { ToastProvider } from '@/components/ui/ToastProvider';
+// Removed self-import
 import NetworkStatusIndicator from '@/components/ui/NetworkStatusIndicator';
 
 // This wrapper provides core services throughout the application including:

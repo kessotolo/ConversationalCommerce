@@ -1,4 +1,4 @@
-import { ThemeContext } from '@/contexts/ThemeContext';
+import { FC } from 'react';import { ThemeContext } from '@/contexts/ThemeContext';
 import { Error } from 'react';import { React } from 'react';
 import { Settings } from 'lucide-react';import { Order } from '@/types/order';
 import React, { useState } from 'react';

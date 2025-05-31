@@ -1,6 +1,4 @@
-import * as React from 'react';
-import { AuthContext, AuthContextType } from '@/contexts/AuthContext';
-import { Component, P } from 'react';import { React } from 'react';import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useAuth as useClerkAuth, useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 
@@ -25,7 +23,7 @@ const AuthContext = createContext<AuthContextType>({
 // Provider component
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { isLoaded: isAuthLoaded, userId } = useClerkAuth();
-  const { user, isLoaded: isUserLoaded } = useUser();
+  const { isLoaded: isUserLoaded } = useUser();
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 

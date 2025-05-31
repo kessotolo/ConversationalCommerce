@@ -1,4 +1,6 @@
-import * as React from 'react';
+import { FC } from 'react';
+import { DataTableSkeleton, FormSkeleton, OrderCardSkeleton, ProductCardSkeleton, Skeleton, SkeletonProps } from '@/components/ui/SkeletonLoader';
+import { CSSProperties, FC } from 'react';import * as React from 'react';
 
 export interface SkeletonProps {
   className?: string;

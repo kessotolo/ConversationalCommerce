@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Product } from '@/types/product';
+// Removed circular import;
 import Image from 'next/image';
 import { formatCurrency } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';

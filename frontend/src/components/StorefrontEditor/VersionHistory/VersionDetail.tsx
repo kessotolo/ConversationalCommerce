@@ -1,28 +1,27 @@
-import { VersionDetailProps } from '@/components/StorefrontEditor/VersionHistory/VersionDetail';
-import { ArrowUturnLeftIcon, CheckIcon, ClipboardDocumentIcon, ClockIcon, ExclamationTriangleIcon, TagIcon, UserIcon } from '@heroicons/react/24/outline';import * as React from 'react';
-import { Copy } from 'lucide-react';import { VersionHistory } from '@/components/StorefrontEditor/VersionHistory/VersionHistory';
-import { VersionDetail } from '@/components/StorefrontEditor/VersionHistory/VersionDetail';
-import { User } from 'lucide-react';
-import { Version, UUID } from '../../../types/storefrontEditor';
+// Removed self-import// Removed self-import
+import { ArrowUturnLeftIcon, CheckIcon, ClipboardDocumentIcon, ClockIcon, ExclamationTriangleIcon, TagIcon, UserIcon } from '@heroicons/react/24/outline';
+import { FC } from 'react';
+import { User } from 'lucide-react';import * as React from 'react';
+import { useState } from 'react';
+import { Version, UUID } from '../../../types/StorefrontEditor';
 import { 
-  ArrowUturnLeftIcon, 
-  ClipboardDocumentIcon, 
-  ClockIcon,
-  TagIcon,
-  UserIcon,
+  ArrowUturnLeftIcon,
   CheckIcon,
-  ExclamationTriangleIcon
+  ClipboardDocumentIcon,
+  ClockIcon,
+  ExclamationTriangleIcon,
+  TagIcon,
+  UserIcon
 } from '@heroicons/react/24/outline';
 
 interface VersionDetailProps {
   version: Version;
-  tenantId: UUID;
+  onBack?: () => void;
   onRestore: (versionId: UUID) => Promise<boolean>;
 }
 
 const VersionDetail: React.FC<VersionDetailProps> = ({ 
   version, 
-  tenantId, 
   onRestore 
 }) => {
   const [isRestoring, setIsRestoring] = useState(false);

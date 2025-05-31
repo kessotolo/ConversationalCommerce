@@ -1,11 +1,13 @@
-import React from 'react';import React from 'react';import * as React from 'react';
 "use client";
-import { Product } from '@/types/product';
-import { AddProductModal } from '@/components/dashboard/AddProductModal';
+
+import React from 'react';import React from 'react';import React from 'react';import { FormEvent } from 'react';
+import React from 'react';import * as React from 'react';
+// Removed circular import;
+// Removed self-import
 import { Image } from 'next/image';
 import { Save } from 'lucide-react';
 import { Plus, Search, Edit, Trash2, BadgeCheck, BadgeX } from 'lucide-react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+// Removed self-import
 
 // Product type
 interface Product {

@@ -1,9 +1,19 @@
-import { VersionHistory } from '@/components/StorefrontEditor/VersionHistory/VersionHistory';import * as React from 'react';
-import { VersionCompare } from '@/components/StorefrontEditor/VersionHistory/VersionCompare';
-import { React, Record } from 'react';import { VersionCompareProps } from '@/components/StorefrontEditor/VersionHistory/VersionCompare';import React, { useState, useEffect } from 'react';
-import { Version, UUID, VersionDiff } from '../../../types/storefrontEditor';
-import { compareVersions } from '../../../lib/api/storefrontEditor';
+// Removed self-import// Removed self-import
+import { FC, JSX, Record } from 'react';import * as React from 'react';
+import { useState, useEffect } from 'react';
+import { Version, UUID, VersionDiff } from '../../../types/StorefrontEditor';
+import { compareVersions } from '../../../lib/api/StorefrontEditor';
 import { ArrowsRightLeftIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+
+interface ChangeItem {
+  path: string;
+  change: {
+    type: string;
+    value?: string;
+    oldValue?: string;
+    newValue?: string;
+  };
+}
 
 interface VersionCompareProps {
   version1: Version;
@@ -157,7 +167,7 @@ const VersionCompare: React.FC<VersionCompareProps> = ({
                   {section.replace('_', ' ')}
                 </div>
                 <div className="p-3 space-y-3">
-                  {changes.map((item, index) => {
+                  {(changes || []).map((item: ChangeItem, index: number) => {
                     const { path, change } = item;
                     
                     // Determine change type

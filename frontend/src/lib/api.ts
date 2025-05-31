@@ -1,12 +1,9 @@
-import * as React from 'react';
 // Try dynamic import as a workaround
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const axios = require('axios').default || require('axios');
 
 // Import standardized configuration optimized for African markets
-import { Product } from '@/types/product';
-import { Order } from '@/types/order';
-import { API_BASE_URL, API_TIMEOUT, RETRY_ATTEMPTS, FEATURES } from '../config';
+import { API_BASE_URL, API_TIMEOUT, RETRY_ATTEMPTS, FEATURES } from '../Config';
 
 // Define response and error types for better type safety
 export interface ApiResponse<T = any> {
@@ -52,15 +49,15 @@ apiClient.interceptors.response.use(null, async (error: any) => {
 // Add offline detection and queueing if enabled
 if (FEATURES.offlineMode && typeof window !== 'undefined') {
     // Simple online status detection
-    let isOnline = navigator.onLine;
-    window.addEventListener('online', () => { isOnline = true; });
-    window.addEventListener('offline', () => { isOnline = false; });
+    // Track network status in a variable that can be used by the interceptors
+    const getNetworkStatus = () => navigator.onLine;
     
     // Request queue for offline mode
     const requestQueue: any[] = [];
     
     // Process queue when back online
     window.addEventListener('online', async () => {
+        console.log(`Network back online. Processing ${requestQueue.length} queued requests...`);
         while (requestQueue.length > 0) {
             const request = requestQueue.shift();
             try {
@@ -70,6 +67,16 @@ if (FEATURES.offlineMode && typeof window !== 'undefined') {
             }
         }
     });
+
+    // Request interceptor to cache/queue requests when offline
+    apiClient.interceptors.request.use((config: any) => {
+        if (!getNetworkStatus() && config.method !== 'get') {
+            console.log('Device is offline, queuing request for later', config.url);
+            requestQueue.push(config);
+            throw new Error('Device is offline, request has been queued');
+        }
+        return config;
+    }, (error: any) => Promise.reject(error));
 }
 
 // Add request interceptor to include auth token

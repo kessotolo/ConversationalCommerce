@@ -162,7 +162,7 @@ export function useApi(options: Partial<ApiClientOptions> = {}) {
         toast({
           title: 'You are offline',
           description: 'Using cached data. Some information may be outdated.',
-          variant: 'warning',
+          variant: 'default',
         });
       } else if (!isOnline) {
         toast({

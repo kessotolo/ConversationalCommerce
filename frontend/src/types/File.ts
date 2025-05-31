@@ -1,5 +1,7 @@
 // File type definitions
 // Using UUID type for ID fields as per project standardization
+// Removed circular import;
+// Removed circular import;
 
 export interface FileType {
   id: string; // UUID

@@ -1,4 +1,4 @@
-import { StatCard } from '@/components/dashboard/StatCard';import * as React from 'react';
+import { ReactNode } from 'react';// Removed self-importimport * as React from 'react';
 import { cn } from '@/lib/utils';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 

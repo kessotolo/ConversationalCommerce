@@ -81,6 +81,10 @@ const componentImportMapping = {
   'X': 'lucide-react',
   'Trash2': 'lucide-react',
   'Icon': 'lucide-react',
+  'Wifi': 'lucide-react',
+  'WifiOff': 'lucide-react',
+  'Loader': 'lucide-react',
+  'LoaderCircle': 'lucide-react',
   
   // HTML element types
   'HTMLInputElement': 'react',
@@ -95,6 +99,29 @@ const componentImportMapping = {
   'HTMLTableElement': 'react',
   'HTMLUListElement': 'react',
   'HTMLLIElement': 'react',
+  'HTMLSelectElement': 'react',
+  'HTMLTextAreaElement': 'react',
+  'FormEvent': 'react',
+  'ChangeEvent': 'react',
+  'MouseEvent': 'react',
+  'KeyboardEvent': 'react',
+  'FocusEvent': 'react',
+  'ReactNode': 'react',
+  'ReactElement': 'react',
+  'JSX': 'react',
+  'CSSProperties': 'react',
+  'FC': 'react',
+  'useCallback': 'react',
+  'useRef': 'react',
+  'useReducer': 'react',
+  'useMemo': 'react',
+  'useLayoutEffect': 'react',
+  'useImperativeHandle': 'react',
+  'useDebugValue': 'react',
+  'useId': 'react',
+  'useContext': 'react',
+  'useEffect': 'react',
+  'useState': 'react',
   
   // Next.js components
   'Link': 'next/link',
@@ -102,6 +129,40 @@ const componentImportMapping = {
   'useRouter': 'next/router',
   'Head': 'next/head',
   'Script': 'next/script',
+  
+  // Toast and Network components
+  'ToastProvider': '@/components/ui/ToastProvider',
+  'Toast': '@/components/ui/Toast',
+  'useToast': '@/components/ui/UseToast',
+  'ToastType': '@/components/ui/UseToast',
+  'ToastActionElement': '@/components/ui/UseToast',
+  'ToastProps': '@/components/ui/Toast',
+  'NetworkStatusIndicator': '@/components/ui/NetworkStatusIndicator',
+  'NetworkStatusIndicatorProps': '@/components/ui/NetworkStatusIndicator',
+  'useNetworkStatus': '@/contexts/NetworkStatusContext',
+  'NetworkStatusProvider': '@/contexts/NetworkStatusContext',
+  'NetworkStatusContext': '@/contexts/NetworkStatusContext',
+  'NetworkStatusContextType': '@/contexts/NetworkStatusContext',
+  'NetworkStatusProviderProps': '@/contexts/NetworkStatusContext',
+  
+  // Error handling and loading components
+  'ErrorBoundary': '@/components/ErrorBoundary',
+  'ErrorBoundaryProps': '@/components/ErrorBoundary',
+  'ErrorBoundaryState': '@/components/ErrorBoundary',
+  'useErrorBoundary': '@/components/ErrorBoundary',
+  'ErrorFallback': '@/components/ErrorBoundary',
+  'ErrorFallbackProps': '@/components/ErrorBoundary',
+  'Skeleton': '@/components/ui/SkeletonLoader',
+  'SkeletonProps': '@/components/ui/SkeletonLoader',
+  'ProductCardSkeleton': '@/components/ui/SkeletonLoader',
+  'OrderCardSkeleton': '@/components/ui/SkeletonLoader',
+  'DataTableSkeleton': '@/components/ui/SkeletonLoader',
+  'FormSkeleton': '@/components/ui/SkeletonLoader',
+  
+  // API and Utils
+  'ApiClient': '@/utils/apiClient',
+  'useApi': '@/utils/apiClient',
+  'ApiClientOptions': '@/utils/apiClient',
   
   // UI components
   'Card': '@/components/ui/card',
@@ -188,10 +249,12 @@ const componentImportMapping = {
   'ThemeContextType': '@/contexts/ThemeContext',
   'ThemeContext': '@/contexts/ThemeContext',
   
-  // Toast components
+  // Toast components and optimization components
   'ToastContextType': '@/components/ui/ToastProvider',
   'ToastContext': '@/components/ui/ToastProvider',
   'ToasterToast': '@/components/ui/UseToast',
+  
+  // Image optimization
   'OptimizedImage': '@/components/OptimizedImage',
   'OptimizedImageProps': '@/components/OptimizedImage',
   

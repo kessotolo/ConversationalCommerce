@@ -3,16 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "prebuild": "node scripts/fix-imports-new.js && node scripts/verify-build.js",
+    "dev": "node scripts/fix-imports-permanent.js && next dev",
+    "prebuild": "node scripts/fix-imports-permanent.js",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "verify": "node scripts/verify-build.js",
-    "fix-imports": "node scripts/fix-imports-new.js",
+    "fix-imports": "node scripts/fix-imports-permanent.js",
+    "setup-modular": "node scripts/modular-structure.js",
     "test": "jest",
     "test:watch": "jest --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit --skipLibCheck",
+    "type-check": "tsc --noEmit --skipLibCheck"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.20.2",

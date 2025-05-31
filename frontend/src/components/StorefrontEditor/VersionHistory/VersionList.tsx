@@ -1,16 +1,10 @@
-import * as React from 'react';
-import { VersionHistory } from '@/components/StorefrontEditor/VersionHistory/VersionHistory';
-import { VersionList } from '@/components/StorefrontEditor/VersionHistory/VersionList';
-import { List } from '@mui/material';import { VersionListProps } from '@/components/StorefrontEditor/VersionHistory/VersionList';import { CalendarIcon, FunnelIcon, MagnifyingGlassIcon, TagIcon, XMarkIcon } from '@heroicons/react/24/outline';
+// Removed self-import// Removed self-import
+import { FC } from 'react';
 import { Check, Search } from 'lucide-react';
-import { Version, UUID } from '../../../types/storefrontEditor';
-import { 
-  FunnelIcon, 
-  MagnifyingGlassIcon, 
-  TagIcon, 
-  CalendarIcon, 
-  XMarkIcon 
-} from '@heroicons/react/24/outline';
+import { List } from '@mui/material';import * as React from 'react';
+import { useState, FormEvent } from 'react';
+import { CalendarIcon, FunnelIcon, MagnifyingGlassIcon, TagIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Version, UUID } from '../../../types/StorefrontEditor';
 
 interface VersionListProps {
   versions: Version[];
@@ -65,7 +59,7 @@ const VersionList: React.FC<VersionListProps> = ({
   }
 
   // Handle search submission
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: FormEvent) => {
     e.preventDefault();
     onSearch(localSearchQuery);
   };
