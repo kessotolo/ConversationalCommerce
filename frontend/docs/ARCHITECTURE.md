@@ -98,6 +98,53 @@ As our codebase now fully adheres to absolute import patterns with the `@/` alia
 
 These consistent practices ensure our modular monolith architecture remains maintainable and scalable as the team and codebase grow.
 
+### TypeScript Type Safety Standards
+
+#### Type Safety Best Practices for All Developers and AI Assistants
+
+The following type safety standards must be followed by all team members and AI assistants when contributing to this codebase:
+
+1. **Strict Type Boundaries**:
+   - Every module boundary must use explicit types, never `any`
+   - Use interfaces for public APIs between modules
+   - Domain models must have complete type definitions
+
+2. **Avoid `any` Type**:
+   - Never introduce new usages of the `any` type
+   - Use `unknown` with type guards for truly dynamic data
+   - Use generics with constraints instead of `any` for flexible APIs
+   - For record types, use `Record<string, unknown>` instead of `{[key: string]: any}`
+
+3. **Type-Safe Patterns**:
+   - Use tagged unions (discriminated unions) for state modeling
+   - Implement branded types for IDs and special string types
+   - Leverage TypeScript's utility types (`Partial<T>`, `Pick<T>`, etc.)
+   - Use template literal types for string patterns
+
+4. **Domain-Driven Types**:
+   - Types should reflect domain models defined in architecture
+   - DTOs should closely match API contracts
+   - Follow the single source of truth principle for type definitions
+
+5. **Progressive Type Strengthening**:
+   - Start with broad types when necessary, then refine
+   - Add JSDoc comments to explain complex type decisions
+   - Document temporary type compromises with clear TODO comments
+
+#### Instructions for AI Assistants
+
+When working with this codebase, AI assistants MUST:
+
+- **Never suggest code that introduces `any` types**
+- Analyze existing types before proposing changes
+- Respect module boundaries in type definitions
+- Suggest proper type definitions for any untyped or loosely typed code
+- Explain type design decisions in comments
+- Recommend type improvements when encountering `any` types
+- Validate that generated code passes TypeScript's strict type checking
+
+These standards ensure consistent type safety across our modular monolith architecture, reducing runtime errors and improving maintainability as the codebase evolves.
+
 ### Prohibited Import Patterns
 
 ```typescript

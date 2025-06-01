@@ -107,14 +107,45 @@ We've successfully completed our systematic refactoring of imports to maintain c
 **✅ All phases complete!** The entire codebase now uses absolute imports with the `@/` alias pattern, improving maintainability and making module dependencies explicit.
 
 #### Import Best Practices
+
 - Always use absolute imports with the `@` alias (`@/modules/core/models/base`)
-- Avoid bridge pattern files that exist only for backwards compatibility
-- Domain types should extend Entity, TenantScoped, or Draftable as appropriate
-- Use PaginatedResult<T> for all paginated list responses
-- Organize domain models within their respective module directories (e.g., `@/modules/product/models/*`)
-- Prefer composition over inheritance for complex types
-- Group imports by type: React/Next.js, third-party libraries, internal modules
-- Respect module boundaries as defined in architecture documentation
+- Never use relative imports for cross-module references (`../module/file`)
+- Import only what you need - avoid namespace imports (`* as X`)
+- Keep imports organized and consistent
+- Consider using `type` imports for type-only dependencies
+
+### TypeScript Type Safety Standards
+
+To maintain code quality and prevent runtime errors, we follow strict type safety standards:
+
+#### Core Type Safety Principles
+
+- **No `any` types**: Avoid using `any` across the codebase
+- **Module boundary types**: Every module boundary must use explicit interface definitions
+- **Type-driven development**: Design types first, then implement functionality
+- **Tagged unions**: Use discriminated unions for state management and API responses
+- **Branded types**: Use branded types for IDs and special string values to prevent type confusion
+
+#### Type Safety Automation
+
+- TypeScript compiler is configured with `strict: true` and `noImplicitAny: true`
+- ESLint enforces the `@typescript-eslint/no-explicit-any` rule
+- PRs are automatically checked for type coverage
+- Type violations block merges to protected branches
+
+#### Guidelines for AI Assistants
+
+AI assistants working with this codebase MUST adhere to these guidelines:
+
+1. Never introduce new `any` types into the codebase
+2. Always provide proper type definitions for functions, variables, and objects
+3. Use `unknown` with type guards rather than `any` for dynamic data
+4. Respect module boundaries and use appropriate domain model types
+5. Favor generics with constraints over loose typing
+6. Document complex type decisions with clear comments
+7. Suggest type improvements when encountering existing `any` usage
+
+Failing to follow these guidelines will result in PR rejections and potential type regressions.
 
 ### Module Structure
 
