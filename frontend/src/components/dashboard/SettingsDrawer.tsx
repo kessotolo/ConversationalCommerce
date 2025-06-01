@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Store, CreditCard, User, Bell, Globe } from 'lucide-react';
+import { X, Store, CreditCard, User, Bell, Globe, Users } from 'lucide-react';
 
 const categories = [
     { key: 'general', label: 'General', icon: Store },

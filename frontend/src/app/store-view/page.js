@@ -7,6 +7,7 @@ import ProductCard from '@/components/storefront/ProductCard';
 import { useCart } from '@/lib/cart';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Store } from 'lucide-react';
 
 // Component that uses searchParams (must be wrapped in Suspense)
 function StoreContent() {

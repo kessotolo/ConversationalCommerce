@@ -6,6 +6,7 @@ import {
   MagnifyingGlassIcon, 
   FunnelIcon 
 } from '@heroicons/react/24/outline';
+import { Search } from 'lucide-react';
 
 interface LogoListProps {
   logos: Logo[];

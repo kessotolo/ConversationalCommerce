@@ -22,6 +22,7 @@ const StoreContent = dynamic(() => import('@/components/store/StoreContent'), {
   ssr: true,
   loading: () => <div className="p-4 text-center">Loading store content...</div>
 });
+import { Store } from 'lucide-react';
 
 export default function StorePage(props) {
   // Extract merchantId from the dynamic route parameters

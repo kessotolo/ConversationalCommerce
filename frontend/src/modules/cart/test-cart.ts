@@ -6,6 +6,7 @@
 // Standard clean imports
 import { CartService, LocalStorageCartService, useCartStore } from './services';
 import { CartItem } from './models';
+import { Store } from 'lucide-react';
 
 /**
  * Test the CartService implementation

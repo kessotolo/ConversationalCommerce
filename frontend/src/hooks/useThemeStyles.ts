@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
+import { Card } from '@/components/ui/Card';
 
 /**
  * A hook to generate component-specific styles based on the current theme

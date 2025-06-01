@@ -11,6 +11,7 @@ import {
   CalendarIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
+import { Check, Save } from 'lucide-react';
 
 interface DraftDetailProps {
   draft: Draft;

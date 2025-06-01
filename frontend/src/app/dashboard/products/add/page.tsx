@@ -16,6 +16,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
+import { ArrowLeft, Save, Camera, Upload, Trash2, Check, MessageSquare, Globe, Store } from 'lucide-react';
+import Image from 'next/image';
 
 interface NewProduct {
   name: string;

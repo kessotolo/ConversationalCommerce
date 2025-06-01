@@ -27,6 +27,7 @@ import {
 } from '@mui/icons-material';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { formatDistanceToNow } from 'date-fns';
+import { Users, User } from 'lucide-react';
 
 interface Activity {
     id: string;

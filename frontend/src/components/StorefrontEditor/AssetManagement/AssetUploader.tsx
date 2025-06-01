@@ -11,6 +11,7 @@ import {
   DocumentTextIcon,
   MusicalNoteIcon
 } from '@heroicons/react/24/outline';
+import { Upload } from 'lucide-react';
 
 interface AssetUploaderProps {
   tenantId: UUID;

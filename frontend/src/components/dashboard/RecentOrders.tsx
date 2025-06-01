@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { ExternalLink, MessageSquare } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 
 interface Order {
   id: string;

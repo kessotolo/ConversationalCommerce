@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { Plus, Search, Edit, Trash2, BadgeCheck, BadgeX } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { Search, Trash2, Save } from 'lucide-react';
+import Image from 'next/image';
 
 // Product type
 interface Product {

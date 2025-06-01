@@ -3,6 +3,7 @@ import type { Asset } from '@/modules/storefront/models/asset';
 import type { UUID } from '@/modules/core/models/base';
 import { AssetType } from '@/modules/storefront/models/asset';
 import { DocumentIcon, PhotoIcon, FilmIcon, MusicalNoteIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+import { Upload } from 'lucide-react';
 
 interface AssetGridProps {
   assets: Asset[];

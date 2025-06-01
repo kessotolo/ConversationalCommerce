@@ -5,6 +5,7 @@ import type { Asset } from '@/modules/storefront/models/asset';
 import { LogoType } from '@/modules/storefront/models/logo';;
 import { Dialog } from '@headlessui/react';
 import { XMarkIcon, ExclamationTriangleIcon, PhotoIcon } from '@heroicons/react/24/outline';
+import Image from 'next/image';
 
 interface CreateLogoModalProps {
   tenantId: UUID;

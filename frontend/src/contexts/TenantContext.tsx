@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { Check } from 'lucide-react';
 
 interface Tenant {
   id: string; // UUID format from backend

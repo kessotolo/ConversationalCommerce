@@ -317,6 +317,8 @@ const CreateBannerModal: React.FC<CreateBannerModalProps> = ({
       </div>
     </div>
   );
+import Link from 'next/link';
+import Image from 'next/image';
 };
 
 export default CreateBannerModal;

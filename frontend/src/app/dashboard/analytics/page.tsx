@@ -31,6 +31,7 @@ import {
 import { Line, Bar, Pie } from 'react-chartjs-2';
 import Link from 'next/link';
 import { StatCard } from '@/components/dashboard/StatCard';
+import { Users, ShoppingBag, Calendar, Download, ArrowUpRight, DollarSign, Store, Search } from 'lucide-react';
 
 // Register ChartJS components
 ChartJS.register(

@@ -3,6 +3,7 @@ import { assignRole } from '../../../lib/api/storefrontEditor';
 import type { UUID } from '@/modules/core/models/base';
 import { StorefrontRole } from '@/modules/storefront/models/permission';;
 import { XMarkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { User } from 'lucide-react';
 
 interface AddUserPermissionProps {
   tenantId: UUID;

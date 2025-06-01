@@ -11,6 +11,7 @@ import {
   PencilIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
+import { User, Save } from 'lucide-react';
 
 interface PermissionDetailProps {
   user: UserPermission;

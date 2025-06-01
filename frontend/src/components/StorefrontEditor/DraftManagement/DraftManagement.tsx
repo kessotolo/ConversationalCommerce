@@ -10,6 +10,7 @@ import DraftList from './DraftList';
 import DraftDetail from './DraftDetail';
 import CreateDraftModal from './CreateDraftModal';
 import { PlusIcon } from '@heroicons/react/24/outline';
+import { Search } from 'lucide-react';
 
 interface DraftManagementProps {
   tenantId: UUID;

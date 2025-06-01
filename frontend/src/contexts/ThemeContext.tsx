@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { Theme } from '@/modules/theme/models/theme';;
 import { useTenant } from './TenantContext';
 import { defaultTheme } from '../utils/defaultTheme';
+import { Check } from 'lucide-react';
 
 interface ThemeContextType {
   theme: Theme;

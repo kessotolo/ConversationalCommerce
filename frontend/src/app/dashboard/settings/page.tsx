@@ -23,6 +23,7 @@ import {
   Trash2
 } from 'lucide-react';
 import Image from 'next/image';
+import { Store, Globe, CreditCard, Bell, MessageSquare, Save, Upload, Trash2, Phone } from 'lucide-react';
 
 // Mock store settings
 const mockStoreSettings = {

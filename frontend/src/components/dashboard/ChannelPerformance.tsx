@@ -2,6 +2,7 @@ import React from 'react';
 import { formatCurrency } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { MessageSquare, Globe, ShoppingBag } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 
 interface ChannelData {
   name: string;

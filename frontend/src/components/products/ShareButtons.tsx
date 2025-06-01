@@ -28,6 +28,8 @@ import {
   Grid,
   Snackbar
 } from '@mui/material';
+import { MessageCircle, Send, Camera, Copy, Check, Download } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/Card';
 
 // Custom TikTok icon
 const TikTokIcon = () => (

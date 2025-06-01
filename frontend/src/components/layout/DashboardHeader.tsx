@@ -1,6 +1,7 @@
 import React from 'react';
 import { Bell } from 'lucide-react';
 import { UserButton } from '@clerk/nextjs';
+import { Bell, Search, User } from 'lucide-react';
 
 interface DashboardHeaderProps {
   title: string;

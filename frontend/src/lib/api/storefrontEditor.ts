@@ -2,6 +2,7 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const axios = require('axios').default || require('axios');
 import { API_BASE_URL, API_TIMEOUT, RETRY_ATTEMPTS, FEATURES } from '../../config';
+import { Store } from 'lucide-react';
 
 // Create optimized axios instance for storefront editor
 // Using separate instance with specific timeout for editor operations

@@ -15,6 +15,8 @@ import {
   UserGroupIcon,
   PhotoIcon
 } from '@heroicons/react/24/outline';
+import { Check, Save } from 'lucide-react';
+import Image from 'next/image';
 
 interface BannerDetailProps {
   banner: Banner;

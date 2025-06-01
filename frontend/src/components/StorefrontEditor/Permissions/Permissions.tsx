@@ -7,6 +7,7 @@ import PermissionList from './PermissionList';
 import PermissionDetail from './PermissionDetail';
 import AddUserPermission from './AddUserPermission';
 import { PlusIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { User } from 'lucide-react';
 
 interface PermissionsProps {
   tenantId: UUID;

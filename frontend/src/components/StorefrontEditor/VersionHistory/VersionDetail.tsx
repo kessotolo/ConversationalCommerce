@@ -10,6 +10,7 @@ import {
   CheckIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
+import { User, Copy } from 'lucide-react';
 
 interface VersionDetailProps {
   version: Version;

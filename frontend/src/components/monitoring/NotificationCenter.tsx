@@ -23,6 +23,7 @@ import {
 } from '@mui/icons-material';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { formatDistanceToNow } from 'date-fns';
+import { CheckCircle } from 'lucide-react';
 
 interface Notification {
     id: string;

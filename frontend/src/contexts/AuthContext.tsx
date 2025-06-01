@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useTenant } from './TenantContext';
+import { Check, User, Store } from 'lucide-react';
 
 // Interface for auth with UUID tenant connection
 interface AuthUser {

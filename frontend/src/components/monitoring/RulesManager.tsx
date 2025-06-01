@@ -25,7 +25,8 @@ import {
     Delete as DeleteIcon,
 } from '@mui/icons-material';
 import type { Rule } from '@/modules/monitoring/models/rule';
-import { RuleSeverity } from '@/modules/monitoring/models/rule';;
+import { RuleSeverity } from '@/modules/monitoring/models/rule';
+import { Save } from 'lucide-react';;
 
 interface RulesManagerProps {
     tenantId: string;

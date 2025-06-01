@@ -20,6 +20,7 @@ import {
     Chip
 } from '@mui/material';
 import axios from 'axios';
+import { User } from 'lucide-react';
 
 interface Violation {
     id: string;

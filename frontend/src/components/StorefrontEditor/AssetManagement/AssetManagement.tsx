@@ -8,6 +8,7 @@ import AssetUploader from './AssetUploader';
 import AssetFilterBar from './AssetFilterBar';
 import AssetDetails from './AssetDetails';
 import { PlusIcon } from '@heroicons/react/24/outline';
+import { Upload } from 'lucide-react';
 
 interface AssetManagementProps {
   tenantId: UUID;

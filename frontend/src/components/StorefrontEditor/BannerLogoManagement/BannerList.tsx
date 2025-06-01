@@ -8,6 +8,7 @@ import {
   FunnelIcon,
   Bars3Icon 
 } from '@heroicons/react/24/outline';
+import { Search } from 'lucide-react';
 
 // Item type for drag and drop
 const BANNER_ITEM = 'banner';

@@ -9,6 +9,7 @@ import CreateBannerModal from './CreateBannerModal';
 import { PlusIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import { Send } from 'lucide-react';
 
 interface BannerManagementProps {
   tenantId: UUID;
