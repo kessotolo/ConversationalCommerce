@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ChevronLeft, ShoppingBag } from 'lucide-react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+// DashboardLayout now provided by layout.tsx
 import { useAuth } from '@/utils/auth-utils';
 
 // Mock orders data (should match main customers page)
@@ -82,7 +82,6 @@ export default function CustomerDetailPage() {
     orders: customerOrders,
   };
   return (
-    <DashboardLayout>
       <div className="max-w-3xl mx-auto px-4 py-8">
         <Link href="/dashboard/customers" className="inline-flex items-center text-[#6C9A8B] mb-6">
           <ChevronLeft className="h-4 w-4 mr-1" /> Back to Customers
@@ -126,6 +125,5 @@ export default function CustomerDetailPage() {
           </table>
         </div>
       </div>
-    </DashboardLayout>
   );
 }

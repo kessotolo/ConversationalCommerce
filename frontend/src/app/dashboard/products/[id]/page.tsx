@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ArrowLeft, Trash2, Camera, Upload } from 'lucide-react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+// DashboardLayout now provided by layout.tsx
 
 interface Product {
   id: string;
@@ -166,7 +166,6 @@ export default function ProductPage() {
   }
 
   return (
-    <DashboardLayout>
       <div className="space-y-6">
         {/* Header with back button */}
         <div className="flex items-center justify-between">
@@ -341,6 +340,5 @@ export default function ProductPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
   );
 }

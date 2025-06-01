@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+// DashboardLayout now provided by layout.tsx
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';
@@ -280,7 +280,6 @@ export default function OrderDetailPage() {
   }
 
   return (
-    <DashboardLayout>
       <div className="p-4 md:p-6 max-w-6xl mx-auto">
         <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center">
           <div>
@@ -638,6 +637,5 @@ export default function OrderDetailPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
   );
 }
