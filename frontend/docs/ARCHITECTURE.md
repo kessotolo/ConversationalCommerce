@@ -43,11 +43,44 @@ The following defines which modules can import from which others:
 ### Preferred Import Patterns
 
 ```typescript
-// DO: Use direct module imports with type imports where appropriate
+// ✅ DO: Use direct module imports with type imports where appropriate
 import type { UUID, Entity } from '@/modules/core/models/base';
 import { Status } from '@/modules/core/models/base';
 import type { Banner } from '@/modules/storefront/models/banner';
+
+// ✅ DO: Use absolute imports for internal API services
+import { getDrafts, publishDraft } from '@/lib/api/storefrontEditor';
+
+// ✅ DO: Use absolute imports for UI components
+import { Button } from '@/components/ui/Button';
+import { Dialog } from '@headlessui/react';
+
+// ❌ DON'T: Use relative imports crossing module boundaries
+// import { UUID } from '../../modules/core/models/base';
+
+// ❌ DON'T: Use bridge pattern files that only re-export from proper modules
+// import { Banner } from '../../../types/storefrontEditor';
 ```
+
+### Import Refactoring Initiative
+
+We are systematically refactoring the codebase to eliminate technical debt related to imports. This work follows a phased approach:
+
+1. **Phase 1 ✅ Complete**: All StorefrontEditor components now use absolute imports with the `@` alias pattern
+2. **Phase 2 ✅ Complete**: Fixed cross-module imports in library files (`/lib/cart.ts`, `/lib/api/storefrontEditor.ts`, `/lib/api.ts`)
+3. **Phase 3 🔄 In Progress**: Standardizing UI component and hook imports across the codebase
+4. **Phase 4**: Fixing context-related imports
+5. **Phase 5**: Addressing storefront component imports
+
+### Best Practices for Avoiding Import-Related Technical Debt
+
+1. **Use Absolute Imports**: Always use the `@` alias to create clear, consistent import paths
+2. **No Bridge Files**: Import directly from source modules rather than through bridge files
+3. **Respect Module Boundaries**: Follow the defined module dependency hierarchy
+4. **Group Imports Logically**: Organize imports by source (React/Next.js, third-party, internal modules)
+5. **Import Types Explicitly**: Use `import type` syntax for type-only imports
+6. **Complete Refactorings Fully**: When moving code, update all import references throughout the codebase
+7. **Use Linting Rules**: Configure ESLint to enforce proper import patterns
 
 ### Prohibited Import Patterns
 

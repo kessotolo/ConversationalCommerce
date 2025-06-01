@@ -4,7 +4,7 @@
 const axios = require('axios').default || require('axios');
 
 // Import standardized configuration optimized for African markets
-import { API_BASE_URL, API_TIMEOUT, RETRY_ATTEMPTS, FEATURES } from '../config';
+import { API_BASE_URL, API_TIMEOUT, RETRY_ATTEMPTS, FEATURES } from '@/config';
 
 // Define response and error types for better type safety
 export interface ApiResponse<T = any> {

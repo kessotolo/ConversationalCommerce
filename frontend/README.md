@@ -75,6 +75,13 @@ import type { UUID, Entity } from '@/modules/core/models/base';
 import { Status } from '@/modules/core/models/base';
 import type { Banner } from '@/modules/storefront/models/banner';
 
+// INCORRECT: Relative imports crossing module boundaries
+// import { UUID } from '../../modules/core/models/base';
+// import { Banner } from '../../../types/storefrontEditor'; // Bridge pattern - avoid!
+
+// CORRECT: Direct API imports using @ alias
+import { getDrafts, publishDraft } from '@/lib/api/storefrontEditor';
+
 // Extend base types for domain models
 export interface Product extends TenantScoped {
   name: string;
@@ -87,12 +94,25 @@ export interface Product extends TenantScoped {
 export type ProductList = PaginatedResult<Product>;
 ```
 
-#### Best Practices
-- Always import types from `@core/models/base` instead of redefining them
+#### Import Refactoring Progress
+
+We've implemented a systematic refactoring of imports to maintain clean architecture:
+
+- **Phase 1 ✅**: Converted all StorefrontEditor components to use absolute imports with the `@` alias
+- **Phase 2 ✅**: Fixed cross-module imports in library files (`/lib/cart.ts`, `/lib/api/storefrontEditor.ts`, `/lib/api.ts`)
+- **Phase 3 🔄**: Standardizing component and hook imports
+- **Phase 4 📋**: Fixing context-related imports
+- **Phase 5 📋**: Addressing storefront component imports
+
+#### Import Best Practices
+- Always use absolute imports with the `@` alias (`@/modules/core/models/base`)
+- Avoid bridge pattern files that exist only for backwards compatibility
 - Domain types should extend Entity, TenantScoped, or Draftable as appropriate
 - Use PaginatedResult<T> for all paginated list responses
-- Organize domain models within their respective module directories (e.g., `@product/models/*`)
+- Organize domain models within their respective module directories (e.g., `@/modules/product/models/*`)
 - Prefer composition over inheritance for complex types
+- Group imports by type: React/Next.js, third-party libraries, internal modules
+- Respect module boundaries as defined in architecture documentation
 
 ### Module Structure
 
