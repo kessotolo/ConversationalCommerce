@@ -147,6 +147,27 @@ AI assistants working with this codebase MUST adhere to these guidelines:
 
 Failing to follow these guidelines will result in PR rejections and potential type regressions.
 
+### Type Safety Improvement Plan
+
+We are implementing a phased approach to eliminate all `any` types from the codebase:
+
+#### Phase 1: Core Models & Type Foundations ✅ COMPLETE
+
+**Goal:** Eliminate `any` from foundational models to prevent type leaks and improve downstream type safety.
+
+**Completed Actions:**
+- Replaced all `any` and `Record<string, any>` in core models with explicit interfaces, generics, and discriminated unions
+- Implemented `FilterOption<T>` and `FilterGroup<T>` using generics instead of `any`
+- Replaced dynamic objects with `Record<string, unknown>` for improved type safety
+- Added proper documentation for complex type decisions
+- Created specific interfaces like `BaseDetails` for previously untyped objects
+
+**Next Phases:**
+1. **Phase 2:** API Layer (lib/api.ts & lib/api/storefrontEditor.ts)
+2. **Phase 3:** Component Props, Hooks, and Contexts
+3. **Phase 4:** Error Handling and Dynamic Index Signatures
+4. **Phase 5:** Type Declarations and Legacy/3rd-Party Integration
+
 ### Module Structure
 
 The application is organized into domain-specific modules, each with a consistent internal structure:
