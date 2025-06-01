@@ -3,12 +3,17 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { useUser } from '@clerk/nextjs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { ArrowLeft } from 'lucide-react';
+import {  CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { useToast, ToastProvider } from '@/components/ui/ToastProvider';
-import { ArrowLeft, User, Users } from 'lucide-react';
+import { useUser } from '@clerk/nextjs';
+import {  CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { useToast, ToastProvider } from '@/components/ui/ToastProvider';
+import { ArrowLeft } from 'lucide-react';
 
 interface ActivityEvent {
   id: string;
@@ -33,7 +38,7 @@ interface ActivityEvent {
 const severityColors = {
   low: 'bg-blue-100 text-blue-800 border-blue-200',
   medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  high: 'bg-red-100 text-red-800 border-red-200'
+  high: 'bg-red-100 text-red-800 border-red-200',
 };
 
 export default function MonitoringPage() {
@@ -42,10 +47,10 @@ export default function MonitoringPage() {
   const { toast } = useToast();
   const [activities, setActivities] = useState<ActivityEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
     if (!user) return;
-    
+
     // Simulate fetching data
     setTimeout(() => {
       setActivities([
@@ -62,36 +67,38 @@ export default function MonitoringPage() {
             status_code: 200,
             duration: 0.5,
             ip_address: '192.168.1.1',
-            user_agent: 'Chrome'
+            user_agent: 'Chrome',
           },
           severity: 'low',
           timestamp: new Date().toISOString(),
-          userName: user.fullName || 'User'
-        }
+          userName: user.fullName || 'User',
+        },
       ]);
       setLoading(false);
-      
+
       // Show sample toast
       toast({
         title: 'Monitoring Active',
         description: 'Real-time activity monitoring is now active',
-        variant: 'default'
+        variant: 'default',
       });
     }, 1000);
-    
+
     return () => {};
   }, [user, toast]);
 
   const renderActivity = (activity: ActivityEvent) => (
-    <div 
-      key={activity.id} 
+    <div
+      key={activity.id}
       className={`mb-2 p-3 rounded-md border ${severityColors[activity.severity]}`}
     >
       <div className="flex items-start justify-between">
         <div>
-          <div className="font-medium">{activity.action} {activity.resource_type}</div>
+          <div className="font-medium">
+            {activity.action} {activity.resource_type}
+          </div>
           <div className="text-sm text-gray-600">
-            {activity.userName || activity.user_id} • 
+            {activity.userName || activity.user_id} •
             {new Date(activity.timestamp).toLocaleTimeString()}
           </div>
         </div>
@@ -111,20 +118,16 @@ export default function MonitoringPage() {
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
           <div className="mb-6">
-            <Button 
-              variant="ghost" 
-              className="mb-4"
-              onClick={() => router.push('/dashboard')}
-            >
+            <Button variant="ghost" className="mb-4" onClick={() => router.push('/dashboard')}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Dashboard
             </Button>
           </div>
-          
+
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold">Activity Monitoring</h1>
           </div>
-        
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <Card>
               <CardHeader className="pb-2">
@@ -134,39 +137,39 @@ export default function MonitoringPage() {
                 <div className="text-2xl font-bold">{activities.length}</div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">High Severity Events</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{activities.filter(a => a.severity === 'high').length}</div>
+                <div className="text-2xl font-bold">
+                  {activities.filter((a) => a.severity === 'high').length}
+                </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">Active Users</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{new Set(activities.map(a => a.user_id)).size}</div>
+                <div className="text-2xl font-bold">
+                  {new Set(activities.map((a) => a.user_id)).size}
+                </div>
               </CardContent>
             </Card>
           </div>
-          
+
           <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
             <h2 className="text-xl font-semibold mb-4">Activity Log</h2>
-            
+
             {loading ? (
               <div className="text-center py-8">Loading...</div>
             ) : activities.length > 0 ? (
-              <div className="space-y-2">
-                {activities.map(renderActivity)}
-              </div>
+              <div className="space-y-2">{activities.map(renderActivity)}</div>
             ) : (
-              <div className="text-center py-8 text-gray-500">
-                No activities to display.
-              </div>
+              <div className="text-center py-8 text-gray-500">No activities to display.</div>
             )}
           </div>
         </div>

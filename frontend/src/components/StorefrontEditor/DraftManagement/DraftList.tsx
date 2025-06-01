@@ -10,20 +10,20 @@ interface DraftListProps {
   onDraftSelect: (draft: Draft) => void;
 }
 
-const DraftList: React.FC<DraftListProps> = ({ 
-  drafts, 
-  loading, 
-  selectedDraftId, 
-  onDraftSelect 
+const DraftList: React.FC<DraftListProps> = ({
+  drafts,
+  loading,
+  selectedDraftId,
+  onDraft
 }) => {
   // Format date helper
   const formatDate = (dateString?: string): string => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
     }).format(date);
   };
 
@@ -75,9 +75,7 @@ const DraftList: React.FC<DraftListProps> = ({
             <h3 className="font-medium text-gray-900 truncate" title={draft.name}>
               {draft.name}
             </h3>
-            <span
-              className={`text-xs px-2 py-1 rounded-full ${getStatusBadgeClass(draft.status)}`}
-            >
+            <span className={`text-xs px-2 py-1 rounded-full ${getStatusBadgeClass(draft.status)}`}>
               {draft.status}
             </span>
           </div>

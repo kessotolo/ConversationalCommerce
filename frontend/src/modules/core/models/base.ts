@@ -1,6 +1,6 @@
 /**
  * Core Domain Models
- * 
+ *
  * This file contains foundational types that all other modules extend.
  * Always import core types from this file to maintain consistency across the application.
  */
@@ -57,7 +57,7 @@ export enum Status {
   DRAFT = 'draft',
   PUBLISHED = 'published',
   ARCHIVED = 'archived',
-  SCHEDULED = 'scheduled'
+  SCHEDULED = 'scheduled',
 }
 
 // Common Error Types

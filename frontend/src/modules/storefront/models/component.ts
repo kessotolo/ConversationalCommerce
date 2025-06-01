@@ -1,4 +1,4 @@
-import { UUID, TenantScoped, PaginatedResult } from '@core/models/base';
+
 
 export enum ComponentType {
   HERO = 'hero',
@@ -9,13 +9,13 @@ export enum ComponentType {
   FEATURE_LIST = 'feature_list',
   NEWSLETTER_SIGNUP = 'newsletter_signup',
   IMAGE_GALLERY = 'image_gallery',
-  CUSTOM = 'custom'
+  CUSTOM = 'custom',
 }
 
 export enum ComponentStatus {
   DRAFT = 'draft',
   PUBLISHED = 'published',
-  ARCHIVED = 'archived'
+  ARCHIVED = 'archived',
 }
 
 export interface Component extends TenantScoped {

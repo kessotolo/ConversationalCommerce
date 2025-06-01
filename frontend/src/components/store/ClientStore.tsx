@@ -1,10 +1,11 @@
 'use client';
 
+// TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { productService } from '@/lib/api';
 import ProductCard from '@/components/storefront/ProductCard';
 import { useCart } from '@/lib/cart';
-import Link from 'next/link';
 
 interface Product {
   id: string;
@@ -28,7 +29,7 @@ export default function ClientStore({ merchantId }: ClientStoreProps) {
 
   useEffect(() => {
     fetchProducts();
-  }, [merchantId]);
+  }, [merchantId, fetch]);
 
   const fetchProducts = async () => {
     try {
@@ -50,7 +51,7 @@ export default function ClientStore({ merchantId }: ClientStoreProps) {
       id: product.id,
       name: product.name,
       price: product.price,
-      image_url: product.image_url
+      image_url: product.image_url,
     });
   };
 

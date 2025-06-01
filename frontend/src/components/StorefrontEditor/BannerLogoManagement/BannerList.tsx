@@ -1,14 +1,8 @@
 import React, { useState } from 'react';
 import type { Banner } from '@/modules/storefront/models/banner';
 import type { UUID } from '@/modules/core/models/base';
-import { BannerStatus, BannerType } from '@/modules/storefront/models/banner';;
-import { useDrag, useDrop } from 'react-dnd';
-import { 
-  MagnifyingGlassIcon, 
-  FunnelIcon,
-  Bars3Icon 
-} from '@heroicons/react/24/outline';
-import { Search } from 'lucide-react';
+import { BannerStatus, BannerType } from '@/modules/storefront/models/banner';
+
 
 // Item type for drag and drop
 const BANNER_ITEM = 'banner';
@@ -29,15 +23,15 @@ interface BannerItemProps {
 }
 
 // Draggable Banner Item Component
-const BannerItem: React.FC<BannerItemProps> = ({ 
-  banner, 
-  index, 
-  selectedBannerId, 
-  onBannerSelect,
-  onBannerReorder
+const BannerItem: React.FC<BannerItemProps> = ({
+  banner,
+  index,
+  selectedBannerId,
+  onBanner
+  onBannerReorder,
 }) => {
   const ref = React.useRef<HTMLDivElement>(null);
-  
+
   // Setup drag
   const [{ isDragging }, drag] = useDrag({
     type: BANNER_ITEM,
@@ -46,7 +40,7 @@ const BannerItem: React.FC<BannerItemProps> = ({
       isDragging: monitor.isDragging(),
     }),
   });
-  
+
   // Setup drop
   const [, drop] = useDrop({
     accept: BANNER_ITEM,
@@ -54,60 +48,60 @@ const BannerItem: React.FC<BannerItemProps> = ({
       if (!ref.current) {
         return;
       }
-      
+
       const dragIndex = item.index;
       const hoverIndex = index;
-      
+
       // Don't replace items with themselves
       if (dragIndex === hoverIndex) {
         return;
       }
-      
+
       // Determine rectangle on screen
       const hoverBoundingRect = ref.current.getBoundingClientRect();
-      
+
       // Get vertical middle
       const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-      
+
       // Determine mouse position
       const clientOffset = monitor.getClientOffset();
-      
+
       // Get pixels to the top
       const hoverClientY = clientOffset ? clientOffset.y - hoverBoundingRect.top : 0;
-      
+
       // Only perform the move when the mouse has crossed half of the item's height
       // When dragging downwards, only move when the cursor is below 50%
       // When dragging upwards, only move when the cursor is above 50%
-      
+
       // Dragging downwards
       if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
         return;
       }
-      
+
       // Dragging upwards
       if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
         return;
       }
-      
+
       // Time to actually perform the action
       item.index = hoverIndex;
     },
     drop: (item: DragItem) => {
       const dragIndex = item.index;
       const hoverIndex = index;
-      
+
       // Don't replace items with themselves
       if (dragIndex === hoverIndex) {
         return;
       }
-      
+
       onBannerReorder(dragIndex, hoverIndex);
     },
   });
-  
+
   // Initialize drag and drop
   drag(drop(ref));
-  
+
   // Format date
   const formatDate = (dateString: string | undefined): string => {
     if (!dateString) return 'N/A';
@@ -117,7 +111,7 @@ const BannerItem: React.FC<BannerItemProps> = ({
       year: 'numeric',
     });
   };
-  
+
   // Get status badge class
   const getStatusBadgeClass = (status: BannerStatus): string => {
     switch (status) {
@@ -133,18 +127,18 @@ const BannerItem: React.FC<BannerItemProps> = ({
         return 'bg-gray-100 text-gray-800';
     }
   };
-  
+
   // Determine if banner is active (current date between start and end dates)
   const isActive = (): boolean => {
     const now = new Date();
     const startDate = banner.start_date ? new Date(banner.start_date) : null;
     const endDate = banner.end_date ? new Date(banner.end_date) : null;
-    
+
     if (startDate && now < startDate) return false;
     if (endDate && now > endDate) return false;
     return true;
   };
-  
+
   return (
     <div
       ref={ref}
@@ -158,7 +152,7 @@ const BannerItem: React.FC<BannerItemProps> = ({
         <div className="mr-3 mt-1 cursor-move text-gray-400 hover:text-gray-700">
           <Bars3Icon className="h-5 w-5" />
         </div>
-        
+
         <div className="flex-1">
           <div className="flex justify-between items-start mb-1">
             <h3 className="font-medium text-gray-900 truncate" title={banner.title}>
@@ -170,24 +164,22 @@ const BannerItem: React.FC<BannerItemProps> = ({
               {banner.status}
             </span>
           </div>
-          
+
           <div className="text-xs text-gray-500 mb-2">
             <span className="capitalize mr-2">Type: {banner.banner_type}</span>
             {banner.display_order !== undefined && (
               <span className="mr-2">Order: {banner.display_order}</span>
             )}
           </div>
-          
+
           <div className="flex justify-between text-xs text-gray-500">
             <div>
               {banner.start_date && (
                 <span className="mr-2">From: {formatDate(banner.start_date)}</span>
               )}
-              {banner.end_date && (
-                <span>To: {formatDate(banner.end_date)}</span>
-              )}
+              {banner.end_date && <span>To: {formatDate(banner.end_date)}</span>}
             </div>
-            
+
             {/* Active indicator */}
             {isActive() && banner.status === BannerStatus.PUBLISHED && (
               <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
@@ -213,26 +205,26 @@ interface BannerListProps {
   searchQuery: string;
 }
 
-const BannerList: React.FC<BannerListProps> = ({ 
-  banners, 
-  loading, 
-  selectedBannerId, 
-  onBannerSelect,
+const BannerList: React.FC<BannerListProps> = ({
+  banners,
+  loading,
+  selectedBannerId,
+  onBanner
   onBannerReorder,
   onFilterChange,
   statusFilter,
   typeFilter,
-  searchQuery
+  searchQuery,
 }) => {
   const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
   const [filterOpen, setFilterOpen] = useState(false);
-  
+
   // Handle search submission
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     onFilterChange(statusFilter, typeFilter, localSearchQuery);
   };
-  
+
   // Clear all filters
   const clearFilters = () => {
     setLocalSearchQuery('');
@@ -268,7 +260,7 @@ const BannerList: React.FC<BannerListProps> = ({
             </button>
           </div>
         </form>
-        
+
         <div className="flex justify-between items-center">
           <button
             onClick={() => setFilterOpen(!filterOpen)}
@@ -277,17 +269,14 @@ const BannerList: React.FC<BannerListProps> = ({
             <FunnelIcon className="h-4 w-4 mr-1" />
             Filters {(statusFilter !== 'all' || typeFilter !== 'all') && '(Active)'}
           </button>
-          
+
           {(statusFilter !== 'all' || typeFilter !== 'all' || searchQuery) && (
-            <button
-              onClick={clearFilters}
-              className="text-xs text-blue-600 hover:text-blue-800"
-            >
+            <button onClick={clearFilters} className="text-xs text-blue-600 hover:text-blue-800">
               Clear all filters
             </button>
           )}
         </div>
-        
+
         {/* Expanded Filters */}
         {filterOpen && (
           <div className="mt-3 pt-3 border-t space-y-4">
@@ -298,8 +287,8 @@ const BannerList: React.FC<BannerListProps> = ({
                 <button
                   onClick={() => onFilterChange('all', typeFilter, localSearchQuery)}
                   className={`text-xs px-2 py-1 rounded-full ${
-                    statusFilter === 'all' 
-                      ? 'bg-blue-100 text-blue-800' 
+                    statusFilter === 'all'
+                      ? 'bg-blue-100 text-blue-800'
                       : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                   }`}
                 >
@@ -310,8 +299,8 @@ const BannerList: React.FC<BannerListProps> = ({
                     key={status}
                     onClick={() => onFilterChange(status, typeFilter, localSearchQuery)}
                     className={`text-xs px-2 py-1 rounded-full ${
-                      statusFilter === status 
-                        ? 'bg-blue-100 text-blue-800' 
+                      statusFilter === status
+                        ? 'bg-blue-100 text-blue-800'
                         : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                     }`}
                   >
@@ -320,7 +309,7 @@ const BannerList: React.FC<BannerListProps> = ({
                 ))}
               </div>
             </div>
-            
+
             {/* Banner Type Filter */}
             <div>
               <h4 className="text-xs font-medium text-gray-700 mb-2">Banner Type</h4>
@@ -328,8 +317,8 @@ const BannerList: React.FC<BannerListProps> = ({
                 <button
                   onClick={() => onFilterChange(statusFilter, 'all', localSearchQuery)}
                   className={`text-xs px-2 py-1 rounded-full ${
-                    typeFilter === 'all' 
-                      ? 'bg-blue-100 text-blue-800' 
+                    typeFilter === 'all'
+                      ? 'bg-blue-100 text-blue-800'
                       : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                   }`}
                 >
@@ -340,8 +329,8 @@ const BannerList: React.FC<BannerListProps> = ({
                     key={type}
                     onClick={() => onFilterChange(statusFilter, type, localSearchQuery)}
                     className={`text-xs px-2 py-1 rounded-full ${
-                      typeFilter === type 
-                        ? 'bg-blue-100 text-blue-800' 
+                      typeFilter === type
+                        ? 'bg-blue-100 text-blue-800'
                         : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                     }`}
                   >

@@ -1,9 +1,8 @@
 import React from 'react';
+import { Upload } from 'lucide-react';
 import type { Asset } from '@/modules/storefront/models/asset';
 import type { UUID } from '@/modules/core/models/base';
 import { AssetType } from '@/modules/storefront/models/asset';
-import { DocumentIcon, PhotoIcon, FilmIcon, MusicalNoteIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
-import { Upload } from 'lucide-react';
 
 interface AssetGridProps {
   assets: Asset[];
@@ -11,7 +10,7 @@ interface AssetGridProps {
   selectedAssetId?: UUID;
 }
 
-const AssetGrid: React.FC<AssetGridProps> = ({ assets, onAssetSelect, selectedAssetId }) => {
+const AssetGrid: React.FC<AssetGridProps> = ({ assets, onAsset selectedAssetId }) => {
   // Get appropriate icon based on asset type
   const getAssetIcon = (assetType: AssetType) => {
     switch (assetType) {
@@ -43,12 +42,12 @@ const AssetGrid: React.FC<AssetGridProps> = ({ assets, onAssetSelect, selectedAs
     // that serves optimized thumbnails of assets
     if (asset.asset_type === AssetType.IMAGE) {
       // For optimized images, check if there's a small thumbnail version
-      if (asset.is_optimized && asset.metadata?.optimized_versions?.["200x200"]) {
+      if (asset.is_optimized && asset.metadata?.optimized_versions?.['200x200']) {
         return `/api/assets/${asset.file_path.replace(/^.*[\\\/]/, '')}`;
       }
       return `/api/assets/${asset.file_path.replace(/^.*[\\\/]/, '')}`;
     }
-    
+
     return '';
   };
 
@@ -85,7 +84,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ assets, onAssetSelect, selectedAs
                   // Fallback if image fails to load
                   e.currentTarget.style.display = 'none';
                   e.currentTarget.parentElement!.appendChild(
-                    getAssetIcon(asset.asset_type) as unknown as Node
+                    getAssetIcon(asset.asset_type) as unknown as Node,
                   );
                 }}
               />

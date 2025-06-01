@@ -1,10 +1,10 @@
-import { UUID, PaginatedResult } from '@core/models/base';
+
 
 export enum StorefrontRole {
   VIEWER = 'viewer',
   EDITOR = 'editor',
   PUBLISHER = 'publisher',
-  ADMIN = 'admin'
+  ADMIN = 'admin',
 }
 
 export enum StorefrontSectionType {
@@ -15,7 +15,7 @@ export enum StorefrontSectionType {
   SETTINGS = 'settings',
   BANNERS = 'banners',
   ASSETS = 'assets',
-  SEO = 'seo'
+  SEO = 'seo',
 }
 
 export interface Permission {

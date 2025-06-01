@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { ClerkProvider } from '@clerk/nextjs';
 import { AuthProvider } from '@/utils/auth-utils';
 
 // This wrapper provides authentication services throughout the application
@@ -9,9 +8,7 @@ import { AuthProvider } from '@/utils/auth-utils';
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider>
-      <AuthProvider>
-        {children}
-      </AuthProvider>
+      <AuthProvider>{children}</AuthProvider>
     </ClerkProvider>
   );
 }

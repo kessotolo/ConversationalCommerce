@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { getPermissions } from '../../../lib/api/storefrontEditor';
 import type { UUID } from '@/modules/core/models/base';
 import type { UserPermission } from '@/modules/storefront/models/permission';
-import { StorefrontRole } from '@/modules/storefront/models/permission';;
+import { StorefrontRole } from '@/modules/storefront/models/permission';
+import { getPermissions } from '../../../lib/api/storefrontEditor';
 import PermissionList from './PermissionList';
 import PermissionDetail from './PermissionDetail';
 import AddUserPermission from './AddUserPermission';
-import { PlusIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
-import { User } from 'lucide-react';
+
 
 interface PermissionsProps {
   tenantId: UUID;
@@ -15,13 +14,13 @@ interface PermissionsProps {
 
 const Permissions: React.FC<PermissionsProps> = ({ tenantId }) => {
   const [permissions, setPermissions] = useState<UserPermission[]>([]);
-  const [selectedUser, setSelectedUser] = useState<UserPermission | null>(null);
-  const [totalUsers, setTotalUsers] = useState(0);
+  const [selected setSelectedUser] = useState<UserPermission | null>(null);
+  const [total setTotalUsers] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isAddingUser, setIsAddingUser] = useState(false);
-  
+
   // Filter state
   const [roleFilter, setRoleFilter] = useState<StorefrontRole | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,12 +29,12 @@ const Permissions: React.FC<PermissionsProps> = ({ tenantId }) => {
   const loadPermissions = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await getPermissions(tenantId);
       setPermissions(response.items);
       setTotalUsers(response.total);
-      
+
       // Select first user if nothing is selected
       if (response.items.length > 0 && !selectedUser) {
         setSelectedUser(response.items[0]);
@@ -66,17 +65,17 @@ const Permissions: React.FC<PermissionsProps> = ({ tenantId }) => {
   };
 
   // Apply filters
-  const filteredUsers = permissions.filter(user => {
+  const filteredUsers = permissions.filter((user) => {
     // Apply role filter
     if (roleFilter !== 'all' && user.role !== roleFilter) {
       return false;
     }
-    
+
     // Apply search query
     if (searchQuery && !user.username.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }
-    
+
     return true;
   });
 
@@ -103,16 +102,10 @@ const Permissions: React.FC<PermissionsProps> = ({ tenantId }) => {
       </div>
 
       {successMessage && (
-        <div className="mb-4 p-3 bg-green-100 text-green-800 rounded-md">
-          {successMessage}
-        </div>
+        <div className="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{successMessage}</div>
       )}
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md">
-          {error}
-        </div>
-      )}
+      {error && <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md">{error}</div>}
 
       <div className="flex-1 flex gap-6">
         {/* User List */}
@@ -139,11 +132,23 @@ const Permissions: React.FC<PermissionsProps> = ({ tenantId }) => {
             />
           ) : (
             <div className="bg-white rounded-lg border shadow-sm p-8 flex flex-col items-center justify-center h-full">
-              <svg className="h-16 w-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              <svg
+                className="h-16 w-16 text-gray-400 mb-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
               </svg>
               <h3 className="text-lg font-medium text-gray-900">No user selected</h3>
-              <p className="text-gray-500 mt-1">Select a user to view and manage their permissions.</p>
+              <p className="text-gray-500 mt-1">
+                Select a user to view and manage their permissions.
+              </p>
               {permissions.length === 0 && !loading && (
                 <button
                   onClick={() => setIsAddingUser(true)}

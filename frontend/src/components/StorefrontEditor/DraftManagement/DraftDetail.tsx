@@ -3,15 +3,14 @@ import type { Draft } from '@/modules/storefront/models/draft';
 import type { UUID } from '@/modules/core/models/base';
 import { Status } from '@/modules/core/models/base';
 import { updateDraft } from '../../../lib/api/storefrontEditor';
-import { 
-  ClockIcon, 
-  CheckIcon, 
-  TrashIcon, 
+import {
+  ClockIconIcon,
+  TrashIcon,
   PencilIcon,
   CalendarIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
-import { Check, Save } from 'lucide-react';
+
 
 interface DraftDetailProps {
   draft: Draft;
@@ -21,12 +20,12 @@ interface DraftDetailProps {
   onRefresh: () => void;
 }
 
-const DraftDetail: React.FC<DraftDetailProps> = ({ 
-  draft, 
-  tenantId, 
-  onPublish, 
+const DraftDetail: React.FC<DraftDetailProps> = ({
+  draft,
+  tenantId,
+  onPublish,
   onDelete,
-  onRefresh
+  onRefresh,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -35,13 +34,13 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  
+
   // Form state
   const [formData, setFormData] = useState({
     name: draft.name,
     description: draft.description,
   });
-  
+
   // Schedule time state
   const [scheduleDate, setScheduleDate] = useState('');
   const [scheduleTime, setScheduleTime] = useState('');
@@ -50,12 +49,12 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
   const formatDate = (dateString?: string): string => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
-    return date.toLocaleString('en-US', { 
+    return date.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
       hour: 'numeric',
-      minute: 'numeric'
+      minute: 'numeric',
     });
   };
 
@@ -70,13 +69,13 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
     e.preventDefault();
     setLoading(true);
     setError(null);
-    
+
     try {
       await updateDraft(tenantId, draft.id, formData);
       setSuccessMessage('Draft updated successfully');
       setIsEditing(false);
       onRefresh();
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
@@ -91,14 +90,14 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
   const handlePublish = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const success = await onPublish(draft.id);
-      
+
       if (success) {
         setSuccessMessage('Draft published successfully');
         setIsPublishing(false);
-        
+
         // Clear success message after 3 seconds
         setTimeout(() => setSuccessMessage(null), 3000);
       } else {
@@ -118,26 +117,26 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
       setError('Please select both date and time');
       return;
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       const scheduledDateTime = new Date(`${scheduleDate}T${scheduleTime}`);
-      
+
       // Validate future date
       if (scheduledDateTime <= new Date()) {
         setError('Schedule time must be in the future');
         setLoading(false);
         return;
       }
-      
+
       const success = await onPublish(draft.id, scheduledDateTime);
-      
+
       if (success) {
         setSuccessMessage('Draft scheduled for publishing');
         setIsScheduling(false);
-        
+
         // Clear success message after 3 seconds
         setTimeout(() => setSuccessMessage(null), 3000);
       } else {
@@ -155,10 +154,10 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
   const handleDelete = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const success = await onDelete(draft.id);
-      
+
       if (success) {
         setSuccessMessage('Draft deleted successfully');
       } else {
@@ -174,10 +173,10 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
 
   // Check if draft can be published
   const canPublish = draft.status === Status.DRAFT;
-  
+
   // Check if draft can be scheduled
   const canSchedule = draft.status === Status.DRAFT;
-  
+
   // Check if draft is already scheduled
   const isAlreadyScheduled = draft.status === Status.SCHEDULED;
 
@@ -196,7 +195,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
               Edit
             </button>
           )}
-          
+
           {canPublish && !isEditing && (
             <button
               onClick={() => setIsPublishing(true)}
@@ -206,7 +205,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
               Publish
             </button>
           )}
-          
+
           {canSchedule && !isEditing && (
             <button
               onClick={() => setIsScheduling(true)}
@@ -254,7 +253,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="description" className="block text-sm font-medium text-gray-700">
                   Description
@@ -268,7 +267,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
-              
+
               <div className="flex justify-end space-x-2">
                 <button
                   type="button"
@@ -297,13 +296,14 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
                   <h3 className="text-sm font-medium text-yellow-800">Publish Confirmation</h3>
                   <div className="mt-2 text-sm text-yellow-700">
                     <p>
-                      Are you sure you want to publish this draft? This will make all changes live on your storefront.
+                      Are you sure you want to publish this draft? This will make all changes live
+                      on your storefront.
                     </p>
                   </div>
                 </div>
               </div>
             </div>
-            
+
             <div className="flex justify-end space-x-2">
               <button
                 type="button"
@@ -338,7 +338,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
                 </div>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="scheduleDate" className="block text-sm font-medium text-gray-700">
@@ -353,7 +353,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="scheduleTime" className="block text-sm font-medium text-gray-700">
                   Time
@@ -367,7 +367,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
                 />
               </div>
             </div>
-            
+
             <div className="flex justify-end space-x-2 mt-4">
               <button
                 type="button"
@@ -395,14 +395,12 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-red-800">Delete Confirmation</h3>
                   <div className="mt-2 text-sm text-red-700">
-                    <p>
-                      Are you sure you want to delete this draft? This action cannot be undone.
-                    </p>
+                    <p>Are you sure you want to delete this draft? This action cannot be undone.</p>
                   </div>
                 </div>
               </div>
             </div>
-            
+
             <div className="flex justify-end space-x-2">
               <button
                 type="button"
@@ -428,28 +426,28 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
             <div className="bg-gray-50 p-4 rounded-md">
               <h4 className="text-sm font-medium text-gray-500 mb-1">Status</h4>
               <div className="flex items-center">
-                <span className={`text-sm px-2.5 py-1 rounded-full capitalize ${
-                  draft.status === Status.DRAFT
-                    ? 'bg-gray-100 text-gray-800'
-                    : draft.status === Status.PENDING
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : draft.status === Status.PUBLISHED
-                    ? 'bg-green-100 text-green-800'
-                    : draft.status === Status.SCHEDULED
-                    ? 'bg-blue-100 text-blue-800'
-                    : 'bg-gray-100 text-gray-600'
-                }`}>
+                <span
+                  className={`text-sm px-2.5 py-1 rounded-full capitalize ${
+                    draft.status === Status.DRAFT
+                      ? 'bg-gray-100 text-gray-800'
+                      : draft.status === Status.PENDING
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : draft.status === Status.PUBLISHED
+                          ? 'bg-green-100 text-green-800'
+                          : draft.status === Status.SCHEDULED
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-gray-100 text-gray-600'
+                  }`}
+                >
                   {draft.status}
                 </span>
-                
+
                 {isAlreadyScheduled && (
-                  <span className="ml-2 text-sm text-gray-500">
-                    (Scheduled for publishing)
-                  </span>
+                  <span className="ml-2 text-sm text-gray-500">(Scheduled for publishing)</span>
                 )}
               </div>
             </div>
-            
+
             {/* Draft Information */}
             <div>
               <h4 className="text-sm font-medium text-gray-500 mb-2">Draft Information</h4>
@@ -458,24 +456,24 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
                   <dt className="text-sm font-medium text-gray-500">Name</dt>
                   <dd className="mt-1 text-sm text-gray-900">{draft.name}</dd>
                 </div>
-                
+
                 <div className="col-span-2">
                   <dt className="text-sm font-medium text-gray-500">Description</dt>
                   <dd className="mt-1 text-sm text-gray-900">{draft.description}</dd>
                 </div>
-                
+
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Created</dt>
                   <dd className="mt-1 text-sm text-gray-900">{formatDate(draft.created_at)}</dd>
                 </div>
-                
+
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Last Updated</dt>
                   <dd className="mt-1 text-sm text-gray-900">{formatDate(draft.updated_at)}</dd>
                 </div>
               </dl>
             </div>
-            
+
             {/* Draft Changes */}
             <div>
               <h4 className="text-sm font-medium text-gray-500 mb-2">Changes Summary</h4>

@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import type { Version } from '@/modules/storefront/models/version';
-import type { UUID } from '@/modules/core/models/base';;
-import { 
-  FunnelIcon, 
-  MagnifyingGlassIcon, 
-  TagIcon, 
-  CalendarIcon, 
-  XMarkIcon 
+import type { UUID } from '@/modules/core/models/base';
+import {
+  FunnelIcon,
+  MagnifyingGlassIcon,
+  TagIcon,
+  CalendarIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
-import { Check, Search } from 'lucide-react';
+
 
 interface VersionListProps {
   versions: Version[];
@@ -21,31 +21,33 @@ interface VersionListProps {
   onDateFilterChange: (start?: Date, end?: Date) => void;
   onSearch: (query: string) => void;
   tagsFilter: string[];
-  dateFilter: {start?: Date, end?: Date};
+  dateFilter: { start?: Date; end?: Date };
   searchQuery: string;
 }
 
-const VersionList: React.FC<VersionListProps> = ({ 
-  versions, 
-  loading, 
-  selectedVersionId, 
+const VersionList: React.FC<VersionListProps> = ({
+  versions,
+  loading,
+  selectedVersionId,
   compareVersionId,
   compareMode,
-  onVersionSelect,
+  onVersion
   onTagsFilterChange,
   onDateFilterChange,
-  onSearch,
+  on
   tagsFilter,
   dateFilter,
-  searchQuery
+  searchQuery,
 }) => {
   const [filterOpen, setFilterOpen] = useState(false);
   const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
-  const [startDate, setStartDate] = useState(dateFilter.start ? formatDateForInput(dateFilter.start) : '');
+  const [startDate, setStartDate] = useState(
+    dateFilter.start ? formatDateForInput(dateFilter.start) : '',
+  );
   const [endDate, setEndDate] = useState(dateFilter.end ? formatDateForInput(dateFilter.end) : '');
-  
+
   // All available tags from all versions
-  const allTags = [...new Set(versions.flatMap(version => version.tags))].sort();
+  const allTags = [...new Set(versions.flatMap((version) => version.tags))].sort();
 
   // Format date for display
   const formatDate = (dateString: string): string => {
@@ -78,9 +80,9 @@ const VersionList: React.FC<VersionListProps> = ({
   // Handle tag selection
   const handleTagToggle = (tag: string) => {
     const newTags = tagsFilter.includes(tag)
-      ? tagsFilter.filter(t => t !== tag)
+      ? tagsFilter.filter((t) => t !== tag)
       : [...tagsFilter, tag];
-    
+
     onTagsFilterChange(newTags);
   };
 
@@ -128,7 +130,7 @@ const VersionList: React.FC<VersionListProps> = ({
             </button>
           </div>
         </form>
-        
+
         <div className="flex justify-between items-center">
           <button
             onClick={() => setFilterOpen(!filterOpen)}
@@ -137,17 +139,14 @@ const VersionList: React.FC<VersionListProps> = ({
             <FunnelIcon className="h-4 w-4 mr-1" />
             Filters {(tagsFilter.length > 0 || dateFilter.start || dateFilter.end) && '(Active)'}
           </button>
-          
+
           {(tagsFilter.length > 0 || dateFilter.start || dateFilter.end || searchQuery) && (
-            <button
-              onClick={clearFilters}
-              className="text-xs text-blue-600 hover:text-blue-800"
-            >
+            <button onClick={clearFilters} className="text-xs text-blue-600 hover:text-blue-800">
               Clear all filters
             </button>
           )}
         </div>
-        
+
         {/* Expanded Filters */}
         {filterOpen && (
           <div className="mt-3 pt-3 border-t space-y-4">
@@ -191,7 +190,7 @@ const VersionList: React.FC<VersionListProps> = ({
                 Apply Date Filter
               </button>
             </div>
-            
+
             {/* Tags Filter */}
             <div>
               <div className="flex items-center mb-2">
@@ -211,9 +210,7 @@ const VersionList: React.FC<VersionListProps> = ({
                       }`}
                     >
                       {tag}
-                      {tagsFilter.includes(tag) && (
-                        <XMarkIcon className="ml-1 h-3 w-3" />
-                      )}
+                      {tagsFilter.includes(tag) && <XMarkIcon className="ml-1 h-3 w-3" />}
                     </button>
                   ))
                 ) : (
@@ -245,18 +242,12 @@ const VersionList: React.FC<VersionListProps> = ({
               key={version.id}
               onClick={() => onVersionSelect(version)}
               className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors relative ${
-                isSelectedForCompare(version.id) 
-                  ? 'bg-blue-50 border-l-4 border-blue-500 pl-3'
-                  : ''
+                isSelectedForCompare(version.id) ? 'bg-blue-50 border-l-4 border-blue-500 pl-3' : ''
               }`}
             >
               <div className="flex justify-between items-start mb-1">
-                <h3 className="font-medium text-gray-900 text-sm">
-                  {version.change_summary}
-                </h3>
-                <span className="text-xs text-gray-500">
-                  v{version.version_number}
-                </span>
+                <h3 className="font-medium text-gray-900 text-sm">{version.change_summary}</h3>
+                <span className="text-xs text-gray-500">v{version.version_number}</span>
               </div>
               <p className="text-xs text-gray-600 mb-2 line-clamp-2">
                 {version.change_description}
@@ -271,9 +262,7 @@ const VersionList: React.FC<VersionListProps> = ({
                   </span>
                 ))}
               </div>
-              <div className="text-xs text-gray-500">
-                {formatDate(version.created_at)}
-              </div>
+              <div className="text-xs text-gray-500">{formatDate(version.created_at)}</div>
 
               {/* Compare Indicator */}
               {compareMode && isSelectedForCompare(version.id) && (

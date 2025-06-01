@@ -1,18 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import type { Logo } from '@/modules/storefront/models/logo';
 import type { UUID } from '@/modules/core/models/base';
 import type { Asset } from '@/modules/storefront/models/asset';
-import { LogoStatus, LogoType } from '@/modules/storefront/models/logo';;
-import { updateLogo, getLogo, getAssets } from '../../../lib/api/storefrontEditor';
-import { 
-  CheckIcon, 
-  TrashIcon, 
-  PencilIcon,
-  ExclamationTriangleIcon,
-  PhotoIcon
-} from '@heroicons/react/24/outline';
-import { Check, Save } from 'lucide-react';
-import Image from 'next/image';
+import { LogoStatus, LogoType } from '@/modules/storefront/models/logo';
+import { updateLogo, getAssets } from '../../../lib/api/storefrontEditor';
 
 interface LogoDetailProps {
   logo: Logo;
@@ -22,12 +14,12 @@ interface LogoDetailProps {
   onUpdate: () => void;
 }
 
-const LogoDetail: React.FC<LogoDetailProps> = ({ 
-  logo, 
-  tenantId, 
-  onPublish, 
+const LogoDetail: React.FC<LogoDetailProps> = ({
+  logo,
+  tenantId,
+  onPublish,
   onDelete,
-  onUpdate
+  onUpdate,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -36,7 +28,7 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [assetList, setAssetList] = useState<Asset[]>([]);
   const [loadingAssets, setLoadingAssets] = useState(false);
-  
+
   // Form state
   const [formData, setFormData] = useState({
     name: logo.name,
@@ -45,7 +37,7 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
     display_settings: logo.display_settings || {},
     responsive_settings: logo.responsive_settings || {},
     start_date: logo.start_date || '',
-    end_date: logo.end_date || ''
+    end_date: logo.end_date || '',
   });
 
   // Load assets for selection
@@ -63,7 +55,7 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
         }
       }
     };
-    
+
     loadAssets();
   }, [isEditing, tenantId]);
 
@@ -80,7 +72,9 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
   };
 
   // Handle input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
@@ -90,13 +84,13 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
     e.preventDefault();
     setLoading(true);
     setError(null);
-    
+
     try {
       await updateLogo(tenantId, logo.id, formData);
       setSuccessMessage('Logo updated successfully');
       setIsEditing(false);
       onUpdate();
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
@@ -111,10 +105,10 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
   const handlePublish = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const success = await onPublish(logo.id);
-      
+
       if (success) {
         setSuccessMessage('Logo published successfully');
       } else {
@@ -132,10 +126,10 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
   const handleDelete = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const success = await onDelete(logo.id);
-      
+
       if (success) {
         setSuccessMessage('Logo deleted successfully');
       } else {
@@ -150,7 +144,7 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
   };
 
   // Get the selected asset details
-  const selectedAsset = assetList.find(asset => asset.id === formData.asset_id);
+  const selectedAsset = assetList.find((asset) => asset.id === formData.asset_id);
 
   // Check if logo can be published
   const canPublish = logo.status === LogoStatus.DRAFT || logo.status === LogoStatus.INACTIVE;
@@ -170,7 +164,7 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
                 <PencilIcon className="h-4 w-4 mr-2" />
                 Edit
               </button>
-              
+
               {canPublish && (
                 <button
                   onClick={handlePublish}
@@ -212,14 +206,12 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-red-800">Delete Confirmation</h3>
                   <div className="mt-2 text-sm text-red-700">
-                    <p>
-                      Are you sure you want to delete this logo? This action cannot be undone.
-                    </p>
+                    <p>Are you sure you want to delete this logo? This action cannot be undone.</p>
                   </div>
                 </div>
               </div>
             </div>
-            
+
             <div className="flex justify-end space-x-2">
               <button
                 type="button"
@@ -255,7 +247,7 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </div>
-            
+
             <div>
               <label htmlFor="logo_type" className="block text-sm font-medium text-gray-700">
                 Logo Type *
@@ -274,21 +266,22 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
                   </option>
                 ))}
               </select>
-              
+
               <p className="mt-1 text-xs text-gray-500">
-                {formData.logo_type === LogoType.PRIMARY && "The main logo displayed in the header"}
-                {formData.logo_type === LogoType.SECONDARY && "Alternative logo used in specific contexts"}
-                {formData.logo_type === LogoType.FOOTER && "Logo displayed in the footer"}
-                {formData.logo_type === LogoType.MOBILE && "Optimized logo for mobile devices"}
-                {formData.logo_type === LogoType.FAVICON && "Small icon displayed in browser tabs"}
+                {formData.logo_type === LogoType.PRIMARY && 'The main logo displayed in the header'}
+                {formData.logo_type === LogoType.SECONDARY &&
+                  'Alternative logo used in specific contexts'}
+                {formData.logo_type === LogoType.FOOTER && 'Logo displayed in the footer'}
+                {formData.logo_type === LogoType.MOBILE && 'Optimized logo for mobile devices'}
+                {formData.logo_type === LogoType.FAVICON && 'Small icon displayed in browser tabs'}
               </p>
             </div>
-            
+
             <div>
               <label htmlFor="asset_id" className="block text-sm font-medium text-gray-700">
                 Logo Image *
               </label>
-              
+
               {loadingAssets ? (
                 <div className="mt-1 p-4 flex justify-center items-center border border-gray-300 border-dashed rounded-md">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-700"></div>
@@ -297,7 +290,9 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
                 <div className="mt-1 p-4 flex flex-col items-center justify-center border border-gray-300 border-dashed rounded-md">
                   <PhotoIcon className="h-10 w-10 text-gray-400" />
                   <p className="mt-2 text-sm text-gray-500">No images available</p>
-                  <p className="text-xs text-gray-500">Please upload images in the Asset Management section</p>
+                  <p className="text-xs text-gray-500">
+                    Please upload images in the Asset Management section
+                  </p>
                 </div>
               ) : (
                 <>
@@ -316,7 +311,7 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
                       </option>
                     ))}
                   </select>
-                  
+
                   {/* Preview selected image */}
                   {selectedAsset ? (
                     <div className="mt-2 p-2 border rounded-md">
@@ -334,7 +329,7 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
                 </>
               )}
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="start_date" className="block text-sm font-medium text-gray-700">
@@ -349,7 +344,7 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="end_date" className="block text-sm font-medium text-gray-700">
                   End Date
@@ -365,7 +360,7 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
                 />
               </div>
             </div>
-            
+
             <div className="flex justify-end space-x-2 pt-4">
               <button
                 type="button"
@@ -394,27 +389,29 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
                   <dt className="text-sm font-medium text-gray-500">Name</dt>
                   <dd className="mt-1 text-sm text-gray-900">{logo.name}</dd>
                 </div>
-                
+
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Type</dt>
                   <dd className="mt-1 text-sm text-gray-900 capitalize">{logo.logo_type}</dd>
                 </div>
-                
+
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Status</dt>
                   <dd className="mt-1 text-sm">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
                       ${logo.status === LogoStatus.DRAFT ? 'bg-gray-100 text-gray-800' : ''}
                       ${logo.status === LogoStatus.PUBLISHED ? 'bg-green-100 text-green-800' : ''}
                       ${logo.status === LogoStatus.INACTIVE ? 'bg-red-100 text-red-800' : ''}
-                    `}>
+                    `}
+                    >
                       {logo.status}
                     </span>
                   </dd>
                 </div>
               </dl>
             </div>
-            
+
             {/* Logo Preview */}
             <div>
               <h4 className="text-sm font-medium text-gray-500 mb-2">Logo Preview</h4>
@@ -426,7 +423,8 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
                       alt={logo.name}
                       className="max-h-full max-w-full object-contain"
                       onError={(e) => {
-                        e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCA1MCA1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjUwIiBoZWlnaHQ9IjUwIiBmaWxsPSIjRTVFN0VCIi8+CjxwYXRoIGQ9Ik0xOC45NTMxIDIzLjA5MzhDMjAuMDYyNSAyMy4wOTM4IDIwLjk3NjYgMjIuMTc5NyAyMC45NzY2IDIxLjA3MDNDMjAuOTc2NiAxOS45NjA5IDIwLjA2MjUgMTkuMDQ2OSAxOC45NTMxIDE5LjA0NjlDMTcuODQzOCAxOS4wNDY5IDE2LjkyOTcgMTkuOTYwOSAxNi45Mjk3IDIxLjA3MDNDMTYuOTI5NyAyMi4xNzk3IDE3Ljg0MzggMjMuMDkzOCAxOC45NTMxIDIzLjA5MzhaIiBmaWxsPSIjOTRBM0IzIi8+CjxwYXRoIGQ9Ik0zMy4wMDc4IDMwLjk3NjZDMzMuMDA3OCAzMC40Njg4IDMyLjU5MzggMzAuMDU0NyAzMi4wODU5IDMwLjA1NDdIMTcuOTE0MUMxNy40MDYyIDMwLjA1NDcgMTYuOTkyMiAzMC40Njg4IDE2Ljk5MjIgMzAuOTc2NkMxNi45OTIyIDMxLjQ4NDQgMTcuNDA2MiAzMS44OTg0IDE3LjkxNDEgMzEuODk4NEgzMi4wODU5QzMyLjU5MzggMzEuODk4NCAzMy4wMDc4IDMxLjQ4NDQgMzMuMDA3OCAzMC45NzY2WiIgZmlsbD0iIzk0QTNCMyIvPgo8cGF0aCBkPSJNMzYuMzI4MSAyNS44MjAzQzM2LjMyODEgMjUuNDYwOSAzNi4wOTM4IDI1LjEyNSAzNS43MzQ0IDI0Ljk2MDlDMzUuMzcgMjQuODIwMyAzNC45NjQ4IDI0Ljg1OTQgMzQuNjQwNiAyNS4xMTcyTDMxLjMyODEgMjcuNzUzOUwyNi43NSAyMS41MTE3QzI2LjQ4NDQgMjEuMTU2MiAyNS45OTIyIDIxLjA3ODEgMjUuNjM2NyAyMS4zNDM4TDE4LjA3MDMgMjcuMTE3MkwxNS4yODkxIDI0LjgzNTlDMTQuOTQ1MyAyNC41NTQ3IDE0LjQ1MzEgMjQuNTM1MiAxNC4wODk4IDI0Ljc4MTJDMTMuNzI2NiAyNS4wMjczIDEzLjU1ODYgMjUuNDg0NCAxMy42OTkyIDI1Ljg5ODRMMTYuMTg3NSAzMy4yMzQ0QzE2LjI4OTEgMzMuNTI3MyAxNi41MzUyIDMzLjc1MzkgMTYuODMyIDMzLjgyODFDMTYuODk0NSAzMy44NDM4IDE2Ljk1NzAgMzMuODQ3NyAxNy4wMTk1IDMzLjg0NzdDMTcuMjU3OCAzMy44NDc3IDE3LjQ4ODMgMzMuNzYxNyAxNy42NjQxIDMzLjYwMTZMMjUuNzM0NCAyNi4zMzU5TDMwLjMyODEgMzIuNTk3N0MzMC41MzEyIDMyLjg2MzMgMzAuODQzOCAzMy4wMDc4IDMxLjE3MTkgMzMuMDA3OEMzMS4zNjMzIDMzLjAwNzggMzEuNTU4NiAzMi45NTMxIDMxLjcyNjYgMzIuODI4MUwzNS45MTQxIDI5LjU3MDNDMzYuMTc5NyAyOS4zNzExIDM2LjMyODEgMjkuMDU0NyAzNi4zMjgxIDI4LjcxODhWMjUuODIwM1oiIGZpbGw9IiM5NEEzQjMiLz4KPC9zdmc+Cg==';
+                        e.currentTarget.src =
+                          'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCA1MCA1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjUwIiBoZWlnaHQ9IjUwIiBmaWxsPSIjRTVFN0VCIi8+CjxwYXRoIGQ9Ik0xOC45NTMxIDIzLjA5MzhDMjAuMDYyNSAyMy4wOTM4IDIwLjk3NjYgMjIuMTc5NyAyMC45NzY2IDIxLjA3MDNDMjAuOTc2NiAxOS45NjA5IDIwLjA2MjUgMTkuMDQ2OSAxOC45NTMxIDE5LjA0NjlDMTcuODQzOCAxOS4wNDY5IDE2LjkyOTcgMTkuOTYwOSAxNi45Mjk3IDIxLjA3MDNDMTYuOTI5NyAyMi4xNzk3IDE3Ljg0MzggMjMuMDkzOCAxOC45NTMxIDIzLjA5MzhaIiBmaWxsPSIjOTRBM0IzIi8+CjxwYXRoIGQ9Ik0zMy4wMDc4IDMwLjk3NjZDMzMuMDA3OCAzMC40Njg4IDMyLjU5MzggMzAuMDU0NyAzMi4wODU5IDMwLjA1NDdIMTcuOTE0MUMxNy40MDYyIDMwLjA1NDcgMTYuOTkyMiAzMC40Njg4IDE2Ljk5MjIgMzAuOTc2NkMxNi45OTIyIDMxLjQ4NDQgMTcuNDA2MiAzMS44OTg0IDE3LjkxNDEgMzEuODk4NEgzMi4wODU5QzMyLjU5MzggMzEuODk4NCAzMy4wMDc4IDMxLjQ4NDQgMzMuMDA3OCAzMC45NzY2WiIgZmlsbD0iIzk0QTNCMyIvPgo8cGF0aCBkPSJNMzYuMzI4MSAyNS44MjAzQzM2LjMyODEgMjUuNDYwOSAzNi4wOTM4IDI1LjEyNSAzNS43MzQ0IDI0Ljk2MDlDMzUuMzcgMjQuODIwMyAzNC45NjQ4IDI0Ljg1OTQgMzQuNjQwNiAyNS4xMTcyTDMxLjMyODEgMjcuNzUzOUwyNi43NSAyMS41MTE3QzI2LjQ4NDQgMjEuMTU2MiAyNS45OTIyIDIxLjA3ODEgMjUuNjM2NyAyMS4zNDM4TDE4LjA3MDMgMjcuMTE3MkwxNS4yODkxIDI0LjgzNTlDMTQuOTQ1MyAyNC41NTQ3IDE0LjQ1MzEgMjQuNTM1MiAxNC4wODk4IDI0Ljc4MTJDMTMuNzI2NiAyNS4wMjczIDEzLjU1ODYgMjUuNDg0NCAxMy42OTkyIDI1Ljg5ODRMMTYuMTg3NSAzMy4yMzQ0QzE2LjI4OTEgMzMuNTI3MyAxNi41MzUyIDMzLjc1MzkgMTYuODMyIDMzLjgyODFDMTYuODk0NSAzMy44NDM4IDE2Ljk1NzAgMzMuODQ3NyAxNy4wMTk1IDMzLjg0NzdDMTcuMjU3OCAzMy44NDc3IDE3LjQ4ODMgMzMuNzYxNyAxNy42NjQxIDMzLjYwMTZMMjUuNzM0NCAyNi4zMzU5TDMwLjMyODEgMzIuNTk3N0MzMC41MzEyIDMyLjg2MzMgMzAuODQzOCAzMy4wMDc4IDMxLjE3MTkgMzMuMDA3OEMzMS4zNjMzIDMzLjAwNzggMzEuNTU4NiAzMi45NTMxIDMxLjcyNjYgMzIuODI4MUwzNS45MTQxIDI5LjU3MDNDMzYuMTc5NyAyOS4zNzExIDM2LjMyODEgMjkuMDU0NyAzNi4zMjgxIDI4LjcxODhWMjUuODIwM1oiIGZpbGw9IiM5NEEzQjMiLz4KPC9zdmc+Cg==';
                       }}
                     />
                   ) : (
@@ -438,7 +436,7 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
                 </div>
               </div>
             </div>
-            
+
             {/* Display Settings */}
             <div>
               <h4 className="text-sm font-medium text-gray-500 mb-2">Display Settings</h4>
@@ -457,7 +455,7 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
                 )}
               </div>
             </div>
-            
+
             {/* Schedule */}
             <div>
               <h4 className="text-sm font-medium text-gray-500 mb-2">Schedule</h4>
@@ -474,7 +472,7 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
                 </div>
               </div>
             </div>
-            
+
             {/* Metadata */}
             <div className="bg-gray-50 p-3 rounded-md">
               <h4 className="text-xs font-medium text-gray-500 mb-2">Metadata</h4>

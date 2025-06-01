@@ -1,12 +1,8 @@
 import React from 'react';
 import type { UserPermission } from '@/modules/storefront/models/permission';
 import type { UUID } from '@/modules/core/models/base';
-import { StorefrontRole } from '@/modules/storefront/models/permission';;
-import { 
-  MagnifyingGlassIcon, 
-  FunnelIcon 
-} from '@heroicons/react/24/outline';
-import { Search, User } from 'lucide-react';
+import { StorefrontRole } from '@/modules/storefront/models/permission';
+
 
 interface PermissionListProps {
   users: UserPermission[];
@@ -19,15 +15,15 @@ interface PermissionListProps {
   onSearchQueryChange: (query: string) => void;
 }
 
-const PermissionList: React.FC<PermissionListProps> = ({ 
-  users, 
-  loading, 
-  selectedUserId, 
-  onUserSelect,
+const PermissionList: React.FC<PermissionListProps> = ({
+  users,
+  loading,
+  selectedUserId,
+  onUser
   roleFilter,
   searchQuery,
   onRoleFilterChange,
-  onSearchQueryChange
+  onSearchQueryChange,
 }) => {
   // Get role badge class based on role
   const getRoleBadgeClass = (role: StorefrontRole): string => {
@@ -69,31 +65,31 @@ const PermissionList: React.FC<PermissionListProps> = ({
             <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
           </div>
         </div>
-        
+
         <div className="flex items-center gap-1 mb-1">
           <FunnelIcon className="h-4 w-4 text-gray-500" />
           <span className="text-xs font-medium text-gray-700">Filter by role:</span>
         </div>
-        
+
         <div className="flex flex-wrap gap-2">
-          <button 
+          <button
             onClick={() => onRoleFilterChange('all')}
             className={`text-xs px-3 py-1 rounded-full ${
-              roleFilter === 'all' 
-                ? 'bg-blue-100 text-blue-800' 
+              roleFilter === 'all'
+                ? 'bg-blue-100 text-blue-800'
                 : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
             }`}
           >
             All Roles
           </button>
-          
+
           {Object.values(StorefrontRole).map((role) => (
-            <button 
+            <button
               key={role}
               onClick={() => onRoleFilterChange(role)}
               className={`text-xs px-3 py-1 rounded-full ${
-                roleFilter === role 
-                  ? 'bg-blue-100 text-blue-800' 
+                roleFilter === role
+                  ? 'bg-blue-100 text-blue-800'
                   : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
               }`}
             >
@@ -139,10 +135,8 @@ const PermissionList: React.FC<PermissionListProps> = ({
                   {user.role}
                 </span>
               </div>
-              <p className="text-xs text-gray-500 mb-1">
-                User ID: {user.user_id}
-              </p>
-              
+              <p className="text-xs text-gray-500 mb-1">User ID: {user.user_id}</p>
+
               {/* Permission counts */}
               <div className="mt-2 text-xs text-gray-600 flex gap-2">
                 {user.global_permissions.length > 0 && (
@@ -150,13 +144,13 @@ const PermissionList: React.FC<PermissionListProps> = ({
                     {user.global_permissions.length} global
                   </span>
                 )}
-                
+
                 {Object.keys(user.section_permissions).length > 0 && (
                   <span className="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 text-gray-800">
                     {Object.keys(user.section_permissions).length} sections
                   </span>
                 )}
-                
+
                 {Object.keys(user.component_permissions).length > 0 && (
                   <span className="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 text-gray-800">
                     {Object.keys(user.component_permissions).length} components

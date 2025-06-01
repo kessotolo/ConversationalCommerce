@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { Tab } from '@headlessui/react';
+import type { UUID } from '@/modules/core/models/base';
 import DraftManagement from './DraftManagement/DraftManagement';
 import VersionHistory from './VersionHistory/VersionHistory';
 import Permissions from './Permissions/Permissions';
 import AssetManagement from './AssetManagement/AssetManagement';
 import BannerLogoManagement from './BannerLogoManagement/BannerLogoManagement';
 import LayoutEditor from './LayoutEditor/LayoutEditor';
-import type { UUID } from '@/modules/core/models/base';;
 
 interface StorefrontEditorProps {
   tenantId: UUID;
@@ -29,7 +28,7 @@ const StorefrontEditor: React.FC<StorefrontEditorProps> = ({ tenantId }) => {
     <div className="w-full px-2 py-4">
       <div className="w-full max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold mb-6">Storefront Editor</h1>
-        
+
         <Tab.Group selectedIndex={selectedIndex} onChange={setSelectedIndex}>
           <Tab.List className="flex p-1 space-x-1 bg-blue-900/20 rounded-xl">
             {categories.map((category) => (

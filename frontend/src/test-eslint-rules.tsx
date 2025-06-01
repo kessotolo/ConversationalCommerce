@@ -1,5 +1,4 @@
 import React from 'react';
-// Updated to use direct module import instead of bridge file
 import { Status } from '@/modules/core/models/base';
 
 const TestComponent: React.FC = () => {

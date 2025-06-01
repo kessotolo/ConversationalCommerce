@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { getVersions, restoreVersion } from '../../../lib/api/storefrontEditor';
 import type { Version } from '@/modules/storefront/models/version';
-import type { UUID } from '@/modules/core/models/base';;
+import type { UUID } from '@/modules/core/models/base';
+import { getVersions, restoreVersion } from '../../../lib/api/storefrontEditor';
 import VersionList from './VersionList';
 import VersionDetail from './VersionDetail';
 import VersionCompare from './VersionCompare';
-import { ArrowPathIcon } from '@heroicons/react/24/outline';
 
 interface VersionHistoryProps {
   tenantId: UUID;
@@ -22,22 +21,22 @@ const VersionHistory: React.FC<VersionHistoryProps> = ({ tenantId }) => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [skip, setSkip] = useState(0);
   const [limit] = useState(10);
-  
+
   // Filter state
   const [tagsFilter, setTagsFilter] = useState<string[]>([]);
-  const [dateFilter, setDateFilter] = useState<{start?: Date, end?: Date}>({});
+  const [dateFilter, setDateFilter] = useState<{ start?: Date; end?: Date }>({});
   const [searchQuery, setSearchQuery] = useState('');
 
   // Load versions
   const loadVersions = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await getVersions(tenantId, skip, limit, tagsFilter);
       setVersions(response.items);
       setTotalVersions(response.total);
-      
+
       // Select first version if nothing is selected
       if (response.items.length > 0 && !selectedVersion) {
         setSelectedVersion(response.items[0]);
@@ -119,9 +118,9 @@ const VersionHistory: React.FC<VersionHistoryProps> = ({ tenantId }) => {
 
   // Filter versions by date and search query
   // (Tags filtering is done at API level)
-  const filteredVersions = versions.filter(version => {
+  const filteredVersions = versions.filter((version) => {
     const versionDate = new Date(version.created_at);
-    
+
     // Apply date filter
     if (dateFilter.start && versionDate < dateFilter.start) return false;
     if (dateFilter.end) {
@@ -129,19 +128,19 @@ const VersionHistory: React.FC<VersionHistoryProps> = ({ tenantId }) => {
       endDate.setHours(23, 59, 59, 999); // End of day
       if (versionDate > endDate) return false;
     }
-    
+
     // Apply search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       const matchesChangeSummary = version.change_summary.toLowerCase().includes(query);
       const matchesChangeDescription = version.change_description.toLowerCase().includes(query);
-      const matchesTags = version.tags.some(tag => tag.toLowerCase().includes(query));
-      
+      const matchesTags = version.tags.some((tag) => tag.toLowerCase().includes(query));
+
       if (!matchesChangeSummary && !matchesChangeDescription && !matchesTags) {
         return false;
       }
     }
-    
+
     return true;
   });
 
@@ -171,16 +170,10 @@ const VersionHistory: React.FC<VersionHistoryProps> = ({ tenantId }) => {
       </div>
 
       {successMessage && (
-        <div className="mb-4 p-3 bg-green-100 text-green-800 rounded-md">
-          {successMessage}
-        </div>
+        <div className="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{successMessage}</div>
       )}
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md">
-          {error}
-        </div>
-      )}
+      {error && <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md">{error}</div>}
 
       {compareMode && !compareVersion && selectedVersion && (
         <div className="mb-4 p-3 bg-blue-100 text-blue-800 rounded-md">
@@ -209,9 +202,9 @@ const VersionHistory: React.FC<VersionHistoryProps> = ({ tenantId }) => {
           {/* Pagination */}
           <div className="p-3 border-t flex justify-between items-center">
             <span className="text-sm text-gray-600">
-              {filteredVersions.length > 0 ? 
-                `Showing ${skip + 1}-${skip + filteredVersions.length} of ${totalVersions}` : 
-                'No versions found'}
+              {filteredVersions.length > 0
+                ? `Showing ${skip + 1}-${skip + filteredVersions.length} of ${totalVersions}`
+                : 'No versions found'}
             </span>
             <div className="flex space-x-2">
               <button
@@ -256,8 +249,18 @@ const VersionHistory: React.FC<VersionHistoryProps> = ({ tenantId }) => {
             />
           ) : (
             <div className="bg-white rounded-lg border shadow-sm p-8 flex flex-col items-center justify-center h-full">
-              <svg className="h-16 w-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="h-16 w-16 text-gray-400 mb-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
               <h3 className="text-lg font-medium text-gray-900">No version selected</h3>
               <p className="text-gray-500 mt-1">Select a version from the list to view details.</p>

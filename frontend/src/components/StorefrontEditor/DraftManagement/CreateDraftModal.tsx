@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { createDraft } from '../../../lib/api/storefrontEditor';
 import type { UUID } from '@/modules/core/models/base';
-import { XMarkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { createDraft } from '../../../lib/api/storefrontEditor';
 
 interface CreateDraftModalProps {
   tenantId: UUID;
@@ -9,15 +8,11 @@ interface CreateDraftModalProps {
   onSuccess: () => void;
 }
 
-const CreateDraftModal: React.FC<CreateDraftModalProps> = ({ 
-  tenantId, 
-  onClose, 
-  onSuccess 
-}) => {
+const CreateDraftModal: React.FC<CreateDraftModalProps> = ({ tenantId, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    initial_configuration: {}
+    initial_configuration: {},
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,15 +26,15 @@ const CreateDraftModal: React.FC<CreateDraftModalProps> = ({
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name.trim()) {
       setError('Draft name is required');
       return;
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       await createDraft(tenantId, formData);
       onSuccess();
@@ -58,10 +53,7 @@ const CreateDraftModal: React.FC<CreateDraftModalProps> = ({
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b">
           <h3 className="text-lg font-medium">Create New Draft</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
             <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
@@ -74,7 +66,7 @@ const CreateDraftModal: React.FC<CreateDraftModalProps> = ({
               {error}
             </div>
           )}
-          
+
           <form onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div>
@@ -92,7 +84,7 @@ const CreateDraftModal: React.FC<CreateDraftModalProps> = ({
                   placeholder="e.g., Summer Sale Homepage Update"
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="description" className="block text-sm font-medium text-gray-700">
                   Description
@@ -107,7 +99,7 @@ const CreateDraftModal: React.FC<CreateDraftModalProps> = ({
                   placeholder="Describe the purpose of this draft"
                 />
               </div>
-              
+
               <div className="pt-2 text-xs text-gray-500">
                 <p>* Required fields</p>
               </div>

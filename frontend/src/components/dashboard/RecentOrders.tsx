@@ -1,10 +1,10 @@
 import React from 'react';
-import { formatCurrency, formatDate } from '@/lib/utils';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
-import { Badge } from '../ui/Badge';
 import { ExternalLink, MessageSquare } from 'lucide-react';
+import { formatCurrency, formatDate } from '@/lib/utils';
+import {  CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import {  CardHeader, CardTitle, CardContent } from '../ui/Card';
+import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 
 interface Order {
   id: string;
@@ -61,7 +61,10 @@ export function RecentOrders({ orders, isLoading = false }: RecentOrdersProps) {
         ) : (
           <div className="space-y-5">
             {orders.map((order) => (
-              <div key={order.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b last:border-b-0 last:pb-0">
+              <div
+                key={order.id}
+                className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b last:border-b-0 last:pb-0"
+              >
                 <div className="mb-2 sm:mb-0">
                   <div className="font-medium">{order.customerName}</div>
                   <div className="text-sm text-muted-foreground">
@@ -74,18 +77,18 @@ export function RecentOrders({ orders, isLoading = false }: RecentOrdersProps) {
                   </Badge>
                   <div className="flex gap-2">
                     {order.phone && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         className="h-7 w-7 p-0"
                         aria-label="Contact on WhatsApp"
                       >
                         <MessageSquare className="h-4 w-4" />
                       </Button>
                     )}
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       className="h-7 w-7 p-0"
                       aria-label="View order"
                     >

@@ -1,5 +1,5 @@
-import * as React from "react";
-import { Toast, ToastProps } from "./toast";
+import * as React from 'react';
+import { Toast, ToastProps } from './toast';
 
 type ToastActionElement = React.ReactElement;
 
@@ -34,18 +34,17 @@ export function ToastProvider({ children }: ToasterProps) {
 
   const toast = ({ ...props }: ToastProps) => {
     const id = Math.random().toString(36).substring(2, 9);
-    
+
     const update = (toast: ToasterToast) =>
       setToasts((toasts) => toasts.map((t) => (t.id === toast.id ? { ...t, ...toast } : t)));
-    
+
     const dismiss = (toastId: string) => {
       setToasts((toasts) => toasts.filter((t) => t.id !== toastId));
     };
 
-    setToasts((toasts) => [
-      ...toasts,
-      { ...props, id, dismiss: () => dismiss(id) },
-    ].slice(-TOAST_LIMIT));
+    setToasts((toasts) =>
+      [...toasts, { ...props, id, dismiss: () => dismiss(id) }].slice(-TOAST_LIMIT),
+    );
 
     setTimeout(() => {
       dismiss(id);
@@ -55,7 +54,9 @@ export function ToastProvider({ children }: ToasterProps) {
   };
 
   return (
-    <ToastContext.Provider value={{ toast, dismiss: (id) => setToasts((toasts) => toasts.filter((t) => t.id !== id)) }}>
+    <ToastContext.Provider
+      value={{ toast, dismiss: (id) => setToasts((toasts) => toasts.filter((t) => t.id !== id)) }}
+    >
       {children}
       <div className="fixed top-0 right-0 z-50 flex flex-col gap-2 w-full max-w-sm p-4">
         {toasts.map((t) => (
@@ -77,7 +78,7 @@ export const useToast = () => {
   const context = React.useContext(ToastContext);
 
   if (!context) {
-    throw new Error("useToast must be used within a ToastProvider");
+    throw new Error('useToast must be used within a ToastProvider');
   }
 
   return context;

@@ -1,17 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { uploadAsset } from '../../../lib/api/storefrontEditor';
+import { Upload } from 'lucide-react';
 import type { UUID } from '@/modules/core/models/base';
 import { AssetType } from '@/modules/storefront/models/asset';
-import { 
-  XMarkIcon, 
-  ArrowUpTrayIcon, 
-  DocumentPlusIcon,
-  PhotoIcon,
-  FilmIcon,
-  DocumentTextIcon,
-  MusicalNoteIcon
-} from '@heroicons/react/24/outline';
-import { Upload } from 'lucide-react';
+import { uploadAsset } from '../../../lib/api/storefrontEditor';
 
 interface AssetUploaderProps {
   tenantId: UUID;
@@ -33,17 +24,17 @@ const AssetUploader: React.FC<AssetUploaderProps> = ({ tenantId, onClose, onSucc
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
-      
+
       // Initialize titles with filenames (without extensions)
       const newTitles = { ...titles };
-      newFiles.forEach(file => {
+      newFiles.forEach((file) => {
         const fileName = file.name.split('.').slice(0, -1).join('.');
         newTitles[file.name] = fileName;
       });
-      
-      setFiles(prev => [...prev, ...newFiles]);
+
+      setFiles((prev) => [...prev, ...newFiles]);
       setTitles(newTitles);
-      
+
       // Reset input value to allow selecting the same file again
       e.target.value = '';
     }
@@ -58,35 +49,35 @@ const AssetUploader: React.FC<AssetUploaderProps> = ({ tenantId, onClose, onSucc
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (e.dataTransfer.files) {
       const newFiles = Array.from(e.dataTransfer.files);
-      
+
       // Initialize titles with filenames (without extensions)
       const newTitles = { ...titles };
-      newFiles.forEach(file => {
+      newFiles.forEach((file) => {
         const fileName = file.name.split('.').slice(0, -1).join('.');
         newTitles[file.name] = fileName;
       });
-      
-      setFiles(prev => [...prev, ...newFiles]);
+
+      setFiles((prev) => [...prev, ...newFiles]);
       setTitles(newTitles);
     }
   };
 
   // Handle removal of file from the list
   const handleRemoveFile = (index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   // Handle title change
   const handleTitleChange = (fileName: string, value: string) => {
-    setTitles(prev => ({ ...prev, [fileName]: value }));
+    setTitles((prev) => ({ ...prev, [fileName]: value }));
   };
 
   // Handle alt text change
   const handleAltTextChange = (fileName: string, value: string) => {
-    setAltTexts(prev => ({ ...prev, [fileName]: value }));
+    setAltTexts((prev) => ({ ...prev, [fileName]: value }));
   };
 
   // Determine asset type from file
@@ -95,9 +86,12 @@ const AssetUploader: React.FC<AssetUploaderProps> = ({ tenantId, onClose, onSucc
     if (mimeType.startsWith('image/')) return AssetType.IMAGE;
     if (mimeType.startsWith('video/')) return AssetType.VIDEO;
     if (mimeType.startsWith('audio/')) return AssetType.AUDIO;
-    if (mimeType === 'application/pdf' || 
-        mimeType.includes('document') || 
-        mimeType.includes('text/')) return AssetType.DOCUMENT;
+    if (
+      mimeType === 'application/pdf' ||
+      mimeType.includes('document') ||
+      mimeType.includes('text/')
+    )
+      return AssetType.DOCUMENT;
     return AssetType.OTHER;
   };
 
@@ -130,50 +124,50 @@ const AssetUploader: React.FC<AssetUploaderProps> = ({ tenantId, onClose, onSucc
   // Handle upload process
   const handleUpload = async () => {
     if (files.length === 0) return;
-    
+
     setUploading(true);
     setErrors({});
-    
+
     const successfulUploads: string[] = [];
-    
+
     // Upload each file individually
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const fileName = file.name;
-      
+
       // Skip if already uploaded
       if (uploadSuccess.includes(fileName)) continue;
-      
+
       try {
         // Create form data
         const formData = new FormData();
         formData.append('file', file);
         formData.append('title', titles[fileName] || fileName);
         formData.append('asset_type', getAssetType(file));
-        
+
         // Add alt text only for images
         if (getAssetType(file) === AssetType.IMAGE && altTexts[fileName]) {
           formData.append('alt_text', altTexts[fileName]);
         }
-        
+
         // Upload the file
         await uploadAsset(tenantId, formData);
-        
+
         // Mark as successfully uploaded
         successfulUploads.push(fileName);
-        setUploadSuccess(prev => [...prev, fileName]);
-        setUploadProgress(prev => ({ ...prev, [fileName]: 100 }));
+        setUploadSuccess((prev) => [...prev, fileName]);
+        setUploadProgress((prev) => ({ ...prev, [fileName]: 100 }));
       } catch (err) {
         console.error(`Error uploading ${fileName}:`, err);
-        setErrors(prev => ({ 
-          ...prev, 
-          [fileName]: 'Failed to upload file. Please try again.' 
+        setErrors((prev) => ({
+          ...prev,
+          [fileName]: 'Failed to upload file. Please try again.',
         }));
       }
     }
-    
+
     setUploading(false);
-    
+
     // If all files uploaded successfully, call onSuccess and close
     if (successfulUploads.length === files.length) {
       onSuccess();
@@ -194,10 +188,7 @@ const AssetUploader: React.FC<AssetUploaderProps> = ({ tenantId, onClose, onSucc
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b">
           <h3 className="text-lg font-medium">Upload Assets</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
             <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
@@ -264,11 +255,14 @@ const AssetUploader: React.FC<AssetUploaderProps> = ({ tenantId, onClose, onSucc
                   const progress = uploadProgress[fileName] || 0;
 
                   return (
-                    <div 
-                      key={`${fileName}-${index}`} 
+                    <div
+                      key={`${fileName}-${index}`}
                       className={`border rounded-lg p-3 ${
-                        isUploaded ? 'bg-green-50 border-green-200' : 
-                        hasError ? 'bg-red-50 border-red-200' : 'bg-white'
+                        isUploaded
+                          ? 'bg-green-50 border-green-200'
+                          : hasError
+                            ? 'bg-red-50 border-red-200'
+                            : 'bg-white'
                       }`}
                     >
                       <div className="flex gap-3">
@@ -293,7 +287,10 @@ const AssetUploader: React.FC<AssetUploaderProps> = ({ tenantId, onClose, onSucc
                         {/* File Info and Form */}
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between">
-                            <p className="text-sm font-medium text-gray-900 truncate" title={fileName}>
+                            <p
+                              className="text-sm font-medium text-gray-900 truncate"
+                              title={fileName}
+                            >
                               {fileName}
                             </p>
                             {!isUploaded && !uploading && (
@@ -310,7 +307,10 @@ const AssetUploader: React.FC<AssetUploaderProps> = ({ tenantId, onClose, onSucc
                           {!isUploaded && (
                             <div className="mt-2 space-y-2">
                               <div>
-                                <label htmlFor={`title-${index}`} className="block text-xs font-medium text-gray-700">
+                                <label
+                                  htmlFor={`title-${index}`}
+                                  className="block text-xs font-medium text-gray-700"
+                                >
                                   Title
                                 </label>
                                 <input
@@ -322,10 +322,13 @@ const AssetUploader: React.FC<AssetUploaderProps> = ({ tenantId, onClose, onSucc
                                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-xs"
                                 />
                               </div>
-                              
+
                               {isImage && (
                                 <div>
-                                  <label htmlFor={`alt-${index}`} className="block text-xs font-medium text-gray-700">
+                                  <label
+                                    htmlFor={`alt-${index}`}
+                                    className="block text-xs font-medium text-gray-700"
+                                  >
                                     Alt Text (for images)
                                   </label>
                                   <input
@@ -345,8 +348,8 @@ const AssetUploader: React.FC<AssetUploaderProps> = ({ tenantId, onClose, onSucc
                           {uploading && !isUploaded && (
                             <div className="mt-2">
                               <div className="w-full bg-gray-200 rounded-full h-2.5">
-                                <div 
-                                  className="bg-blue-600 h-2.5 rounded-full" 
+                                <div
+                                  className="bg-blue-600 h-2.5 rounded-full"
                                   style={{ width: `${progress}%` }}
                                 ></div>
                               </div>
@@ -359,17 +362,25 @@ const AssetUploader: React.FC<AssetUploaderProps> = ({ tenantId, onClose, onSucc
                           {/* Success or Error Message */}
                           {isUploaded && (
                             <div className="mt-2 text-xs text-green-600 flex items-center">
-                              <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              <svg
+                                className="h-4 w-4 mr-1"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M5 13l4 4L19 7"
+                                />
                               </svg>
                               Successfully uploaded
                             </div>
                           )}
 
                           {hasError && (
-                            <div className="mt-2 text-xs text-red-600">
-                              {errors[fileName]}
-                            </div>
+                            <div className="mt-2 text-xs text-red-600">{errors[fileName]}</div>
                           )}
                         </div>
                       </div>

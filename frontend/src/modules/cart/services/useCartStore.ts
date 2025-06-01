@@ -1,7 +1,5 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { CartItem } from '../models';
-import { UUID } from '@core/models/base';
 import { LocalStorageCartService } from './CartService';
 
 /**
@@ -11,9 +9,9 @@ import { LocalStorageCartService } from './CartService';
 interface CartStore {
   // State
   items: CartItem[];
-  
+
   // Methods
-  addItem: (item: Omit<CartItem, 'quantity'>) => void;
+  addItem: (item: Omit< 'quantity'>) => void;
   removeItem: (itemId: UUID) => void;
   updateQuantity: (itemId: UUID, quantity: number) => void;
   clearCart: () => void;
@@ -30,7 +28,7 @@ export const useCartStore = create<CartStore>()(
     (set, get) => ({
       items: cartService.getItems(),
 
-      addItem: (item: Omit<CartItem, 'quantity'>) => {
+      addItem: (item: Omit< 'quantity'>) => {
         cartService.addItem(item);
         set({ items: cartService.getItems() });
       },
@@ -62,6 +60,6 @@ export const useCartStore = create<CartStore>()(
       name: 'cart-storage',
       // Optionally add a custom partialize function to control what gets persisted
       partialize: (state) => ({ items: state.items }),
-    }
-  )
+    },
+  ),
 );

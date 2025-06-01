@@ -13,9 +13,7 @@ interface ThemeProviderProps {
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   return (
     <TenantProvider>
-      <CustomThemeProvider>
-        {children}
-      </CustomThemeProvider>
+      <CustomThemeProvider>{children}</CustomThemeProvider>
     </TenantProvider>
   );
 };

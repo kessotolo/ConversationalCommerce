@@ -1,8 +1,9 @@
+// TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
 // Using dynamic import approach for axios like in the main API file
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const axios = require('axios').default || require('axios');
 import { API_BASE_URL, API_TIMEOUT, RETRY_ATTEMPTS, FEATURES } from '../../config';
-import { Store } from 'lucide-react';
+
 
 // Create optimized axios instance for storefront editor
 // Using separate instance with specific timeout for editor operations
@@ -11,8 +12,8 @@ const editorAxios = axios.create({
   timeout: API_TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  }
+    Accept: 'application/json',
+  },
 });
 
 // Add retry logic for better resilience in low-connectivity environments common in African markets
@@ -20,15 +21,15 @@ editorAxios.interceptors.response.use(null, async (error: any) => {
   if (!error.config || !error.config.retry) {
     error.config.retry = 0;
   }
-  
+
   if (error.config.retry >= RETRY_ATTEMPTS) {
     return Promise.reject(error);
   }
-  
+
   // Exponential backoff with jitter for network variability
   error.config.retry += 1;
   const delay = 1000 * Math.pow(2, error.config.retry) * (0.9 + Math.random() * 0.2); // Add jitter
-  await new Promise(resolve => setTimeout(resolve, delay));
+  await new Promise((resolve) => setTimeout(resolve, delay));
   return editorAxios(error.config);
 });
 
@@ -42,18 +43,18 @@ const API_URL = `${API_BASE_URL}/v1/storefronts`;
 // Progressive loading helpers - allow partial content loading on slow connections
 const progressiveLoad = <T>(data: T, priority: string[] = []): T => {
   if (!FEATURES.lowBandwidthMode || !priority.length) return data;
-  
+
   // When in low bandwidth mode, only return high priority fields
   if (typeof data === 'object' && data !== null) {
     const result = {} as T;
-    priority.forEach(key => {
+    priority.forEach((key) => {
       if (key in data) {
         result[key as keyof T] = data[key as keyof T];
       }
     });
     return result;
   }
-  
+
   return data;
 };
 
@@ -62,16 +63,16 @@ export const getDrafts = async (tenantId: UUID, skip = 0, limit = 10) => {
   try {
     // Reduce limit in low bandwidth mode to load faster
     const adjustedLimit = FEATURES.lowBandwidthMode ? Math.min(limit, 5) : limit;
-    
+
     const response = await editorAxios.get(`${API_URL}/${tenantId}/drafts`, {
-      params: { skip, limit: adjustedLimit }
+      params: { skip, limit: adjustedLimit },
     });
-    
+
     // Apply progressive loading with high priority fields first
     return progressiveLoad(response.data, ['id', 'name', 'status', 'updated_at']);
   } catch (error) {
     console.error('Failed to fetch drafts:', error);
-    
+
     // Store locally for offline access if available
     if (FEATURES.offlineMode && typeof localStorage !== 'undefined') {
       const cachedData = localStorage.getItem(`drafts_${tenantId}`);
@@ -79,7 +80,7 @@ export const getDrafts = async (tenantId: UUID, skip = 0, limit = 10) => {
         return JSON.parse(cachedData);
       }
     }
-    
+
     throw error;
   }
 };
@@ -117,7 +118,7 @@ export const updateDraft = async (tenantId: UUID, draftId: UUID, draftData: any)
 export const publishDraft = async (tenantId: UUID, draftId: UUID, scheduleTime?: Date) => {
   try {
     const response = await editorAxios.put(`${API_URL}/${tenantId}/drafts/${draftId}/publish`, {
-      schedule_time: scheduleTime ? scheduleTime.toISOString() : undefined
+      schedule_time: scheduleTime ? scheduleTime.toISOString() : undefined,
     });
     return response.data;
   } catch (error) {
@@ -140,7 +141,7 @@ export const deleteDraft = async (tenantId: UUID, draftId: UUID) => {
 export const getVersions = async (tenantId: UUID, skip = 0, limit = 10, tags?: string[]) => {
   try {
     const response = await editorAxios.get(`${API_URL}/${tenantId}/versions`, {
-      params: { skip, limit, tags: tags?.join(',') }
+      params: { skip, limit, tags: tags?.join(',') },
     });
     return response.data;
   } catch (error) {
@@ -172,7 +173,7 @@ export const restoreVersion = async (tenantId: UUID, versionId: UUID) => {
 export const compareVersions = async (tenantId: UUID, v1: UUID, v2: UUID) => {
   try {
     const response = await editorAxios.get(`${API_URL}/${tenantId}/versions/compare`, {
-      params: { v1, v2 }
+      params: { v1, v2 },
     });
     return response.data;
   } catch (error) {
@@ -204,7 +205,10 @@ export const getUserPermission = async (tenantId: UUID, userId: UUID) => {
 
 export const assignRole = async (tenantId: UUID, userId: UUID, roleData: any) => {
   try {
-    const response = await editorAxios.put(`${API_URL}/${tenantId}/permissions/${userId}/role`, roleData);
+    const response = await editorAxios.put(
+      `${API_URL}/${tenantId}/permissions/${userId}/role`,
+      roleData,
+    );
     return response.data;
   } catch (error) {
     console.error('Failed to assign role:', error);
@@ -214,7 +218,10 @@ export const assignRole = async (tenantId: UUID, userId: UUID, roleData: any) =>
 
 export const setSectionPermission = async (tenantId: UUID, userId: UUID, sectionData: any) => {
   try {
-    const response = await editorAxios.put(`${API_URL}/${tenantId}/permissions/${userId}/section`, sectionData);
+    const response = await editorAxios.put(
+      `${API_URL}/${tenantId}/permissions/${userId}/section`,
+      sectionData,
+    );
     return response.data;
   } catch (error) {
     console.error('Failed to set section permission:', error);
@@ -224,7 +231,10 @@ export const setSectionPermission = async (tenantId: UUID, userId: UUID, section
 
 export const setComponentPermission = async (tenantId: UUID, userId: UUID, componentData: any) => {
   try {
-    const response = await editorAxios.put(`${API_URL}/${tenantId}/permissions/${userId}/component`, componentData);
+    const response = await editorAxios.put(
+      `${API_URL}/${tenantId}/permissions/${userId}/component`,
+      componentData,
+    );
     return response.data;
   } catch (error) {
     console.error('Failed to set component permission:', error);
@@ -277,8 +287,8 @@ export const uploadAsset = async (tenantId: UUID, formData: FormData) => {
   try {
     const response = await editorAxios.post(`${API_URL}/${tenantId}/assets`, formData, {
       headers: {
-        'Content-Type': 'multipart/form-data'
-      }
+        'Content-Type': 'multipart/form-data',
+      },
     });
     return response.data;
   } catch (error) {
@@ -350,7 +360,10 @@ export const createBanner = async (tenantId: UUID, bannerData: any) => {
 
 export const updateBanner = async (tenantId: UUID, bannerId: UUID, bannerData: any) => {
   try {
-    const response = await editorAxios.put(`${API_URL}/${tenantId}/banners/${bannerId}`, bannerData);
+    const response = await editorAxios.put(
+      `${API_URL}/${tenantId}/banners/${bannerId}`,
+      bannerData,
+    );
     return response.data;
   } catch (error) {
     console.error('Failed to update banner:', error);
@@ -482,7 +495,10 @@ export const createComponent = async (tenantId: UUID, componentData: any) => {
 
 export const updateComponent = async (tenantId: UUID, componentId: UUID, componentData: any) => {
   try {
-    const response = await editorAxios.put(`${API_URL}/${tenantId}/components/${componentId}`, componentData);
+    const response = await editorAxios.put(
+      `${API_URL}/${tenantId}/components/${componentId}`,
+      componentData,
+    );
     return response.data;
   } catch (error) {
     console.error('Failed to update component:', error);
@@ -512,7 +528,10 @@ export const getPageTemplates = async (tenantId: UUID, params?: any) => {
 
 export const updatePageLayout = async (tenantId: UUID, pageId: UUID, layoutData: any) => {
   try {
-    const response = await editorAxios.put(`${API_URL}/${tenantId}/pages/${pageId}/layout`, layoutData);
+    const response = await editorAxios.put(
+      `${API_URL}/${tenantId}/pages/${pageId}/layout`,
+      layoutData,
+    );
     return response.data;
   } catch (error) {
     console.error('Failed to update page layout:', error);

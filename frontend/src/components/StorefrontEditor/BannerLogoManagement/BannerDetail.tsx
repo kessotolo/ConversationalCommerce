@@ -1,22 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import type { Banner } from '@/modules/storefront/models/banner';
 import type { UUID } from '@/modules/core/models/base';
 import type { Asset } from '@/modules/storefront/models/asset';
 import { BannerStatus, BannerType, TargetAudience } from '@/modules/storefront/models/banner';
-import { updateBanner, getBanner, getAssets } from '../../../lib/api/storefrontEditor';
-import { 
-  CheckIcon, 
-  TrashIcon, 
-  PencilIcon,
-  ExclamationTriangleIcon,
-  CalendarIcon,
-  TagIcon,
-  LinkIcon,
-  UserGroupIcon,
-  PhotoIcon
-} from '@heroicons/react/24/outline';
-import { Check, Save } from 'lucide-react';
-import Image from 'next/image';
+import { updateBanner, getAssets } from '../../../lib/api/storefrontEditor';
 
 interface BannerDetailProps {
   banner: Banner;
@@ -26,12 +14,12 @@ interface BannerDetailProps {
   onUpdate: () => void;
 }
 
-const BannerDetail: React.FC<BannerDetailProps> = ({ 
-  banner, 
-  tenantId, 
-  onPublish, 
+const BannerDetail: React.FC<BannerDetailProps> = ({
+  banner,
+  tenantId,
+  onPublish,
   onDelete,
-  onUpdate
+  onUpdate,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -40,7 +28,7 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [assetList, setAssetList] = useState<Asset[]>([]);
   const [loadingAssets, setLoadingAssets] = useState(false);
-  
+
   // Form state
   const [formData, setFormData] = useState({
     title: banner.title,
@@ -51,7 +39,7 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
     start_date: banner.start_date || '',
     end_date: banner.end_date || '',
     target_audience: banner.target_audience || [TargetAudience.ALL],
-    custom_styles: banner.custom_styles || {}
+    custom_styles: banner.custom_styles || {},
   });
 
   // Load assets for selection
@@ -69,7 +57,7 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
         }
       }
     };
-    
+
     loadAssets();
   }, [isEditing, tenantId]);
 
@@ -86,7 +74,9 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
   };
 
   // Handle input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
@@ -94,20 +84,20 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
   // Handle checkbox changes for target audience
   const handleTargetAudienceChange = (audience: TargetAudience) => {
     const current = [...formData.target_audience];
-    
+
     // If ALL is selected, remove all other options
     if (audience === TargetAudience.ALL) {
       setFormData({ ...formData, target_audience: [TargetAudience.ALL] });
       return;
     }
-    
+
     // If switching from ALL to something else, remove ALL
     const newAudience = current.includes(TargetAudience.ALL)
       ? [audience]
       : current.includes(audience)
-        ? current.filter(a => a !== audience) // Remove if already selected
+        ? current.filter((a) => a !== audience) // Remove if already selected
         : [...current, audience]; // Add if not selected
-    
+
     // If nothing selected, default to ALL
     if (newAudience.length === 0) {
       setFormData({ ...formData, target_audience: [TargetAudience.ALL] });
@@ -121,13 +111,13 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
     e.preventDefault();
     setLoading(true);
     setError(null);
-    
+
     try {
       await updateBanner(tenantId, banner.id, formData);
       setSuccessMessage('Banner updated successfully');
       setIsEditing(false);
       onUpdate();
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
@@ -142,10 +132,10 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
   const handlePublish = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const success = await onPublish(banner.id);
-      
+
       if (success) {
         setSuccessMessage('Banner published successfully');
       } else {
@@ -163,10 +153,10 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
   const handleDelete = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const success = await onDelete(banner.id);
-      
+
       if (success) {
         setSuccessMessage('Banner deleted successfully');
       } else {
@@ -181,10 +171,11 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
   };
 
   // Get the selected asset details
-  const selectedAsset = assetList.find(asset => asset.id === formData.asset_id);
+  const selectedAsset = assetList.find((asset) => asset.id === formData.asset_id);
 
   // Check if banner can be published
-  const canPublish = banner.status === BannerStatus.DRAFT || banner.status === BannerStatus.INACTIVE;
+  const canPublish =
+    banner.status === BannerStatus.DRAFT || banner.status === BannerStatus.INACTIVE;
 
   return (
     <div className="bg-white rounded-lg border shadow-sm overflow-hidden h-full flex flex-col">
@@ -201,7 +192,7 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
                 <PencilIcon className="h-4 w-4 mr-2" />
                 Edit
               </button>
-              
+
               {canPublish && (
                 <button
                   onClick={handlePublish}
@@ -250,7 +241,7 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
                 </div>
               </div>
             </div>
-            
+
             <div className="flex justify-end space-x-2">
               <button
                 type="button"
@@ -286,7 +277,7 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </div>
-            
+
             <div>
               <label htmlFor="banner_type" className="block text-sm font-medium text-gray-700">
                 Banner Type *
@@ -306,7 +297,7 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
                 ))}
               </select>
             </div>
-            
+
             <div>
               <label htmlFor="asset_id" className="block text-sm font-medium text-gray-700">
                 Banner Image *
@@ -327,7 +318,7 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
                   </option>
                 ))}
               </select>
-              
+
               {/* Preview selected image */}
               {selectedAsset && (
                 <div className="mt-2 p-2 border rounded-md">
@@ -339,7 +330,7 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
                 </div>
               )}
             </div>
-            
+
             <div>
               <label htmlFor="link_url" className="block text-sm font-medium text-gray-700">
                 Link URL
@@ -354,7 +345,7 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="start_date" className="block text-sm font-medium text-gray-700">
@@ -369,7 +360,7 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="end_date" className="block text-sm font-medium text-gray-700">
                   End Date
@@ -385,7 +376,7 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
                 />
               </div>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Target Audience
@@ -400,14 +391,17 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
                       onChange={() => handleTargetAudienceChange(audience)}
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
-                    <label htmlFor={`audience-${audience}`} className="ml-2 block text-sm text-gray-700">
-                      {audience.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    <label
+                      htmlFor={`audience-${audience}`}
+                      className="ml-2 block text-sm text-gray-700"
+                    >
+                      {audience.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
                     </label>
                   </div>
                 ))}
               </div>
             </div>
-            
+
             <div className="flex justify-end space-x-2 pt-4">
               <button
                 type="button"
@@ -436,33 +430,37 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
                   <dt className="text-sm font-medium text-gray-500">Title</dt>
                   <dd className="mt-1 text-sm text-gray-900">{banner.title}</dd>
                 </div>
-                
+
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Type</dt>
                   <dd className="mt-1 text-sm text-gray-900 capitalize">{banner.banner_type}</dd>
                 </div>
-                
+
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Status</dt>
                   <dd className="mt-1 text-sm">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
                       ${banner.status === BannerStatus.DRAFT ? 'bg-gray-100 text-gray-800' : ''}
                       ${banner.status === BannerStatus.PUBLISHED ? 'bg-green-100 text-green-800' : ''}
                       ${banner.status === BannerStatus.SCHEDULED ? 'bg-blue-100 text-blue-800' : ''}
                       ${banner.status === BannerStatus.INACTIVE ? 'bg-red-100 text-red-800' : ''}
-                    `}>
+                    `}
+                    >
                       {banner.status}
                     </span>
                   </dd>
                 </div>
-                
+
                 <div className="col-span-2">
                   <dt className="text-sm font-medium text-gray-500">Display Order</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{banner.display_order || 'Not set'}</dd>
+                  <dd className="mt-1 text-sm text-gray-900">
+                    {banner.display_order || 'Not set'}
+                  </dd>
                 </div>
               </dl>
             </div>
-            
+
             {/* Banner Preview */}
             <div>
               <h4 className="text-sm font-medium text-gray-500 mb-2">Banner Preview</h4>
@@ -474,7 +472,8 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
                       alt={banner.title}
                       className="max-h-full max-w-full object-contain"
                       onError={(e) => {
-                        e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCA1MCA1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjUwIiBoZWlnaHQ9IjUwIiBmaWxsPSIjRTVFN0VCIi8+CjxwYXRoIGQ9Ik0xOC45NTMxIDIzLjA5MzhDMjAuMDYyNSAyMy4wOTM4IDIwLjk3NjYgMjIuMTc5NyAyMC45NzY2IDIxLjA3MDNDMjAuOTc2NiAxOS45NjA5IDIwLjA2MjUgMTkuMDQ2OSAxOC45NTMxIDE5LjA0NjlDMTcuODQzOCAxOS4wNDY5IDE2LjkyOTcgMTkuOTYwOSAxNi45Mjk3IDIxLjA3MDNDMTYuOTI5NyAyMi4xNzk3IDE3Ljg0MzggMjMuMDkzOCAxOC45NTMxIDIzLjA5MzhaIiBmaWxsPSIjOTRBM0IzIi8+CjxwYXRoIGQ9Ik0zMy4wMDc4IDMwLjk3NjZDMzMuMDA3OCAzMC40Njg4IDMyLjU5MzggMzAuMDU0NyAzMi4wODU5IDMwLjA1NDdIMTcuOTE0MUMxNy40MDYyIDMwLjA1NDcgMTYuOTkyMiAzMC40Njg4IDE2Ljk5MjIgMzAuOTc2NkMxNi45OTIyIDMxLjQ4NDQgMTcuNDA2MiAzMS44OTg0IDE3LjkxNDEgMzEuODk4NEgzMi4wODU5QzMyLjU5MzggMzEuODk4NCAzMy4wMDc4IDMxLjQ4NDQgMzMuMDA3OCAzMC45NzY2WiIgZmlsbD0iIzk0QTNCMyIvPgo8cGF0aCBkPSJNMzYuMzI4MSAyNS44MjAzQzM2LjMyODEgMjUuNDYwOSAzNi4wOTM4IDI1LjEyNSAzNS43MzQ0IDI0Ljk2MDlDMzUuMzcgMjQuODIwMyAzNC45NjQ4IDI0Ljg1OTQgMzQuNjQwNiAyNS4xMTcyTDMxLjMyODEgMjcuNzUzOUwyNi43NSAyMS41MTE3QzI2LjQ4NDQgMjEuMTU2MiAyNS45OTIyIDIxLjA3ODEgMjUuNjM2NyAyMS4zNDM4TDE4LjA3MDMgMjcuMTE3MkwxNS4yODkxIDI0LjgzNTlDMTQuOTQ1MyAyNC41NTQ3IDE0LjQ1MzEgMjQuNTM1MiAxNC4wODk4IDI0Ljc4MTJDMTMuNzI2NiAyNS4wMjczIDEzLjU1ODYgMjUuNDg0NCAxMy42OTkyIDI1Ljg5ODRMMTYuMTg3NSAzMy4yMzQ0QzE2LjI4OTEgMzMuNTI3MyAxNi41MzUyIDMzLjc1MzkgMTYuODMyIDMzLjgyODFDMTYuODk0NSAzMy44NDM4IDE2Ljk1NzAgMzMuODQ3NyAxNy4wMTk1IDMzLjg0NzdDMTcuMjU3OCAzMy44NDc3IDE3LjQ4ODMgMzMuNzYxNyAxNy42NjQxIDMzLjYwMTZMMjUuNzM0NCAyNi4zMzU5TDMwLjMyODEgMzIuNTk3N0MzMC41MzEyIDMyLjg2MzMgMzAuODQzOCAzMy4wMDc4IDMxLjE3MTkgMzMuMDA3OEMzMS4zNjMzIDMzLjAwNzggMzEuNTU4NiAzMi45NTMxIDMxLjcyNjYgMzIuODI4MUwzNS45MTQxIDI5LjU3MDNDMzYuMTc5NyAyOS4zNzExIDM2LjMyODEgMjkuMDU0NyAzNi4zMjgxIDI4LjcxODhWMjUuODIwM1oiIGZpbGw9IiM5NEEzQjMiLz4KPC9zdmc+Cg==';
+                        e.currentTarget.src =
+                          'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCA1MCA1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjUwIiBoZWlnaHQ9IjUwIiBmaWxsPSIjRTVFN0VCIi8+CjxwYXRoIGQ9Ik0xOC45NTMxIDIzLjA5MzhDMjAuMDYyNSAyMy4wOTM4IDIwLjk3NjYgMjIuMTc5NyAyMC45NzY2IDIxLjA3MDNDMjAuOTc2NiAxOS45NjA5IDIwLjA2MjUgMTkuMDQ2OSAxOC45NTMxIDE5LjA0NjlDMTcuODQzOCAxOS4wNDY5IDE2LjkyOTcgMTkuOTYwOSAxNi45Mjk3IDIxLjA3MDNDMTYuOTI5NyAyMi4xNzk3IDE3Ljg0MzggMjMuMDkzOCAxOC45NTMxIDIzLjA5MzhaIiBmaWxsPSIjOTRBM0IzIi8+CjxwYXRoIGQ9Ik0zMy4wMDc4IDMwLjk3NjZDMzMuMDA3OCAzMC40Njg4IDMyLjU5MzggMzAuMDU0NyAzMi4wODU5IDMwLjA1NDdIMTcuOTE0MUMxNy40MDYyIDMwLjA1NDcgMTYuOTkyMiAzMC40Njg4IDE2Ljk5MjIgMzAuOTc2NkMxNi45OTIyIDMxLjQ4NDQgMTcuNDA2MiAzMS44OTg0IDE3LjkxNDEgMzEuODk4NEgzMi4wODU5QzMyLjU5MzggMzEuODk4NCAzMy4wMDc4IDMxLjQ4NDQgMzMuMDA3OCAzMC45NzY2WiIgZmlsbD0iIzk0QTNCMyIvPgo8cGF0aCBkPSJNMzYuMzI4MSAyNS44MjAzQzM2LjMyODEgMjUuNDYwOSAzNi4wOTM4IDI1LjEyNSAzNS43MzQ0IDI0Ljk2MDlDMzUuMzcgMjQuODIwMyAzNC45NjQ4IDI0Ljg1OTQgMzQuNjQwNiAyNS4xMTcyTDMxLjMyODEgMjcuNzUzOUwyNi43NSAyMS41MTE3QzI2LjQ4NDQgMjEuMTU2MiAyNS45OTIyIDIxLjA3ODEgMjUuNjM2NyAyMS4zNDM4TDE4LjA3MDMgMjcuMTE3MkwxNS4yODkxIDI0LjgzNTlDMTQuOTQ1MyAyNC41NTQ3IDE0LjQ1MzEgMjQuNTM1MiAxNC4wODk4IDI0Ljc4MTJDMTMuNzI2NiAyNS4wMjczIDEzLjU1ODYgMjUuNDg0NCAxMy42OTkyIDI1Ljg5ODRMMTYuMTg3NSAzMy4yMzQ0QzE2LjI4OTEgMzMuNTI3MyAxNi41MzUyIDMzLjc1MzkgMTYuODMyIDMzLjgyODFDMTYuODk0NSAzMy44NDM4IDE2Ljk1NzAgMzMuODQ3NyAxNy4wMTk1IDMzLjg0NzdDMTcuMjU3OCAzMy44NDc3IDE3LjQ4ODMgMzMuNzYxNyAxNy42NjQxIDMzLjYwMTZMMjUuNzM0NCAyNi4zMzU5TDMwLjMyODEgMzIuNTk3N0MzMC41MzEyIDMyLjg2MzMgMzAuODQzOCAzMy4wMDc4IDMxLjE3MTkgMzMuMDA3OEMzMS4zNjMzIDMzLjAwNzggMzEuNTU4NiAzMi45NTMxIDMxLjcyNjYgMzIuODI4MUwzNS45MTQxIDI5LjU3MDNDMzYuMTc5NyAyOS4zNzExIDM2LjMyODEgMjkuMDU0NyAzNi4zMjgxIDI4LjcxODhWMjUuODIwM1oiIGZpbGw9IiM5NEEzQjMiLz4KPC9zdmc+Cg==';
                       }}
                     />
                   ) : (
@@ -486,7 +485,7 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
                 </div>
               </div>
             </div>
-            
+
             {/* Link Information */}
             <div className="flex items-start">
               <LinkIcon className="h-5 w-5 text-gray-400 mt-0.5 mr-2" />
@@ -497,7 +496,7 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
                 </p>
               </div>
             </div>
-            
+
             {/* Date Information */}
             <div className="flex items-start">
               <CalendarIcon className="h-5 w-5 text-gray-400 mt-0.5 mr-2" />
@@ -515,7 +514,7 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
                 </div>
               </div>
             </div>
-            
+
             {/* Target Audience */}
             <div className="flex items-start">
               <UserGroupIcon className="h-5 w-5 text-gray-400 mt-0.5 mr-2" />
@@ -537,7 +536,7 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
                 </div>
               </div>
             </div>
-            
+
             {/* Metadata */}
             <div className="bg-gray-50 p-3 rounded-md">
               <h4 className="text-xs font-medium text-gray-500 mb-2">Metadata</h4>

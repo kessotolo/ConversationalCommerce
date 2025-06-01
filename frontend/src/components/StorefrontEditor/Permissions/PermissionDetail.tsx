@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import type { UserPermission } from '@/modules/storefront/models/permission';
 import type { UUID } from '@/modules/core/models/base';
-import { StorefrontRole, StorefrontSectionType } from '@/modules/storefront/models/permission';;
-import { assignRole, setSectionPermission, removePermission } from '../../../lib/api/storefrontEditor';
-import { 
-  ShieldCheckIcon, 
-  TrashIcon, 
-  CheckIcon, 
+import { StorefrontRolefrontSectionType } from '@/modules/storefront/models/permission';
+import {
+  assignRole,
+  setSectionPermission,
+  removePermission,
+} from '../../../lib/api/storefrontEditor';
+import {
+  ShieldCheckIcon,
+  TrashIconIcon,
   ExclamationTriangleIcon,
   PencilIcon,
-  XMarkIcon
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
-import { User, Save } from 'lucide-react';
+
 
 interface PermissionDetailProps {
   user: UserPermission;
@@ -19,27 +22,28 @@ interface PermissionDetailProps {
   onUpdate: () => void;
 }
 
-const PermissionDetail: React.FC<PermissionDetailProps> = ({ 
-  user, 
-  tenantId, 
-  onUpdate 
-}) => {
+const PermissionDetail: React.FC<PermissionDetailProps> = ({ user, tenantId, onUpdate }) => {
   const [isEditingRole, setIsEditingRole] = useState(false);
   const [isEditingSections, setIsEditingSections] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  
+
   // Form state
   const [selectedRole, setSelectedRole] = useState<StorefrontRole>(user.role);
-  const [selectedPermissions, setSelectedPermissions] = useState<Record<StorefrontSectionType, string[]>>(
-    Object.entries(user.section_permissions).reduce((acc, [section, permissions]) => {
-      return {
-        ...acc,
-        [section as StorefrontSectionType]: permissions
-      };
-    }, {} as Record<StorefrontSectionType, string[]>)
+  const [selectedPermissions, setSelectedPermissions] = useState<
+    Record<StorefrontSectionType, string[]>
+  >(
+    Object.entries(user.section_permissions).reduce(
+      (acc, [section, permissions]) => {
+        return {
+          ...acc,
+          [section as StorefrontSectionType]: permissions,
+        };
+      },
+      {} as Record<StorefrontSectionType, string[]>,
+    ),
   );
 
   // Available permissions by section
@@ -51,7 +55,7 @@ const PermissionDetail: React.FC<PermissionDetailProps> = ({
     [StorefrontSectionType.SETTINGS]: ['view', 'edit', 'apply'],
     [StorefrontSectionType.BANNERS]: ['view', 'edit', 'publish', 'schedule'],
     [StorefrontSectionType.ASSETS]: ['view', 'upload', 'edit', 'delete'],
-    [StorefrontSectionType.SEO]: ['view', 'edit', 'apply']
+    [StorefrontSectionType.SEO]: ['view', 'edit', 'apply'],
   };
 
   // Get role badge class based on role
@@ -74,13 +78,13 @@ const PermissionDetail: React.FC<PermissionDetailProps> = ({
   const handleRoleUpdate = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       await assignRole(tenantId, user.user_id, { role: selectedRole });
       setSuccessMessage('Role updated successfully');
       setIsEditingRole(false);
       onUpdate();
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
@@ -95,19 +99,19 @@ const PermissionDetail: React.FC<PermissionDetailProps> = ({
   const handleSectionUpdate = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       for (const [section, permissions] of Object.entries(selectedPermissions)) {
         await setSectionPermission(tenantId, user.user_id, {
           section_type: section as StorefrontSectionType,
-          permissions
+          permissions,
         });
       }
-      
+
       setSuccessMessage('Section permissions updated successfully');
       setIsEditingSections(false);
       onUpdate();
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
@@ -122,13 +126,13 @@ const PermissionDetail: React.FC<PermissionDetailProps> = ({
   const handlePermissionRemove = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       await removePermission(tenantId, user.user_id);
       setSuccessMessage('User permissions removed successfully');
       setIsDeleting(false);
       onUpdate();
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
@@ -142,18 +146,18 @@ const PermissionDetail: React.FC<PermissionDetailProps> = ({
   // Toggle permission for a section
   const togglePermission = (section: StorefrontSectionType, permission: string) => {
     const currentPermissions = selectedPermissions[section] || [];
-    
+
     if (currentPermissions.includes(permission)) {
       // Remove permission
       setSelectedPermissions({
         ...selectedPermissions,
-        [section]: currentPermissions.filter(p => p !== permission)
+        [section]: currentPermissions.filter((p) => p !== permission),
       });
     } else {
       // Add permission
       setSelectedPermissions({
         ...selectedPermissions,
-        [section]: [...currentPermissions, permission]
+        [section]: [...currentPermissions, permission],
       });
     }
   };
@@ -196,14 +200,14 @@ const PermissionDetail: React.FC<PermissionDetailProps> = ({
                   <h3 className="text-sm font-medium text-red-800">Remove User Permissions</h3>
                   <div className="mt-2 text-sm text-red-700">
                     <p>
-                      Are you sure you want to remove all permissions for {user.username}? 
-                      This user will no longer have any access to the storefront editor.
+                      Are you sure you want to remove all permissions for {user.username}? This user
+                      will no longer have any access to the storefront editor.
                     </p>
                   </div>
                 </div>
               </div>
             </div>
-            
+
             <div className="flex justify-end space-x-2">
               <button
                 type="button"
@@ -239,7 +243,7 @@ const PermissionDetail: React.FC<PermissionDetailProps> = ({
                   </button>
                 )}
               </div>
-              
+
               {isEditingRole ? (
                 <div>
                   <div className="mt-1 grid grid-cols-2 gap-2">
@@ -262,15 +266,18 @@ const PermissionDetail: React.FC<PermissionDetailProps> = ({
                           </span>
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
-                          {role === StorefrontRole.VIEWER && 'Can view storefront but cannot make changes'}
-                          {role === StorefrontRole.EDITOR && 'Can edit but requires approval to publish'}
+                          {role === StorefrontRole.VIEWER &&
+                            'Can view storefront but cannot make changes'}
+                          {role === StorefrontRole.EDITOR &&
+                            'Can edit but requires approval to publish'}
                           {role === StorefrontRole.PUBLISHER && 'Can edit and publish changes'}
-                          {role === StorefrontRole.ADMIN && 'Full access and can manage other users'}
+                          {role === StorefrontRole.ADMIN &&
+                            'Full access and can manage other users'}
                         </p>
                       </div>
                     ))}
                   </div>
-                  
+
                   <div className="flex justify-end space-x-2 mt-4">
                     <button
                       type="button"
@@ -301,7 +308,7 @@ const PermissionDetail: React.FC<PermissionDetailProps> = ({
                 </div>
               )}
             </div>
-            
+
             {/* Global Permissions */}
             <div>
               <h4 className="text-sm font-medium text-gray-700 mb-2">Global Permissions</h4>
@@ -322,7 +329,7 @@ const PermissionDetail: React.FC<PermissionDetailProps> = ({
                 )}
               </div>
             </div>
-            
+
             {/* Section Permissions */}
             <div>
               <div className="flex justify-between items-center mb-2">
@@ -337,12 +344,12 @@ const PermissionDetail: React.FC<PermissionDetailProps> = ({
                   </button>
                 )}
               </div>
-              
+
               {isEditingSections ? (
                 <div className="space-y-4">
                   {Object.values(StorefrontSectionType).map((sectionType) => {
                     const permissions = selectedPermissions[sectionType] || [];
-                    
+
                     return (
                       <div key={sectionType} className="border rounded-md overflow-hidden">
                         <div className="bg-gray-50 p-3 border-b font-medium text-sm capitalize">
@@ -371,7 +378,7 @@ const PermissionDetail: React.FC<PermissionDetailProps> = ({
                       </div>
                     );
                   })}
-                  
+
                   <div className="flex justify-end space-x-2 mt-4">
                     <button
                       type="button"
@@ -419,7 +426,7 @@ const PermissionDetail: React.FC<PermissionDetailProps> = ({
                 </div>
               )}
             </div>
-            
+
             {/* Component Permissions */}
             <div>
               <h4 className="text-sm font-medium text-gray-700 mb-2">Component Permissions</h4>
@@ -428,9 +435,7 @@ const PermissionDetail: React.FC<PermissionDetailProps> = ({
                   <div className="space-y-3">
                     {Object.entries(user.component_permissions).map(([component, permissions]) => (
                       <div key={component}>
-                        <h5 className="text-sm font-medium text-gray-700 mb-1">
-                          {component}
-                        </h5>
+                        <h5 className="text-sm font-medium text-gray-700 mb-1">{component}</h5>
                         <div className="flex flex-wrap gap-1">
                           {permissions.map((permission, index) => (
                             <span

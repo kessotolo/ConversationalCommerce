@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { AssetType } from '@/modules/storefront/models/asset';
-import { MagnifyingGlassIcon, FunnelIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
-import { Search } from 'lucide-react';
+import {
+  MagnifyingGlassIcon,
+  FunnelIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+} from '@heroicons/react/24/outline';
+
 
 interface AssetFilterBarProps {
   assetType: AssetType | null;
@@ -84,13 +89,14 @@ const AssetFilterBar: React.FC<AssetFilterBarProps> = ({
             }`}
           >
             <span>Date</span>
-            {sortBy === 'created_at' && (
-              sortDesc ? 
-                <ArrowDownIcon className="h-4 w-4 ml-1" /> : 
+            {sortBy === 'created_at' &&
+              (sortDesc ? (
+                <ArrowDownIcon className="h-4 w-4 ml-1" />
+              ) : (
                 <ArrowUpIcon className="h-4 w-4 ml-1" />
-            )}
+              ))}
           </button>
-          
+
           <button
             onClick={() => handleSortChange('title')}
             className={`flex items-center px-3 py-2 border rounded-md hover:bg-gray-50 ${
@@ -98,13 +104,14 @@ const AssetFilterBar: React.FC<AssetFilterBarProps> = ({
             }`}
           >
             <span>Name</span>
-            {sortBy === 'title' && (
-              sortDesc ? 
-                <ArrowDownIcon className="h-4 w-4 ml-1" /> : 
+            {sortBy === 'title' &&
+              (sortDesc ? (
+                <ArrowDownIcon className="h-4 w-4 ml-1" />
+              ) : (
                 <ArrowUpIcon className="h-4 w-4 ml-1" />
-            )}
+              ))}
           </button>
-          
+
           <button
             onClick={() => handleSortChange('file_size')}
             className={`flex items-center px-3 py-2 border rounded-md hover:bg-gray-50 ${
@@ -112,11 +119,12 @@ const AssetFilterBar: React.FC<AssetFilterBarProps> = ({
             }`}
           >
             <span>Size</span>
-            {sortBy === 'file_size' && (
-              sortDesc ? 
-                <ArrowDownIcon className="h-4 w-4 ml-1" /> : 
+            {sortBy === 'file_size' &&
+              (sortDesc ? (
+                <ArrowDownIcon className="h-4 w-4 ml-1" />
+              ) : (
                 <ArrowUpIcon className="h-4 w-4 ml-1" />
-            )}
+              ))}
           </button>
         </div>
       </div>

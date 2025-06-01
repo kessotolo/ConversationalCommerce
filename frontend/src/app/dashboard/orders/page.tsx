@@ -1,28 +1,13 @@
 'use client';
 
+// TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
 import React, { useState } from 'react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import Link from 'next/link';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/Card';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import {  CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';
-import {
-  Search,
-  Filter,
-  RefreshCcw,
-  ChevronDown,
-  Eye,
-  MessageSquare,
-  Package,
-  Truck,
-  Check
-} from 'lucide-react';
 import { orderService } from '@/lib/api';
 
 // Define order types to match component requirements
@@ -45,11 +30,11 @@ const mockOrders: Order[] = [
     id: 'ORD-001',
     customerName: 'John Doe',
     phone: '+234 123 456 7890',
-    amount: 150.50,
+    amount: 150.5,
     items: 3,
     status: 'processing',
     date: '2025-05-20T14:30:00',
-    paymentMethod: 'Mobile Money'
+    paymentMethod: 'Mobile Money',
   },
   {
     id: 'ORD-002',
@@ -59,7 +44,7 @@ const mockOrders: Order[] = [
     items: 2,
     status: 'delivered',
     date: '2025-05-19T09:15:00',
-    paymentMethod: 'Cash on Delivery'
+    paymentMethod: 'Cash on Delivery',
   },
   {
     id: 'ORD-003',
@@ -69,7 +54,7 @@ const mockOrders: Order[] = [
     items: 4,
     status: 'pending',
     date: '2025-05-21T16:45:00',
-    paymentMethod: 'Bank Transfer'
+    paymentMethod: 'Bank Transfer',
   },
   {
     id: 'ORD-004',
@@ -79,17 +64,17 @@ const mockOrders: Order[] = [
     items: 1,
     status: 'cancelled',
     date: '2025-05-18T11:30:00',
-    paymentMethod: 'Mobile Money'
+    paymentMethod: 'Mobile Money',
   },
   {
     id: 'ORD-005',
     customerName: 'David Wilson',
     phone: '+234 567 890 1234',
-    amount: 175.50,
+    amount: 175.5,
     items: 3,
     status: 'delivered',
     date: '2025-05-17T13:20:00',
-    paymentMethod: 'Cash on Delivery'
+    paymentMethod: 'Cash on Delivery',
   },
   {
     id: 'ORD-006',
@@ -99,8 +84,8 @@ const mockOrders: Order[] = [
     items: 2,
     status: 'shipped',
     date: '2025-05-20T10:15:00',
-    paymentMethod: 'Mobile Money'
-  }
+    paymentMethod: 'Mobile Money',
+  },
 ];
 
 // Status badge colors
@@ -109,7 +94,7 @@ const statusStyles = {
   processing: 'bg-blue-100 text-blue-800 border-blue-200',
   shipped: 'bg-purple-100 text-purple-800 border-purple-200',
   delivered: 'bg-green-100 text-green-800 border-green-200',
-  cancelled: 'bg-red-100 text-red-800 border-red-200'
+  cancelled: 'bg-red-100 text-red-800 border-red-200',
 };
 
 export default function OrdersPage() {
@@ -142,7 +127,7 @@ export default function OrdersPage() {
   };
 
   // Filter orders based on search term and status
-  const filteredOrders = orders.filter(order => {
+  const filteredOrders = orders.filter((order) => {
     const matchesSearch =
       order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -163,9 +148,9 @@ export default function OrdersPage() {
 
       // Simulate API call
       setTimeout(() => {
-        setOrders(orders.map(order =>
-          order.id === orderId ? { ...order, status: newStatus } : order
-        ));
+        setOrders(
+          orders.map((order) => (order.id === orderId ? { ...order, status: newStatus } : order)),
+        );
         setIsLoading(false);
       }, 500);
     } catch (err: any) {
@@ -181,49 +166,59 @@ export default function OrdersPage() {
   };
 
   // Bulk selection handlers
-  const isAllSelected = filteredOrders.length > 0 && selectedOrders.length === filteredOrders.length;
-  const isIndeterminate = selectedOrders.length > 0 && selectedOrders.length < filteredOrders.length;
+  const isAllSelected =
+    filteredOrders.length > 0 && selectedOrders.length === filteredOrders.length;
+  const isIndeterminate =
+    selectedOrders.length > 0 && selectedOrders.length < filteredOrders.length;
 
   const toggleSelectAll = () => {
     if (isAllSelected) {
       setSelectedOrders([]);
     } else {
-      setSelectedOrders(filteredOrders.map(order => order.id));
+      setSelectedOrders(filteredOrders.map((order) => order.id));
     }
   };
 
   const toggleSelectOrder = (id: string) => {
-    setSelectedOrders(prev =>
-      prev.includes(id) ? prev.filter(oid => oid !== id) : [...prev, id]
+    setSelectedOrders((prev) =>
+      prev.includes(id) ? prev.filter((oid) => oid !== id) : [...prev, id],
     );
   };
 
   // Bulk action example: Mark selected as shipped
   const handleBulkMarkShipped = () => {
-    setOrders(orders.map(order =>
-      selectedOrders.includes(order.id) && order.status === 'processing'
-        ? { ...order, status: 'shipped' }
-        : order
-    ));
+    setOrders(
+      orders.map((order) =>
+        selectedOrders.includes(order.id) && order.status === 'processing'
+          ? { ...order, status: 'shipped' }
+          : order,
+      ),
+    );
     setSelectedOrders([]);
   };
 
   // Bulk action example: Delete selected (with confirm)
   const handleBulkDelete = () => {
     if (selectedOrders.length === 0) return;
-    if (window.confirm(`Are you sure you want to delete ${selectedOrders.length} orders? This cannot be undone.`)) {
-      setOrders(orders.filter(order => !selectedOrders.includes(order.id)));
+    if (
+      window.confirm(
+        `Are you sure you want to delete ${selectedOrders.length} orders? This cannot be undone.`,
+      )
+    ) {
+      setOrders(orders.filter((order) => !selectedOrders.includes(order.id)));
       setSelectedOrders([]);
     }
   };
 
   // Bulk action example: Mark selected as processing
   const handleBulkMarkProcessing = () => {
-    setOrders(orders.map(order =>
-      selectedOrders.includes(order.id) && order.status === 'pending'
-        ? { ...order, status: 'processing' }
-        : order
-    ));
+    setOrders(
+      orders.map((order) =>
+        selectedOrders.includes(order.id) && order.status === 'pending'
+          ? { ...order, status: 'processing' }
+          : order,
+      ),
+    );
     setSelectedOrders([]);
   };
 
@@ -258,7 +253,7 @@ export default function OrdersPage() {
             >
               Pending
               <span className="ml-2 bg-yellow-100 text-yellow-700 py-0.5 px-2 rounded-full text-xs">
-                {orders.filter(o => o.status === 'pending').length}
+                {orders.filter((o) => o.status === 'pending').length}
               </span>
             </button>
             <button
@@ -267,7 +262,7 @@ export default function OrdersPage() {
             >
               Processing
               <span className="ml-2 bg-blue-100 text-blue-700 py-0.5 px-2 rounded-full text-xs">
-                {orders.filter(o => o.status === 'processing').length}
+                {orders.filter((o) => o.status === 'processing').length}
               </span>
             </button>
             <button
@@ -276,7 +271,7 @@ export default function OrdersPage() {
             >
               Shipped
               <span className="ml-2 bg-purple-100 text-purple-700 py-0.5 px-2 rounded-full text-xs">
-                {orders.filter(o => o.status === 'shipped').length}
+                {orders.filter((o) => o.status === 'shipped').length}
               </span>
             </button>
             <button
@@ -285,7 +280,7 @@ export default function OrdersPage() {
             >
               Delivered
               <span className="ml-2 bg-green-100 text-green-700 py-0.5 px-2 rounded-full text-xs">
-                {orders.filter(o => o.status === 'delivered').length}
+                {orders.filter((o) => o.status === 'delivered').length}
               </span>
             </button>
             <button
@@ -294,7 +289,7 @@ export default function OrdersPage() {
             >
               Cancelled
               <span className="ml-2 bg-red-100 text-red-700 py-0.5 px-2 rounded-full text-xs">
-                {orders.filter(o => o.status === 'cancelled').length}
+                {orders.filter((o) => o.status === 'cancelled').length}
               </span>
             </button>
           </div>
@@ -324,15 +319,32 @@ export default function OrdersPage() {
         {/* Bulk Action Bar */}
         {selectedOrders.length > 0 && (
           <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 shadow-sm">
-            <span className="font-medium text-blue-800">{selectedOrders.length} order{selectedOrders.length > 1 ? 's' : ''} selected</span>
+            <span className="font-medium text-blue-800">
+              {selectedOrders.length} order{selectedOrders.length > 1 ? 's' : ''} selected
+            </span>
             <div className="flex gap-2 flex-wrap">
-              <Button size="sm" variant="outline" onClick={handleBulkMarkProcessing} disabled={selectedOrders.length === 0}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleBulkMarkProcessing}
+                disabled={selectedOrders.length === 0}
+              >
                 Mark as Processing
               </Button>
-              <Button size="sm" variant="outline" onClick={handleBulkMarkShipped} disabled={selectedOrders.length === 0}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleBulkMarkShipped}
+                disabled={selectedOrders.length === 0}
+              >
                 Mark as Shipped
               </Button>
-              <Button size="sm" variant="destructive" onClick={handleBulkDelete} disabled={selectedOrders.length === 0}>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={handleBulkDelete}
+                disabled={selectedOrders.length === 0}
+              >
                 Delete
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setSelectedOrders([])}>
@@ -361,7 +373,9 @@ export default function OrdersPage() {
                         <input
                           type="checkbox"
                           checked={isAllSelected}
-                          ref={el => { if (el) el.indeterminate = isIndeterminate; }}
+                          ref={(el) => {
+                            if (el) el.indeterminate = isIndeterminate;
+                          }}
                           onChange={toggleSelectAll}
                           aria-label="Select all orders"
                         />
@@ -377,7 +391,10 @@ export default function OrdersPage() {
                   </thead>
                   <tbody>
                     {filteredOrders.map((order) => (
-                      <tr key={order.id} className={`border-b hover:bg-[#f7faf9] transition ${selectedOrders.includes(order.id) ? 'bg-blue-50' : ''}`}>
+                      <tr
+                        key={order.id}
+                        className={`border-b hover:bg-[#f7faf9] transition ${selectedOrders.includes(order.id) ? 'bg-blue-50' : ''}`}
+                      >
                         <td className="py-3 px-4">
                           <input
                             type="checkbox"
@@ -387,18 +404,26 @@ export default function OrdersPage() {
                           />
                         </td>
                         <td className="py-3 px-4 font-mono text-xs">
-                          <Link href={`/dashboard/orders/${order.id}`} className="text-blue-700 hover:underline" title="View Order Details">
+                          <Link
+                            href={`/dashboard/orders/${order.id}`}
+                            className="text-blue-700 hover:underline"
+                            title="View Order Details"
+                          >
                             {order.id}
                           </Link>
                         </td>
                         <td className="py-3 px-4">
                           <div>{order.customerName}</div>
-                          <div className="text-xs text-gray-500">{formatPhoneNumber(order.phone)}</div>
+                          <div className="text-xs text-gray-500">
+                            {formatPhoneNumber(order.phone)}
+                          </div>
                         </td>
                         <td className="py-3 px-4">{formatDate(order.date)}</td>
                         <td className="py-3 px-4 font-medium">{formatCurrency(order.amount)}</td>
                         <td className="py-3 px-4">
-                          <Badge className={statusStyles[order.status as keyof typeof statusStyles]}>
+                          <Badge
+                            className={statusStyles[order.status as keyof typeof statusStyles]}
+                          >
                             {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                           </Badge>
                         </td>
@@ -406,7 +431,12 @@ export default function OrdersPage() {
                         <td className="py-3 px-4">
                           <div className="flex space-x-2">
                             <Link href={`/dashboard/orders/${order.id}`}>
-                              <Button size="sm" variant="ghost" className="h-8 w-8 p-0" title="View Order Details">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 w-8 p-0"
+                                title="View Order Details"
+                              >
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </Link>
@@ -464,7 +494,9 @@ export default function OrdersPage() {
               <div className="flex flex-col items-center justify-center py-24">
                 <img src="/empty-box.svg" alt="No orders" className="w-32 h-32 mb-6 opacity-80" />
                 <h2 className="text-xl font-semibold mb-2">No orders found</h2>
-                <p className="text-gray-500 mb-6">Orders will appear here as customers make purchases.</p>
+                <p className="text-gray-500 mb-6">
+                  Orders will appear here as customers make purchases.
+                </p>
               </div>
             )}
           </CardContent>

@@ -1,8 +1,8 @@
 import React from 'react';
-import { formatCurrency } from '@/lib/utils';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { MessageSquare, Globe, ShoppingBag } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { formatCurrency } from '@/lib/utils';
+import {  CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import {  CardHeader, CardTitle, CardContent } from '../ui/Card';
 
 interface ChannelData {
   name: string;
@@ -18,14 +18,17 @@ interface ChannelPerformanceProps {
 
 export function ChannelPerformance({ data, isLoading = false }: ChannelPerformanceProps) {
   const channelIcons = {
-    'WhatsApp': <MessageSquare className="h-4 w-4 text-green-500" />,
-    'Web': <Globe className="h-4 w-4 text-blue-500" />,
+    WhatsApp: <MessageSquare className="h-4 w-4 text-green-500" />,
+    Web: <Globe className="h-4 w-4 text-blue-500" />,
     'In-store': <ShoppingBag className="h-4 w-4 text-purple-500" />,
   };
 
   const getChannelIcon = (name: string) => {
-    return channelIcons[name as keyof typeof channelIcons] || 
-      <ShoppingBag className="h-4 w-4 text-gray-500" />;
+    return (
+      channelIcons[name as keyof typeof channelIcons] || (
+        <ShoppingBag className="h-4 w-4 text-gray-500" />
+      )
+    );
   };
 
   if (isLoading) {
@@ -69,26 +72,26 @@ export function ChannelPerformance({ data, isLoading = false }: ChannelPerforman
                   </div>
                   <span className="font-medium">{channel.name}</span>
                 </div>
-                
+
                 <div className="text-sm">
                   <p className="text-muted-foreground">Orders</p>
                   <p className="font-medium">{channel.orders}</p>
                 </div>
-                
+
                 <div className="text-sm">
                   <p className="text-muted-foreground">Revenue</p>
                   <p className="font-medium">{formatCurrency(channel.revenue)}</p>
                 </div>
-                
+
                 <div className="text-sm col-span-2">
                   <p className="text-muted-foreground">Conversion</p>
                   <p className="font-medium">{channel.conversion}%</p>
                 </div>
-                
+
                 <div className="col-span-2 sm:col-span-4 mt-1">
                   <div className="w-full bg-muted rounded-full h-1.5">
-                    <div 
-                      className="bg-primary h-1.5 rounded-full" 
+                    <div
+                      className="bg-primary h-1.5 rounded-full"
                       style={{ width: `${Math.min(channel.conversion, 100)}%` }}
                     />
                   </div>

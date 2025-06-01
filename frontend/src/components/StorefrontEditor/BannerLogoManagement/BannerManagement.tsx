@@ -1,15 +1,12 @@
+// TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
 import React, { useState, useEffect } from 'react';
-import { getBanners, publishBanner, deleteBanner, reorderBanners } from '../../../lib/api/storefrontEditor';
+import { Send } from 'lucide-react';
 import type { Banner } from '@/modules/storefront/models/banner';
 import type { UUID } from '@/modules/core/models/base';
-import { BannerStatus, BannerType } from '@/modules/storefront/models/banner';;
+import { BannerStatus, BannerType } from '@/modules/storefront/models/banner';
 import BannerList from './BannerList';
 import BannerDetail from './BannerDetail';
 import CreateBannerModal from './CreateBannerModal';
-import { PlusIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
-import { Send } from 'lucide-react';
 
 interface BannerManagementProps {
   tenantId: UUID;
@@ -25,7 +22,7 @@ const BannerManagement: React.FC<BannerManagementProps> = ({ tenantId }) => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [offset, setOffset] = useState(0);
   const [limit] = useState(20);
-  
+
   // Filter state
   const [statusFilter, setStatusFilter] = useState<BannerStatus | 'all'>('all');
   const [typeFilter, setTypeFilter] = useState<BannerType | 'all'>('all');
@@ -35,19 +32,19 @@ const BannerManagement: React.FC<BannerManagementProps> = ({ tenantId }) => {
   const loadBanners = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const params: any = { offset, limit };
-      
+
       // Add filters if set
       if (statusFilter !== 'all') params.status = statusFilter;
       if (typeFilter !== 'all') params.banner_type = typeFilter;
       if (searchQuery) params.search = searchQuery;
-      
+
       const response = await getBanners(tenantId, params);
       setBanners(response.items);
       setTotalBanners(response.total);
-      
+
       // Select first banner if nothing is selected
       if (response.items.length > 0 && !selectedBanner) {
         setSelectedBanner(response.items[0]);
@@ -90,12 +87,12 @@ const BannerManagement: React.FC<BannerManagementProps> = ({ tenantId }) => {
   const handleDeleteBanner = async (bannerId: UUID) => {
     try {
       await deleteBanner(tenantId, bannerId);
-      
+
       // If the deleted banner was selected, clear selection
       if (selectedBanner && selectedBanner.id === bannerId) {
         setSelectedBanner(null);
       }
-      
+
       setSuccessMessage('Banner deleted successfully');
       setTimeout(() => setSuccessMessage(null), 3000);
       loadBanners();
@@ -114,20 +111,20 @@ const BannerManagement: React.FC<BannerManagementProps> = ({ tenantId }) => {
     const reordered = [...banners];
     const [removed] = reordered.splice(sourceIndex, 1);
     reordered.splice(destinationIndex, 0, removed);
-    
+
     // Update display order for all affected banners
     const updatedOrder = reordered.map((banner, index) => ({
       banner_id: banner.id,
-      display_order: index + 1
+      display_order: index + 1,
     }));
-    
+
     try {
       // Update locally first for immediate feedback
       setBanners(reordered);
-      
+
       // Send to server
       await reorderBanners(tenantId, { order: updatedOrder });
-      
+
       setSuccessMessage('Banner order updated successfully');
       setTimeout(() => setSuccessMessage(null), 3000);
       return true;
@@ -135,7 +132,7 @@ const BannerManagement: React.FC<BannerManagementProps> = ({ tenantId }) => {
       setError('Failed to update banner order');
       setTimeout(() => setError(null), 3000);
       console.error('Error reordering banners:', err);
-      
+
       // Reload original order on failure
       loadBanners();
       return false;
@@ -148,7 +145,11 @@ const BannerManagement: React.FC<BannerManagementProps> = ({ tenantId }) => {
   };
 
   // Apply filters
-  const handleFilterChange = (status: BannerStatus | 'all', type: BannerType | 'all', query: string) => {
+  const handleFilterChange = (
+    status: BannerStatus | 'all',
+    type: BannerType | 'all',
+    query: string,
+  ) => {
     setStatusFilter(status);
     setTypeFilter(type);
     setSearchQuery(query);
@@ -178,16 +179,10 @@ const BannerManagement: React.FC<BannerManagementProps> = ({ tenantId }) => {
       </div>
 
       {successMessage && (
-        <div className="mb-4 p-3 bg-green-100 text-green-800 rounded-md">
-          {successMessage}
-        </div>
+        <div className="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{successMessage}</div>
       )}
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md">
-          {error}
-        </div>
-      )}
+      {error && <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md">{error}</div>}
 
       <div className="flex-1 flex gap-6">
         {/* Banner List with drag and drop for reordering */}
@@ -204,13 +199,14 @@ const BannerManagement: React.FC<BannerManagementProps> = ({ tenantId }) => {
               typeFilter={typeFilter}
               searchQuery={searchQuery}
             />
-            
+
             {/* Pagination */}
             {banners.length > 0 && (
               <div className="p-3 border-t mt-auto">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">
-                    Showing {offset + 1}-{Math.min(offset + banners.length, totalBanners)} of {totalBanners}
+                    Showing {offset + 1}-{Math.min(offset + banners.length, totalBanners)} of{' '}
+                    {totalBanners}
                   </span>
                   <div className="flex space-x-2">
                     <button
@@ -254,11 +250,23 @@ const BannerManagement: React.FC<BannerManagementProps> = ({ tenantId }) => {
             />
           ) : (
             <div className="bg-white rounded-lg border shadow-sm p-8 flex flex-col items-center justify-center h-full">
-              <svg className="h-16 w-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <svg
+                className="h-16 w-16 text-gray-400 mb-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
               </svg>
               <h3 className="text-lg font-medium text-gray-900">No banner selected</h3>
-              <p className="text-gray-500 mt-1">Select a banner to view details or create a new one.</p>
+              <p className="text-gray-500 mt-1">
+                Select a banner to view details or create a new one.
+              </p>
               <button
                 onClick={() => setIsCreateModalOpen(true)}
                 className="mt-4 flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"

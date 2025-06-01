@@ -1,59 +1,47 @@
-"use client";
+'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { UserButton } from '@clerk/nextjs';
-import {
-  Home,
-  Package,
-  ShoppingBag,
-  BarChart,
-  MessageCircle,
-  Settings,
-  Store,
-  User,
-  Users
-} from 'lucide-react';
 import SettingsDrawer from '@/components/dashboard/SettingsDrawer';
 
 const navItems = [
   {
     name: 'Home',
     href: '/dashboard',
-    icon: Home
+    icon: Home,
   },
   {
     name: 'Products',
     href: '/dashboard/products',
-    icon: Package
+    icon: Package,
   },
   {
     name: 'Orders',
     href: '/dashboard/orders',
-    icon: ShoppingBag
+    icon: ShoppingBag,
   },
   {
     name: 'Customers',
     href: '/dashboard/customers',
-    icon: Users
+    icon: 
   },
   {
     name: 'Analytics',
     href: '/dashboard/analytics',
-    icon: BarChart
+    icon: BarChart,
   },
   {
     name: 'Messages',
     href: '/dashboard/messages',
-    icon: MessageCircle
+    icon: MessageCircle,
   },
   {
     name: 'Settings',
     href: '/dashboard/settings',
-    icon: Settings
-  }
+    icon: Settings,
+  },
 ];
 
 export function Sidebar() {
@@ -61,7 +49,8 @@ export function Sidebar() {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Only highlight the Storefront link if on /dashboard/storefront or its subpages
-  const isStorefrontActive = pathname === '/dashboard/storefront' || pathname?.startsWith('/dashboard/storefront/');
+  const isStorefrontActive =
+    pathname === '/dashboard/storefront' || pathname?.startsWith('/dashboard/storefront/');
 
   return (
     <>
@@ -70,7 +59,9 @@ export function Sidebar() {
           {/* Logo/Brand */}
           <div className="flex items-center h-16 px-6 mb-2">
             <Link href="/dashboard" className="flex items-center gap-2">
-              <span className="inline-block w-8 h-8 rounded-full bg-[#6C9A8B] text-white font-bold flex items-center justify-center text-lg">CC</span>
+              <span className="inline-block w-8 h-8 rounded-full bg-[#6C9A8B] text-white font-bold flex items-center justify-center text-lg">
+                CC
+              </span>
               <span className="text-xl font-bold text-gray-900 tracking-tight">ConvoCommerce</span>
             </Link>
           </div>
@@ -85,13 +76,20 @@ export function Sidebar() {
                       type="button"
                       onClick={() => setSettingsOpen(true)}
                       className={cn(
-                        "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all w-full text-left",
+                        'group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all w-full text-left',
                         pathname === '/dashboard/settings'
-                          ? "bg-[#e8f6f1] text-[#6C9A8B] shadow"
-                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                          ? 'bg-[#e8f6f1] text-[#6C9A8B] shadow'
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
                       )}
                     >
-                      <Settings className={cn("mr-3 flex-shrink-0 h-5 w-5", pathname === '/dashboard/settings' ? "text-[#6C9A8B]" : "text-gray-400 group-hover:text-gray-700")} />
+                      <Settings
+                        className={cn(
+                          'mr-3 flex-shrink-0 h-5 w-5',
+                          pathname === '/dashboard/settings'
+                            ? 'text-[#6C9A8B]'
+                            : 'text-gray-400 group-hover:text-gray-700',
+                        )}
+                      />
                       {item.name}
                     </button>
                   );
@@ -103,16 +101,16 @@ export function Sidebar() {
                     key={item.name}
                     href={item.href}
                     className={cn(
-                      "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all",
+                      'group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all',
                       isActive
-                        ? "bg-[#e8f6f1] text-[#6C9A8B] shadow"
-                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                        ? 'bg-[#e8f6f1] text-[#6C9A8B] shadow'
+                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
                     )}
                   >
                     <Icon
                       className={cn(
-                        "mr-3 flex-shrink-0 h-5 w-5",
-                        isActive ? "text-[#6C9A8B]" : "text-gray-400 group-hover:text-gray-700"
+                        'mr-3 flex-shrink-0 h-5 w-5',
+                        isActive ? 'text-[#6C9A8B]' : 'text-gray-400 group-hover:text-gray-700',
                       )}
                     />
                     {item.name}
@@ -126,10 +124,10 @@ export function Sidebar() {
             <Link
               href="/dashboard/storefront"
               className={cn(
-                "flex items-center px-3 py-2 text-sm font-semibold rounded-lg transition-all",
+                'flex items-center px-3 py-2 text-sm font-semibold rounded-lg transition-all',
                 isStorefrontActive
-                  ? "text-[#6C9A8B] bg-[#e8f6f1] shadow"
-                  : "text-[#6C9A8B] hover:bg-[#d1ede2]"
+                  ? 'text-[#6C9A8B] bg-[#e8f6f1] shadow'
+                  : 'text-[#6C9A8B] hover:bg-[#d1ede2]',
               )}
             >
               <Store className="mr-3 flex-shrink-0 h-5 w-5" />

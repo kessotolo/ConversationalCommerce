@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import Link from 'next/link';
-import { Edit, Trash2, Copy, MessageSquare, ChevronRight, X } from 'lucide-react';
+import { Trash2, Copy, ChevronRight, X } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 
 interface Product {
@@ -36,10 +36,10 @@ export function ProductCard({ product, onDelete, onDuplicate }: ProductCardProps
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isSwiping) return;
-    
+
     currentX.current = e.touches[0].clientX;
     const diff = currentX.current - startX.current;
-    
+
     // Limit swipe to left direction and max 200px
     if (diff < 0) {
       setSwipeOffset(Math.max(diff, -200));
@@ -48,7 +48,7 @@ export function ProductCard({ product, onDelete, onDuplicate }: ProductCardProps
 
   const handleTouchEnd = () => {
     setIsSwiping(false);
-    
+
     // If swiped more than 100px, keep open, otherwise close
     if (swipeOffset < -100) {
       setSwipeOffset(-200);
@@ -64,7 +64,7 @@ export function ProductCard({ product, onDelete, onDuplicate }: ProductCardProps
   return (
     <div className="relative overflow-hidden rounded-lg bg-white shadow mb-4">
       {/* Main card content */}
-      <div 
+      <div
         className="transition-transform duration-300 ease-out"
         style={{ transform: `translateX(${swipeOffset}px)` }}
         onTouchStart={handleTouchStart}
@@ -74,24 +74,20 @@ export function ProductCard({ product, onDelete, onDuplicate }: ProductCardProps
         <Link href={`/dashboard/products/${product.id}`}>
           <div className="flex items-center p-4">
             <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md">
-              <img 
-                src={product.image} 
-                alt={product.name} 
+              <img
+                src={product.image}
+                alt={product.name}
                 className="h-full w-full object-cover object-center"
               />
             </div>
             <div className="ml-4 flex-1">
-              <h3 className="text-base font-medium text-gray-900">
-                {product.name}
-              </h3>
-              <p className="text-sm text-gray-500 line-clamp-1">
-                {product.description}
-              </p>
+              <h3 className="text-base font-medium text-gray-900">{product.name}</h3>
+              <p className="text-sm text-gray-500 line-clamp-1">{product.description}</p>
               <div className="flex items-center justify-between mt-1">
-                <p className="text-sm font-medium text-gray-900">
-                  {formatCurrency(product.price)}
-                </p>
-                <span className={`px-2 py-1 text-xs rounded-full ${product.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                <p className="text-sm font-medium text-gray-900">{formatCurrency(product.price)}</p>
+                <span
+                  className={`px-2 py-1 text-xs rounded-full ${product.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+                >
                   {product.inStock ? 'In Stock' : 'Out of Stock'}
                 </span>
               </div>
@@ -100,17 +96,17 @@ export function ProductCard({ product, onDelete, onDuplicate }: ProductCardProps
           </div>
         </Link>
       </div>
-      
+
       {/* Swipe actions */}
       <div className="absolute inset-y-0 right-0 flex">
-        <button 
+        <button
           onClick={() => onDuplicate(product.id)}
           className="w-16 bg-blue-500 text-white flex flex-col items-center justify-center"
         >
           <Copy className="h-5 w-5" />
           <span className="text-xs mt-1">Duplicate</span>
         </button>
-        <button 
+        <button
           onClick={() => onDelete(product.id)}
           className="w-16 bg-red-500 text-white flex flex-col items-center justify-center"
         >
@@ -118,21 +114,19 @@ export function ProductCard({ product, onDelete, onDuplicate }: ProductCardProps
           <span className="text-xs mt-1">Delete</span>
         </button>
       </div>
-      
+
       {/* Show close button when swiped */}
       {swipeOffset < -100 && (
-        <button 
+        <button
           onClick={resetSwipe}
           className="absolute top-2 right-2 bg-gray-200 rounded-full p-1"
         >
           <X className="h-4 w-4" />
         </button>
       )}
-      
+
       {/* Mobile swipe hint */}
-      <div className="text-xs text-gray-400 text-center pb-1 md:hidden">
-        Swipe left for actions
-      </div>
+      <div className="text-xs text-gray-400 text-center pb-1 md:hidden">Swipe left for actions</div>
     </div>
   );
 }

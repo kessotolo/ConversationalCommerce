@@ -1,16 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { getDrafts, publishDraft, deleteDraft } from '../../../lib/api/storefrontEditor';
-// Direct imports from module sources using path aliases that work with Next.js
 import type { Draft } from '@/modules/storefront/models/draft';
 import type { UUID } from '@/modules/core/models/base';
 import { Status } from '@/modules/core/models/base';
-
-// Status is used for draft status in this component (previously DraftStatus)
+import { getDrafts, publishDraft, deleteDraft } from '../../../lib/api/storefrontEditor';
 import DraftList from './DraftList';
 import DraftDetail from './DraftDetail';
 import CreateDraftModal from './CreateDraftModal';
-import { PlusIcon } from '@heroicons/react/24/outline';
-import { Search } from 'lucide-react';
+
 
 interface DraftManagementProps {
   tenantId: UUID;
@@ -25,7 +21,7 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [skip, setSkip] = useState(0);
   const [limit] = useState(10);
-  
+
   // Filter state
   const [statusFilter, setStatusFilter] = useState<Status | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -34,12 +30,12 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
   const loadDrafts = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await getDrafts(tenantId, skip, limit);
       setDrafts(response.items);
       setTotalDrafts(response.total);
-      
+
       // Select first draft if nothing is selected
       if (response.items.length > 0 && !selectedDraft) {
         setSelectedDraft(response.items[0]);
@@ -78,12 +74,12 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
   const handleDeleteDraft = async (draftId: UUID) => {
     try {
       await deleteDraft(tenantId, draftId);
-      
+
       // If the deleted draft was selected, clear selection
       if (selectedDraft && selectedDraft.id === draftId) {
         setSelectedDraft(null);
       }
-      
+
       loadDrafts(); // Refresh list after deletion
     } catch (err) {
       console.error('Error deleting draft:', err);
@@ -98,18 +94,21 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
   };
 
   // Apply filters
-  const filteredDrafts = drafts.filter(draft => {
+  const filteredDrafts = drafts.filter((draft) => {
     // Apply status filter
     if (statusFilter !== 'all' && draft.status !== statusFilter) {
       return false;
     }
-    
+
     // Apply search query
-    if (searchQuery && !draft.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
-        !draft.description.toLowerCase().includes(searchQuery.toLowerCase())) {
+    if (
+      searchQuery &&
+      !draft.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      !draft.description.toLowerCase().includes(searchQuery.toLowerCase())
+    ) {
       return false;
     }
-    
+
     return true;
   });
 
@@ -137,41 +136,41 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
         <div className="w-1/3 bg-white rounded-lg border shadow-sm overflow-hidden">
           <div className="p-4 border-b">
             <div className="flex gap-2 mb-3">
-              <button 
+              <button
                 onClick={() => setStatusFilter('all')}
                 className={`text-xs px-3 py-1 rounded-full ${
-                  statusFilter === 'all' 
-                    ? 'bg-blue-100 text-blue-800' 
+                  statusFilter === 'all'
+                    ? 'bg-blue-100 text-blue-800'
                     : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                 }`}
               >
                 All
               </button>
-              <button 
+              <button
                 onClick={() => setStatusFilter(Status.DRAFT)}
                 className={`text-xs px-3 py-1 rounded-full ${
-                  statusFilter === Status.DRAFT 
-                    ? 'bg-blue-100 text-blue-800' 
+                  statusFilter === Status.DRAFT
+                    ? 'bg-blue-100 text-blue-800'
                     : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                 }`}
               >
                 Drafts
               </button>
-              <button 
+              <button
                 onClick={() => setStatusFilter(Status.PENDING)}
                 className={`text-xs px-3 py-1 rounded-full ${
-                  statusFilter === Status.PENDING 
-                    ? 'bg-blue-100 text-blue-800' 
+                  statusFilter === Status.PENDING
+                    ? 'bg-blue-100 text-blue-800'
                     : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                 }`}
               >
                 Pending
               </button>
-              <button 
+              <button
                 onClick={() => setStatusFilter(Status.SCHEDULED)}
                 className={`text-xs px-3 py-1 rounded-full ${
-                  statusFilter === Status.SCHEDULED 
-                    ? 'bg-blue-100 text-blue-800' 
+                  statusFilter === Status.SCHEDULED
+                    ? 'bg-blue-100 text-blue-800'
                     : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                 }`}
               >
@@ -188,8 +187,18 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
                 className="w-full pl-10 pr-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
               />
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <svg
+                  className="h-5 w-5 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
                 </svg>
               </div>
             </div>
@@ -205,9 +214,9 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
           {/* Pagination */}
           <div className="p-3 border-t flex justify-between items-center">
             <span className="text-sm text-gray-600">
-              {filteredDrafts.length > 0 ? 
-                `Showing ${skip + 1}-${skip + filteredDrafts.length} of ${totalDrafts}` : 
-                'No drafts found'}
+              {filteredDrafts.length > 0
+                ? `Showing ${skip + 1}-${skip + filteredDrafts.length} of ${totalDrafts}`
+                : 'No drafts found'}
             </span>
             <div className="flex space-x-2">
               <button
@@ -248,11 +257,23 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
             />
           ) : (
             <div className="bg-white rounded-lg border shadow-sm p-8 flex flex-col items-center justify-center h-full">
-              <svg className="h-16 w-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <svg
+                className="h-16 w-16 text-gray-400 mb-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
               </svg>
               <h3 className="text-lg font-medium text-gray-900">No draft selected</h3>
-              <p className="text-gray-500 mt-1">Select a draft to view details or create a new one.</p>
+              <p className="text-gray-500 mt-1">
+                Select a draft to view details or create a new one.
+              </p>
               <button
                 onClick={() => setIsCreateModalOpen(true)}
                 className="mt-4 flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"

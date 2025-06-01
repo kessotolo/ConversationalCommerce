@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
-import { Card } from '@/components/ui/Card';
+
 
 /**
  * A hook to generate component-specific styles based on the current theme
@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/Card';
  */
 export function useThemeStyles() {
   const { theme } = useTheme();
-  
+
   // Memoize the styles to prevent unnecessary recalculations
   return useMemo(() => {
     // Button styles
@@ -164,7 +164,7 @@ export function useThemeStyles() {
       card,
       form,
       navigation,
-      productCard,
+      product
       // Global styles
       global: {
         body: {

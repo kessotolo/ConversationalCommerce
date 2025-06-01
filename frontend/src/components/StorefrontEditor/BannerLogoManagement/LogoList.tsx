@@ -1,12 +1,8 @@
 import React, { useState } from 'react';
 import type { Logo } from '@/modules/storefront/models/logo';
 import type { UUID } from '@/modules/core/models/base';
-import { LogoStatus, LogoType } from '@/modules/storefront/models/logo';;
-import { 
-  MagnifyingGlassIcon, 
-  FunnelIcon 
-} from '@heroicons/react/24/outline';
-import { Search } from 'lucide-react';
+import { LogoStatus, LogoType } from '@/modules/storefront/models/logo';
+
 
 interface LogoListProps {
   logos: Logo[];
@@ -19,25 +15,25 @@ interface LogoListProps {
   searchQuery: string;
 }
 
-const LogoList: React.FC<LogoListProps> = ({ 
-  logos, 
-  loading, 
-  selectedLogoId, 
-  onLogoSelect,
+const LogoList: React.FC<LogoListProps> = ({
+  logos,
+  loading,
+  selectedLogoId,
+  onLogo
   onFilterChange,
   statusFilter,
   typeFilter,
-  searchQuery
+  searchQuery,
 }) => {
   const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
   const [filterOpen, setFilterOpen] = useState(false);
-  
+
   // Handle search submission
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     onFilterChange(statusFilter, typeFilter, localSearchQuery);
   };
-  
+
   // Clear all filters
   const clearFilters = () => {
     setLocalSearchQuery('');
@@ -53,7 +49,7 @@ const LogoList: React.FC<LogoListProps> = ({
       year: 'numeric',
     });
   };
-  
+
   // Get status badge class
   const getStatusBadgeClass = (status: LogoStatus): string => {
     switch (status) {
@@ -97,7 +93,7 @@ const LogoList: React.FC<LogoListProps> = ({
             </button>
           </div>
         </form>
-        
+
         <div className="flex justify-between items-center">
           <button
             onClick={() => setFilterOpen(!filterOpen)}
@@ -106,17 +102,14 @@ const LogoList: React.FC<LogoListProps> = ({
             <FunnelIcon className="h-4 w-4 mr-1" />
             Filters {(statusFilter !== 'all' || typeFilter !== 'all') && '(Active)'}
           </button>
-          
+
           {(statusFilter !== 'all' || typeFilter !== 'all' || searchQuery) && (
-            <button
-              onClick={clearFilters}
-              className="text-xs text-blue-600 hover:text-blue-800"
-            >
+            <button onClick={clearFilters} className="text-xs text-blue-600 hover:text-blue-800">
               Clear all filters
             </button>
           )}
         </div>
-        
+
         {/* Expanded Filters */}
         {filterOpen && (
           <div className="mt-3 pt-3 border-t space-y-4">
@@ -127,8 +120,8 @@ const LogoList: React.FC<LogoListProps> = ({
                 <button
                   onClick={() => onFilterChange('all', typeFilter, localSearchQuery)}
                   className={`text-xs px-2 py-1 rounded-full ${
-                    statusFilter === 'all' 
-                      ? 'bg-blue-100 text-blue-800' 
+                    statusFilter === 'all'
+                      ? 'bg-blue-100 text-blue-800'
                       : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                   }`}
                 >
@@ -139,8 +132,8 @@ const LogoList: React.FC<LogoListProps> = ({
                     key={status}
                     onClick={() => onFilterChange(status, typeFilter, localSearchQuery)}
                     className={`text-xs px-2 py-1 rounded-full ${
-                      statusFilter === status 
-                        ? 'bg-blue-100 text-blue-800' 
+                      statusFilter === status
+                        ? 'bg-blue-100 text-blue-800'
                         : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                     }`}
                   >
@@ -149,7 +142,7 @@ const LogoList: React.FC<LogoListProps> = ({
                 ))}
               </div>
             </div>
-            
+
             {/* Logo Type Filter */}
             <div>
               <h4 className="text-xs font-medium text-gray-700 mb-2">Logo Type</h4>
@@ -157,8 +150,8 @@ const LogoList: React.FC<LogoListProps> = ({
                 <button
                   onClick={() => onFilterChange(statusFilter, 'all', localSearchQuery)}
                   className={`text-xs px-2 py-1 rounded-full ${
-                    typeFilter === 'all' 
-                      ? 'bg-blue-100 text-blue-800' 
+                    typeFilter === 'all'
+                      ? 'bg-blue-100 text-blue-800'
                       : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                   }`}
                 >
@@ -169,8 +162,8 @@ const LogoList: React.FC<LogoListProps> = ({
                     key={type}
                     onClick={() => onFilterChange(statusFilter, type, localSearchQuery)}
                     className={`text-xs px-2 py-1 rounded-full ${
-                      typeFilter === type 
-                        ? 'bg-blue-100 text-blue-800' 
+                      typeFilter === type
+                        ? 'bg-blue-100 text-blue-800'
                         : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                     }`}
                   >
@@ -215,11 +208,12 @@ const LogoList: React.FC<LogoListProps> = ({
                       alt={logo.name}
                       className="max-w-full max-h-full object-contain"
                       onError={(e) => {
-                        e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCA1MCA1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjUwIiBoZWlnaHQ9IjUwIiBmaWxsPSIjRTVFN0VCIi8+CjxwYXRoIGQ9Ik0xOC45NTMxIDIzLjA5MzhDMjAuMDYyNSAyMy4wOTM4IDIwLjk3NjYgMjIuMTc5NyAyMC45NzY2IDIxLjA3MDNDMjAuOTc2NiAxOS45NjA5IDIwLjA2MjUgMTkuMDQ2OSAxOC45NTMxIDE5LjA0NjlDMTcuODQzOCAxOS4wNDY5IDE2LjkyOTcgMTkuOTYwOSAxNi45Mjk3IDIxLjA3MDNDMTYuOTI5NyAyMi4xNzk3IDE3Ljg0MzggMjMuMDkzOCAxOC45NTMxIDIzLjA5MzhaIiBmaWxsPSIjOTRBM0IzIi8+CjxwYXRoIGQ9Ik0zMy4wMDc4IDMwLjk3NjZDMzMuMDA3OCAzMC40Njg4IDMyLjU5MzggMzAuMDU0NyAzMi4wODU5IDMwLjA1NDdIMTcuOTE0MUMxNy40MDYyIDMwLjA1NDcgMTYuOTkyMiAzMC40Njg4IDE2Ljk5MjIgMzAuOTc2NkMxNi45OTIyIDMxLjQ4NDQgMTcuNDA2MiAzMS44OTg0IDE3LjkxNDEgMzEuODk4NEgzMi4wODU5QzMyLjU5MzggMzEuODk4NCAzMy4wMDc4IDMxLjQ4NDQgMzMuMDA3OCAzMC45NzY2WiIgZmlsbD0iIzk0QTNCMyIvPgo8cGF0aCBkPSJNMzYuMzI4MSAyNS44MjAzQzM2LjMyODEgMjUuNDYwOSAzNi4wOTM4IDI1LjEyNSAzNS43MzQ0IDI0Ljk2MDlDMzUuMzcgMjQuODIwMyAzNC45NjQ4IDI0Ljg1OTQgMzQuNjQwNiAyNS4xMTcyTDMxLjMyODEgMjcuNzUzOUwyNi43NSAyMS41MTE3QzI2LjQ4NDQgMjEuMTU2MiAyNS45OTIyIDIxLjA3ODEgMjUuNjM2NyAyMS4zNDM4TDE4LjA3MDMgMjcuMTE3MkwxNS4yODkxIDI0LjgzNTlDMTQuOTQ1MyAyNC41NTQ3IDE0LjQ1MzEgMjQuNTM1MiAxNC4wODk4IDI0Ljc4MTJDMTMuNzI2NiAyNS4wMjczIDEzLjU1ODYgMjUuNDg0NCAxMy42OTkyIDI1Ljg5ODRMMTYuMTg3NSAzMy4yMzQ0QzE2LjI4OTEgMzMuNTI3MyAxNi41MzUyIDMzLjc1MzkgMTYuODMyIDMzLjgyODFDMTYuODk0NSAzMy44NDM4IDE2Ljk1NzAgMzMuODQ3NyAxNy4wMTk1IDMzLjg0NzdDMTcuMjU3OCAzMy44NDc3IDE3LjQ4ODMgMzMuNzYxNyAxNy42NjQxIDMzLjYwMTZMMjUuNzM0NCAyNi4zMzU5TDMwLjMyODEgMzIuNTk3N0MzMC41MzEyIDMyLjg2MzMgMzAuODQzOCAzMy4wMDc4IDMxLjE3MTkgMzMuMDA3OEMzMS4zNjMzIDMzLjAwNzggMzEuNTU4NiAzMi45NTMxIDMxLjcyNjYgMzIuODI4MUwzNS45MTQxIDI5LjU3MDNDMzYuMTc5NyAyOS4zNzExIDM2LjMyODEgMjkuMDU0NyAzNi4zMjgxIDI4LjcxODhWMjUuODIwM1oiIGZpbGw9IiM5NEEzQjMiLz4KPC9zdmc+Cg==';
+                        e.currentTarget.src =
+                          'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCA1MCA1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjUwIiBoZWlnaHQ9IjUwIiBmaWxsPSIjRTVFN0VCIi8+CjxwYXRoIGQ9Ik0xOC45NTMxIDIzLjA5MzhDMjAuMDYyNSAyMy4wOTM4IDIwLjk3NjYgMjIuMTc5NyAyMC45NzY2IDIxLjA3MDNDMjAuOTc2NiAxOS45NjA5IDIwLjA2MjUgMTkuMDQ2OSAxOC45NTMxIDE5LjA0NjlDMTcuODQzOCAxOS4wNDY5IDE2LjkyOTcgMTkuOTYwOSAxNi45Mjk3IDIxLjA3MDNDMTYuOTI5NyAyMi4xNzk3IDE3Ljg0MzggMjMuMDkzOCAxOC45NTMxIDIzLjA5MzhaIiBmaWxsPSIjOTRBM0IzIi8+CjxwYXRoIGQ9Ik0zMy4wMDc4IDMwLjk3NjZDMzMuMDA3OCAzMC40Njg4IDMyLjU5MzggMzAuMDU0NyAzMi4wODU5IDMwLjA1NDdIMTcuOTE0MUMxNy40MDYyIDMwLjA1NDcgMTYuOTkyMiAzMC40Njg4IDE2Ljk5MjIgMzAuOTc2NkMxNi45OTIyIDMxLjQ4NDQgMTcuNDA2MiAzMS44OTg0IDE3LjkxNDEgMzEuODk4NEgzMi4wODU5QzMyLjU5MzggMzEuODk4NCAzMy4wMDc4IDMxLjQ4NDQgMzMuMDA3OCAzMC45NzY2WiIgZmlsbD0iIzk0QTNCMyIvPgo8cGF0aCBkPSJNMzYuMzI4MSAyNS44MjAzQzM2LjMyODEgMjUuNDYwOSAzNi4wOTM4IDI1LjEyNSAzNS43MzQ0IDI0Ljk2MDlDMzUuMzcgMjQuODIwMyAzNC45NjQ4IDI0Ljg1OTQgMzQuNjQwNiAyNS4xMTcyTDMxLjMyODEgMjcuNzUzOUwyNi43NSAyMS41MTE3QzI2LjQ4NDQgMjEuMTU2MiAyNS45OTIyIDIxLjA3ODEgMjUuNjM2NyAyMS4zNDM4TDE4LjA3MDMgMjcuMTE3MkwxNS4yODkxIDI0LjgzNTlDMTQuOTQ1MyAyNC41NTQ3IDE0LjQ1MzEgMjQuNTM1MiAxNC4wODk4IDI0Ljc4MTJDMTMuNzI2NiAyNS4wMjczIDEzLjU1ODYgMjUuNDg0NCAxMy42OTkyIDI1Ljg5ODRMMTYuMTg3NSAzMy4yMzQ0QzE2LjI4OTEgMzMuNTI3MyAxNi41MzUyIDMzLjc1MzkgMTYuODMyIDMzLjgyODFDMTYuODk0NSAzMy44NDM4IDE2Ljk1NzAgMzMuODQ3NyAxNy4wMTk1IDMzLjg0NzdDMTcuMjU3OCAzMy44NDc3IDE3LjQ4ODMgMzMuNzYxNyAxNy42NjQxIDMzLjYwMTZMMjUuNzM0NCAyNi4zMzU5TDMwLjMyODEgMzIuNTk3N0MzMC41MzEyIDMyLjg2MzMgMzAuODQzOCAzMy4wMDc4IDMxLjE3MTkgMzMuMDA3OEMzMS4zNjMzIDMzLjAwNzggMzEuNTU4NiAzMi45NTMxIDMxLjcyNjYgMzIuODI4MUwzNS45MTQxIDI5LjU3MDNDMzYuMTc5NyAyOS4zNzExIDM2LjMyODEgMjkuMDU0NyAzNi4zMjgxIDI4LjcxODhWMjUuODIwM1oiIGZpbGw9IiM5NEEzQjMiLz4KPC9zdmc+Cg==';
                       }}
                     />
                   </div>
-                  
+
                   <div className="flex-1">
                     <div className="flex justify-between items-start mb-1">
                       <h3 className="font-medium text-gray-900 truncate" title={logo.name}>
@@ -231,21 +225,19 @@ const LogoList: React.FC<LogoListProps> = ({
                         {logo.status}
                       </span>
                     </div>
-                    
+
                     <div className="text-xs text-gray-500 mb-2">
                       <span className="capitalize mr-2">Type: {logo.logo_type}</span>
                     </div>
-                    
+
                     <div className="flex justify-between text-xs text-gray-500">
                       <div>
                         {logo.start_date && (
                           <span className="mr-2">From: {formatDate(logo.start_date)}</span>
                         )}
-                        {logo.end_date && (
-                          <span>To: {formatDate(logo.end_date)}</span>
-                        )}
+                        {logo.end_date && <span>To: {formatDate(logo.end_date)}</span>}
                       </div>
-                      
+
                       {/* Active indicator */}
                       {logo.status === LogoStatus.PUBLISHED && (
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">

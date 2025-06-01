@@ -1,24 +1,11 @@
 'use client';
 
+// TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
 import React, { useState, useRef, useEffect } from 'react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import {
-  Search,
-  ChevronDown,
-  Send,
-  Image as ImageIcon,
-  MessageCircle,
-  Phone,
-  Video,
-  MoreVertical,
-  Clock,
-  Check,
-  CheckCheck
-} from 'lucide-react';
-import { formatDate } from '@/lib/utils';
 import Image from 'next/image';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { Button } from '@/components/ui/Button';
+import { formatDate } from '@/lib/utils';
 
 // Mock conversations
 const mockConversations = [
@@ -65,7 +52,7 @@ const mockConversations = [
     avatar: 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg',
     orderId: null,
     orderStatus: null,
-  }
+  },
 ];
 
 // Mock messages for a selected conversation
@@ -75,45 +62,46 @@ const mockMessages = [
     content: "Hello! I'm interested in your products.",
     timestamp: '2025-05-25T10:00:00',
     sender: 'customer',
-    status: 'read'
+    status: 'read',
   },
   {
     id: '2',
     content: 'Hi there! Thank you for your interest. How can I help you today?',
     timestamp: '2025-05-25T10:02:00',
     sender: 'store',
-    status: 'read'
+    status: 'read',
   },
   {
     id: '3',
     content: 'I saw your wireless earbuds. Do you have them in stock?',
     timestamp: '2025-05-25T10:05:00',
     sender: 'customer',
-    status: 'read'
+    status: 'read',
   },
   {
     id: '4',
-    content: 'Yes, we do have the wireless earbuds in stock! They come in black, white, and blue. Which color would you prefer?',
+    content:
+      'Yes, we do have the wireless earbuds in stock! They come in black, white, and blue. Which color would you prefer?',
     timestamp: '2025-05-25T10:07:00',
     sender: 'store',
-    status: 'read'
+    status: 'read',
   },
   {
     id: '5',
     content: 'Do you have them in red color?',
     timestamp: '2025-05-25T15:30:00',
     sender: 'customer',
-    status: 'delivered'
-  }
+    status: 'delivered',
+  },
 ];
 
 // Quick reply templates
 const quickReplies = [
   "Thank you for your order! We'll process it right away.",
-  "Your order has been shipped and should arrive within 2-3 business days.",
+  'Your order has been shipped and should arrive within 2-3 business days.',
   "We're currently out of stock on that item. Would you like to be notified when it's back?",
-  "Can I help you with anything else today?",
-  "What's your delivery address?"
+  'Can I help you with anything else today?',
+  "What's your delivery address?",
 ];
 
 export default function MessagesPage() {
@@ -127,9 +115,10 @@ export default function MessagesPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Filter conversations based on search term
-  const filteredConversations = conversations.filter(conv =>
-    conv.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    conv.phone.includes(searchTerm)
+  const filteredConversations = conversations.filter(
+    (conv) =>
+      conv.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      conv.phone.includes(searchTerm),
   );
 
   // Scroll to bottom of messages
@@ -169,7 +158,7 @@ export default function MessagesPage() {
       content: newMessage,
       timestamp: new Date().toISOString(),
       sender: 'store',
-      status: 'sending'
+      status: 'sending',
     };
 
     // Add message to UI immediately
@@ -186,22 +175,14 @@ export default function MessagesPage() {
 
     // Simulate API call for message delivery status
     setTimeout(() => {
-      setMessages(prev =>
-        prev.map(msg =>
-          msg.id === messageToSend.id
-            ? { ...msg, status: 'sent' }
-            : msg
-        )
+      setMessages((prev) =>
+        prev.map((msg) => (msg.id === messageToSend.id ? { ...msg, status: 'sent' } : msg)),
       );
 
       // Then simulate delivered status
       setTimeout(() => {
-        setMessages(prev =>
-          prev.map(msg =>
-            msg.id === messageToSend.id
-              ? { ...msg, status: 'delivered' }
-              : msg
-          )
+        setMessages((prev) =>
+          prev.map((msg) => (msg.id === messageToSend.id ? { ...msg, status: 'delivered' } : msg)),
         );
       }, 1000);
     }, 1500);
@@ -236,12 +217,17 @@ export default function MessagesPage() {
   };
 
   // Helper: get selected conversation object
-  const selectedConvObj = conversations.find(c => c.id === selectedConversation);
+  const selectedConvObj = conversations.find((c) => c.id === selectedConversation);
   // Helper: get last message date
-  const lastMsgDate = messages.length > 0 ? new Date(messages[messages.length - 1].timestamp) : null;
+  const lastMsgDate =
+    messages.length > 0 ? new Date(messages[messages.length - 1].timestamp) : null;
   // Helper: is expired (order closed or >2 weeks old)
-  const isOrderClosed = selectedConvObj && (selectedConvObj.orderStatus === 'delivered' || selectedConvObj.orderStatus === 'cancelled');
-  const isMsgTooOld = lastMsgDate ? (Date.now() - lastMsgDate.getTime() > 14 * 24 * 60 * 60 * 1000) : false;
+  const isOrderClosed =
+    selectedConvObj &&
+    (selectedConvObj.orderStatus === 'delivered' || selectedConvObj.orderStatus === 'cancelled');
+  const isMsgTooOld = lastMsgDate
+    ? Date.now() - lastMsgDate.getTime() > 14 * 24 * 60 * 60 * 1000
+    : false;
   const isExpired = !!isOrderClosed || isMsgTooOld;
 
   return (
@@ -277,7 +263,12 @@ export default function MessagesPage() {
                   >
                     <div className="relative h-12 w-12 rounded-full overflow-hidden bg-gray-300 mr-3 flex-shrink-0 border border-[#e6f0eb]">
                       {conv.avatar ? (
-                        <Image src={conv.avatar} alt={conv.customerName} fill className="object-cover" />
+                        <Image
+                          src={conv.avatar}
+                          alt={conv.customerName}
+                          fill
+                          className="object-cover"
+                        />
                       ) : (
                         <div className="flex items-center justify-center h-full text-gray-500">
                           {conv.customerName.charAt(0)}
@@ -302,9 +293,7 @@ export default function MessagesPage() {
                   </button>
                 ))
               ) : (
-                <div className="text-center py-8 text-gray-400">
-                  No conversations found
-                </div>
+                <div className="text-center py-8 text-gray-400">No conversations found</div>
               )}
             </div>
           </div>
@@ -318,7 +307,10 @@ export default function MessagesPage() {
                   <div className="flex items-center">
                     <div className="relative h-10 w-10 rounded-full overflow-hidden bg-gray-300 mr-3 border border-[#e6f0eb]">
                       <Image
-                        src={selectedConvObj?.avatar || 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg'}
+                        src={
+                          selectedConvObj?.avatar ||
+                          'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg'
+                        }
                         alt="Customer"
                         fill
                         className="object-cover"
@@ -338,9 +330,7 @@ export default function MessagesPage() {
                           </a>
                         )}
                       </h3>
-                      <p className="text-xs text-gray-400">
-                        {selectedConvObj?.phone}
-                      </p>
+                      <p className="text-xs text-gray-400">{selectedConvObj?.phone}</p>
                     </div>
                   </div>
                   <div className="flex space-x-2">
@@ -368,18 +358,24 @@ export default function MessagesPage() {
                     {messages.map((message) => (
                       <div
                         key={message.id}
-                        className={`flex ${message.sender === 'store' ? 'justify-end' : 'justify-start'
-                          }`}
+                        className={`flex ${
+                          message.sender === 'store' ? 'justify-end' : 'justify-start'
+                        }`}
                       >
                         <div
-                          className={`max-w-[75%] rounded-2xl px-4 py-2 shadow-sm ${message.sender === 'store'
-                            ? 'bg-[#6C9A8B] text-white'
-                            : 'bg-white border border-[#e6f0eb] text-gray-800'
-                            }`}
+                          className={`max-w-[75%] rounded-2xl px-4 py-2 shadow-sm ${
+                            message.sender === 'store'
+                              ? 'bg-[#6C9A8B] text-white'
+                              : 'bg-white border border-[#e6f0eb] text-gray-800'
+                          }`}
                         >
                           <p>{message.content}</p>
                           <div className="text-xs mt-1 flex justify-end items-center space-x-1">
-                            <span className={message.sender === 'store' ? 'text-[#e8f6f1]' : 'text-gray-400'}>
+                            <span
+                              className={
+                                message.sender === 'store' ? 'text-[#e8f6f1]' : 'text-gray-400'
+                              }
+                            >
                               {formatDate(message.timestamp, 'time')}
                             </span>
                             {message.sender === 'store' && renderMessageStatus(message.status)}
@@ -410,7 +406,12 @@ export default function MessagesPage() {
                 {/* Message input */}
                 <div className="p-4 border-t bg-white">
                   <div className="flex">
-                    <Button variant="ghost" size="sm" className="h-10 w-10 p-0 mr-2" title="Attach Image">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-10 w-10 p-0 mr-2"
+                      title="Attach Image"
+                    >
                       <ImageIcon className="h-5 w-5" />
                     </Button>
                     <input
@@ -443,8 +444,12 @@ export default function MessagesPage() {
             ) : (
               <div className="flex flex-1 flex-col items-center justify-center text-center bg-white">
                 <MessageCircle className="w-16 h-16 text-[#e6f0eb] mb-4" />
-                <h2 className="text-xl font-semibold mb-2 text-gray-700">No conversation selected</h2>
-                <p className="text-gray-400 mb-6">Select a conversation to view and reply to messages.</p>
+                <h2 className="text-xl font-semibold mb-2 text-gray-700">
+                  No conversation selected
+                </h2>
+                <p className="text-gray-400 mb-6">
+                  Select a conversation to view and reply to messages.
+                </p>
               </div>
             )}
           </div>

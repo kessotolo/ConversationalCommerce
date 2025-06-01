@@ -1,6 +1,6 @@
 /**
  * Frontend Configuration
- * 
+ *
  * Optimized for mobile-first African markets with:
  * - Environment-aware API configuration
  * - Timeout settings appropriate for variable connectivity
@@ -40,7 +40,7 @@ export const PWA_SETTINGS = {
   precacheEssentialAssets: true,
 };
 
-// African market SMS providers 
+// African market SMS providers
 export const SMS_PROVIDERS = {
   default: 'twilio',
   alternates: ['africastalking', 'termii'],

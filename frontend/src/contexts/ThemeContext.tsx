@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import type { Theme } from '@/modules/theme/models/theme';;
+import type { Theme } from '@/modules/theme/models/theme';
 import { useTenant } from './TenantContext';
 import { defaultTheme } from '../utils/defaultTheme';
-import { Check } from 'lucide-react';
+
 
 interface ThemeContextType {
   theme: Theme;
@@ -41,8 +41,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   useEffect(() => {
     const previewCookie = document.cookie
       .split('; ')
-      .find(row => row.startsWith('theme_preview='));
-    
+      .find((row) => row.startsWith('theme_preview='));
+
     if (previewCookie) {
       try {
         const previewData = JSON.parse(decodeURIComponent(previewCookie.split('=')[1]));
@@ -71,11 +71,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       try {
         setIsLoading(true);
         const response = await fetch(`/api/tenants/${tenant.id}/theme`);
-        
+
         if (!response.ok) {
           throw new Error(`Failed to load theme: ${response.statusText}`);
         }
-        
+
         const themeData = await response.json();
         setTheme(themeData);
       } catch (err) {
@@ -112,7 +112,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       },
       typography: { ...defaultTheme.typography },
       layout: { ...defaultTheme.layout },
-      componentStyles: { ...defaultTheme.componentStyles }
+      componentStyles: { ...defaultTheme.componentStyles },
     },
     {
       id: 'light',
@@ -131,21 +131,21 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       },
       typography: { ...defaultTheme.typography },
       layout: { ...defaultTheme.layout },
-      componentStyles: { ...defaultTheme.componentStyles }
-    }
+      componentStyles: { ...defaultTheme.componentStyles },
+    },
   ];
 
   return (
-    <ThemeContext.Provider 
-      value={{ 
-        theme: activeTheme, 
-        isLoading, 
-        error, 
-        previewTheme, 
+    <ThemeContext.Provider
+      value={{
+        theme: activeTheme,
+        isLoading,
+        error,
+        previewTheme,
         setTheme,
         setPreviewTheme,
         clearPreviewTheme,
-        availableThemes
+        availableThemes,
       }}
     >
       {children}

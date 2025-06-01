@@ -1,4 +1,4 @@
-import { Entity, UUID } from '@core/models/base';
+
 
 export interface ThemeColors {
   primary: string;

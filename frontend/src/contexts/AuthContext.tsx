@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useTenant } from './TenantContext';
-import { Check, User, Store } from 'lucide-react';
+
 
 // Interface for auth with UUID tenant connection
 interface AuthUser {
@@ -44,14 +44,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const checkAuth = async () => {
       try {
         setIsLoading(true);
-        
+
         // In a real implementation, this would verify the auth session
         // For now, check localStorage for demo purposes
         const storedUser = localStorage.getItem('auth_user');
-        
+
         if (storedUser) {
           const parsedUser = JSON.parse(storedUser) as AuthUser;
-          
+
           // When properly integrated with Clerk, this would check
           // if the user has access to this specific tenant's UUID
           if (tenant && tenant.id) {
@@ -59,7 +59,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             // For demo: just assume they do
             parsedUser.tenantId = tenant.id;
           }
-          
+
           setUser(parsedUser);
         }
       } catch (err) {
@@ -78,13 +78,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       // This would be a real auth API call in production
       // For demo purposes, just simulate a successful login
-      
+
       // In production, this would validate credentials against Clerk
       // and retrieve the user's UUID from your database
-      
+
       // IMPORTANT: The UUID tenant system requires proper joining here
       const userWithTenant: AuthUser = {
         id: 'user_' + Math.random().toString(36).substring(2, 11),
@@ -93,10 +93,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         lastName: 'User',
         tenantId: tenant?.id, // Connect to UUID tenant
       };
-      
+
       // Store user data (in production, this would be handled by Clerk)
       localStorage.setItem('auth_user', JSON.stringify(userWithTenant));
-      
+
       setUser(userWithTenant);
     } catch (err) {
       console.error('Sign in error:', err);
@@ -111,10 +111,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signOut = async () => {
     try {
       setIsLoading(true);
-      
+
       // In production, this would call Clerk's signOut method
       localStorage.removeItem('auth_user');
-      
+
       setUser(null);
     } catch (err) {
       console.error('Sign out error:', err);

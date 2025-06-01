@@ -1,8 +1,7 @@
 'use client';
 
-import { useAuth } from '@clerk/nextjs';
-import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 
 export function AuthRedirect() {
   const { isLoaded, isSignedIn } = useAuth();
@@ -19,7 +18,7 @@ export function AuthRedirect() {
       if (isSignedIn && (pathname === '/sign-in' || pathname === '/sign-up' || pathname === '/')) {
         router.push('/dashboard');
       }
-      
+
       // Note: We don't need to handle the reverse case here because
       // Clerk's middleware (authMiddleware) will already handle redirecting
       // unauthenticated users away from protected routes

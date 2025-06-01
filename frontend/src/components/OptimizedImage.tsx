@@ -53,7 +53,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
     if (lowQualitySrc && !isLoaded && !error) {
       const highQualityImage = new window.Image();
       highQualityImage.src = src;
-      
+
       highQualityImage.onload = () => {
         // Cache the image data in localStorage if possible
         try {
@@ -63,20 +63,20 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
         } catch (e) {
           console.warn('Unable to cache image:', e);
         }
-        
+
         setImageSrc(src);
         setIsLoaded(true);
         if (onLoad) onLoad();
       };
-      
+
       highQualityImage.onerror = () => {
         if (retries < MAX_RETRIES) {
           // Implement exponential backoff for retries
           const backoffTime = Math.pow(2, retries) * 1000;
           console.log(`Retrying image load (${retries + 1}/${MAX_RETRIES}) after ${backoffTime}ms`);
-          
+
           setTimeout(() => {
-            setRetries(prev => prev + 1);
+            setRetries((prev) => prev + 1);
             // Force a refresh of the image
             highQualityImage.src = `${src}?retry=${Date.now()}`;
           }, backoffTime);
@@ -93,7 +93,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   // Handle network status changes
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    
+
     const handleOnline = () => {
       // When coming back online, retry loading any images that failed
       if (error) {
@@ -102,7 +102,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
         setImageSrc(lowQualitySrc || src);
       }
     };
-    
+
     window.addEventListener('online', handleOnline);
     return () => window.removeEventListener('online', handleOnline);
   }, [error, lowQualitySrc, src]);
@@ -130,7 +130,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
           }
         }}
       />
-      
+
       {/* Loading indicator */}
       {!isLoaded && !error && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-40">

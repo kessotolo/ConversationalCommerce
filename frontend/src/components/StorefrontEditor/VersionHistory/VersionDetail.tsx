@@ -1,16 +1,7 @@
 import React, { useState } from 'react';
+import {  Copy } from 'lucide-react';
 import type { Version } from '@/modules/storefront/models/version';
-import type { UUID } from '@/modules/core/models/base';;
-import { 
-  ArrowUturnLeftIcon, 
-  ClipboardDocumentIcon, 
-  ClockIcon,
-  TagIcon,
-  UserIcon,
-  CheckIcon,
-  ExclamationTriangleIcon
-} from '@heroicons/react/24/outline';
-import { User, Copy } from 'lucide-react';
+import type { UUID } from '@/modules/core/models/base';
 
 interface VersionDetailProps {
   version: Version;
@@ -18,11 +9,7 @@ interface VersionDetailProps {
   onRestore: (versionId: UUID) => Promise<boolean>;
 }
 
-const VersionDetail: React.FC<VersionDetailProps> = ({ 
-  version, 
-  tenantId, 
-  onRestore 
-}) => {
+const VersionDetail: React.FC<VersionDetailProps> = ({ version, tenantId, onRestore }) => {
   const [isRestoring, setIsRestoring] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,13 +26,13 @@ const VersionDetail: React.FC<VersionDetailProps> = ({
       setIsRestoring(true);
       return;
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       const success = await onRestore(version.id);
-      
+
       if (success) {
         setSuccessMessage('Version restored successfully. A new draft has been created.');
         setIsRestoring(false);
@@ -102,13 +89,14 @@ const VersionDetail: React.FC<VersionDetailProps> = ({
                   <h3 className="text-sm font-medium text-yellow-800">Restore Confirmation</h3>
                   <div className="mt-2 text-sm text-yellow-700">
                     <p>
-                      Are you sure you want to restore this version? This will create a new draft based on this version's configuration.
+                      Are you sure you want to restore this version? This will create a new draft
+                      based on this version's configuration.
                     </p>
                   </div>
                 </div>
               </div>
             </div>
-            
+
             <div className="flex justify-end space-x-2">
               <button
                 type="button"
@@ -135,7 +123,7 @@ const VersionDetail: React.FC<VersionDetailProps> = ({
               <h2 className="text-xl font-medium text-gray-900 mb-2">{version.change_summary}</h2>
               <p className="text-gray-600">{version.change_description}</p>
             </div>
-            
+
             {/* Version Metadata */}
             <div className="grid grid-cols-2 gap-4 border-t border-b py-4">
               <div className="flex items-center">
@@ -145,7 +133,7 @@ const VersionDetail: React.FC<VersionDetailProps> = ({
                   <p className="text-sm">{formatDate(version.created_at)}</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center">
                 <UserIcon className="h-5 w-5 text-gray-400 mr-2" />
                 <div>
@@ -154,7 +142,7 @@ const VersionDetail: React.FC<VersionDetailProps> = ({
                 </div>
               </div>
             </div>
-            
+
             {/* Tags */}
             <div>
               <div className="flex items-center mb-2">
@@ -176,7 +164,7 @@ const VersionDetail: React.FC<VersionDetailProps> = ({
                 )}
               </div>
             </div>
-            
+
             {/* Configuration Snapshot */}
             <div>
               <h4 className="text-sm font-medium mb-2">Configuration Snapshot</h4>
@@ -186,7 +174,9 @@ const VersionDetail: React.FC<VersionDetailProps> = ({
                   <button
                     className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
                     onClick={() => {
-                      navigator.clipboard.writeText(JSON.stringify(version.configuration_snapshot, null, 2));
+                      navigator.clipboard.writeText(
+                        JSON.stringify(version.configuration_snapshot, null, 2),
+                      );
                       setSuccessMessage('Configuration copied to clipboard');
                       setTimeout(() => setSuccessMessage(null), 3000);
                     }}

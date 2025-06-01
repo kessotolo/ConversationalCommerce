@@ -1,4 +1,4 @@
-import { UUID, TenantScoped } from '@core/models/base';
+
 
 export interface AuditLogEntry extends TenantScoped {
   user_id: UUID;

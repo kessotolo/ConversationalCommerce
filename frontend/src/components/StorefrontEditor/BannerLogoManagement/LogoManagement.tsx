@@ -1,12 +1,12 @@
+// TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
 import React, { useState, useEffect } from 'react';
-import { getLogos, publishLogo, deleteLogo } from '../../../lib/api/storefrontEditor';
 import type { Logo } from '@/modules/storefront/models/logo';
 import type { UUID } from '@/modules/core/models/base';
-import { LogoStatus, LogoType } from '@/modules/storefront/models/logo';;
+import { LogoStatus, LogoType } from '@/modules/storefront/models/logo';
+import { getLogos, publishLogo, deleteLogo } from '../../../lib/api/storefrontEditor';
 import LogoList from './LogoList';
 import LogoDetail from './LogoDetail';
 import CreateLogoModal from './CreateLogoModal';
-import { PlusIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 
 interface LogoManagementProps {
   tenantId: UUID;
@@ -22,7 +22,7 @@ const LogoManagement: React.FC<LogoManagementProps> = ({ tenantId }) => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [offset, setOffset] = useState(0);
   const [limit] = useState(20);
-  
+
   // Filter state
   const [statusFilter, setStatusFilter] = useState<LogoStatus | 'all'>('all');
   const [typeFilter, setTypeFilter] = useState<LogoType | 'all'>('all');
@@ -32,19 +32,19 @@ const LogoManagement: React.FC<LogoManagementProps> = ({ tenantId }) => {
   const loadLogos = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const params: any = { offset, limit };
-      
+
       // Add filters if set
       if (statusFilter !== 'all') params.status = statusFilter;
       if (typeFilter !== 'all') params.logo_type = typeFilter;
       if (searchQuery) params.search = searchQuery;
-      
+
       const response = await getLogos(tenantId, params);
       setLogos(response.items);
       setTotalLogos(response.total);
-      
+
       // Select first logo if nothing is selected
       if (response.items.length > 0 && !selectedLogo) {
         setSelectedLogo(response.items[0]);
@@ -87,12 +87,12 @@ const LogoManagement: React.FC<LogoManagementProps> = ({ tenantId }) => {
   const handleDeleteLogo = async (logoId: UUID) => {
     try {
       await deleteLogo(tenantId, logoId);
-      
+
       // If the deleted logo was selected, clear selection
       if (selectedLogo && selectedLogo.id === logoId) {
         setSelectedLogo(null);
       }
-      
+
       setSuccessMessage('Logo deleted successfully');
       setTimeout(() => setSuccessMessage(null), 3000);
       loadLogos();
@@ -111,7 +111,11 @@ const LogoManagement: React.FC<LogoManagementProps> = ({ tenantId }) => {
   };
 
   // Apply filters
-  const handleFilterChange = (status: LogoStatus | 'all', type: LogoType | 'all', query: string) => {
+  const handleFilterChange = (
+    status: LogoStatus | 'all',
+    type: LogoType | 'all',
+    query: string,
+  ) => {
     setStatusFilter(status);
     setTypeFilter(type);
     setSearchQuery(query);
@@ -141,16 +145,10 @@ const LogoManagement: React.FC<LogoManagementProps> = ({ tenantId }) => {
       </div>
 
       {successMessage && (
-        <div className="mb-4 p-3 bg-green-100 text-green-800 rounded-md">
-          {successMessage}
-        </div>
+        <div className="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{successMessage}</div>
       )}
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md">
-          {error}
-        </div>
-      )}
+      {error && <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md">{error}</div>}
 
       <div className="flex-1 flex gap-6">
         {/* Logo List */}
@@ -165,7 +163,7 @@ const LogoManagement: React.FC<LogoManagementProps> = ({ tenantId }) => {
             typeFilter={typeFilter}
             searchQuery={searchQuery}
           />
-          
+
           {/* Pagination */}
           {logos.length > 0 && (
             <div className="p-3 border-t mt-auto">
@@ -214,11 +212,23 @@ const LogoManagement: React.FC<LogoManagementProps> = ({ tenantId }) => {
             />
           ) : (
             <div className="bg-white rounded-lg border shadow-sm p-8 flex flex-col items-center justify-center h-full">
-              <svg className="h-16 w-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              <svg
+                className="h-16 w-16 text-gray-400 mb-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                />
               </svg>
               <h3 className="text-lg font-medium text-gray-900">No logo selected</h3>
-              <p className="text-gray-500 mt-1">Select a logo to view details or create a new one.</p>
+              <p className="text-gray-500 mt-1">
+                Select a logo to view details or create a new one.
+              </p>
               <button
                 onClick={() => setIsCreateModalOpen(true)}
                 className="mt-4 flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"

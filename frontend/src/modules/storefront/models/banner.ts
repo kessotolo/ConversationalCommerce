@@ -1,17 +1,17 @@
-import { UUID, TenantScoped, PaginatedResult } from '@core/models/base';
+
 
 export enum BannerType {
   HERO = 'hero',
   PROMOTION = 'promotion',
   ANNOUNCEMENT = 'announcement',
-  SPECIAL = 'special'
+  SPECIAL = 'special',
 }
 
 export enum BannerStatus {
   DRAFT = 'draft',
   PUBLISHED = 'published',
   SCHEDULED = 'scheduled',
-  INACTIVE = 'inactive'
+  INACTIVE = 'inactive',
 }
 
 export enum TargetAudience {
@@ -19,7 +19,7 @@ export enum TargetAudience {
   NEW_USERS = 'new_users',
   RETURNING_USERS = 'returning_users',
   MOBILE = 'mobile',
-  DESKTOP = 'desktop'
+  DESKTOP = 'desktop',
 }
 
 export interface Banner extends TenantScoped {

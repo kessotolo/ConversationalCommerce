@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { createLogo, getAssets } from '../../../lib/api/storefrontEditor';
+import Image from 'next/image';
 import type { UUID } from '@/modules/core/models/base';
 import type { Asset } from '@/modules/storefront/models/asset';
-import { LogoType } from '@/modules/storefront/models/logo';;
-import { Dialog } from '@headlessui/react';
-import { XMarkIcon, ExclamationTriangleIcon, PhotoIcon } from '@heroicons/react/24/outline';
-import Image from 'next/image';
+import { LogoType } from '@/modules/storefront/models/logo';
+import { createLogo, getAssets } from '../../../lib/api/storefrontEditor';
 
 interface CreateLogoModalProps {
   tenantId: UUID;
@@ -18,7 +16,7 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ tenantId, onClose, on
   const [error, setError] = useState<string | null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loadingAssets, setLoadingAssets] = useState(false);
-  
+
   // Form state
   const [formData, setFormData] = useState({
     name: '',
@@ -27,7 +25,7 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ tenantId, onClose, on
     display_settings: {},
     responsive_settings: {},
     start_date: '',
-    end_date: ''
+    end_date: '',
   });
 
   // Load assets for selection
@@ -44,12 +42,14 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ tenantId, onClose, on
         setLoadingAssets(false);
       }
     };
-    
+
     loadAssets();
   }, [tenantId]);
 
   // Handle input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
@@ -59,15 +59,15 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ tenantId, onClose, on
     e.preventDefault();
     setLoading(true);
     setError(null);
-    
+
     try {
       await createLogo(tenantId, {
         ...formData,
         // Convert empty strings to null
         start_date: formData.start_date || null,
-        end_date: formData.end_date || null
+        end_date: formData.end_date || null,
       });
-      
+
       onSuccess();
       onClose();
     } catch (err) {
@@ -79,7 +79,7 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ tenantId, onClose, on
   };
 
   // Get the selected asset details
-  const selectedAsset = assets.find(asset => asset.id === formData.asset_id);
+  const selectedAsset = assets.find((asset) => asset.id === formData.asset_id);
 
   return (
     <div className="fixed inset-0 overflow-y-auto z-50">
@@ -88,12 +88,14 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ tenantId, onClose, on
           <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
         </div>
 
-        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
+          &#8203;
+        </span>
 
-        <div 
+        <div
           className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
-          role="dialog" 
-          aria-modal="true" 
+          role="dialog"
+          aria-modal="true"
           aria-labelledby="modal-headline"
         >
           <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
@@ -134,7 +136,7 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ tenantId, onClose, on
                   placeholder="Enter logo name"
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="logo_type" className="block text-sm font-medium text-gray-700">
                   Logo Type *
@@ -153,21 +155,24 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ tenantId, onClose, on
                     </option>
                   ))}
                 </select>
-                
+
                 <p className="mt-1 text-xs text-gray-500">
-                  {formData.logo_type === LogoType.PRIMARY && "The main logo displayed in the header"}
-                  {formData.logo_type === LogoType.SECONDARY && "Alternative logo used in specific contexts"}
-                  {formData.logo_type === LogoType.FOOTER && "Logo displayed in the footer"}
-                  {formData.logo_type === LogoType.MOBILE && "Optimized logo for mobile devices"}
-                  {formData.logo_type === LogoType.FAVICON && "Small icon displayed in browser tabs"}
+                  {formData.logo_type === LogoType.PRIMARY &&
+                    'The main logo displayed in the header'}
+                  {formData.logo_type === LogoType.SECONDARY &&
+                    'Alternative logo used in specific contexts'}
+                  {formData.logo_type === LogoType.FOOTER && 'Logo displayed in the footer'}
+                  {formData.logo_type === LogoType.MOBILE && 'Optimized logo for mobile devices'}
+                  {formData.logo_type === LogoType.FAVICON &&
+                    'Small icon displayed in browser tabs'}
                 </p>
               </div>
-              
+
               <div>
                 <label htmlFor="asset_id" className="block text-sm font-medium text-gray-700">
                   Logo Image *
                 </label>
-                
+
                 {loadingAssets ? (
                   <div className="mt-1 p-4 flex justify-center items-center border border-gray-300 border-dashed rounded-md">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-700"></div>
@@ -176,7 +181,9 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ tenantId, onClose, on
                   <div className="mt-1 p-4 flex flex-col items-center justify-center border border-gray-300 border-dashed rounded-md">
                     <PhotoIcon className="h-10 w-10 text-gray-400" />
                     <p className="mt-2 text-sm text-gray-500">No images available</p>
-                    <p className="text-xs text-gray-500">Please upload images in the Asset Management section</p>
+                    <p className="text-xs text-gray-500">
+                      Please upload images in the Asset Management section
+                    </p>
                   </div>
                 ) : (
                   <>
@@ -195,7 +202,7 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ tenantId, onClose, on
                         </option>
                       ))}
                     </select>
-                    
+
                     {/* Preview selected image */}
                     {selectedAsset ? (
                       <div className="mt-2 p-2 border rounded-md">
@@ -213,7 +220,7 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ tenantId, onClose, on
                   </>
                 )}
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="start_date" className="block text-sm font-medium text-gray-700">
@@ -228,7 +235,7 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ tenantId, onClose, on
                     className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   />
                 </div>
-                
+
                 <div>
                   <label htmlFor="end_date" className="block text-sm font-medium text-gray-700">
                     End Date
@@ -244,7 +251,7 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ tenantId, onClose, on
                   />
                 </div>
               </div>
-              
+
               <div className="flex justify-end space-x-2 pt-4">
                 <button
                   type="button"

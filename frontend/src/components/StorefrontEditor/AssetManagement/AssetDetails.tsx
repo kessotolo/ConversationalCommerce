@@ -3,20 +3,19 @@ import type { Asset } from '@/modules/storefront/models/asset';
 import type { UUID } from '@/modules/core/models/base';
 import { AssetType } from '@/modules/storefront/models/asset';
 import { updateAsset, deleteAsset, optimizeAsset } from '../../../lib/api/storefrontEditor';
-import { 
-  XMarkIcon, 
-  PencilIcon, 
-  TrashIcon, 
+import {
+  XMarkIcon,
+  PencilIcon,
+  TrashIcon,
   ArrowTopRightOnSquareIcon,
-  BoltIcon,
-  CheckCircleIcon,
+  BoltIconCircleIcon,
   PhotoIcon,
   FilmIcon,
   DocumentTextIcon,
   MusicalNoteIcon,
-  DocumentIcon
+  DocumentIcon,
 } from '@heroicons/react/24/outline';
-import { Check, Save } from 'lucide-react';
+
 
 interface AssetDetailsProps {
   asset: Asset;
@@ -78,13 +77,13 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, tenantId, onUpdate, 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    
+
     try {
       await updateAsset(tenantId, asset.id, formData);
       setSuccessMessage('Asset updated successfully');
       setIsEditing(false);
       onUpdate();
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
@@ -96,15 +95,15 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, tenantId, onUpdate, 
   // Handle asset optimization
   const handleOptimize = async () => {
     if (asset.is_optimized) return;
-    
+
     setIsOptimizing(true);
     setError(null);
-    
+
     try {
       await optimizeAsset(tenantId, asset.id);
       setSuccessMessage('Asset optimized successfully');
       onUpdate();
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
@@ -121,9 +120,9 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, tenantId, onUpdate, 
       setIsDeleting(true);
       return;
     }
-    
+
     setError(null);
-    
+
     try {
       await deleteAsset(tenantId, asset.id);
       onUpdate();
@@ -151,10 +150,7 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, tenantId, onUpdate, 
           {getAssetIcon(asset.asset_type)}
           <span className="ml-2">Asset Details</span>
         </h3>
-        <button
-          onClick={onClose}
-          className="text-gray-500 hover:text-gray-700"
-        >
+        <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
           <XMarkIcon className="h-5 w-5" />
         </button>
       </div>
@@ -184,11 +180,7 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, tenantId, onUpdate, 
       )}
 
       {/* Error Message */}
-      {error && (
-        <div className="m-4 p-2 bg-red-100 text-red-800 rounded-md">
-          {error}
-        </div>
-      )}
+      {error && <div className="m-4 p-2 bg-red-100 text-red-800 rounded-md">{error}</div>}
 
       {/* Content */}
       <div className="p-4 overflow-y-auto flex-1">
@@ -209,7 +201,7 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, tenantId, onUpdate, 
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
-              
+
               {isImage && (
                 <div>
                   <label htmlFor="alt_text" className="block text-sm font-medium text-gray-700">
@@ -225,7 +217,7 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, tenantId, onUpdate, 
                   />
                 </div>
               )}
-              
+
               <div>
                 <label htmlFor="description" className="block text-sm font-medium text-gray-700">
                   Description
@@ -239,7 +231,7 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, tenantId, onUpdate, 
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
-              
+
               <div className="flex justify-end space-x-2">
                 <button
                   type="button"
@@ -265,46 +257,46 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, tenantId, onUpdate, 
                 <dt className="text-sm font-medium text-gray-500">Filename</dt>
                 <dd className="mt-1 text-sm text-gray-900 break-all">{asset.original_filename}</dd>
               </div>
-              
+
               <div>
                 <dt className="text-sm font-medium text-gray-500">Type</dt>
                 <dd className="mt-1 text-sm text-gray-900 capitalize">{asset.asset_type}</dd>
               </div>
-              
+
               <div>
                 <dt className="text-sm font-medium text-gray-500">Size</dt>
                 <dd className="mt-1 text-sm text-gray-900">{formatFileSize(asset.file_size)}</dd>
               </div>
-              
+
               <div>
                 <dt className="text-sm font-medium text-gray-500">Created</dt>
                 <dd className="mt-1 text-sm text-gray-900">{formatDate(asset.created_at)}</dd>
               </div>
-              
+
               <div>
                 <dt className="text-sm font-medium text-gray-500">Last Updated</dt>
                 <dd className="mt-1 text-sm text-gray-900">{formatDate(asset.updated_at)}</dd>
               </div>
-              
+
               <div className="col-span-2">
                 <dt className="text-sm font-medium text-gray-500">Title</dt>
                 <dd className="mt-1 text-sm text-gray-900">{asset.title}</dd>
               </div>
-              
+
               {asset.alt_text && (
                 <div className="col-span-2">
                   <dt className="text-sm font-medium text-gray-500">Alt Text</dt>
                   <dd className="mt-1 text-sm text-gray-900">{asset.alt_text}</dd>
                 </div>
               )}
-              
+
               {asset.description && (
                 <div className="col-span-2">
                   <dt className="text-sm font-medium text-gray-500">Description</dt>
                   <dd className="mt-1 text-sm text-gray-900">{asset.description}</dd>
                 </div>
               )}
-              
+
               <div className="col-span-2">
                 <dt className="text-sm font-medium text-gray-500">Used In</dt>
                 <dd className="mt-1 text-sm text-gray-900">
@@ -312,10 +304,12 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, tenantId, onUpdate, 
                 </dd>
               </div>
             </dl>
-            
+
             {/* Optimization Status */}
             {isImage && (
-              <div className={`p-3 rounded-md ${asset.is_optimized ? 'bg-green-50' : 'bg-yellow-50'}`}>
+              <div
+                className={`p-3 rounded-md ${asset.is_optimized ? 'bg-green-50' : 'bg-yellow-50'}`}
+              >
                 <div className="flex">
                   {asset.is_optimized ? (
                     <>
@@ -350,10 +344,13 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, tenantId, onUpdate, 
         <div className="p-4 border-t">
           {isDeleting ? (
             <div className="space-y-3">
-              <p className="text-sm text-red-600 font-medium">Are you sure you want to delete this asset?</p>
+              <p className="text-sm text-red-600 font-medium">
+                Are you sure you want to delete this asset?
+              </p>
               {asset.usage_count > 0 && (
                 <p className="text-xs text-red-600">
-                  Warning: This asset is used in {asset.usage_count} places. Deleting it may break those references.
+                  Warning: This asset is used in {asset.usage_count} places. Deleting it may break
+                  those references.
                 </p>
               )}
               <div className="flex space-x-2">
@@ -380,7 +377,7 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, tenantId, onUpdate, 
                 <PencilIcon className="h-4 w-4 mr-2" />
                 Edit
               </button>
-              
+
               <a
                 href={`/api/assets/${asset.file_path.replace(/^.*[\\\/]/, '')}`}
                 target="_blank"
@@ -390,7 +387,7 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, tenantId, onUpdate, 
                 <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-2" />
                 View
               </a>
-              
+
               {isImage && !asset.is_optimized && (
                 <button
                   onClick={handleOptimize}
@@ -401,7 +398,7 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, tenantId, onUpdate, 
                   {isOptimizing ? 'Optimizing...' : 'Optimize'}
                 </button>
               )}
-              
+
               <button
                 onClick={handleDelete}
                 className="inline-flex items-center px-3 py-2 border border-red-300 shadow-sm text-sm leading-4 font-medium rounded-md text-red-700 bg-white hover:bg-red-50"

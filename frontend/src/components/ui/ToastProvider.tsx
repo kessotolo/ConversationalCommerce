@@ -19,7 +19,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const addToast = (props: ToastProps) => {
     const id = Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev, { ...props, id }]);
-    
+
     // Auto dismiss after 5 seconds
     setTimeout(() => {
       dismissToast(id);

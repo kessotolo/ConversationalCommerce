@@ -1,17 +1,17 @@
-import { UUID, TenantScoped, PaginatedResult } from '@core/models/base';
+
 
 export enum LogoType {
   PRIMARY = 'primary',
   SECONDARY = 'secondary',
   FOOTER = 'footer',
   MOBILE = 'mobile',
-  FAVICON = 'favicon'
+  FAVICON = 'favicon',
 }
 
 export enum LogoStatus {
   DRAFT = 'draft',
   PUBLISHED = 'published',
-  INACTIVE = 'inactive'
+  INACTIVE = 'inactive',
 }
 
 export interface Logo extends TenantScoped {

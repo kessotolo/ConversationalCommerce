@@ -14,9 +14,7 @@ interface AppProviderProps {
 export function AppProvider({ children }: AppProviderProps) {
   return (
     <AuthProvider>
-      <ThemeProvider>
-        {children}
-      </ThemeProvider>
+      <ThemeProvider>{children}</ThemeProvider>
     </AuthProvider>
   );
 }

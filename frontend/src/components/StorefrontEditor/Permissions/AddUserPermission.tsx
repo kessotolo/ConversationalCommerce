@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { assignRole } from '../../../lib/api/storefrontEditor';
 import type { UUID } from '@/modules/core/models/base';
-import { StorefrontRole } from '@/modules/storefront/models/permission';;
-import { XMarkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { User } from 'lucide-react';
+import { StorefrontRole } from '@/modules/storefront/models/permission';
+import { assignRole } from '../../../lib/api/storefrontEditor';
+
 
 interface AddUserPermissionProps {
   tenantId: UUID;
@@ -11,15 +10,11 @@ interface AddUserPermissionProps {
   onSuccess: () => void;
 }
 
-const AddUserPermission: React.FC<AddUserPermissionProps> = ({ 
-  tenantId, 
-  onClose, 
-  onSuccess 
-}) => {
+const AddUserPermission: React.FC<AddUserPermissionProps> = ({ tenantId, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     userId: '',
     username: '',
-    role: StorefrontRole.VIEWER as StorefrontRole
+    role: StorefrontRole.VIEWER as StorefrontRole,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,31 +28,33 @@ const AddUserPermission: React.FC<AddUserPermissionProps> = ({
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.userId) {
       setError('User ID is required');
       return;
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       // Validate UUID format
       if (!isValidUUID(formData.userId)) {
         throw new Error('Invalid UUID format for User ID');
       }
-      
-      await assignRole(tenantId, formData.userId, { 
+
+      await assignRole(tenantId, formData.userId, {
         role: formData.role,
-        username: formData.username // Not required but helpful for display
+        username: formData.username, // Not required but helpful for display
       });
-      
+
       onSuccess();
       onClose();
     } catch (err) {
       console.error('Error adding user permission:', err);
-      setError(err instanceof Error ? err.message : 'Failed to add user permission. Please try again.');
+      setError(
+        err instanceof Error ? err.message : 'Failed to add user permission. Please try again.',
+      );
     } finally {
       setLoading(false);
     }
@@ -75,10 +72,7 @@ const AddUserPermission: React.FC<AddUserPermissionProps> = ({
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b">
           <h3 className="text-lg font-medium">Add User Permission</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
             <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
@@ -91,7 +85,7 @@ const AddUserPermission: React.FC<AddUserPermissionProps> = ({
               {error}
             </div>
           )}
-          
+
           <form onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div>
@@ -108,11 +102,9 @@ const AddUserPermission: React.FC<AddUserPermissionProps> = ({
                   required
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
-                <p className="mt-1 text-xs text-gray-500">
-                  Must be a valid UUID format
-                </p>
+                <p className="mt-1 text-xs text-gray-500">Must be a valid UUID format</p>
               </div>
-              
+
               <div>
                 <label htmlFor="username" className="block text-sm font-medium text-gray-700">
                   Username
@@ -130,7 +122,7 @@ const AddUserPermission: React.FC<AddUserPermissionProps> = ({
                   Optional, but helps with user identification
                 </p>
               </div>
-              
+
               <div>
                 <label htmlFor="role" className="block text-sm font-medium text-gray-700">
                   Role *
@@ -149,7 +141,7 @@ const AddUserPermission: React.FC<AddUserPermissionProps> = ({
                   ))}
                 </select>
               </div>
-              
+
               <div className="pt-2 text-xs text-gray-500">
                 <p>* Required fields</p>
               </div>

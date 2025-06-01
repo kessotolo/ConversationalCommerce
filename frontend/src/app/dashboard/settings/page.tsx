@@ -1,29 +1,16 @@
 'use client';
 
+// TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
 import React, { useState } from 'react';
+import Image from 'next/image';
+import {  Credit Bell, MessageSquare, Upload, Trash2 } from 'lucide-react';
+import {  Credit Bell, MessageSquare, Upload, Trash2 } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle,
-  CardDescription 
-} from '@/components/ui/Card';
+import {  CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { 
-  Store, 
-  Globe, 
-  CreditCard, 
-  Bell,
-  MessageSquare,
-  Smartphone,
-  Save,
-  Upload,
-  Trash2
-} from 'lucide-react';
 import Image from 'next/image';
-import { Store, Globe, CreditCard, Bell, MessageSquare, Save, Upload, Trash2, Phone } from 'lucide-react';
+import {  Credit Bell, MessageSquare, Upload, Trash2 } from 'lucide-react';
 
 // Mock store settings
 const mockStoreSettings = {
@@ -45,7 +32,7 @@ const mockStoreSettings = {
     friday: { open: '09:00', close: '18:00', isOpen: true },
     saturday: { open: '10:00', close: '16:00', isOpen: true },
     sunday: { open: '00:00', close: '00:00', isOpen: false },
-  }
+  },
 };
 
 // WhatsApp message templates
@@ -54,20 +41,21 @@ const mockTemplates = [
     id: '1',
     name: 'Order Confirmation',
     status: 'approved',
-    content: 'Thank you for your order! Your order #{{1}} for {{2}} has been confirmed and is being processed.'
+    content:
+      'Thank you for your order! Your order #{{1}} for {{2}} has been confirmed and is being processed.',
   },
   {
     id: '2',
     name: 'Shipping Notification',
     status: 'approved',
-    content: 'Your order #{{1}} has been shipped! It should arrive within {{2}} business days.'
+    content: 'Your order #{{1}} has been shipped! It should arrive within {{2}} business days.',
   },
   {
     id: '3',
     name: 'Payment Reminder',
     status: 'pending',
-    content: 'This is a reminder that payment for your order #{{1}} of {{2}} is due.'
-  }
+    content: 'This is a reminder that payment for your order #{{1}} of {{2}} is due.',
+  },
 ];
 
 export default function SettingsPage() {
@@ -76,22 +64,22 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  
+
   // Mock save settings with API integration structure
   const saveSettings = async () => {
     setIsLoading(true);
     setError(null);
     setSuccessMessage(null);
-    
+
     try {
       // This is where you would make a real API call
       // const response = await storeService.updateSettings(store);
-      
+
       // Simulate API call
       setTimeout(() => {
         setSuccessMessage('Store settings saved successfully!');
         setIsLoading(false);
-        
+
         // Auto hide success message
         setTimeout(() => {
           setSuccessMessage(null);
@@ -104,25 +92,31 @@ export default function SettingsPage() {
   };
 
   // Handle input change
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
     setStore({
       ...store,
-      [name]: value
+      [name]: value,
     });
   };
 
   // Handle business hours change
-  const handleHoursChange = (day: string, field: 'open' | 'close' | 'isOpen', value: string | boolean) => {
+  const handleHoursChange = (
+    day: string,
+    field: 'open' | 'close' | 'isOpen',
+    value: string | boolean,
+  ) => {
     setStore({
       ...store,
       businessHours: {
         ...store.businessHours,
         [day]: {
           ...store.businessHours[day as keyof typeof store.businessHours],
-          [field]: value
-        }
-      }
+          [field]: value,
+        },
+      },
     });
   };
 
@@ -176,7 +170,10 @@ export default function SettingsPage() {
                       Upload Logo
                     </Button>
                     {store.logo && (
-                      <Button variant="outline" className="flex items-center text-red-500 border-red-200 hover:bg-red-50">
+                      <Button
+                        variant="outline"
+                        className="flex items-center text-red-500 border-red-200 hover:bg-red-50"
+                      >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Remove
                       </Button>
@@ -243,7 +240,7 @@ export default function SettingsPage() {
                     </select>
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium mb-1" htmlFor="storeDescription">
                     Store Description
@@ -257,7 +254,7 @@ export default function SettingsPage() {
                     onChange={handleInputChange}
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium mb-1" htmlFor="address">
                     Business Address
@@ -360,19 +357,21 @@ export default function SettingsPage() {
                     onChange={handleInputChange}
                   />
                 </div>
-                
+
                 <div className="mt-4">
                   <h3 className="text-sm font-medium mb-2">Message Templates</h3>
                   <div className="space-y-2">
-                    {templates.map(template => (
+                    {templates.map((template) => (
                       <div key={template.id} className="border rounded-md p-3">
                         <div className="flex justify-between items-start">
                           <h4 className="font-medium">{template.name}</h4>
-                          <Badge className={
-                            template.status === 'approved' 
-                              ? 'bg-green-100 text-green-800 border-green-200' 
-                              : 'bg-yellow-100 text-yellow-800 border-yellow-200'
-                          }>
+                          <Badge
+                            className={
+                              template.status === 'approved'
+                                ? 'bg-green-100 text-green-800 border-green-200'
+                                : 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                            }
+                          >
                             {template.status}
                           </Badge>
                         </div>
@@ -407,7 +406,9 @@ export default function SettingsPage() {
                       checked={store.paymentMethods.includes('Mobile Money')}
                       className="mr-3"
                     />
-                    <label htmlFor="mobile-money" className="font-medium">Mobile Money</label>
+                    <label htmlFor="mobile-money" className="font-medium">
+                      Mobile Money
+                    </label>
                   </div>
                 </div>
                 <div className="flex items-center justify-between p-3 border rounded-md">
@@ -418,7 +419,9 @@ export default function SettingsPage() {
                       checked={store.paymentMethods.includes('Cash on Delivery')}
                       className="mr-3"
                     />
-                    <label htmlFor="cash-delivery" className="font-medium">Cash on Delivery</label>
+                    <label htmlFor="cash-delivery" className="font-medium">
+                      Cash on Delivery
+                    </label>
                   </div>
                 </div>
                 <div className="flex items-center justify-between p-3 border rounded-md">
@@ -429,7 +432,9 @@ export default function SettingsPage() {
                       checked={store.paymentMethods.includes('Bank Transfer')}
                       className="mr-3"
                     />
-                    <label htmlFor="bank-transfer" className="font-medium">Bank Transfer</label>
+                    <label htmlFor="bank-transfer" className="font-medium">
+                      Bank Transfer
+                    </label>
                   </div>
                 </div>
                 <Button variant="outline" className="w-full mt-2">
@@ -439,7 +444,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </div>
-        
+
         <div className="mt-6 flex justify-end">
           <Button variant="outline" className="mr-2">
             Cancel

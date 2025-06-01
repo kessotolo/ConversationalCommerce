@@ -1,37 +1,18 @@
 'use client';
 
 import React, { useState } from 'react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { DashboardHeader } from '@/components/layout/DashboardHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import {
-  BarChart3,
-  TrendingUp,
-  Users,
-  ShoppingBag,
-  Calendar,
-  Download,
-  PieChart,
-  ArrowUpRight,
-  DollarSign
-} from 'lucide-react';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Tooltip,
-  Legend,
-  Filler,
-} from 'chart.js';
-import { Line, Bar, Pie } from 'react-chartjs-2';
 import Link from 'next/link';
+import {  ShoppingBag, ArrowUpRight, DollarSign } from 'lucide-react';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import {  CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 import { StatCard } from '@/components/dashboard/StatCard';
-import { Users, ShoppingBag, Calendar, Download, ArrowUpRight, DollarSign, Store, Search } from 'lucide-react';
+import {
+  
+  ShoppingBag,
+  ArrowUpRight,
+  DollarSign,
+} from 'lucide-react';
 
 // Register ChartJS components
 ChartJS.register(
@@ -43,7 +24,7 @@ ChartJS.register(
   ArcElement,
   Tooltip,
   Legend,
-  Filler
+  Filler,
 );
 
 // Mock data for analytics
@@ -180,7 +161,12 @@ export default function AnalyticsPage() {
                 Custom
               </button>
             </div>
-            <Button onClick={exportReport} variant="outline" size="sm" className="flex items-center">
+            <Button
+              onClick={exportReport}
+              variant="outline"
+              size="sm"
+              className="flex items-center"
+            >
               <Download className="h-4 w-4 mr-2" />
               Export CSV
             </Button>
@@ -189,15 +175,24 @@ export default function AnalyticsPage() {
         {/* Empty State */}
         {!hasData ? (
           <div className="flex flex-col items-center justify-center py-24">
-            <img src="/empty-box.svg" alt="No analytics data" className="w-32 h-32 mb-6 opacity-80" />
+            <img
+              src="/empty-box.svg"
+              alt="No analytics data"
+              className="w-32 h-32 mb-6 opacity-80"
+            />
             <h2 className="text-xl font-semibold mb-2">No analytics data yet</h2>
-            <p className="text-gray-500 mb-6">Analytics will appear here as your store gets orders and customers.</p>
+            <p className="text-gray-500 mb-6">
+              Analytics will appear here as your store gets orders and customers.
+            </p>
           </div>
         ) : (
           <>
             {/* Stats Overview */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Link href="/dashboard/orders" className="rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-5 flex flex-col items-start hover:shadow-md transition cursor-pointer">
+              <Link
+                href="/dashboard/orders"
+                className="rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-5 flex flex-col items-start hover:shadow-md transition cursor-pointer"
+              >
                 <StatCard
                   title="Total Orders"
                   value="85"
@@ -207,7 +202,10 @@ export default function AnalyticsPage() {
                   subtitle="Last 30 days"
                 />
               </Link>
-              <Link href="/dashboard/analytics?tab=finance" className="rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-5 flex flex-col items-start hover:shadow-md transition cursor-pointer">
+              <Link
+                href="/dashboard/analytics?tab=finance"
+                className="rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-5 flex flex-col items-start hover:shadow-md transition cursor-pointer"
+              >
                 <StatCard
                   title="Total Revenue"
                   value="₦6,674.55"
@@ -217,7 +215,10 @@ export default function AnalyticsPage() {
                   subtitle="Last 30 days"
                 />
               </Link>
-              <Link href="/dashboard/customers" className="rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-5 flex flex-col items-start hover:shadow-md transition cursor-pointer">
+              <Link
+                href="/dashboard/customers"
+                className="rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-5 flex flex-col items-start hover:shadow-md transition cursor-pointer"
+              >
                 <StatCard
                   title="Customers"
                   value="63"
@@ -243,7 +244,12 @@ export default function AnalyticsPage() {
               <CardHeader>
                 <CardTitle className="flex justify-between items-center">
                   <span>Sales Trend</span>
-                  <Button onClick={exportReport} variant="outline" size="sm" className="flex items-center">
+                  <Button
+                    onClick={exportReport}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center"
+                  >
                     <Download className="h-4 w-4 mr-2" />
                     Export Report
                   </Button>

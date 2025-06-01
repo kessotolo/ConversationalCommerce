@@ -1,4 +1,4 @@
-import { Draftable, PaginatedResult } from '@core/models/base';
+
 
 export interface Draft extends Draftable {
   name: string;

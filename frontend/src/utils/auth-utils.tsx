@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { useAuth as useClerkAuth, useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 
 // Type definitions
@@ -17,7 +16,7 @@ const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   userId: null,
   redirectToLogin: () => {},
-  redirectToDashboard: () => {}
+  redirectToDashboard: () => {},
 });
 
 // Provider component
@@ -46,14 +45,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAuthenticated: !!userId,
     userId: userId || null,
     redirectToLogin,
-    redirectToDashboard
+    redirectToDashboard,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 // Hook for using auth context
@@ -65,7 +60,7 @@ export function useAuth() {
 export function withAuth<P extends object>(Component: React.ComponentType<P>) {
   return function AuthenticatedComponent(props: P) {
     const { isLoading, isAuthenticated, redirectToLogin } = useAuth();
-    
+
     useEffect(() => {
       if (!isLoading && !isAuthenticated) {
         redirectToLogin();

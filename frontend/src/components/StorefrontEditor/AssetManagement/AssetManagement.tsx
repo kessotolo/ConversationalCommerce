@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { getAssets } from '../../../lib/api/storefrontEditor';
+import { Upload } from 'lucide-react';
 import type { Asset } from '@/modules/storefront/models/asset';
 import type { UUID } from '@/modules/core/models/base';
 import { AssetType } from '@/modules/storefront/models/asset';
+import { getAssets } from '../../../lib/api/storefrontEditor';
 import AssetGrid from './AssetGrid';
 import AssetUploader from './AssetUploader';
 import AssetFilterBar from './AssetFilterBar';
 import AssetDetails from './AssetDetails';
-import { PlusIcon } from '@heroicons/react/24/outline';
-import { Upload } from 'lucide-react';
 
 interface AssetManagementProps {
   tenantId: UUID;
@@ -21,7 +20,7 @@ const AssetManagement: React.FC<AssetManagementProps> = ({ tenantId }) => {
   const [error, setError] = useState<string | null>(null);
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [isUploaderOpen, setIsUploaderOpen] = useState(false);
-  
+
   // Filters
   const [assetType, setAssetType] = useState<AssetType | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -34,7 +33,7 @@ const AssetManagement: React.FC<AssetManagementProps> = ({ tenantId }) => {
   const loadAssets = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const params = {
         asset_type: assetType,
@@ -42,9 +41,9 @@ const AssetManagement: React.FC<AssetManagementProps> = ({ tenantId }) => {
         sort_by: sortBy,
         sort_desc: sortDesc,
         limit,
-        offset
+        offset,
       };
-      
+
       const response = await getAssets(tenantId, params);
       setAssets(response.items);
       setTotalAssets(response.total);
@@ -82,7 +81,7 @@ const AssetManagement: React.FC<AssetManagementProps> = ({ tenantId }) => {
     type: AssetType | null,
     query: string,
     sort: string,
-    direction: boolean
+    direction: boolean,
   ) => {
     setAssetType(type);
     setSearchQuery(query);
@@ -104,7 +103,7 @@ const AssetManagement: React.FC<AssetManagementProps> = ({ tenantId }) => {
         </button>
       </div>
 
-      <AssetFilterBar 
+      <AssetFilterBar
         assetType={assetType}
         searchQuery={searchQuery}
         sortBy={sortBy}
@@ -124,16 +123,17 @@ const AssetManagement: React.FC<AssetManagementProps> = ({ tenantId }) => {
             </div>
           ) : (
             <>
-              <AssetGrid 
-                assets={assets} 
+              <AssetGrid
+                assets={assets}
                 onAssetSelect={handleAssetSelect}
                 selectedAssetId={selectedAsset?.id}
               />
-              
+
               {/* Pagination */}
               <div className="flex justify-between items-center mt-4">
                 <div className="text-sm text-gray-700">
-                  Showing {offset + 1} to {Math.min(offset + assets.length, totalAssets)} of {totalAssets} assets
+                  Showing {offset + 1} to {Math.min(offset + assets.length, totalAssets)} of{' '}
+                  {totalAssets} assets
                 </div>
                 <div className="flex space-x-2">
                   <button
@@ -166,8 +166,8 @@ const AssetManagement: React.FC<AssetManagementProps> = ({ tenantId }) => {
 
         {selectedAsset && (
           <div className="w-1/3">
-            <AssetDetails 
-              asset={selectedAsset} 
+            <AssetDetails
+              asset={selectedAsset}
               tenantId={tenantId}
               onUpdate={handleAssetRefresh}
               onClose={() => setSelectedAsset(null)}

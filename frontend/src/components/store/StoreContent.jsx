@@ -1,6 +1,6 @@
 /**
  * StoreContent - Client Component for Conversational Commerce Platform
- * 
+ *
  * This component handles the client-side functionality of the merchant store, including:
  * - Product data fetching based on merchant ID
  * - Loading and error state management
@@ -19,10 +19,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { productService } from '@/lib/api';
 import ProductCard from '@/components/storefront/ProductCard';
 import { useCart } from '@/lib/cart';
-import Link from 'next/link';
 
 export default function StoreContent({ merchantId }) {
   const [products, setProducts] = useState([]);
@@ -32,7 +32,7 @@ export default function StoreContent({ merchantId }) {
 
   useEffect(() => {
     fetchProducts();
-  }, [merchantId]);
+  }, [merchantId, fetch]);
 
   const fetchProducts = async () => {
     try {
@@ -54,7 +54,7 @@ export default function StoreContent({ merchantId }) {
       id: product.id,
       name: product.name,
       price: product.price,
-      image_url: product.image_url
+      image_url: product.image_url,
     });
   };
 

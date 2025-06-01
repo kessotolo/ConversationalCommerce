@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Tab } from '@headlessui/react';
-import type { UUID } from '@/modules/core/models/base';;
+import type { UUID } from '@/modules/core/models/base';
 import BannerManagement from './BannerManagement';
 import LogoManagement from './LogoManagement';
 
@@ -20,9 +19,11 @@ const BannerLogoManagement: React.FC<BannerLogoManagementProps> = ({ tenantId })
           <Tab
             className={({ selected }: { selected: boolean }) =>
               `w-full py-2.5 text-sm font-medium leading-5 rounded-md
-              ${selected
-                ? 'bg-white text-blue-700 shadow'
-                : 'text-gray-700 hover:bg-white/[0.12] hover:text-blue-600'}`
+              ${
+                selected
+                  ? 'bg-white text-blue-700 shadow'
+                  : 'text-gray-700 hover:bg-white/[0.12] hover:text-blue-600'
+              }`
             }
           >
             Banners
@@ -30,9 +31,11 @@ const BannerLogoManagement: React.FC<BannerLogoManagementProps> = ({ tenantId })
           <Tab
             className={({ selected }: { selected: boolean }) =>
               `w-full py-2.5 text-sm font-medium leading-5 rounded-md
-              ${selected
-                ? 'bg-white text-blue-700 shadow'
-                : 'text-gray-700 hover:bg-white/[0.12] hover:text-blue-600'}`
+              ${
+                selected
+                  ? 'bg-white text-blue-700 shadow'
+                  : 'text-gray-700 hover:bg-white/[0.12] hover:text-blue-600'
+              }`
             }
           >
             Logos

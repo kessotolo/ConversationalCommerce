@@ -1,4 +1,4 @@
-import { UUID, TenantScoped, PaginatedResult } from '@core/models/base';
+
 
 export enum PageTemplateType {
   HOME = 'home',
@@ -6,13 +6,13 @@ export enum PageTemplateType {
   CATEGORY = 'category',
   ABOUT = 'about',
   CONTACT = 'contact',
-  CUSTOM = 'custom'
+  CUSTOM = 'custom',
 }
 
 export enum TemplateStatus {
   DRAFT = 'draft',
   PUBLISHED = 'published',
-  ARCHIVED = 'archived'
+  ARCHIVED = 'archived',
 }
 
 export interface PageTemplate extends TenantScoped {

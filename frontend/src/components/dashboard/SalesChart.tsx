@@ -1,19 +1,7 @@
+// TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
 import React from 'react';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-  ChartOptions
-} from 'chart.js';
-import { Line } from 'react-chartjs-2';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import {  CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import {  CardHeader, CardTitle, CardContent } from '../ui/Card';
 
 // Register ChartJS components
 ChartJS.register(
@@ -24,7 +12,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
 );
 
 interface SalesData {
@@ -40,8 +28,8 @@ interface SalesChartProps {
 
 export function SalesChart({ data, period, isLoading = false }: SalesChartProps) {
   // Process the data for the chart
-  const labels = data.map(item => item.date);
-  const amounts = data.map(item => item.amount);
+  const labels = data.map((item) => item.date);
+  const amounts = data.map((item) => item.amount);
 
   const chartData = {
     labels,
@@ -68,7 +56,7 @@ export function SalesChart({ data, period, isLoading = false }: SalesChartProps)
         mode: 'index',
         intersect: false,
         callbacks: {
-          label: function(context: any) {
+          label: function (context: any) {
             let label = context.dataset.label || '';
             if (label) {
               label += ': ';
@@ -77,8 +65,8 @@ export function SalesChart({ data, period, isLoading = false }: SalesChartProps)
               label += '₦' + context.parsed.y.toLocaleString();
             }
             return label;
-          }
-        }
+          },
+        },
       },
     },
     scales: {
@@ -90,29 +78,29 @@ export function SalesChart({ data, period, isLoading = false }: SalesChartProps)
           maxRotation: 0,
           autoSkip: true,
           maxTicksLimit: period === '7days' ? 7 : period === '30days' ? 6 : 12,
-        }
+        },
       },
       y: {
         beginAtZero: true,
         // Removed borderDash which was causing TypeScript errors
         ticks: {
-          callback: function(value: any) {
+          callback: function (value: any) {
             return '₦' + value.toLocaleString();
-          }
-        }
+          },
+        },
       },
     },
     interaction: {
       mode: 'nearest',
       axis: 'x',
-      intersect: false
+      intersect: false,
     },
   };
 
   const periodTitle = {
     '7days': 'Last 7 Days',
     '30days': 'Last 30 Days',
-    '90days': 'Last 90 Days'
+    '90days': 'Last 90 Days',
   };
 
   if (isLoading) {

@@ -2,12 +2,13 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { productService } from '@/lib/api';
 import ProductCard from '@/components/storefront/ProductCard';
 import { useCart } from '@/lib/cart';
-import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { ArrowLeft, Store } from 'lucide-react';
 
 // Component that uses searchParams (must be wrapped in Suspense)
 function StoreContent() {
@@ -45,7 +46,7 @@ function StoreContent() {
       id: product.id,
       name: product.name,
       price: product.price,
-      image_url: product.image_url
+      image_url: product.image_url,
     });
   };
 
@@ -97,7 +98,10 @@ function StoreContent() {
       {/* Header with Back to Home */}
       <header className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4 bg-white/80 backdrop-blur border-b border-gray-100 mb-8">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="inline-flex items-center gap-2 text-[#6C9A8B] font-semibold hover:underline text-sm sm:text-base">
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-2 text-[#6C9A8B] font-semibold hover:underline text-sm sm:text-base"
+          >
             <ArrowLeft className="h-5 w-5" />
             <span className="hidden sm:inline">Back to Home</span>
           </Link>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { ExternalLink, Eye, QrCode, Settings, Edit } from 'lucide-react';
+import { Eye, Copy } from 'lucide-react';
 import { useTenant } from '@/contexts/TenantContext';
-import { Eye, Check, Copy } from 'lucide-react';
 
 interface StorefrontLinksProps {
   className?: string;
@@ -37,8 +37,8 @@ export default function StorefrontLinks({ className }: StorefrontLinksProps) {
         {usingPlaceholders && (
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-md mb-4">
             <p className="text-amber-800 text-sm">
-              <strong>Note:</strong> Your storefront is currently using placeholder values.
-              To set up your actual storefront URL, please customize your store settings.
+              <strong>Note:</strong> Your storefront is currently using placeholder values. To set
+              up your actual storefront URL, please customize your store settings.
             </p>
             <a
               href="/dashboard/settings"
@@ -56,11 +56,11 @@ export default function StorefrontLinks({ className }: StorefrontLinksProps) {
             <div className="flex space-x-2">
               {/* View actual storefront (eye icon) */}
               <a
-                href={usingPlaceholders ? "#" : subdomainUrl}
+                href={usingPlaceholders ? '#' : subdomainUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`p-1 rounded-full flex items-center justify-center w-8 h-8 ${usingPlaceholders ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:bg-blue-50'}`}
-                title={usingPlaceholders ? "Setup your store first" : "View live storefront"}
+                title={usingPlaceholders ? 'Setup your store first' : 'View live storefront'}
                 onClick={usingPlaceholders ? (e) => e.preventDefault() : undefined}
               >
                 <Eye size={18} />
@@ -92,7 +92,9 @@ export default function StorefrontLinks({ className }: StorefrontLinksProps) {
           </div>
           <div className="flex items-center">
             {usingPlaceholders ? (
-              <span className="text-gray-500 italic">{subdomainUrl} <small>(placeholder)</small></span>
+              <span className="text-gray-500 italic">
+                {subdomainUrl} <small>(placeholder)</small>
+              </span>
             ) : (
               <a
                 href={subdomainUrl}

@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
-import { cn } from '@/lib/utils';
 import { ArrowUp, ArrowDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface StatCardProps {
   title: string;
@@ -19,25 +19,35 @@ export function StatCard({
   change,
   className,
   trend = 'neutral',
-  subtitle
+  subtitle,
 }: StatCardProps) {
   return (
-    <div className={cn("rounded-2xl bg-white shadow p-6 flex flex-col gap-2 border border-[#e6f0eb] min-h-[140px]", className)}>
+    <div
+      className={cn(
+        'rounded-2xl bg-white shadow p-6 flex flex-col gap-2 border border-[#e6f0eb] min-h-[140px]',
+        className,
+      )}
+    >
       <div className="flex items-center justify-between mb-2">
         <div className="flex flex-col gap-1">
           <span className="text-sm font-medium text-gray-500 font-sans">{title}</span>
           <span className="text-3xl font-extrabold text-gray-900 font-sans">{value}</span>
-          {subtitle && (
-            <span className="text-xs text-gray-400 font-sans">{subtitle}</span>
-          )}
+          {subtitle && <span className="text-xs text-gray-400 font-sans">{subtitle}</span>}
           {typeof change === 'number' && (
-            <span className={cn(
-              "inline-flex items-center gap-1 text-xs font-semibold mt-1",
-              trend === 'up' ? "text-green-600" : trend === 'down' ? "text-red-500" : "text-gray-400"
-            )}>
+            <span
+              className={cn(
+                'inline-flex items-center gap-1 text-xs font-semibold mt-1',
+                trend === 'up'
+                  ? 'text-green-600'
+                  : trend === 'down'
+                    ? 'text-red-500'
+                    : 'text-gray-400',
+              )}
+            >
               {trend === 'up' && <ArrowUp className="h-3 w-3" />}
               {trend === 'down' && <ArrowDown className="h-3 w-3" />}
-              {change > 0 ? '+' : ''}{change}%
+              {change > 0 ? '+' : ''}
+              {change}%
             </span>
           )}
         </div>

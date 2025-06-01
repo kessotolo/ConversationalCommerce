@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Check } from 'lucide-react';
+
 
 interface Tenant {
   id: string; // UUID format from backend
@@ -33,7 +33,7 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
     const fetchTenant = async () => {
       try {
         setIsLoading(true);
-        
+
         // Check for tenant information in cookies (set by middleware)
         const getCookie = (name: string): string | null => {
           const value = `; ${document.cookie}`;
@@ -43,40 +43,40 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
           }
           return null;
         };
-        
+
         const tenantIdentifier = getCookie('tenant_identifier') || 'default';
         const identifierType = getCookie('tenant_identifier_type') || 'subdomain';
-        
+
         // Determine which API endpoint to use based on identifier type
         let apiUrl: string;
-        
+
         if (identifierType === 'subdomain') {
           apiUrl = `/api/tenants/by-subdomain/${tenantIdentifier}`;
         } else {
           // Custom domain lookup
           apiUrl = `/api/tenants/by-domain/${encodeURIComponent(tenantIdentifier)}`;
         }
-        
+
         // Fallback for development environment
         if (!tenantIdentifier || tenantIdentifier === 'null') {
           // Check URL query parameters for development mode
           const urlParams = new URLSearchParams(window.location.search);
           const subdomainParam = urlParams.get('subdomain');
-          
+
           if (subdomainParam) {
             apiUrl = `/api/tenants/by-subdomain/${subdomainParam}`;
           } else {
             apiUrl = `/api/tenants/by-subdomain/default`;
           }
         }
-        
+
         // Fetch tenant data from API
         const response = await fetch(apiUrl);
-        
+
         if (!response.ok) {
           throw new Error(`Failed to load tenant: ${response.statusText}`);
         }
-        
+
         const tenantData = await response.json();
         setTenant(tenantData);
       } catch (err) {
@@ -91,9 +91,7 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
   }, []);
 
   return (
-    <TenantContext.Provider value={{ tenant, isLoading, error }}>
-      {children}
-    </TenantContext.Provider>
+    <TenantContext.Provider value={{ tenant, isLoading, error }}>{children}</TenantContext.Provider>
   );
 };
 

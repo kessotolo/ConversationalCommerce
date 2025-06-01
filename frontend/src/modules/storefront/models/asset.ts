@@ -1,11 +1,11 @@
-import { TenantScoped, PaginatedResult } from '@core/models/base';
+
 
 export enum AssetType {
   IMAGE = 'image',
   VIDEO = 'video',
   DOCUMENT = 'document',
   AUDIO = 'audio',
-  OTHER = 'other'
+  OTHER = 'other',
 }
 
 export interface Asset extends TenantScoped {
