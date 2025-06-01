@@ -31,10 +31,10 @@ const VersionList: React.FC<VersionListProps> = ({
   selectedVersionId,
   compareVersionId,
   compareMode,
-  onVersion
+  onVersionSelect,
   onTagsFilterChange,
   onDateFilterChange,
-  on
+  onSearch,
   tagsFilter,
   dateFilter,
   searchQuery,

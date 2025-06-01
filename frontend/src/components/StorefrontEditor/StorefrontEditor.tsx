@@ -1,11 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, ReactNode } from 'react';
 import type { UUID } from '@/modules/core/models/base';
+import { Tab } from '@headlessui/react';
 import DraftManagement from './DraftManagement/DraftManagement';
 import VersionHistory from './VersionHistory/VersionHistory';
 import Permissions from './Permissions/Permissions';
 import AssetManagement from './AssetManagement/AssetManagement';
 import BannerLogoManagement from './BannerLogoManagement/BannerLogoManagement';
 import LayoutEditor from './LayoutEditor/LayoutEditor';
+
+// Define a category type for our tab structure
+type Category = {
+  name: string;
+  component: ReactNode;
+};
 
 interface StorefrontEditorProps {
   tenantId: UUID;
@@ -15,7 +22,7 @@ const StorefrontEditor: React.FC<StorefrontEditorProps> = ({ tenantId }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   // Tab categories
-  const categories = [
+  const categories: Category[] = [
     { name: 'Drafts', component: <DraftManagement tenantId={tenantId} /> },
     { name: 'Versions', component: <VersionHistory tenantId={tenantId} /> },
     { name: 'Permissions', component: <Permissions tenantId={tenantId} /> },

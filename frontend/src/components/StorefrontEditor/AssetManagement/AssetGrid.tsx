@@ -3,6 +3,7 @@ import { Upload } from 'lucide-react';
 import type { Asset } from '@/modules/storefront/models/asset';
 import type { UUID } from '@/modules/core/models/base';
 import { AssetType } from '@/modules/storefront/models/asset';
+import { Image as PhotoIcon, Film as FilmIcon, FileText as DocumentTextIcon, Music as MusicalNoteIcon, File as DocumentIcon } from 'lucide-react';
 
 interface AssetGridProps {
   assets: Asset[];
@@ -10,7 +11,7 @@ interface AssetGridProps {
   selectedAssetId?: UUID;
 }
 
-const AssetGrid: React.FC<AssetGridProps> = ({ assets, onAsset selectedAssetId }) => {
+const AssetGrid: React.FC<AssetGridProps> = ({ assets, selectedAssetId, onAssetSelect }) => {
   // Get appropriate icon based on asset type
   const getAssetIcon = (assetType: AssetType) => {
     switch (assetType) {

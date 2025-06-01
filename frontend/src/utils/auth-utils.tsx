@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth as useClerkAuth, useUser } from '@clerk/nextjs';
 
 // Type definitions
 interface AuthContextType {

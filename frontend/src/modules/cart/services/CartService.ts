@@ -1,12 +1,12 @@
-
-
+import { UUID } from '@/modules/core/models/base';
+import { CartItem } from '@/modules/cart/models/cart';
 
 /**
  * Interface for the cart service
  */
 export interface CartService {
   getItems(): CartItem[];
-  addItem(item: Omit< 'quantity'>): void;
+  addItem(item: Omit<CartItem, 'id' | 'quantity'>): void;
   removeItem(itemId: UUID): void;
   updateQuantity(itemId: UUID, quantity: number): void;
   clearCart(): void;

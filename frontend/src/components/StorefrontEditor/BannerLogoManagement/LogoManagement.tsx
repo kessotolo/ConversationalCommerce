@@ -1,9 +1,10 @@
 // TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
 import React, { useState, useEffect } from 'react';
+import { ArrowPathIcon, PlusIcon } from '@heroicons/react/24/outline';
 import type { Logo } from '@/modules/storefront/models/logo';
 import type { UUID } from '@/modules/core/models/base';
 import { LogoStatus, LogoType } from '@/modules/storefront/models/logo';
-import { getLogos, publishLogo, deleteLogo } from '../../../lib/api/storefrontEditor';
+import { getLogos, publishLogo, deleteLogo } from '@/lib/api/storefrontEditor';
 import LogoList from './LogoList';
 import LogoDetail from './LogoDetail';
 import CreateLogoModal from './CreateLogoModal';
@@ -175,22 +176,20 @@ const LogoManagement: React.FC<LogoManagementProps> = ({ tenantId }) => {
                   <button
                     onClick={() => handlePageChange(Math.max(0, offset - limit))}
                     disabled={offset === 0}
-                    className={`px-3 py-1 rounded text-sm ${
-                      offset === 0
-                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
-                    }`}
+                    className={`px-3 py-1 rounded text-sm ${offset === 0
+                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                      }`}
                   >
                     Previous
                   </button>
                   <button
                     onClick={() => handlePageChange(offset + limit)}
                     disabled={offset + limit >= totalLogos}
-                    className={`px-3 py-1 rounded text-sm ${
-                      offset + limit >= totalLogos
-                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
-                    }`}
+                    className={`px-3 py-1 rounded text-sm ${offset + limit >= totalLogos
+                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                      }`}
                   >
                     Next
                   </button>

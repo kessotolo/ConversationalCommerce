@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import type { UUID } from '@/modules/core/models/base';
 import type { UserPermission } from '@/modules/storefront/models/permission';
 import { StorefrontRole } from '@/modules/storefront/models/permission';
-import { getPermissions } from '../../../lib/api/storefrontEditor';
+import { getPermissions, assignRole, setSectionPermission, setComponentPermission, removePermission } from '@/lib/api/storefrontEditor';
 import PermissionList from './PermissionList';
 import PermissionDetail from './PermissionDetail';
 import AddUserPermission from './AddUserPermission';
+import { RefreshCw as ArrowPathIcon, Plus as PlusIcon } from 'lucide-react';
 
 
 interface PermissionsProps {
@@ -14,8 +15,8 @@ interface PermissionsProps {
 
 const Permissions: React.FC<PermissionsProps> = ({ tenantId }) => {
   const [permissions, setPermissions] = useState<UserPermission[]>([]);
-  const [selected setSelectedUser] = useState<UserPermission | null>(null);
-  const [total setTotalUsers] = useState(0);
+  const [selected, setSelectedUser] = useState<UserPermission | null>(null);
+  const [total, setTotalUsers] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -36,7 +37,7 @@ const Permissions: React.FC<PermissionsProps> = ({ tenantId }) => {
       setTotalUsers(response.total);
 
       // Select first user if nothing is selected
-      if (response.items.length > 0 && !selectedUser) {
+      if (response.items.length > 0 && !selected) {
         setSelectedUser(response.items[0]);
       }
     } catch (err) {
@@ -113,7 +114,7 @@ const Permissions: React.FC<PermissionsProps> = ({ tenantId }) => {
           <PermissionList
             users={filteredUsers}
             loading={loading}
-            selectedUserId={selectedUser?.user_id}
+            selectedUserId={selected?.user_id}
             onUserSelect={handleUserSelect}
             roleFilter={roleFilter}
             searchQuery={searchQuery}
@@ -124,9 +125,9 @@ const Permissions: React.FC<PermissionsProps> = ({ tenantId }) => {
 
         {/* User Permission Detail */}
         <div className="w-2/3">
-          {selectedUser ? (
+          {selected ? (
             <PermissionDetail
-              user={selectedUser}
+              user={selected}
               tenantId={tenantId}
               onUpdate={handlePermissionUpdate}
             />

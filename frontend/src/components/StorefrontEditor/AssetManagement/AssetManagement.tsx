@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Upload } from 'lucide-react';
+import { PlusIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import type { Asset } from '@/modules/storefront/models/asset';
 import type { UUID } from '@/modules/core/models/base';
 import { AssetType } from '@/modules/storefront/models/asset';
-import { getAssets } from '../../../lib/api/storefrontEditor';
+import { getAssets, deleteAsset } from '@/lib/api/storefrontEditor';
 import AssetGrid from './AssetGrid';
 import AssetUploader from './AssetUploader';
 import AssetFilterBar from './AssetFilterBar';

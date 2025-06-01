@@ -1,8 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Plus, Edit, Trash2, Badge BadgeX } from 'lucide-react';
-import {  Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Badge, BadgeX, Search, BadgeCheck } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 
 // Product type
@@ -165,7 +164,7 @@ export default function ProductsDashboardPage() {
 
   const handleAddOrEditProduct = (product: Product) => {
     if (editingProduct) {
-      setProducts(products.map((p) => (p.id === product.id ? product : p)));
+      setProducts(products.map((p) => (p.id === product?.id ? product : p)));
       setEditingProduct(null);
     } else {
       setProducts([product, ...products]);
@@ -176,7 +175,7 @@ export default function ProductsDashboardPage() {
     const product = products.find((p) => p.id === id);
     if (!product) return;
     const confirmed = window.confirm(
-      `Are you sure you want to delete "${product.name}"? This action cannot be undone.`,
+      `Are you sure you want to delete "${product?.name}"? This action cannot be undone.`,
     );
     if (confirmed) {
       setProducts(products.filter((p) => p.id !== id));
@@ -258,17 +257,17 @@ export default function ProductsDashboardPage() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-100">
                 {filtered.map((product) => (
-                  <tr key={product.id} className="hover:bg-[#f7faf9] transition">
+                  <tr key={product?.id} className="hover:bg-[#f7faf9] transition">
                     <td className="px-6 py-4">
                       <img
-                        src={product.image_url}
-                        alt={product.name}
+                        src={product?.image_url}
+                        alt={product?.name}
                         className="w-14 h-14 object-cover rounded-lg border border-gray-100"
                       />
                     </td>
-                    <td className="px-6 py-4 font-semibold text-gray-900">{product.name}</td>
+                    <td className="px-6 py-4 font-semibold text-gray-900">{product?.name}</td>
                     <td className="px-6 py-4">
-                      {product.status === 'Active' ? (
+                      {product?.status === 'Active' ? (
                         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-100">
                           <BadgeCheck size={14} /> Active
                         </span>
@@ -278,8 +277,8 @@ export default function ProductsDashboardPage() {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4">${product.price.toFixed(2)}</td>
-                    <td className="px-6 py-4">{product.inventory}</td>
+                    <td className="px-6 py-4">${product?.price.toFixed(2)}</td>
+                    <td className="px-6 py-4">{product?.inventory}</td>
                     <td className="px-6 py-4 flex gap-2">
                       <button
                         className="p-2 rounded hover:bg-gray-100 text-gray-500"
@@ -291,7 +290,7 @@ export default function ProductsDashboardPage() {
                       <button
                         className="p-2 rounded hover:bg-red-50 text-red-500"
                         title="Delete"
-                        onClick={() => handleDelete(product.id)}
+                        onClick={() => handleDelete(product?.id)}
                       >
                         <Trash2 size={16} />
                       </button>

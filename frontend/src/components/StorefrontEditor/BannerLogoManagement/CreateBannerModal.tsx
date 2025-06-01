@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import type { UUID } from '@/modules/core/models/base';
 import type { Asset } from '@/modules/storefront/models/asset';
 import { BannerType, TargetAudience } from '@/modules/storefront/models/banner';
-import { createBanner, getAssets } from '../../../lib/api/storefrontEditor';
+import { createBanner, getAssets } from '@/lib/api/storefrontEditor';
+import Link from 'next/link';
+import Image from 'next/image';
+import { XMarkIcon, ExclamationTriangleIcon, PhotoIcon } from '@heroicons/react/24/outline';
 
 interface CreateBannerModalProps {
   tenantId: UUID;
@@ -320,8 +323,6 @@ const CreateBannerModal: React.FC<CreateBannerModalProps> = ({ tenantId, onClose
       </div>
     </div>
   );
-  import Link from 'next/link';
-  import Image from 'next/image';
 };
 
 export default CreateBannerModal;

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { Dialog } from '@headlessui/react';
+import { XMarkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import type { UUID } from '@/modules/core/models/base';
-import { createDraft } from '../../../lib/api/storefrontEditor';
+import { createDraft } from '@/lib/api/storefrontEditor';
 
 interface CreateDraftModalProps {
   tenantId: UUID;

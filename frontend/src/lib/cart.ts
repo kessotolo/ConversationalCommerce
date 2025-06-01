@@ -4,7 +4,7 @@
  */
 
 import { useCartStore } from '../modules/cart/services';
-
+import type { CartItem } from '../modules/cart/models/cart';
 
 // Re-export the cart store and types for backward compatibility
 export type { CartItem };

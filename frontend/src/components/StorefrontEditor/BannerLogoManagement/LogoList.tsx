@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { Logo } from '@/modules/storefront/models/logo';
 import type { UUID } from '@/modules/core/models/base';
 import { LogoStatus, LogoType } from '@/modules/storefront/models/logo';
+import { Search as MagnifyingGlassIcon, Filter as FunnelIcon } from 'lucide-react';
 
 
 interface LogoListProps {
@@ -19,7 +20,7 @@ const LogoList: React.FC<LogoListProps> = ({
   logos,
   loading,
   selectedLogoId,
-  onLogo
+  onLogoSelect,
   onFilterChange,
   statusFilter,
   typeFilter,

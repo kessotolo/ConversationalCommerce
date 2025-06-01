@@ -5,7 +5,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { ArrowLeft, Trash2, Camera, Upload } from 'lucide-react';
+import { ArrowLeft, Trash2, Camera, Upload, Save, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 // DashboardLayout now provided by layout.tsx
 
 interface Product {
@@ -144,57 +145,60 @@ export default function ProductPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <h3 className="mt-4 text-lg font-medium">Loading product details...</h3>
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   if (!product) {
     return (
-      <DashboardLayout>
-        <div className="text-center p-8">
-          <p className="text-lg text-gray-500">Product not found</p>
-          <Link href="/dashboard/products" className="mt-4 inline-block text-primary">
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <AlertTriangle className="mx-auto h-10 w-10 text-destructive" />
+          <h3 className="mt-4 text-lg font-medium">Error loading product</h3>
+          <p className="mt-2 text-sm text-muted-foreground"></p>
+          <Button onClick={() => router.push('/dashboard/products')} className="mt-4">
             Back to Products
-          </Link>
+          </Button>
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   return (
-      <div className="space-y-6">
-        {/* Header with back button */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <Link href="/dashboard/products" className="mr-2">
-              <ArrowLeft size={20} />
-            </Link>
-            <h1 className="text-2xl font-bold">Edit Product</h1>
-          </div>
-          <div className="flex space-x-2">
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="bg-primary text-white px-4 py-2 rounded-md flex items-center"
-            >
-              {isSaving ? (
-                <span className="flex items-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
-                  Saving...
-                </span>
-              ) : (
-                <>
-                  <Save size={16} className="mr-2" />
-                  Save
-                </>
-              )}
-            </button>
-          </div>
+    <div className="space-y-6">
+      {/* Header with back button */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          <Link href="/dashboard/products" className="mr-2">
+            <ArrowLeft size={20} />
+          </Link>
+          <h1 className="text-2xl font-bold">Edit Product</h1>
         </div>
+        <div className="flex space-x-2">
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="bg-primary text-white px-4 py-2 rounded-md flex items-center"
+          >
+            {isSaving ? (
+              <span className="flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                Saving...
+              </span>
+            ) : (
+              <span className="flex items-center">
+                <Save className="mr-2 h-4 w-4" />
+                Save Changes
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
 
         {/* Product form */}
         <div className="bg-white rounded-lg shadow p-4 space-y-6">
@@ -204,8 +208,8 @@ export default function ProductPage() {
             <div className="flex flex-col items-center sm:flex-row sm:items-start gap-4">
               <div className="w-32 h-32 rounded-md overflow-hidden bg-gray-100">
                 <img
-                  src={newImage || product.image}
-                  alt={product.name}
+                  src={newImage || product?.image}
+                  alt={product?.name}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -248,7 +252,7 @@ export default function ProductPage() {
               <input
                 type="text"
                 id="name"
-                value={product.name}
+                value={product?.name}
                 onChange={(e) => handleChange('name', e.target.value)}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
               />
@@ -265,7 +269,7 @@ export default function ProductPage() {
                 <input
                   type="number"
                   id="price"
-                  value={product.price}
+                  value={product?.price}
                   onChange={(e) => handleChange('price', parseFloat(e.target.value))}
                   className="block w-full pl-7 pr-12 rounded-md border-gray-300 focus:border-primary focus:ring-primary"
                   placeholder="0.00"
@@ -282,7 +286,7 @@ export default function ProductPage() {
               <input
                 type="text"
                 id="category"
-                value={product.category}
+                value={product?.category}
                 onChange={(e) => handleChange('category', e.target.value)}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                 list="categories"
@@ -300,7 +304,7 @@ export default function ProductPage() {
                 <input
                   type="checkbox"
                   id="inStock"
-                  checked={product.inStock}
+                  checked={product?.inStock}
                   onChange={(e) => handleChange('inStock', e.target.checked)}
                   className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
                 />
@@ -316,7 +320,7 @@ export default function ProductPage() {
               </label>
               <textarea
                 id="description"
-                value={product.description}
+                value={product?.description}
                 onChange={(e) => handleChange('description', e.target.value)}
                 rows={4}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"

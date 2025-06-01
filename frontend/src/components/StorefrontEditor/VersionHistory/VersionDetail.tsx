@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
-import {  Copy } from 'lucide-react';
+import { Copy } from 'lucide-react';
 import type { Version } from '@/modules/storefront/models/version';
 import type { UUID } from '@/modules/core/models/base';
+import {
+  CheckIcon,
+  ExclamationTriangleIcon,
+  ClockIcon,
+  UserIcon,
+  TagIcon,
+  ClipboardDocumentIcon,
+  ArrowUturnLeftIcon
+} from '@heroicons/react/24/outline';
 
 interface VersionDetailProps {
   version: Version;

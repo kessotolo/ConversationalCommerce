@@ -105,7 +105,7 @@ function runTests() {
 }
 
 // Export the test functions
-export { test testCart runTests };
+export { testCartService, testCartStore, runTests };
 
 // For running in Node environment for testing
 if (typeof window === 'undefined' && require.main === module) {

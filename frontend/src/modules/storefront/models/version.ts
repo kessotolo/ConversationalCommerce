@@ -1,4 +1,5 @@
-
+import { Entity, UUID } from '@/modules/core/models/base';
+import { PaginatedResult } from '@/modules/core/models/pagination';
 
 export interface Version extends Entity {
   storefront_config_id: UUID;

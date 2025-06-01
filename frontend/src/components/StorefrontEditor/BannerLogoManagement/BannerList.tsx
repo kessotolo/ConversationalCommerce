@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import type { Banner } from '@/modules/storefront/models/banner';
 import type { UUID } from '@/modules/core/models/base';
 import { BannerStatus, BannerType } from '@/modules/storefront/models/banner';
+import { useDrag, useDrop } from 'react-dnd';
+import { Menu as Bars3Icon, Search as MagnifyingGlassIcon, Filter as FunnelIcon } from 'lucide-react';
 
 
 // Item type for drag and drop
@@ -27,7 +29,7 @@ const BannerItem: React.FC<BannerItemProps> = ({
   banner,
   index,
   selectedBannerId,
-  onBanner
+  onBannerSelect,
   onBannerReorder,
 }) => {
   const ref = React.useRef<HTMLDivElement>(null);
@@ -209,7 +211,7 @@ const BannerList: React.FC<BannerListProps> = ({
   banners,
   loading,
   selectedBannerId,
-  onBanner
+  onBannerSelect,
   onBannerReorder,
   onFilterChange,
   statusFilter,

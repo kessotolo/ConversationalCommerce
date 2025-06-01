@@ -1,4 +1,4 @@
-
+import { UUID } from '@/modules/core/models/base';
 
 export interface CartItem {
   id: UUID;
@@ -10,7 +10,7 @@ export interface CartItem {
 
 export interface CartStore {
   items: CartItem[];
-  addItem: (item: Omit< 'quantity'>) => void;
+  addItem: (item: Omit<CartItem, 'id' | 'quantity'>) => void;
   removeItem: (itemId: UUID) => void;
   updateQuantity: (itemId: UUID, quantity: number) => void;
   clearCart: () => void;

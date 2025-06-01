@@ -164,7 +164,7 @@ export function useThemeStyles() {
       card,
       form,
       navigation,
-      product
+      product: productCard,
       // Global styles
       global: {
         body: {

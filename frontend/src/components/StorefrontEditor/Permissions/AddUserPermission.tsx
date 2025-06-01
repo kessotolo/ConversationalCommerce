@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { Dialog } from '@headlessui/react';
+import { XMarkIcon, UserPlusIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import type { UUID } from '@/modules/core/models/base';
 import { StorefrontRole } from '@/modules/storefront/models/permission';
-import { assignRole } from '../../../lib/api/storefrontEditor';
+import { assignRole } from '@/lib/api/storefrontEditor';
 
 
 interface AddUserPermissionProps {

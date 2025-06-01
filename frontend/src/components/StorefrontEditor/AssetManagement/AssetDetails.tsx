@@ -2,18 +2,19 @@ import React, { useState } from 'react';
 import type { Asset } from '@/modules/storefront/models/asset';
 import type { UUID } from '@/modules/core/models/base';
 import { AssetType } from '@/modules/storefront/models/asset';
-import { updateAsset, deleteAsset, optimizeAsset } from '../../../lib/api/storefrontEditor';
+import { updateAsset, deleteAsset, optimizeAsset } from '@/lib/api/storefrontEditor';
 import {
   XMarkIcon,
   PencilIcon,
   TrashIcon,
   ArrowTopRightOnSquareIcon,
-  BoltIconCircleIcon,
+  BoltIcon,
   PhotoIcon,
   FilmIcon,
   DocumentTextIcon,
   MusicalNoteIcon,
   DocumentIcon,
+  CheckCircleIcon,
 } from '@heroicons/react/24/outline';
 
 

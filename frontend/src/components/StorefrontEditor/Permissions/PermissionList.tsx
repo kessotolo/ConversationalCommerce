@@ -2,6 +2,7 @@ import React from 'react';
 import type { UserPermission } from '@/modules/storefront/models/permission';
 import type { UUID } from '@/modules/core/models/base';
 import { StorefrontRole } from '@/modules/storefront/models/permission';
+import { Search as MagnifyingGlassIcon, Filter as FunnelIcon } from 'lucide-react';
 
 
 interface PermissionListProps {
@@ -19,7 +20,7 @@ const PermissionList: React.FC<PermissionListProps> = ({
   users,
   loading,
   selectedUserId,
-  onUser
+  onUserSelect,
   roleFilter,
   searchQuery,
   onRoleFilterChange,

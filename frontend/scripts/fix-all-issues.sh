@@ -1,3 +1,26 @@
+#!/bin/bash
+
+# Fix All Issues Script
+# This script runs all the necessary fixes to resolve import, layout,
+# and TypeScript errors in the ConversationalCommerce frontend
+
+echo -e "\n🔧 Running comprehensive fixes for the frontend codebase...\n"
+
+# Step 1: Fix Card component imports
+echo "Step 1: Fixing Card component imports..."
+node scripts/fix-card-imports.js
+
+# Step 2: Fix component props
+echo -e "\nStep 2: Fixing component props..."
+node scripts/fix-component-props.js
+
+# Step 3: Fix syntax errors in orders page
+echo -e "\nStep 3: Copying fixed orders page template..."
+# Create a backup of the problematic file
+cp src/app/dashboard/orders/[id]/page.tsx src/app/dashboard/orders/[id]/page.tsx.bak
+
+# Write a simple placeholder version to fix syntax issues
+cat > src/app/dashboard/orders/[id]/page.tsx << 'EOF'
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -432,3 +455,14 @@ export default function OrderPage() {
     </div>
   );
 }
+EOF
+
+# Step 4: Fix syntax errors in products page
+echo -e "\nStep 4: Verifying the products page..."
+# This is handled by the fix-component-props.js script
+
+# Step 5: Run the build to verify fixes
+echo -e "\nStep 5: Running build verification..."
+npm run build
+
+echo -e "\n✅ Fix process completed!"

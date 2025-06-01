@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { RefreshCw as ArrowPathIcon } from 'lucide-react';
 import type { Version } from '@/modules/storefront/models/version';
 import type { UUID } from '@/modules/core/models/base';
-import { getVersions, restoreVersion } from '../../../lib/api/storefrontEditor';
+import { getVersions, restoreVersion, compareVersions } from '@/lib/api/storefrontEditor';
 import VersionList from './VersionList';
 import VersionDetail from './VersionDetail';
 import VersionCompare from './VersionCompare';

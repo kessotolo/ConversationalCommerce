@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import type { Draft } from '@/modules/storefront/models/draft';
 import type { UUID } from '@/modules/core/models/base';
 import { Status } from '@/modules/core/models/base';
-import { getDrafts, publishDraft, deleteDraft } from '../../../lib/api/storefrontEditor';
+import { getDrafts, publishDraft, deleteDraft } from '@/lib/api/storefrontEditor';
 import DraftList from './DraftList';
 import DraftDetail from './DraftDetail';
 import CreateDraftModal from './CreateDraftModal';
+import { PlusIcon } from '@heroicons/react/24/outline';
 
 
 interface DraftManagementProps {
@@ -138,41 +139,37 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
             <div className="flex gap-2 mb-3">
               <button
                 onClick={() => setStatusFilter('all')}
-                className={`text-xs px-3 py-1 rounded-full ${
-                  statusFilter === 'all'
-                    ? 'bg-blue-100 text-blue-800'
-                    : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                }`}
+                className={`text-xs px-3 py-1 rounded-full ${statusFilter === 'all'
+                  ? 'bg-blue-100 text-blue-800'
+                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                  }`}
               >
                 All
               </button>
               <button
                 onClick={() => setStatusFilter(Status.DRAFT)}
-                className={`text-xs px-3 py-1 rounded-full ${
-                  statusFilter === Status.DRAFT
-                    ? 'bg-blue-100 text-blue-800'
-                    : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                }`}
+                className={`text-xs px-3 py-1 rounded-full ${statusFilter === Status.DRAFT
+                  ? 'bg-blue-100 text-blue-800'
+                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                  }`}
               >
                 Drafts
               </button>
               <button
                 onClick={() => setStatusFilter(Status.PENDING)}
-                className={`text-xs px-3 py-1 rounded-full ${
-                  statusFilter === Status.PENDING
-                    ? 'bg-blue-100 text-blue-800'
-                    : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                }`}
+                className={`text-xs px-3 py-1 rounded-full ${statusFilter === Status.PENDING
+                  ? 'bg-blue-100 text-blue-800'
+                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                  }`}
               >
                 Pending
               </button>
               <button
                 onClick={() => setStatusFilter(Status.SCHEDULED)}
-                className={`text-xs px-3 py-1 rounded-full ${
-                  statusFilter === Status.SCHEDULED
-                    ? 'bg-blue-100 text-blue-800'
-                    : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                }`}
+                className={`text-xs px-3 py-1 rounded-full ${statusFilter === Status.SCHEDULED
+                  ? 'bg-blue-100 text-blue-800'
+                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                  }`}
               >
                 Scheduled
               </button>
@@ -222,22 +219,20 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
               <button
                 onClick={() => handlePageChange(Math.max(0, skip - limit))}
                 disabled={skip === 0}
-                className={`px-3 py-1 rounded ${
-                  skip === 0
-                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
+                className={`px-3 py-1 rounded ${skip === 0
+                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
               >
                 Previous
               </button>
               <button
                 onClick={() => handlePageChange(skip + limit)}
                 disabled={skip + limit >= totalDrafts}
-                className={`px-3 py-1 rounded ${
-                  skip + limit >= totalDrafts
-                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
+                className={`px-3 py-1 rounded ${skip + limit >= totalDrafts
+                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
               >
                 Next
               </button>

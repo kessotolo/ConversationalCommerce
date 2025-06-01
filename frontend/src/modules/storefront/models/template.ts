@@ -1,4 +1,5 @@
-
+import { TenantScoped, UUID } from '@/modules/core/models/base';
+import { PaginatedResult } from '@/modules/core/models/pagination';
 
 export enum PageTemplateType {
   HOME = 'home',

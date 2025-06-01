@@ -5,7 +5,7 @@ import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { ArrowLeft, Camera, Upload, Trash2, MessageSquare, Globe } from 'lucide-react';
+import { ArrowLeft, Camera, Upload, Trash2, MessageSquare, Globe, Check, Save } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/Button';
 import {  CardContent } from '@/components/ui/Card';
@@ -102,7 +102,7 @@ export default function AddProductPage() {
 
   // Handle save
   const handleSave = () => {
-    if (!product.name || product.price <= 0) {
+    if (!product?.name || product?.price <= 0) {
       alert('Please fill in at least the name and price');
       return;
     }
@@ -163,27 +163,27 @@ export default function AddProductPage() {
                   type="button"
                   onClick={() =>
                     handleChange('channels', {
-                      ...product.channels,
-                      whatsapp: !product.channels.whatsapp,
+                      ...product?.channels,
+                      whatsapp: !product?.channels.whatsapp,
                     })
                   }
-                  className={`flex items-center px-4 py-2 rounded-md ${product.channels.whatsapp ? 'bg-green-100 text-green-800 border border-green-300' : 'bg-gray-100 text-gray-500 border border-gray-200'}`}
+                  className={`flex items-center px-4 py-2 rounded-md ${product?.channels.whatsapp ? 'bg-green-100 text-green-800 border border-green-300' : 'bg-gray-100 text-gray-500 border border-gray-200'}`}
                 >
                   <MessageSquare className="mr-2 h-4 w-4" />
                   WhatsApp
-                  {product.channels.whatsapp && <Check size={16} className="ml-2 text-green-600" />}
+                  {product?.channels.whatsapp && <Check size={16} className="ml-2 text-green-600" />}
                 </button>
 
                 <button
                   type="button"
                   onClick={() =>
-                    handleChange('channels', { ...product.channels, web: !product.channels.web })
+                    handleChange('channels', { ...product?.channels, web: !product?.channels.web })
                   }
-                  className={`flex items-center px-4 py-2 rounded-md ${product.channels.web ? 'bg-blue-100 text-blue-800 border border-blue-300' : 'bg-gray-100 text-gray-500 border border-gray-200'}`}
+                  className={`flex items-center px-4 py-2 rounded-md ${product?.channels.web ? 'bg-blue-100 text-blue-800 border border-blue-300' : 'bg-gray-100 text-gray-500 border border-gray-200'}`}
                 >
                   <Globe className="mr-2 h-4 w-4" />
                   Web Store
-                  {product.channels.web && <Check size={16} className="ml-2 text-blue-600" />}
+                  {product?.channels.web && <Check size={16} className="ml-2 text-blue-600" />}
                 </button>
               </div>
             </div>
@@ -234,7 +234,7 @@ export default function AddProductPage() {
                     <Button
                       type="button"
                       onClick={openCamera}
-                      variant="secondary"
+                      
                       className="flex-1 sm:flex-none flex items-center justify-center gap-2"
                     >
                       <Camera size={16} />
@@ -244,7 +244,7 @@ export default function AddProductPage() {
                     <Button
                       type="button"
                       onClick={openFileUpload}
-                      variant="outline"
+                      
                       className="flex-1 sm:flex-none flex items-center justify-center gap-2"
                     >
                       <Upload size={16} />
@@ -269,7 +269,7 @@ export default function AddProductPage() {
                 <input
                   type="text"
                   id="name"
-                  value={product.name}
+                  value={product?.name}
                   onChange={(e) => handleChange('name', e.target.value)}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                   required
@@ -289,7 +289,7 @@ export default function AddProductPage() {
                     id="price"
                     min="0"
                     step="0.01"
-                    value={product.price}
+                    value={product?.price}
                     onChange={(e) => handleChange('price', Number(e.target.value))}
                     className="pl-7 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                     required
@@ -304,7 +304,7 @@ export default function AddProductPage() {
                 <textarea
                   id="description"
                   rows={3}
-                  value={product.description}
+                  value={product?.description}
                   onChange={(e) => handleChange('description', e.target.value)}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                 />
@@ -318,7 +318,7 @@ export default function AddProductPage() {
                   type="text"
                   id="category"
                   list="category-options"
-                  value={product.category}
+                  value={product?.category}
                   onChange={(e) => handleChange('category', e.target.value)}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                 />
@@ -333,7 +333,7 @@ export default function AddProductPage() {
                 <input
                   type="checkbox"
                   id="inStock"
-                  checked={product.inStock}
+                  checked={product?.inStock}
                   onChange={(e) => handleChange('inStock', e.target.checked)}
                   className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
                 />

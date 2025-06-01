@@ -10,14 +10,7 @@ import { RecentOrders } from '@/components/dashboard/RecentOrders';
 import { TopProducts } from '@/components/dashboard/TopProducts';
 import { ChannelPerformance } from '@/components/dashboard/ChannelPerformance';
 import SettingsDrawer from '@/components/dashboard/SettingsDrawer';
-import {
-  ShoppingBag,
-  DollarSigns,
-  ArrowUpRight,
-  PlusCircleCircle,
-  ChevronRight,
-  Upload,
-} from 'lucide-react';
+import { ShoppingBag, DollarSign, ArrowUpRight, PlusCircle, ChevronRight, Upload, Check, CheckCircle, BarChart3, User, Users } from 'lucide-react';
 
 // Define types to match component requirements
 type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';

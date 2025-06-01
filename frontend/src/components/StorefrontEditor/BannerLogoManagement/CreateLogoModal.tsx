@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { Dialog } from '@headlessui/react';
+import { XMarkIcon, ExclamationTriangleIcon, PhotoIcon } from '@heroicons/react/24/outline';
 import type { UUID } from '@/modules/core/models/base';
 import type { Asset } from '@/modules/storefront/models/asset';
 import { LogoType } from '@/modules/storefront/models/logo';
-import { createLogo, getAssets } from '../../../lib/api/storefrontEditor';
+import { createLogo, getAssets } from '@/lib/api/storefrontEditor';
 
 interface CreateLogoModalProps {
   tenantId: UUID;

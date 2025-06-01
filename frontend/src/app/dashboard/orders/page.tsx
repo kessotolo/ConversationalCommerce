@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';
 import { orderService } from '@/lib/api';
+import { Check } from 'lucide-react';
 
 // Define order types to match component requirements
 type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
@@ -129,11 +130,11 @@ export default function OrdersPage() {
   // Filter orders based on search term and status
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
-      order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.phone.includes(searchTerm);
+      order?.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order?.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order?.phone.includes(searchTerm);
 
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+    const matchesStatus = statusFilter === 'all' || order?.status === statusFilter;
 
     return matchesSearch && matchesStatus;
   });
@@ -149,7 +150,7 @@ export default function OrdersPage() {
       // Simulate API call
       setTimeout(() => {
         setOrders(
-          orders.map((order) => (order.id === orderId ? { ...order, status: newStatus } : order)),
+          orders.map((order) => (order?.id === orderId ? { ...order, status: newStatus } : order)),
         );
         setIsLoading(false);
       }, 500);
@@ -175,7 +176,7 @@ export default function OrdersPage() {
     if (isAllSelected) {
       setSelectedOrders([]);
     } else {
-      setSelectedOrders(filteredOrders.map((order) => order.id));
+      setSelectedOrders(filteredOrders.map((order) => order?.id));
     }
   };
 
@@ -189,7 +190,7 @@ export default function OrdersPage() {
   const handleBulkMarkShipped = () => {
     setOrders(
       orders.map((order) =>
-        selectedOrders.includes(order.id) && order.status === 'processing'
+        selectedOrders.includes(order?.id) && order?.status === 'processing'
           ? { ...order, status: 'shipped' }
           : order,
       ),
@@ -205,7 +206,7 @@ export default function OrdersPage() {
         `Are you sure you want to delete ${selectedOrders.length} orders? This cannot be undone.`,
       )
     ) {
-      setOrders(orders.filter((order) => !selectedOrders.includes(order.id)));
+      setOrders(orders.filter((order) => !selectedOrders.includes(order?.id)));
       setSelectedOrders([]);
     }
   };
@@ -214,7 +215,7 @@ export default function OrdersPage() {
   const handleBulkMarkProcessing = () => {
     setOrders(
       orders.map((order) =>
-        selectedOrders.includes(order.id) && order.status === 'pending'
+        selectedOrders.includes(order?.id) && order?.status === 'pending'
           ? { ...order, status: 'processing' }
           : order,
       ),
@@ -228,7 +229,7 @@ export default function OrdersPage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
           <h1 className="text-2xl font-bold tracking-tight mb-4 sm:mb-0">Orders</h1>
           <div className="flex space-x-3">
-            <Button onClick={fetchOrders} variant="outline" className="flex items-center">
+            <Button onClick={fetchOrders}  className="flex items-center">
               <RefreshCcw className="h-4 w-4 mr-2" />
               {isLoading ? 'Refreshing...' : 'Refresh'}
             </Button>
@@ -324,30 +325,30 @@ export default function OrdersPage() {
             </span>
             <div className="flex gap-2 flex-wrap">
               <Button
-                size="sm"
-                variant="outline"
+                
+                className="btn-outline"
                 onClick={handleBulkMarkProcessing}
                 disabled={selectedOrders.length === 0}
               >
                 Mark as Processing
               </Button>
               <Button
-                size="sm"
-                variant="outline"
+                
+                className="btn-outline"
                 onClick={handleBulkMarkShipped}
                 disabled={selectedOrders.length === 0}
               >
                 Mark as Shipped
               </Button>
               <Button
-                size="sm"
-                variant="destructive"
+                
+                className="btn-destructive"
                 onClick={handleBulkDelete}
                 disabled={selectedOrders.length === 0}
               >
                 Delete
               </Button>
-              <Button size="sm" variant="ghost" onClick={() => setSelectedOrders([])}>
+              <Button  className="btn-ghost" onClick={() => setSelectedOrders([])}>
                 Cancel
               </Button>
             </div>
@@ -392,48 +393,48 @@ export default function OrdersPage() {
                   <tbody>
                     {filteredOrders.map((order) => (
                       <tr
-                        key={order.id}
-                        className={`border-b hover:bg-[#f7faf9] transition ${selectedOrders.includes(order.id) ? 'bg-blue-50' : ''}`}
+                        key={order?.id}
+                        className={`border-b hover:bg-[#f7faf9] transition ${selectedOrders.includes(order?.id) ? 'bg-blue-50' : ''}`}
                       >
                         <td className="py-3 px-4">
                           <input
                             type="checkbox"
-                            checked={selectedOrders.includes(order.id)}
-                            onChange={() => toggleSelectOrder(order.id)}
-                            aria-label={`Select order ${order.id}`}
+                            checked={selectedOrders.includes(order?.id)}
+                            onChange={() => toggleSelectOrder(order?.id)}
+                            aria-label={`Select order ${order?.id}`}
                           />
                         </td>
                         <td className="py-3 px-4 font-mono text-xs">
                           <Link
-                            href={`/dashboard/orders/${order.id}`}
+                            href={`/dashboard/orders/${order?.id}`}
                             className="text-blue-700 hover:underline"
                             title="View Order Details"
                           >
-                            {order.id}
+                            {order?.id}
                           </Link>
                         </td>
                         <td className="py-3 px-4">
-                          <div>{order.customerName}</div>
+                          <div>{order?.customerName}</div>
                           <div className="text-xs text-gray-500">
-                            {formatPhoneNumber(order.phone)}
+                            {formatPhoneNumber(order?.phone)}
                           </div>
                         </td>
-                        <td className="py-3 px-4">{formatDate(order.date)}</td>
-                        <td className="py-3 px-4 font-medium">{formatCurrency(order.amount)}</td>
+                        <td className="py-3 px-4">{formatDate(order?.date)}</td>
+                        <td className="py-3 px-4 font-medium">{formatCurrency(order?.amount)}</td>
                         <td className="py-3 px-4">
                           <Badge
-                            className={statusStyles[order.status as keyof typeof statusStyles]}
+                            className={statusStyles[order?.status as keyof typeof statusStyles]}
                           >
-                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                            {order?.status.charAt(0).toUpperCase() + order?.status.slice(1)}
                           </Badge>
                         </td>
-                        <td className="py-3 px-4">{order.paymentMethod}</td>
+                        <td className="py-3 px-4">{order?.paymentMethod}</td>
                         <td className="py-3 px-4">
                           <div className="flex space-x-2">
-                            <Link href={`/dashboard/orders/${order.id}`}>
+                            <Link href={`/dashboard/orders/${order?.id}`}>
                               <Button
-                                size="sm"
-                                variant="ghost"
+                                
+                                
                                 className="h-8 w-8 p-0"
                                 title="View Order Details"
                               >
@@ -441,44 +442,44 @@ export default function OrdersPage() {
                               </Button>
                             </Link>
                             <Button
-                              size="sm"
-                              variant="ghost"
+                              
+                              
                               className="h-8 w-8 p-0"
                               title="Message Customer"
-                              onClick={() => messageCustomer(order.phone)}
+                              onClick={() => messageCustomer(order?.phone)}
                             >
                               <MessageSquare className="h-4 w-4" />
                             </Button>
                             {/* Quick status update buttons */}
-                            {order.status === 'pending' && (
+                            {order?.status === 'pending' && (
                               <Button
-                                size="sm"
-                                variant="ghost"
+                                
+                                
                                 className="h-8 w-8 p-0 text-blue-600"
                                 title="Mark as Processing"
-                                onClick={() => updateOrderStatus(order.id, 'processing')}
+                                onClick={() => updateOrderStatus(order?.id, 'processing')}
                               >
                                 <Package className="h-4 w-4" />
                               </Button>
                             )}
-                            {order.status === 'processing' && (
+                            {order?.status === 'processing' && (
                               <Button
-                                size="sm"
-                                variant="ghost"
+                                
+                                
                                 className="h-8 w-8 p-0 text-purple-600"
                                 title="Mark as Shipped"
-                                onClick={() => updateOrderStatus(order.id, 'shipped')}
+                                onClick={() => updateOrderStatus(order?.id, 'shipped')}
                               >
                                 <Truck className="h-4 w-4" />
                               </Button>
                             )}
-                            {order.status === 'shipped' && (
+                            {order?.status === 'shipped' && (
                               <Button
-                                size="sm"
-                                variant="ghost"
+                                
+                                
                                 className="h-8 w-8 p-0 text-green-600"
                                 title="Mark as Delivered"
-                                onClick={() => updateOrderStatus(order.id, 'delivered')}
+                                onClick={() => updateOrderStatus(order?.id, 'delivered')}
                               >
                                 <Check className="h-4 w-4" />
                               </Button>

@@ -3,14 +3,11 @@
 // TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
 import React, { useState } from 'react';
 import Image from 'next/image';
-import {  Credit Bell, MessageSquare, Upload, Trash2 } from 'lucide-react';
-import {  Credit Bell, MessageSquare, Upload, Trash2 } from 'lucide-react';
+import { CreditCard, Bell, MessageSquare, Upload, Trash2, Save, Store } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import {  CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import Image from 'next/image';
-import {  Credit Bell, MessageSquare, Upload, Trash2 } from 'lucide-react';
 
 // Mock store settings
 const mockStoreSettings = {
@@ -165,13 +162,13 @@ export default function SettingsPage() {
                     )}
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" className="flex items-center">
+                    <Button  className="flex items-center">
                       <Upload className="h-4 w-4 mr-2" />
                       Upload Logo
                     </Button>
                     {store.logo && (
                       <Button
-                        variant="outline"
+                        
                         className="flex items-center text-red-500 border-red-200 hover:bg-red-50"
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
@@ -378,7 +375,7 @@ export default function SettingsPage() {
                         <p className="text-sm text-gray-600 mt-1">{template.content}</p>
                       </div>
                     ))}
-                    <Button variant="outline" className="w-full mt-2">
+                    <Button  className="w-full mt-2">
                       Add Template
                     </Button>
                   </div>
@@ -437,7 +434,7 @@ export default function SettingsPage() {
                     </label>
                   </div>
                 </div>
-                <Button variant="outline" className="w-full mt-2">
+                <Button  className="w-full mt-2">
                   Add Payment Method
                 </Button>
               </div>
@@ -446,7 +443,7 @@ export default function SettingsPage() {
         </div>
 
         <div className="mt-6 flex justify-end">
-          <Button variant="outline" className="mr-2">
+          <Button  className="mr-2">
             Cancel
           </Button>
           <Button onClick={saveSettings} disabled={isLoading}>

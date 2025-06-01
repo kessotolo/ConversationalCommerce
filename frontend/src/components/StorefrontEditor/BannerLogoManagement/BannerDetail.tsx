@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { ClockIcon, TrashIcon, PencilIcon, CalendarIcon, ExclamationTriangleIcon, CheckIcon, XMarkIcon, PhotoIcon, LinkIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import type { Banner } from '@/modules/storefront/models/banner';
 import type { UUID } from '@/modules/core/models/base';
 import type { Asset } from '@/modules/storefront/models/asset';
 import { BannerStatus, BannerType, TargetAudience } from '@/modules/storefront/models/banner';
-import { updateBanner, getAssets } from '../../../lib/api/storefrontEditor';
+import { updateBanner, getAssets } from '@/lib/api/storefrontEditor';
 
 interface BannerDetailProps {
   banner: Banner;

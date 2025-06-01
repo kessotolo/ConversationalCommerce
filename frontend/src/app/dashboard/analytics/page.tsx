@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import {  ShoppingBag, ArrowUpRight, DollarSign } from 'lucide-react';
+import { ShoppingBag, ArrowUpRight, DollarSign, Users, User } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import {  CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -163,8 +163,8 @@ export default function AnalyticsPage() {
             </div>
             <Button
               onClick={exportReport}
-              variant="outline"
-              size="sm"
+              
+              
               className="flex items-center"
             >
               <Download className="h-4 w-4 mr-2" />
@@ -246,8 +246,8 @@ export default function AnalyticsPage() {
                   <span>Sales Trend</span>
                   <Button
                     onClick={exportReport}
-                    variant="outline"
-                    size="sm"
+                    
+                    
                     className="flex items-center"
                   >
                     <Download className="h-4 w-4 mr-2" />

@@ -1,8 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { Upload } from 'lucide-react';
+import { Dialog } from '@headlessui/react';
+import { XMarkIcon, PhotoIcon, DocumentIcon, DocumentTextIcon, DocumentPlusIcon, ExclamationTriangleIcon, CheckIcon, FilmIcon, MusicalNoteIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline';
 import type { UUID } from '@/modules/core/models/base';
 import { AssetType } from '@/modules/storefront/models/asset';
-import { uploadAsset } from '../../../lib/api/storefrontEditor';
+import { uploadAsset } from '@/lib/api/storefrontEditor';
 
 interface AssetUploaderProps {
   tenantId: UUID;

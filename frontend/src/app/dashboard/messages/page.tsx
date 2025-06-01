@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/Button';
 import { formatDate } from '@/lib/utils';
+import { Check, Phone } from 'lucide-react';
 
 // Mock conversations
 const mockConversations = [
@@ -334,13 +335,13 @@ export default function MessagesPage() {
                     </div>
                   </div>
                   <div className="flex space-x-2">
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Voice Call">
+                    <Button   className="h-8 w-8 p-0" title="Voice Call">
                       <Phone className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Video Call">
+                    <Button   className="h-8 w-8 p-0" title="Video Call">
                       <Video className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="More Options">
+                    <Button   className="h-8 w-8 p-0" title="More Options">
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </div>
@@ -407,8 +408,8 @@ export default function MessagesPage() {
                 <div className="p-4 border-t bg-white">
                   <div className="flex">
                     <Button
-                      variant="ghost"
-                      size="sm"
+                      
+                      
                       className="h-10 w-10 p-0 mr-2"
                       title="Attach Image"
                     >
@@ -429,8 +430,8 @@ export default function MessagesPage() {
                       disabled={isLoading || isExpired}
                     />
                     <Button
-                      variant="default"
-                      size="sm"
+                      
+                      
                       className="h-10 w-10 p-0 ml-2 bg-[#6C9A8B] hover:bg-[#588074] text-white rounded-full"
                       onClick={sendMessage}
                       disabled={isLoading || !newMessage.trim() || isExpired}

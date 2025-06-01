@@ -1,6 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { useWebSocket } from '../../hooks/useWebSocket';
+import {
+  Box,
+  Grid,
+  Paper,
+  Typography,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  IconButton,
+  Chip
+} from '@mui/material';
+import { Refresh as RefreshIcon } from '@mui/icons-material';
 
 
 interface Activity {
@@ -82,7 +97,7 @@ const ActivityDashboard: React.FC = () => {
         [activity.status_code]: (prev.byStatus[activity.status_code] || 0) + 1,
       },
       byUser: {
-        ...prev.by
+        ...prev.byUser,
         [activity.user_id]: (prev.byUser[activity.user_id] || 0) + 1,
       },
     }));

@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { LocalStorageCartService } from './CartService';
+import { UUID } from '@/modules/core/models/base';
+import { CartItem } from '@/modules/cart/models/cart';
 
 /**
  * A Zustand store that wraps our CartService
@@ -11,7 +13,7 @@ interface CartStore {
   items: CartItem[];
 
   // Methods
-  addItem: (item: Omit< 'quantity'>) => void;
+  addItem: (item: Omit<CartItem, 'quantity'>) => void;
   removeItem: (itemId: UUID) => void;
   updateQuantity: (itemId: UUID, quantity: number) => void;
   clearCart: () => void;
@@ -28,7 +30,7 @@ export const useCartStore = create<CartStore>()(
     (set, get) => ({
       items: cartService.getItems(),
 
-      addItem: (item: Omit< 'quantity'>) => {
+      addItem: (item: Omit<CartItem, 'quantity'>) => {
         cartService.addItem(item);
         set({ items: cartService.getItems() });
       },

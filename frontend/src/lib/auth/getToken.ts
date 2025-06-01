@@ -1,4 +1,4 @@
-
+import { useAuth } from '@clerk/nextjs';
 
 export async function getToken(): Promise<string | null> {
   try {

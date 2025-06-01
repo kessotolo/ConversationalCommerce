@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import type { UserPermission } from '@/modules/storefront/models/permission';
+import { StorefrontRole, StorefrontSectionType } from '@/modules/storefront/models/permission';
 import type { UUID } from '@/modules/core/models/base';
-import { StorefrontRolefrontSectionType } from '@/modules/storefront/models/permission';
 import {
   assignRole,
   setSectionPermission,
   removePermission,
-} from '../../../lib/api/storefrontEditor';
+} from '@/lib/api/storefrontEditor';
 import {
   ShieldCheckIcon,
-  TrashIconIcon,
+  TrashIcon,
   ExclamationTriangleIcon,
   PencilIcon,
   XMarkIcon,
+  CheckIcon,
 } from '@heroicons/react/24/outline';
 
 

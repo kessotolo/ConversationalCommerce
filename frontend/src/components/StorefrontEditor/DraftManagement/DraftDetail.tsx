@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import type { Draft } from '@/modules/storefront/models/draft';
 import type { UUID } from '@/modules/core/models/base';
 import { Status } from '@/modules/core/models/base';
-import { updateDraft } from '../../../lib/api/storefrontEditor';
+import { updateDraft } from '@/lib/api/storefrontEditor';
 import {
-  ClockIconIcon,
+  ClockIcon,
   TrashIcon,
   PencilIcon,
   CalendarIcon,
   ExclamationTriangleIcon,
+  CheckIcon
 } from '@heroicons/react/24/outline';
 
 
@@ -427,17 +428,16 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
               <h4 className="text-sm font-medium text-gray-500 mb-1">Status</h4>
               <div className="flex items-center">
                 <span
-                  className={`text-sm px-2.5 py-1 rounded-full capitalize ${
-                    draft.status === Status.DRAFT
-                      ? 'bg-gray-100 text-gray-800'
-                      : draft.status === Status.PENDING
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : draft.status === Status.PUBLISHED
-                          ? 'bg-green-100 text-green-800'
-                          : draft.status === Status.SCHEDULED
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-gray-100 text-gray-600'
-                  }`}
+                  className={`text-sm px-2.5 py-1 rounded-full capitalize ${draft.status === Status.DRAFT
+                    ? 'bg-gray-100 text-gray-800'
+                    : draft.status === Status.PENDING
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : draft.status === Status.PUBLISHED
+                        ? 'bg-green-100 text-green-800'
+                        : draft.status === Status.SCHEDULED
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-gray-100 text-gray-600'
+                    }`}
                 >
                   {draft.status}
                 </span>

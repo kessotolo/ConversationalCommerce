@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import { X, Credit Bell, Globe } from 'lucide-react';
-import { X, Credit Bell, Globe } from 'lucide-react';
-import { X, Credit Bell, Globe } from 'lucide-react';
+import { X, CreditCard, Bell, Globe, Store, User } from 'lucide-react';
 
 const categories = [
   { key: 'general', label: 'General', icon: Store },

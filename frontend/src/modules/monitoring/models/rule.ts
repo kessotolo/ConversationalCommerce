@@ -1,4 +1,5 @@
 
+import { TenantScoped } from '@/modules/core/models/base';
 
 export enum RuleSeverity {
   LOW = 'low',

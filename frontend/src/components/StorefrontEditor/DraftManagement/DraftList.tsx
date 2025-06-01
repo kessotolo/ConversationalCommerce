@@ -14,7 +14,7 @@ const DraftList: React.FC<DraftListProps> = ({
   drafts,
   loading,
   selectedDraftId,
-  onDraft
+  onDraftSelect
 }) => {
   // Format date helper
   const formatDate = (dateString?: string): string => {
