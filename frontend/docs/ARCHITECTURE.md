@@ -109,40 +109,60 @@ We are systematically eliminating all `any` types from the codebase through a ph
 **Goal:** Eliminate `any` from foundational models to prevent type leaks and improve downstream type safety.
 
 **Completed Actions:**
+
 - Replaced all `any` and `Record<string, any>` in core models with explicit interfaces, generics, and discriminated unions
 - Implemented `FilterOption<T>` and `FilterGroup<T>` using generics instead of `any`
 - Replaced dynamic objects with `Record<string, unknown>` for improved type safety
 - Added proper documentation for complex type decisions
 - Created specific interfaces like `BaseDetails` for previously untyped objects
 
+##### Phase 2: API Layer – DTOs, Consistency, and Service Integration ✅ COMPLETE (June 2025)
+
+**Goal:** Achieve type-safe, predictable API consumption and error handling across the app.
+
+**Completed Actions:**
+
+- Defined TypeScript interfaces for all API requests and responses (DTOs) in `/lib/api/types.ts` and `/lib/api/storefrontEditor.types.ts`
+- Used generics for API response wrappers (`ApiResponse<T>`) with `unknown` instead of `any`
+- Eliminated bridge files by using direct imports from DTO files
+- Refactored API method parameters to use specific interfaces instead of `any`
+- Implemented type-safe error handling with `unknown` and type guards
+- Updated all UI components to consume the type-safe API layer
+- Replaced error handlers with proper type narrowing
+- Migrated all Banner/Logo management components to use the new DTOs
+
 **Upcoming Phases:**
-1. **Phase 2:** API Layer (lib/api.ts & lib/api/storefrontEditor.ts)
-2. **Phase 3:** Component Props, Hooks, and Contexts
-3. **Phase 4:** Error Handling and Dynamic Index Signatures
-4. **Phase 5:** Type Declarations and Legacy/3rd-Party Integration
+
+1. **Phase 3:** Component Props, Hooks, and Contexts
+2. **Phase 4:** Error Handling and Dynamic Index Signatures
+3. **Phase 5:** Type Declarations and Legacy/3rd-Party Integration
 
 #### Type Safety Best Practices for All Developers and AI Assistants
 
 The following type safety standards must be followed by all team members and AI assistants when contributing to this codebase:
 
 1. **Strict Type Boundaries**:
+
    - Every module boundary must use explicit types, never `any`
    - Use interfaces for public APIs between modules
    - Domain models must have complete type definitions
 
 2. **Avoid `any` Type**:
+
    - Never introduce new usages of the `any` type
    - Use `unknown` with type guards for truly dynamic data
    - Use generics with constraints instead of `any` for flexible APIs
    - For record types, use `Record<string, unknown>` instead of `{[key: string]: any}`
 
 3. **Type-Safe Patterns**:
+
    - Use tagged unions (discriminated unions) for state modeling
    - Implement branded types for IDs and special string types
    - Leverage TypeScript's utility types (`Partial<T>`, `Pick<T>`, etc.)
    - Use template literal types for string patterns
 
 4. **Domain-Driven Types**:
+
    - Types should reflect domain models defined in architecture
    - DTOs should closely match API contracts
    - Follow the single source of truth principle for type definitions

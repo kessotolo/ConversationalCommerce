@@ -32,6 +32,7 @@ The codebase is organized into distinct modules with clear boundaries:
 - **Monitoring**: System monitoring and alerts
 
 Each module contains its own:
+
 - **Models**: Domain models and types
 - **Services**: Business logic and data access
 - **Components**: UI components specific to the module
@@ -53,11 +54,13 @@ The following defines which modules can import from which others:
 ### Core Domain Models
 
 #### Type System Structure
+
 - **Foundational types** located at `src/modules/core/models/base.ts` form the backbone of our type system
 - **Domain-specific types** should extend these base types for consistency and maintainability
 - **Path aliases** available in tsconfig.json allow for cleaner imports via `@/modules/core/models/base`
 
 #### Core Types
+
 - **UUID**: `type UUID = string` - standardized ID type used across backend and frontend
 - **Entity**: Base interface with `id`, `created_at`, and `updated_at` properties
 - **TenantScoped**: Extends Entity with `tenant_id` for multi-tenant data
@@ -151,22 +154,38 @@ Failing to follow these guidelines will result in PR rejections and potential ty
 
 We are implementing a phased approach to eliminate all `any` types from the codebase:
 
-#### Phase 1: Core Models & Type Foundations ✅ COMPLETE
+#### Phase 1: Core Models & Type Foundations ✅ COMPLETE (June 2025)
 
 **Goal:** Eliminate `any` from foundational models to prevent type leaks and improve downstream type safety.
 
 **Completed Actions:**
+
 - Replaced all `any` and `Record<string, any>` in core models with explicit interfaces, generics, and discriminated unions
 - Implemented `FilterOption<T>` and `FilterGroup<T>` using generics instead of `any`
 - Replaced dynamic objects with `Record<string, unknown>` for improved type safety
 - Added proper documentation for complex type decisions
 - Created specific interfaces like `BaseDetails` for previously untyped objects
 
+#### Phase 2: API Layer – DTOs, Consistency, and Service Integration ✅ COMPLETE (June 2025)
+
+**Goal:** Achieve type-safe, predictable API consumption and error handling across the app.
+
+**Completed Actions:**
+
+- Defined TypeScript interfaces for all API requests and responses (DTOs) in `/lib/api/types.ts` and `/lib/api/storefrontEditor.types.ts`
+- Used generics for API response wrappers (`ApiResponse<T>`) with `unknown` instead of `any`
+- Eliminated bridge files by using direct imports from DTO files
+- Refactored API method parameters to use specific interfaces instead of `any`
+- Implemented type-safe error handling with `unknown` and type guards
+- Updated all UI components to consume the type-safe API layer
+- Replaced error handlers with proper type narrowing
+- Migrated all Banner/Logo management components to use the new DTOs
+
 **Next Phases:**
-1. **Phase 2:** API Layer (lib/api.ts & lib/api/storefrontEditor.ts)
-2. **Phase 3:** Component Props, Hooks, and Contexts
-3. **Phase 4:** Error Handling and Dynamic Index Signatures
-4. **Phase 5:** Type Declarations and Legacy/3rd-Party Integration
+
+1. **Phase 3:** Component Props, Hooks, and Contexts
+2. **Phase 4:** Error Handling and Dynamic Index Signatures
+3. **Phase 5:** Type Declarations and Legacy/3rd-Party Integration
 
 ### Module Structure
 
@@ -196,14 +215,17 @@ src/modules/
 - Use path aliases for cleaner imports (`@core/*`, `@tenant/*`, etc.)
 
 ### Service Layer
+
 - Service interfaces and concrete implementations for each module
 - Includes TenantService, ConversationService, ProductService, OrderService
 
 ### Dependency Injection
+
 - ServiceRegistry and ServiceInitializer manage dependencies between modules
 - Ensures proper module boundaries while maintaining a monolithic deployment
 
 ### React Integration
+
 - ServiceProvider React context makes services accessible throughout the component tree
 - Custom hooks for accessing module services
 
@@ -237,16 +259,19 @@ npm run type-check  # Runs tsc --noEmit to check types without emitting files
 ## Technical Requirements
 
 ### Authentication System
+
 - **Clerk Integration**: Secure authentication using Clerk with custom session management
 - **Role-Based Access**: Different interfaces and permissions for sellers and admin users
 - **Centralized Auth Utilities**: Custom auth-utils.tsx providing consistent authentication throughout the application
 
 ### Database UUID Standardization
+
 - **UUID-Based Keys**: All models standardized on UUID types for database primary and foreign keys
 - **PostgreSQL Native UUIDs**: Using PostgreSQL's UUID data type (UUID(as_uuid=True)) instead of string representations
 - **Consistent Database Relationships**: Proper one-to-one relationships between models (e.g., Tenant and StorefrontConfig)
 
 ### Next.js App Router
+
 - **Client and Server Components**: Proper separation of client and server components
 - **Dynamic Routing**: Type-safe parameter handling in dynamic routes
 - **Authentication Middleware**: Custom middleware for tenant identification and authentication
