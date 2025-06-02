@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import {
-  ClockIcon,
   TrashIcon,
   PencilIcon,
   CalendarIcon,
@@ -306,11 +305,13 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
                 </div>
               ) : assetList.length === 0 ? (
                 <div className="mt-1 p-4 flex flex-col items-center justify-center border border-gray-300 border-dashed rounded-md">
-                  <PhotoIcon className="h-10 w-10 text-gray-400" />
-                  <p className="mt-2 text-sm text-gray-500">No images available</p>
-                  <p className="text-xs text-gray-500">
-                    Please upload images in the Asset Management section
-                  </p>
+                  <div className="text-gray-400 flex flex-col items-center">
+                    <PhotoIcon className="h-10 w-10 mb-2" />
+                    <span className="text-sm">No images available</span>
+                    <p className="text-xs text-gray-500">
+                      Please upload images in the Asset Management section
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <>
@@ -447,8 +448,10 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
                     />
                   ) : (
                     <div className="text-gray-400 flex flex-col items-center">
-                      <PhotoIcon className="h-12 w-12 mb-2" />
-                      <span className="text-sm">No image set</span>
+                      <div className="text-gray-400 flex flex-col items-center">
+                        <PhotoIcon className="h-12 w-12 mb-2" />
+                        <span className="text-sm">No image set</span>
+                      </div>
                     </div>
                   )}
                 </div>

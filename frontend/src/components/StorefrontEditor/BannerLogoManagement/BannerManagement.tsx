@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Send } from 'lucide-react';
 import { ArrowPathIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
