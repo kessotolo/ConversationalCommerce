@@ -32,3 +32,14 @@ export interface Logo extends TenantScoped {
 }
 
 export type LogoList = PaginatedResult<Logo>;
+
+export interface CreateLogoRequest {
+  name: string;
+  logo_type: string;
+  asset_id: string;
+  display_settings: Record<string, unknown>;
+  responsive_settings: Record<string, unknown>;
+  start_date?: string;
+  end_date?: string;
+  // Add other fields as needed for creation
+}

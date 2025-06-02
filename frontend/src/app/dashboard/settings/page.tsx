@@ -6,7 +6,7 @@ import { CreditCard, Bell, MessageSquare, Upload, Trash2, Save, Store } from 'lu
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import type { InputChangeEvent } from '@/modules/core';
+import type { InputChangeEvent } from '@/modules/core/models';
 
 // Mock store settings
 const mockStoreSettings = {

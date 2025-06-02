@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import type { Version } from '@/modules/storefront';
-import type { UUID } from '@/modules/core';
 import {
   FunnelIcon,
   MagnifyingGlassIcon,
@@ -8,7 +6,8 @@ import {
   CalendarIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import type { FormSubmitEvent } from '@/modules/core';
+import type { Version } from '@/modules/storefront/models/version';
+import type { UUID, FormSubmitEvent } from '@/modules/core/models';
 
 interface VersionListProps {
   versions: Version[];
@@ -253,10 +252,10 @@ const VersionList: React.FC<VersionListProps> = ({
                 {version.change_description}
               </p>
               <div className="flex flex-wrap gap-1 mb-2">
-                {version.tags.map((tag, index) => (
+                {version.tags.map((tag: string, index: number) => (
                   <span
                     key={index}
-                    className="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded-full"
+                    className="inline-block bg-gray-200 text-gray-700 px-2 py-0.5 rounded text-xs mr-2"
                   >
                     {tag}
                   </span>

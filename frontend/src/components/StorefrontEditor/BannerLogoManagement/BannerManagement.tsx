@@ -3,13 +3,12 @@ import { Send } from 'lucide-react';
 import { ArrowPathIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-
-import type { UUID } from "@/modules/core/models/base";
+import type { UUID } from '@/modules/core/models/base';
 import BannerList from '@/components/StorefrontEditor/BannerLogoManagement/BannerList';
 import BannerDetail from '@/components/StorefrontEditor/BannerLogoManagement/BannerDetail';
 import CreateBannerModal from '@/components/StorefrontEditor/BannerLogoManagement/CreateBannerModal';
-import {
 import type { Banner } from '@/modules/storefront/models/banner';
+import {
   getBanners,
   publishBanner,
   deleteBanner,
@@ -20,7 +19,7 @@ interface BannerManagementProps {
   tenantId: UUID;
 }
 
-const BannerManagement: React.FC<BannerManagementProps> = ({ /* _tenantId */ }) => {
+const BannerManagement: React.FC<BannerManagementProps> = ({ tenantId }) => {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [selectedBanner, setSelectedBanner] = useState<Banner | null>(null);
   const [totalBanners, setTotalBanners] = useState<number>(0);
@@ -33,7 +32,7 @@ const BannerManagement: React.FC<BannerManagementProps> = ({ /* _tenantId */ }) 
 
   // Filter state
   const [statusFilter, setStatusFilter] = useState<Banner['status'] | 'all'>('all');
-  const [typeFilter, setTypeFilter] = useState<Banner['banner_type'] | 'all'>('all');
+  const [typeFilter, setTypeFilter] = useState<string | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Load banners
@@ -134,14 +133,14 @@ const BannerManagement: React.FC<BannerManagementProps> = ({ /* _tenantId */ }) 
   };
 
   // Handle pagination
-  // Unused page handler removed
-  // const handlePageChange = (page) => setCurrentPage(page);
+  const handlePageChange = (newOffset: number) => {
+    setOffset(newOffset);
   };
 
   // Apply filters
   const handleFilterChange = (
     status: Banner['status'] | 'all',
-    type: Banner['banner_type'] | 'all',
+    type: string | 'all',
     query: string,
   ) => {
     setStatusFilter(status);

@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-
 import { useDrag, useDrop } from 'react-dnd';
 import {
-import type { Banner } from '@/modules/storefront/models/banner';
   Menu as Bars3Icon,
   Search as MagnifyingGlassIcon,
   Filter as FunnelIcon,
 } from 'lucide-react';
-import type { FormSubmitEvent } from '@/modules/core';
+import type { Banner } from '@/modules/storefront/models/banner';
+import type { FormSubmitEvent } from '@/modules/core/models';
 
 // Item type for drag and drop
 const BANNER_ITEM = 'banner';

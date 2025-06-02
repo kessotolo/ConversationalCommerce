@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import type { InputChangeEvent } from '@/modules/core';
-import type { UUID } from '@/modules/core';
+import { XMarkIcon, ExclamationTriangleIcon, PhotoIcon } from '@heroicons/react/24/outline';
+import type { InputChangeEvent, UUID } from '@/modules/core/models';
 import type { Asset } from '@/modules/storefront/models/asset';
-import type { CreateBannerRequest } from '@/modules/storefront/models';
+import type { CreateBannerRequest } from '@/modules/storefront/models/banner';
 // Use Asset type from the lib API until full migration is complete
 
 import { createBanner, getAssets } from '@/lib/api/storefrontEditor';
-import { XMarkIcon, ExclamationTriangleIcon, PhotoIcon } from '@heroicons/react/24/outline';
 
 interface CreateBannerModalProps {
   tenantId: UUID;
@@ -14,7 +13,7 @@ interface CreateBannerModalProps {
   onSuccess: () => void;
 }
 
-const CreateBannerModal: React.FC<CreateBannerModalProps> = ({ _tenantId, onClose, onSuccess }) => {
+const CreateBannerModal: React.FC<CreateBannerModalProps> = ({ tenantId, onClose, onSuccess }) => {
   const [formData, setFormData] = useState<CreateBannerRequest & { asset_id: string }>({
     title: '',
     content: {},

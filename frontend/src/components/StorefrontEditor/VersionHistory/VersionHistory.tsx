@@ -1,41 +1,39 @@
-import Reactimport React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { RefreshCw as ArrowPathIcon } from 'lucide-react';
-import type { Version } from '@/modules/storefront';
-import type { UUID } from '@/modules/core';
-import {getVersions, restoreVersion} from '@/lib/api/storefrontEditor';
+import type { Version } from '@/modules/storefront/models/version';
+import type { UUID } from '@/modules/core/models';
+import { getVersions, restoreVersion } from '@/lib/api/storefrontEditor';
 import VersionList from '@/components/StorefrontEditor/VersionHistory/VersionList';
 import VersionDetail from '@/components/StorefrontEditor/VersionHistory/VersionDetail';
 import VersionCompare from '@/components/StorefrontEditor/VersionHistory/VersionCompare';
 
-interface VersionHistoryProps {
-};
-  tenantId: UUID;,
+export interface VersionHistoryProps {
+  tenantId: UUID;
 }
 
-const VersionHistory: React.FC<VersionHistoryProps></VersionHistoryProp></VersionHistoryProps> = ({ _tenantId }) => {;
-  const [versions, setVersions] = useState<Version[]></Versio></Version>([]);
-  const [selectedVersion, setSelectedVersion] = useState<Version | null></Versio></Version>(null);
-  const [compareMode, setCompareMode] = useState<boolean></boolean>(false);
-  const [compareVersion, setCompareVersion] = useState<Version | null></Versio></Version>(null);
-  const [totalVersions, setTotalVersions] = useState<number></number>(0);
-  const [loading, setLoading] = useState<boolean></boolean>(true);
-  const [error, setError] = useState<string | null></string>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null></string>(null);
-  const [skip, setSkip] = useState<number></number>(0);
-  const [limit] = useState<number></number>(10);
-
-  // Filter state
-  const [tagsFilter, setTagsFilter] = useState<string[]></string>([]);
+const VersionHistory: React.FC<VersionHistoryProps> = ({ tenantId }) => {
+  // State management
+  const [versions, setVersions] = useState<Version[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [selectedVersion, setSelectedVersion] = useState<Version | null>(null);
+  const [compareVersion, setCompareVersion] = useState<Version | null>(null);
+  const [compareMode, setCompareMode] = useState(false);
+  const [skip, setSkip] = useState(0);
+  const [limit] = useState(10);
+  const [totalVersions, setTotalVersions] = useState(0);
+  const [tagsFilter, setTagsFilter] = useState<string[]>([]);
   const [dateFilter, setDateFilter] = useState<{ start?: Date; end?: Date }>({});
-  const [searchQuery, setSearchQuery] = useState<string></string>('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Load versions
-  const loadVersions = async;() => {
+  const loadVersions = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await;getVersions(tenantId, skip, limit, tagsFilter);
+      const response = await getVersions(tenantId, skip, limit, tagsFilter);
       setVersions(response.items);
       setTotalVersions(response.total);
 
@@ -70,7 +68,7 @@ const VersionHistory: React.FC<VersionHistoryProps></VersionHistoryProp></Versio
   };
 
   // Handle version restore
-  const handleRestoreVersion = async;(versionId: UUID) => {
+  const handleRestoreVersion = async (versionId: UUID) => {
     try {
       await restoreVersion(tenantId, versionId);
       setSuccessMessage('Version restored successfully. A new draft has been created.');
@@ -96,8 +94,8 @@ const VersionHistory: React.FC<VersionHistoryProps></VersionHistoryProp></Versio
   };
 
   // Handle pagination
-  // Unused page handler removed
-  // const handlePageChange = (page) => setCurrentPage(page);
+  const handlePageChange = (newSkip: number) => {
+    setSkip(newSkip);
   };
 
   // Handle tags filter change
@@ -120,23 +118,23 @@ const VersionHistory: React.FC<VersionHistoryProps></VersionHistoryProp></Versio
 
   // Filter versions by date and search query
   // (Tags filtering is done at API level)
-  const filteredVersions = versions;.filter((version) => {
-    const versionDate = new;Date(version.created_at);
+  const filteredVersions = versions.filter((version) => {
+    const versionDate = new Date(version.created_at);
 
     // Apply date filter
     if (dateFilter.start && versionDate < dateFilter.start) return false;
     if (dateFilter.end) {
-      const endDate = new;Date(dateFilter.end);
+      const endDate = new Date(dateFilter.end);
       endDate.setHours(23, 59, 59, 999); // End of day
       if (versionDate > endDate) return false;
     }
 
     // Apply search query
     if (searchQuery) {
-      const query = searchQuery;.toLowerCase();
-      const matchesChangeSummary = version;.change_summary.toLowerCase().includes(query);
-      const matchesChangeDescription = version;.change_description.toLowerCase().includes(query);
-      const matchesTags = version;.tags.some((tag) => tag.toLowerCase().includes(query));
+      const query = searchQuery.toLowerCase();
+      const matchesChangeSummary = version.change_summary.toLowerCase().includes(query);
+      const matchesChangeDescription = version.change_description.toLowerCase().includes(query);
+      const matchesTags = version.tags.some((tag) => tag.toLowerCase().includes(query));
 
       if (!matchesChangeSummary && !matchesChangeDescription && !matchesTags) {
         return false;
@@ -147,46 +145,46 @@ const VersionHistory: React.FC<VersionHistoryProps></VersionHistoryProp></Versio
   });
 
   return (
-    <div className="h-full flex flex-col"></div>
-      <div className="flex justify-between items-center mb-4"></div>
-        <h2 className="text-2xl font-semibold"></h2>Version History</h2>
-        <div className="flex space-x-2"></div>
-          <button;
+    <div className="h-full flex flex-col">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-semibold">Version History</h2>
+        <div className="flex space-x-2">
+          <button
             onClick={loadVersions}
             className="flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-          ></button>
-            <ArrowPathIcon className="w-4 h-4 mr-2" /></ArrowPathIco></ArrowPathIcon>
+          >
+            <ArrowPathIcon className="h-4 w-4 mr-1" />
             Refresh
           </button>
-          <button;
+          <button
             onClick={handleCompareToggle}
             className={`px-3 py-1.5 border text-sm font-medium rounded-md ${
               compareMode
-                ? 'bg-blue-100 text-blue-800 border-blue-300'
-                : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-50'
+                ? 'bg-blue-100 border-blue-200 text-blue-700 hover:bg-blue-200'
+                : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
             }`}
-          ></button>
-            {compareMode ? 'Exit Compare' : 'Compare Versions'}
+          >
+            {compareMode ? 'Cancel Compare' : 'Compare Versions'}
           </button>
         </div>
       </div>
 
       {successMessage && (
-        <div className="mb-4 p-3 bg-green-100 text-green-800 rounded-md"></div>{successMessage}</div>
+        <div className="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{successMessage}</div>
       )}
 
-      {error && <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md"></div>{error}</div>}
+      {error && <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md">{error}</div>}
 
       {compareMode && !compareVersion && selectedVersion && (
-        <div className="mb-4 p-3 bg-blue-100 text-blue-800 rounded-md"></div>
+        <div className="mb-4 p-3 bg-blue-100 text-blue-800 rounded-md">
           Please select a second version to compare with "{selectedVersion.change_summary}".
         </div>
       )}
 
-      <div className="flex-1 flex gap-6"></div>
+      <div className="flex-1 flex gap-6">
         {/* Version List */}
-        <div className="w-1/3 bg-white rounded-lg border shadow-sm overflow-hidden"></div>
-          <VersionList;
+        <div className="w-1/3 bg-white rounded-lg border shadow-sm overflow-hidden">
+          <VersionList
             versions={filteredVersions}
             loading={loading}
             selectedVersionId={selectedVersion?.id}
@@ -199,19 +197,19 @@ const VersionHistory: React.FC<VersionHistoryProps></VersionHistoryProp></Versio
             tagsFilter={tagsFilter}
             dateFilter={dateFilter}
             searchQuery={searchQuery}
-          /></VersionLis></VersionList>
+          />
 
           {/* Pagination */}
-          <div className="p-3 border-t flex justify-between items-center"></div>
-            <span className="text-sm text-gray-600"></span>
+          <div className="p-3 border-t flex justify-between items-center">
+            <span className="text-sm text-gray-600">
               {filteredVersions.length > 0
                 ? `Showing ${skip + 1}-${skip + filteredVersions.length} of ${totalVersions}`
                 : 'No versions found'}
             </span>
-            <div className="flex space-x-2"></div>
-              <button;
-                onClick={() =></button> handlePageChange(Math.max(0, skip - limit))}
-                disabled={skip === 0};
+            <div className="flex space-x-2">
+              <button
+                onClick={() => handlePageChange(Math.max(0, skip - limit))}
+                disabled={skip === 0}
                 className={`px-3 py-1 rounded text-sm ${
                   skip === 0
                     ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
@@ -220,8 +218,8 @@ const VersionHistory: React.FC<VersionHistoryProps></VersionHistoryProp></Versio
               >
                 Previous
               </button>
-              <button;
-                onClick={() =></button> handlePageChange(skip + limit)}
+              <button
+                onClick={() => handlePageChange(skip + limit)}
                 disabled={skip + limit >= totalVersions}
                 className={`px-3 py-1 rounded text-sm ${
                   skip + limit >= totalVersions
@@ -236,36 +234,36 @@ const VersionHistory: React.FC<VersionHistoryProps></VersionHistoryProp></Versio
         </div>
 
         {/* Version Detail or Compare */}
-        <div className="w-2/3"></div>
+        <div className="w-2/3">
           {compareMode && selectedVersion && compareVersion ? (
             <VersionCompare
               version1={selectedVersion}
               version2={compareVersion}
               tenantId={tenantId}
-            /></VersionCompar></VersionCompare>
+            />
           ) : selectedVersion ? (
             <VersionDetail
               version={selectedVersion}
               tenantId={tenantId}
               onRestore={handleRestoreVersion}
-            /></VersionDetai></VersionDetail>
+            />
           ) : (
-            <div className="bg-white rounded-lg border shadow-sm p-8 flex flex-col items-center justify-center h-full"></div>
+            <div className="bg-white rounded-lg border shadow-sm p-8 flex flex-col items-center justify-center h-full">
               <svg
                 className="h-16 w-16 text-gray-400 mb-4"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-              ></svg>
+              >
                 <path
                   strokeLinecap="round"
-                  strokeLinejoin="round";
+                  strokeLinejoin="round"
                   strokeWidth={2}
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                /></path>
+                />
               </svg>
-              <h3 className="text-lg font-medium text-gray-900"></h3>No version selected</h3>
-              <p className="text-gray-500 mt-1"></p>Select a version from the list to view details.</p>
+              <h3 className="text-lg font-medium text-gray-900">No version selected</h3>
+              <p className="text-gray-500 mt-1">Select a version from the list to view details.</p>
             </div>
           )}
         </div>
@@ -275,4 +273,3 @@ const VersionHistory: React.FC<VersionHistoryProps></VersionHistoryProp></Versio
 };
 
 export default VersionHistory;
-

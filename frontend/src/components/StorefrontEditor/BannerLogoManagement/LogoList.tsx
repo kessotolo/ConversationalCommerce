@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 
-import type { UUID } from "@/modules/core/models/base";
 import { Search as MagnifyingGlassIcon, Filter as FunnelIcon } from 'lucide-react';
-import type { FormSubmitEvent } from '@/modules/core';
+import type { UUID } from '@/modules/core/models/base';
+import type { FormSubmitEvent } from '@/modules/core/models';
 
 import type { Logo } from '@/modules/storefront/models/logo';
 interface LogoListProps {

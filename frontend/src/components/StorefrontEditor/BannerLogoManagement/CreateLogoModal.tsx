@@ -1,20 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { XMarkIcon, ExclamationTriangleIcon, PhotoIcon } from '@heroicons/react/24/outline';
-import type { UUID } from "@/modules/core/models/base";
-
+import type { UUID, InputChangeEvent, FormSubmitEvent } from '@/modules/core/models';
 import { createLogo, getAssets } from '@/lib/api/storefrontEditor';
-import type { InputChangeEvent, FormSubmitEvent } from '@/modules/core';
-
-import type { CreateLogoRequest } from '@/modules/storefront/models';
+import type { CreateLogoRequest } from '@/modules/storefront/models/logo';
+import { LogoType } from '@/modules/storefront/models/logo';
 import type { Asset } from '@/modules/storefront/models/asset';
+
 interface CreateLogoModalProps {
   tenantId: UUID;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ _tenantId, onClose, onSuccess }) => {
+const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ tenantId, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -45,7 +44,6 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ _tenantId, onClose, o
         setLoadingAssets(false);
       }
     };
-
     loadAssets();
   }, [tenantId]);
 
@@ -60,7 +58,6 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ _tenantId, onClose, o
     e.preventDefault();
     setLoading(true);
     setError(null);
-
     try {
       await createLogo(tenantId, formData);
       onSuccess();
@@ -82,22 +79,17 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ _tenantId, onClose, o
         <div className="fixed inset-0 transition-opacity" aria-hidden="true">
           <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
         </div>
-
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
           &#8203;
         </span>
-
         <div
           className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
           role="dialog"
           aria-modal="true"
-          aria-labelledby="modal-headline"
         >
           <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div className="flex justify-between items-center mb-4">
-              <Dialog.Title as="h3" className="text-lg leading-6 font-medium text-gray-900">
-                Create New Logo
-              </Dialog.Title>
+              <h3 className="text-lg leading-6 font-medium text-gray-900">Create New Logo</h3>
               <button
                 type="button"
                 className="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none"
@@ -107,14 +99,12 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ _tenantId, onClose, o
                 <XMarkIcon className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
-
             {error && (
               <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md flex items-center">
                 <ExclamationTriangleIcon className="h-5 w-5 mr-2" />
                 {error}
               </div>
             )}
-
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
@@ -131,7 +121,6 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ _tenantId, onClose, o
                   placeholder="Enter logo name"
                 />
               </div>
-
               <div>
                 <label htmlFor="logo_type" className="block text-sm font-medium text-gray-700">
                   Logo Type *
@@ -145,28 +134,27 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ _tenantId, onClose, o
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 >
                   <option value="">Select type</option>
-                  <option value="primary">Primary</option>
-                  <option value="secondary">Secondary</option>
-                  <option value="footer">Footer</option>
-                  <option value="mobile">Mobile</option>
-                  <option value="favicon">Favicon</option>
+                  {Object.values(LogoType).map((type) => (
+                    <option key={type} value={type}>
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </option>
+                  ))}
                 </select>
-
                 <p className="mt-1 text-xs text-gray-500">
-                  {formData.logo_type === 'primary' && 'The main logo displayed in the header'}
-                  {formData.logo_type === 'secondary' &&
+                  {formData.logo_type === LogoType.PRIMARY &&
+                    'The main logo displayed in the header'}
+                  {formData.logo_type === LogoType.SECONDARY &&
                     'Alternative logo used in specific contexts'}
-                  {formData.logo_type === 'footer' && 'Logo displayed in the footer'}
-                  {formData.logo_type === 'mobile' && 'Optimized logo for mobile devices'}
-                  {formData.logo_type === 'favicon' && 'Small icon displayed in browser tabs'}
+                  {formData.logo_type === LogoType.FOOTER && 'Logo displayed in the footer'}
+                  {formData.logo_type === LogoType.MOBILE && 'Optimized logo for mobile devices'}
+                  {formData.logo_type === LogoType.FAVICON &&
+                    'Small icon displayed in browser tabs'}
                 </p>
               </div>
-
               <div>
                 <label htmlFor="asset_id" className="block text-sm font-medium text-gray-700">
                   Logo Image *
                 </label>
-
                 {loadingAssets ? (
                   <div className="mt-1 p-4 flex justify-center items-center border border-gray-300 border-dashed rounded-md">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-700"></div>
@@ -196,12 +184,10 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ _tenantId, onClose, o
                         </option>
                       ))}
                     </select>
-
-                    {/* Preview selected image */}
                     {selectedAsset ? (
                       <div className="mt-2 p-2 border rounded-md">
                         <img
-                          src={`/api/assets/${selectedAsset.file_path.replace(/^.*[\\\/]/, '')}`}
+                          src={`/api/assets/${selectedAsset.file_path.replace(/^.*[\\/]/, '')}`}
                           alt={selectedAsset.title}
                           className="max-h-32 max-w-full object-contain mx-auto"
                         />
@@ -214,7 +200,6 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ _tenantId, onClose, o
                   </>
                 )}
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="start_date" className="block text-sm font-medium text-gray-700">
@@ -229,7 +214,6 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ _tenantId, onClose, o
                     className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   />
                 </div>
-
                 <div>
                   <label htmlFor="end_date" className="block text-sm font-medium text-gray-700">
                     End Date
@@ -245,7 +229,6 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ _tenantId, onClose, o
                   />
                 </div>
               </div>
-
               <div className="flex justify-end space-x-2 pt-4">
                 <button
                   type="button"

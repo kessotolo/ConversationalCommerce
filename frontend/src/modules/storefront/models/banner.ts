@@ -44,3 +44,11 @@ export interface Banner extends TenantScoped {
 }
 
 export type BannerList = PaginatedResult<Banner>;
+
+export interface CreateBannerRequest {
+  title: string;
+  content: Record<string, unknown>;
+  start_date?: string;
+  end_date?: string;
+  // Add other fields as needed for creation
+}

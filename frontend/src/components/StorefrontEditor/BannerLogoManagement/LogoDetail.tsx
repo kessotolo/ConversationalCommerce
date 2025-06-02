@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import {
-import type { Logo } from '@/modules/storefront/models/logo';
-import type { Asset } from '@/modules/storefront/models/asset';
   ClockIcon,
   TrashIcon,
   PencilIcon,
@@ -12,10 +10,11 @@ import type { Asset } from '@/modules/storefront/models/asset';
   XMarkIcon,
   PhotoIcon,
 } from '@heroicons/react/24/outline';
-
-import type { UUID } from "@/modules/core/models/base";
+import type { Logo } from '@/modules/storefront/models/logo';
+import type { Asset } from '@/modules/storefront/models/asset';
+import type { UUID } from '@/modules/core/models';
 import { updateLogo, getAssets } from '@/lib/api/storefrontEditor';
-import type { InputChangeEvent } from '@/modules/core';
+import type { InputChangeEvent } from '@/modules/core/models';
 
 interface LogoDetailProps {
   logo: Logo;
@@ -27,7 +26,7 @@ interface LogoDetailProps {
 
 const LogoDetail: React.FC<LogoDetailProps> = ({
   logo,
-  _tenantId,
+  tenantId,
   onPublish,
   onDelete,
   onUpdate,
@@ -335,7 +334,7 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
                   {selectedAsset ? (
                     <div className="mt-2 p-2 border rounded-md">
                       <img
-                        src={`/api/assets/${selectedAsset.file_path.replace(/^.*[\\\/]/, '')}`}
+                        src={`/api/assets/${selectedAsset.file_path.replace(/^.*[\\/]/, '')}`}
                         alt={selectedAsset.title}
                         className="max-h-32 max-w-full object-contain mx-auto"
                       />

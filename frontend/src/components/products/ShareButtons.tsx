@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { MessageCircle, Send, Camera } from 'lucide-react';
-import { CardContent } from '@/components/ui/Card';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -21,6 +20,9 @@ import QrCodeIcon from '@mui/icons-material/QrCode';
 import CheckIcon from '@mui/icons-material/Check';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ShareIcon from '@mui/icons-material/Share';
+import { CardContent } from '@/components/ui/Card';
+import { ConversationEventLogger } from '@/modules/conversation/utils/eventLogger';
+import { ConversationEventType } from '@/modules/conversation';
 
 // Custom TikTok icon
 const TikTokIcon = () => (
@@ -144,6 +146,21 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
         [platformId]: data,
       }));
       setActiveDialog(platformId);
+
+      // Log the event
+      ConversationEventLogger.log({
+        conversation_id: undefined, // Set if available
+        user_id: undefined, // Set if available
+        event_type: ConversationEventType.PRODUCT_CLICKED,
+        payload: {
+          product_id: productId,
+          platform: platformId,
+          utm_url: data.utm_url,
+          campaign: data.campaign,
+        },
+        tenant_id: '', // Set tenant_id if available
+        metadata: undefined,
+      });
     } catch (error) {
       console.error('Error fetching share link:', error);
       setShareData((prev) => ({

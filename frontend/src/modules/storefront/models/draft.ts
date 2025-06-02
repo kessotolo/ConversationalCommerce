@@ -9,3 +9,15 @@ export interface Draft extends Draftable {
 }
 
 export type DraftList = PaginatedResult<Draft>;
+
+export interface CreateDraftRequest {
+  name: string;
+  description: string;
+  changes: Record<string, unknown>;
+}
+
+export interface UpdateDraftRequest {
+  name?: string;
+  description?: string;
+  changes?: Record<string, unknown>;
+}

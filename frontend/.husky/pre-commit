@@ -5,5 +5,9 @@
 echo "🔍 Verifying architecture..."
 npm run verify:architecture || (echo "❌ Architecture verification failed. Please fix the issues before committing." && exit 1)
 
+# Check for circular dependencies
+echo "🔄 Checking for circular dependencies..."
+npm run check:circular || (echo "❌ Circular dependencies detected. Please fix the cycles before committing." && exit 1)
+
 # Continue with other pre-commit checks
 npm run lint

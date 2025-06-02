@@ -1,5 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { WebSocketMessage } from '@/modules/core';
+import type { UUID } from '@/modules/core/models/base';
+
+// Define WebSocketMessage type since it's not in core module
+export interface WebSocketMessage {
+  type: string;
+  payload?: unknown;
+  timestamp?: string;
+  sender?: UUID;
+  meta?: Record<string, unknown>;
+}
 
 // WebSocket hook for type-safe message payloads
 export interface WebSocketHook {
@@ -62,8 +71,10 @@ export const useWebSocket = (url: string): WebSocketHook => {
     return () => {};
   }, [url]);
 
-  // Unused message handler removed
-  // const sendMessage = useCallback(...);
+  const sendMessage = useCallback(
+    (message: WebSocketMessage) => {
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify(message));
       } else if (socket) {
         console.warn('WebSocket is not open. Message not sent:', message);
       } else {

@@ -1,20 +1,17 @@
-import Reactimport React, { useState } from 'react';
+import React, { useState } from 'react';
 import { XMarkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import type { UUID } from '@/modules/core';
+import type { UUID, InputChangeEvent, FormSubmitEvent } from '@/modules/core/models';
 import { createDraft } from '@/lib/api/storefrontEditor';
-
-import type { InputChangeEvent, FormSubmitEvent } from '@/modules/core';
-
 import type { CreateDraftRequest } from '@/modules/storefront/models';
+
 interface CreateDraftModalProps {
-  /* tenantId */: UUID;
+  tenantId: UUID;
   onClose: () => void;
-};
   onSuccess: () => void;
 }
 
-const CreateDraftModal: React.FC<CreateDraftModalProps></CreateDraftModalProps> = ({ /* _tenantId */, onClose, onSuccess }) => {
-  const [formData, setFormData] = useState<CreateDraftRequest></CreateDraftRequest>({
+const CreateDraftModal: React.FC<CreateDraftModalProps> = ({ tenantId, onClose, onSuccess }) => {
+  const [formData, setFormData] = useState<CreateDraftRequest>({
     name: '',
     description: '',
     changes: {},
@@ -41,7 +38,7 @@ const CreateDraftModal: React.FC<CreateDraftModalProps></CreateDraftModalProps> 
     setError(null);
 
     try {
-      await createDraft(/* tenantId */, formData);
+      await createDraft(tenantId, formData);
       onSuccess();
       onClose();
     } catch (err) {
@@ -59,7 +56,7 @@ const CreateDraftModal: React.FC<CreateDraftModalProps></CreateDraftModalProps> 
         <div className="flex justify-between items-center p-4 border-b">
           <h3 className="text-lg font-medium">Create New Draft</h3>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            <XMarkIcon className="h-5 w-5" /></XMarkIcon>
+            <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
 
@@ -67,7 +64,7 @@ const CreateDraftModal: React.FC<CreateDraftModalProps></CreateDraftModalProps> 
         <div className="p-4">
           {error && (
             <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md flex items-center">
-              <ExclamationTriangleIcon className="h-5 w-5 mr-2" /></ExclamationTriangleIcon>
+              <ExclamationTriangleIcon className="h-5 w-5 mr-2" />
               {error}
             </div>
           )}
@@ -81,11 +78,11 @@ const CreateDraftModal: React.FC<CreateDraftModalProps></CreateDraftModalProps> 
                 <input
                   type="text"
                   id="name"
-                  name="name";
+                  name="name"
                   value={formData.name}
                   onChange={handleInputChange}
                   required
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm";
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   placeholder="e.g., Summer Sale Homepage Update"
                 />
               </div>
@@ -96,11 +93,11 @@ const CreateDraftModal: React.FC<CreateDraftModalProps></CreateDraftModalProps> 
                 </label>
                 <textarea
                   id="description"
-                  name="description";
+                  name="description"
                   rows={3}
                   value={formData.description}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm";
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   placeholder="Describe the purpose of this draft"
                 />
               </div>
@@ -112,7 +109,7 @@ const CreateDraftModal: React.FC<CreateDraftModalProps></CreateDraftModalProps> 
 
             <div className="mt-5 flex justify-end">
               <button
-                type="button";
+                type="button"
                 onClick={onClose}
                 disabled={loading}
                 className="mr-3 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -120,7 +117,7 @@ const CreateDraftModal: React.FC<CreateDraftModalProps></CreateDraftModalProps> 
                 Cancel
               </button>
               <button
-                type="submit";
+                type="submit"
                 disabled={loading}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >

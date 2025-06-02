@@ -7,10 +7,15 @@ import enum
 
 
 class ConversationEventType(str, enum.Enum):
-    message_sent = "message_sent"
-    message_read = "message_read"
-    product_clicked = "product_clicked"
-    order_placed = "order_placed"
+    message_sent = "message_sent"  # A message was sent
+    message_read = "message_read"  # A message was read
+    product_clicked = "product_clicked"  # A product was clicked/viewed
+    order_placed = "order_placed"  # An order was placed
+    conversation_started = "conversation_started"  # A new conversation was started
+    user_joined = "user_joined"  # A user joined the conversation
+    user_left = "user_left"  # A user left the conversation
+    # The conversation was closed/resolved
+    conversation_closed = "conversation_closed"
     # Add more event types as needed
 
 

@@ -1,5 +1,4 @@
 import React from 'react';
-import type { Asset } from '@/modules/storefront';
 import {
   Image as PhotoIcon,
   Film as FilmIcon,
@@ -7,6 +6,7 @@ import {
   Music as MusicalNoteIcon,
   File as DocumentIcon,
 } from 'lucide-react';
+import type { Asset } from '@/modules/storefront/models/asset';
 
 interface AssetGridProps {
   assets: Asset[];

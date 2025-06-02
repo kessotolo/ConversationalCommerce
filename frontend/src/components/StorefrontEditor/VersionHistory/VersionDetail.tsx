@@ -1,6 +1,5 @@
-import React, { useState } from &apos;react&apos;;
-// import type { Version } from &apos;@/modules/storefront&apos;;
-import type { UUID } from &apos;@/modules/core&apos;;
+import React, { useState } from 'react';
+// import type { Version } from '@/modules/storefront';
 import {
   CheckIcon,
   ExclamationTriangleIcon,
@@ -9,16 +8,16 @@ import {
   TagIcon,
   ClipboardDocumentIcon,
   ArrowUturnLeftIcon,
-} from &apos;@heroicons/react/24/outline&apos;;
+} from '@heroicons/react/24/outline';
+import type { UUID } from '@/modules/core/models';
 
 interface VersionDetailProps {
-  version: Version;,
+  version: any; // TODO: Replace 'any' with Version type when available
   tenantId: UUID;
-};
   onRestore: (versionId: UUID) => Promise<boolean>;
 }
 
-const VersionDetail: React.FC<VersionDetailProps></VersionDetailProps> = ({ version, _tenantId, onRestore }) => {
+const VersionDetail: React.FC<VersionDetailProps> = ({ version, tenantId, onRestore }) => {
   const [isRestoring, setIsRestoring] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,14 +42,14 @@ const VersionDetail: React.FC<VersionDetailProps></VersionDetailProps> = ({ vers
       const success = await onRestore(version.id);
 
       if (success) {
-        setSuccessMessage(&apos;Version restored successfully. A new draft has been created.&apos;);
+        setSuccessMessage('Version restored successfully. A new draft has been created.');
         setIsRestoring(false);
       } else {
-        setError(&apos;Failed to restore version.&apos;);
+        setError('Failed to restore version.');
       }
     } catch (err) {
-      setError(&apos;Failed to restore version.&apos;);
-      console.error(&apos;Error restoring version:&apos;, err);
+      setError('Failed to restore version.');
+      console.error('Error restoring version:', err);
     } finally {
       setLoading(false);
     }
@@ -74,7 +73,7 @@ const VersionDetail: React.FC<VersionDetailProps></VersionDetailProps> = ({ vers
       {/* Success Message */}
       {successMessage && (
         <div className="m-4 p-3 bg-green-100 text-green-800 rounded-md flex items-center">
-          <CheckIcon className="h-5 w-5 mr-2" /></CheckIcon>
+          <CheckIcon className="h-5 w-5 mr-2" />
           {successMessage}
         </div>
       )}
@@ -82,7 +81,7 @@ const VersionDetail: React.FC<VersionDetailProps></VersionDetailProps> = ({ vers
       {/* Error Message */}
       {error && (
         <div className="m-4 p-3 bg-red-100 text-red-800 rounded-md flex items-center">
-          <ExclamationTriangleIcon className="h-5 w-5 mr-2" /></ExclamationTriangleIcon>
+          <ExclamationTriangleIcon className="h-5 w-5 mr-2" />
           {error}
         </div>
       )}
@@ -93,13 +92,13 @@ const VersionDetail: React.FC<VersionDetailProps></VersionDetailProps> = ({ vers
           <div className="space-y-4">
             <div className="bg-yellow-50 p-4 rounded-md">
               <div className="flex">
-                <ExclamationTriangleIcon className="h-5 w-5 text-yellow-400" /></ExclamationTriangleIcon>
+                <ExclamationTriangleIcon className="h-5 w-5 text-yellow-400" />
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-yellow-800">Restore Confirmation</h3>
                   <div className="mt-2 text-sm text-yellow-700">
                     <p>
                       Are you sure you want to restore this version? This will create a new draft
-                      based on this version&apos;s configuration.
+                      based on this version's configuration.
                     </p>
                   </div>
                 </div>
@@ -108,7 +107,7 @@ const VersionDetail: React.FC<VersionDetailProps></VersionDetailProps> = ({ vers
 
             <div className="flex justify-end space-x-2">
               <button
-                type="button";
+                type="button"
                 onClick={cancelRestore}
                 disabled={loading}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -116,12 +115,12 @@ const VersionDetail: React.FC<VersionDetailProps></VersionDetailProps> = ({ vers
                 Cancel
               </button>
               <button
-                type="button";
+                type="button"
                 onClick={handleRestore}
                 disabled={loading}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                {loading ? &apos;Restoring...&apos; : &apos;Confirm Restore&apos;}
+                {loading ? 'Restoring...' : 'Confirm Restore'}
               </button>
             </div>
           </div>
@@ -136,7 +135,7 @@ const VersionDetail: React.FC<VersionDetailProps></VersionDetailProps> = ({ vers
             {/* Version Metadata */}
             <div className="grid grid-cols-2 gap-4 border-t border-b py-4">
               <div className="flex items-center">
-                <ClockIcon className="h-5 w-5 text-gray-400 mr-2" /></ClockIcon>
+                <ClockIcon className="h-5 w-5 text-gray-400 mr-2" />
                 <div>
                   <p className="text-xs text-gray-500">Created</p>
                   <p className="text-sm">{formatDate(version.created_at)}</p>
@@ -144,7 +143,7 @@ const VersionDetail: React.FC<VersionDetailProps></VersionDetailProps> = ({ vers
               </div>
 
               <div className="flex items-center">
-                <UserIcon className="h-5 w-5 text-gray-400 mr-2" /></UserIcon>
+                <UserIcon className="h-5 w-5 text-gray-400 mr-2" />
                 <div>
                   <p className="text-xs text-gray-500">Created By</p>
                   <p className="text-sm">User ID: {version.created_by}</p>
@@ -155,12 +154,12 @@ const VersionDetail: React.FC<VersionDetailProps></VersionDetailProps> = ({ vers
             {/* Tags */}
             <div>
               <div className="flex items-center mb-2">
-                <TagIcon className="h-5 w-5 text-gray-400 mr-2" /></TagIcon>
+                <TagIcon className="h-5 w-5 text-gray-400 mr-2" />
                 <h4 className="text-sm font-medium">Tags</h4>
               </div>
               <div className="flex flex-wrap gap-2">
-                {version.tags.length > 0 ? (
-                  version.tags.map((tag, index) => (
+                {version.tags && version.tags.length > 0 ? (
+                  version.tags.map((tag: string, index: number) => (
                     <span
                       key={index}
                       className="inline-block bg-gray-100 text-gray-800 text-sm px-3 py-1 rounded-full"
@@ -180,17 +179,17 @@ const VersionDetail: React.FC<VersionDetailProps></VersionDetailProps> = ({ vers
               <div className="bg-gray-50 p-4 rounded-md">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm font-medium text-gray-700">Configuration Data</span>
-                  <button;
-                    className="text-sm text-blue-600 hover:text-blue-800 flex items-center";
+                  <button
+                    className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
                     onClick={() => {
                       navigator.clipboard.writeText(
                         JSON.stringify(version.configuration_snapshot, null, 2),
                       );
-                      setSuccessMessage(&apos;Configuration copied to clipboard&apos;);
+                      setSuccessMessage('Configuration copied to clipboard');
                       setTimeout(() => setSuccessMessage(null), 3000);
                     }}
                   >
-                    <ClipboardDocumentIcon className="h-4 w-4 mr-1" /></ClipboardDocumentIcon>
+                    <ClipboardDocumentIcon className="h-4 w-4 mr-1" />
                     Copy
                   </button>
                 </div>
@@ -208,11 +207,11 @@ const VersionDetail: React.FC<VersionDetailProps></VersionDetailProps> = ({ vers
       {/* Footer */}
       {!isRestoring && (
         <div className="p-4 border-t">
-          <button;
+          <button
             onClick={handleRestore}
             className="inline-flex items-center px-4 py-2 border border-blue-600 shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            <ArrowUturnLeftIcon className="h-4 w-4 mr-2" /></ArrowUturnLeftIcon>
+            <ArrowUturnLeftIcon className="h-4 w-4 mr-2" />
             Restore This Version
           </button>
         </div>

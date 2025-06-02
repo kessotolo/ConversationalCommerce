@@ -5,7 +5,7 @@ import {
   ArrowUpIcon,
   ArrowDownIcon,
 } from '@heroicons/react/24/outline';
-import type { FormSubmitEvent } from '@/modules/core';
+import type { FormSubmitEvent } from '@/modules/core/models';
 
 interface AssetFilterBarProps {
   assetType: 'image' | 'video' | 'document' | 'audio' | null;

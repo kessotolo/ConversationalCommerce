@@ -2,8 +2,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { Button } from '@/components/ui/Button';
-import { formatDate } from '@/lib/utils';
 import {
   Check,
   Phone,
@@ -16,6 +14,11 @@ import {
   Send,
   MessageCircle,
 } from 'lucide-react';
+import { useUser, useOrganization } from '@clerk/nextjs';
+import { Button } from '@/components/ui/Button';
+import { formatDate } from '@/lib/utils';
+import { ConversationEventLogger } from '@/modules/conversation/utils/eventLogger';
+import { ConversationEventType } from '@/modules/conversation';
 
 // Mock conversations
 const mockConversations = [
@@ -115,6 +118,14 @@ const quickReplies = [
 ];
 
 export default function MessagesPage() {
+  const { user } = useUser();
+  const { organization } = useOrganization();
+
+  // Use Clerk user ID and organization (tenant) ID
+  // Fallback to user publicMetadata.tenantId if not in an organization
+  const currentUserId = user?.id;
+  const tenantId = organization?.id || user?.publicMetadata?.tenantId;
+
   const [conversations, setConversations] = useState(mockConversations);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [messages, setMessages] = useState(mockMessages);
@@ -122,6 +133,9 @@ export default function MessagesPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Track previous conversation for user_left event
+  const prevConversationRef = useRef<string | null>(null);
 
   // Filter conversations based on search term
   const filteredConversations = conversations.filter(
@@ -162,6 +176,82 @@ export default function MessagesPage() {
     fetchConversations();
   }, []);
 
+  // Log user_left when switching conversations or unmounting
+  useEffect(() => {
+    return () => {
+      if (
+        prevConversationRef.current &&
+        typeof currentUserId === 'string' &&
+        typeof tenantId === 'string'
+      ) {
+        ConversationEventLogger.log({
+          conversation_id: prevConversationRef.current,
+          user_id: currentUserId,
+          event_type: ConversationEventType.USER_LEFT,
+          payload: {},
+          tenant_id: tenantId,
+          metadata: {},
+        });
+      }
+    };
+  }, [currentUserId, tenantId]);
+
+  // Log user_left when switching conversations
+  useEffect(() => {
+    if (
+      prevConversationRef.current &&
+      prevConversationRef.current !== selectedConversation &&
+      typeof currentUserId === 'string' &&
+      typeof tenantId === 'string'
+    ) {
+      ConversationEventLogger.log({
+        conversation_id: prevConversationRef.current,
+        user_id: currentUserId,
+        event_type: ConversationEventType.USER_LEFT,
+        payload: {},
+        tenant_id: tenantId,
+        metadata: {},
+      });
+    }
+    prevConversationRef.current = selectedConversation;
+  }, [selectedConversation, currentUserId, tenantId]);
+
+  // Helper: get selected conversation object
+  const selectedConvObj = conversations.find(
+    (c: (typeof mockConversations)[0]) => c.id === selectedConversation,
+  );
+  // Helper: get last message date
+  const lastMsgDate =
+    messages.length > 0 ? new Date(messages[messages.length - 1].timestamp) : null;
+  // Helper: is expired (order closed or >2 weeks old)
+  const isOrderClosed =
+    selectedConvObj &&
+    (selectedConvObj.orderStatus === 'delivered' || selectedConvObj.orderStatus === 'cancelled');
+  const isMsgTooOld = lastMsgDate
+    ? Date.now() - lastMsgDate.getTime() > 14 * 24 * 60 * 60 * 1000
+    : false;
+  const isExpired = !!isOrderClosed || isMsgTooOld;
+
+  // Log conversation_closed when a conversation expires
+  useEffect(() => {
+    if (
+      isExpired &&
+      selectedConversation &&
+      typeof currentUserId === 'string' &&
+      typeof tenantId === 'string'
+    ) {
+      ConversationEventLogger.log({
+        conversation_id: selectedConversation,
+        user_id: currentUserId,
+        event_type: ConversationEventType.CONVERSATION_CLOSED,
+        payload: { reason: 'expired' },
+        tenant_id: tenantId,
+        metadata: {},
+      });
+    }
+    // Only run when isExpired or selectedConversation changes
+  }, [isExpired, selectedConversation, currentUserId, tenantId]);
+
   // Send a new message
   const sendMessage = () => {
     if (!newMessage.trim() || !selectedConversation) return;
@@ -177,6 +267,18 @@ export default function MessagesPage() {
     // Add message to UI immediately
     setMessages([...messages, messageToSend]);
     setNewMessage('');
+
+    // Log the event
+    if (typeof currentUserId === 'string' && typeof tenantId === 'string') {
+      ConversationEventLogger.log({
+        conversation_id: selectedConversation,
+        user_id: currentUserId,
+        event_type: ConversationEventType.MESSAGE_SENT,
+        payload: { content: newMessage },
+        tenant_id: tenantId,
+        metadata: {},
+      });
+    }
 
     // This is where you would make a real API call
     // try {
@@ -204,6 +306,17 @@ export default function MessagesPage() {
   // Handle conversation selection
   const handleSelectConversation = (id: string) => {
     setSelectedConversation(id);
+    // Log user joined event
+    if (typeof currentUserId === 'string' && typeof tenantId === 'string') {
+      ConversationEventLogger.log({
+        conversation_id: id,
+        user_id: currentUserId, // Clerk user ID
+        event_type: ConversationEventType.USER_JOINED,
+        payload: {},
+        tenant_id: tenantId, // Clerk org or user publicMetadata tenantId
+        metadata: {},
+      });
+    }
     // In a real app, you would fetch messages for this conversation
     // For now, we'll just use the mock messages
   };
@@ -229,22 +342,6 @@ export default function MessagesPage() {
         return null;
     }
   };
-
-  // Helper: get selected conversation object
-  const selectedConvObj = conversations.find(
-    (c: (typeof mockConversations)[0]) => c.id === selectedConversation,
-  );
-  // Helper: get last message date
-  const lastMsgDate =
-    messages.length > 0 ? new Date(messages[messages.length - 1].timestamp) : null;
-  // Helper: is expired (order closed or >2 weeks old)
-  const isOrderClosed =
-    selectedConvObj &&
-    (selectedConvObj.orderStatus === 'delivered' || selectedConvObj.orderStatus === 'cancelled');
-  const isMsgTooOld = lastMsgDate
-    ? Date.now() - lastMsgDate.getTime() > 14 * 24 * 60 * 60 * 1000
-    : false;
-  const isExpired = !!isOrderClosed || isMsgTooOld;
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col">
@@ -312,12 +409,13 @@ export default function MessagesPage() {
                           {conv.orderId}
                         </span>
                         <span
-                          className={`ml-2 px-2 py-0.5 rounded ${conv.orderStatus === 'delivered'
-                            ? 'bg-green-100 text-green-800'
-                            : conv.orderStatus === 'processing'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                            }`}
+                          className={`ml-2 px-2 py-0.5 rounded ${
+                            conv.orderStatus === 'delivered'
+                              ? 'bg-green-100 text-green-800'
+                              : conv.orderStatus === 'processing'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                          }`}
                         >
                           {conv.orderStatus}
                         </span>
@@ -381,12 +479,13 @@ export default function MessagesPage() {
               {/* Order status alert */}
               {selectedConvObj?.orderId && (
                 <div
-                  className={`px-4 py-2 text-sm ${selectedConvObj.orderStatus === 'delivered'
-                    ? 'bg-green-100'
-                    : selectedConvObj.orderStatus === 'processing'
-                      ? 'bg-blue-100'
-                      : 'bg-yellow-100'
-                    }`}
+                  className={`px-4 py-2 text-sm ${
+                    selectedConvObj.orderStatus === 'delivered'
+                      ? 'bg-green-100'
+                      : selectedConvObj.orderStatus === 'processing'
+                        ? 'bg-blue-100'
+                        : 'bg-yellow-100'
+                  }`}
                 >
                   Order {selectedConvObj.orderId} is{' '}
                   <span className="font-medium">{selectedConvObj.orderStatus}</span>
@@ -401,15 +500,17 @@ export default function MessagesPage() {
                     className={`flex ${msg.sender === 'store' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-[75%] rounded-lg px-4 py-2 ${msg.sender === 'store'
-                        ? 'bg-[#6C9A8B] text-white rounded-tr-none'
-                        : 'bg-white border rounded-tl-none'
-                        }`}
+                      className={`max-w-[75%] rounded-lg px-4 py-2 ${
+                        msg.sender === 'store'
+                          ? 'bg-[#6C9A8B] text-white rounded-tr-none'
+                          : 'bg-white border rounded-tl-none'
+                      }`}
                     >
                       <p>{msg.content}</p>
                       <div
-                        className={`text-xs mt-1 flex justify-end items-center gap-1 ${msg.sender === 'store' ? 'text-[#e6f0eb]' : 'text-gray-500'
-                          }`}
+                        className={`text-xs mt-1 flex justify-end items-center gap-1 ${
+                          msg.sender === 'store' ? 'text-[#e6f0eb]' : 'text-gray-500'
+                        }`}
                       >
                         {formatDate(msg.timestamp, 'time')}
                         {msg.sender === 'store' && renderMessageStatus(msg.status)}
@@ -442,8 +543,8 @@ export default function MessagesPage() {
               {isExpired ? (
                 <div className="p-4 border-t bg-gray-100">
                   <div className="bg-yellow-100 text-yellow-800 p-3 rounded-lg text-sm">
-                    This conversation is no longer active. The order is complete or the
-                    conversation has expired.
+                    This conversation is no longer active. The order is complete or the conversation
+                    has expired.
                   </div>
                 </div>
               ) : (
@@ -479,9 +580,7 @@ export default function MessagesPage() {
           ) : (
             <div className="flex flex-1 flex-col items-center justify-center text-center bg-white">
               <MessageCircle className="w-16 h-16 text-[#e6f0eb] mb-4" />
-              <h2 className="text-xl font-semibold mb-2 text-gray-700">
-                No conversation selected
-              </h2>
+              <h2 className="text-xl font-semibold mb-2 text-gray-700">No conversation selected</h2>
               <p className="text-gray-500 max-w-md">
                 Select a conversation from the list to start messaging
               </p>

@@ -1,8 +1,8 @@
 import React from 'react';
-import type { UserPermission } from '@/modules/storefront';
-import type { UUID } from '@/modules/core';
-import { StorefrontRole } from '@/modules/storefront';
 import { Search as MagnifyingGlassIcon, Filter as FunnelIcon } from 'lucide-react';
+import type { UserPermission } from '@/modules/storefront/models/permission';
+import type { UUID } from '@/modules/core/models';
+import { StorefrontRole } from '@/modules/storefront/models/permission';
 
 interface PermissionListProps {
   users: UserPermission[];

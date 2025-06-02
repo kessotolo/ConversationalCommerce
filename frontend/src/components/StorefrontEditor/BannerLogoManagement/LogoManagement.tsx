@@ -1,21 +1,19 @@
-import Reactimport React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowPathIcon, PlusIcon } from '@heroicons/react/24/outline';
-
 import type { UUID } from '@/modules/core/models/base';
 import { getLogos, publishLogo, deleteLogo } from '@/lib/api/storefrontEditor';
 import LogoList from '@/components/StorefrontEditor/BannerLogoManagement/LogoList';
 import LogoDetail from '@/components/StorefrontEditor/BannerLogoManagement/LogoDetail';
 import CreateLogoModal from '@/components/StorefrontEditor/BannerLogoManagement/CreateLogoModal';
-
 import type { Logo } from '@/modules/storefront/models/logo';
+
 interface LogoManagementProps {
-};
   tenantId: UUID;
 }
 
-const LogoManagement: React.FC<LogoManagementProps></LogoManagementProps> = ({ _tenantId }) => {;
-  const [logos, setLogos] = useState<Logo[]></Logo>([]);
-  const [selectedLogo, setSelectedLogo] = useState<Logo | null></Logo>(null);
+const LogoManagement: React.FC<LogoManagementProps> = ({ tenantId }) => {
+  const [logos, setLogos] = useState<Logo[]>([]);
+  const [selectedLogo, setSelectedLogo] = useState<Logo | null>(null);
   const [totalLogos, setTotalLogos] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -109,12 +107,12 @@ const LogoManagement: React.FC<LogoManagementProps></LogoManagementProps> = ({ _
   };
 
   // Handle pagination
-  // Unused page handler removed
-  // const handlePageChange = (page) => setCurrentPage(page);
+  const handlePageChange = (newOffset: number) => {
+    setOffset(newOffset);
   };
 
   // Apply filters
-  const handleFilterChange = (status: string | 'all', type: string | 'all', query: string) => {;
+  const handleFilterChange = (status: string | 'all', type: string | 'all', query: string) => {
     setStatusFilter(status);
     setTypeFilter(type);
     setSearchQuery(query);
@@ -126,19 +124,19 @@ const LogoManagement: React.FC<LogoManagementProps></LogoManagementProps> = ({ _
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center">
           <h3 className="text-xl font-medium">Logos</h3>
-          <button;
+          <button
             onClick={loadLogos}
-            className="ml-2 p-1 text-gray-500 hover:text-gray-700 focus:outline-none";
+            className="ml-2 p-1 text-gray-500 hover:text-gray-700 focus:outline-none"
             title="Refresh"
           >
-            <ArrowPathIcon className="h-5 w-5" /></ArrowPathIcon>
+            <ArrowPathIcon className="h-5 w-5" />
           </button>
         </div>
-        <button;
+        <button
           onClick={() => setIsCreateModalOpen(true)}
           className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
-          <PlusIcon className="w-5 h-5 mr-2" /></PlusIcon>
+          <PlusIcon className="w-5 h-5 mr-2" />
           Create Logo
         </button>
       </div>
@@ -152,7 +150,7 @@ const LogoManagement: React.FC<LogoManagementProps></LogoManagementProps> = ({ _
       <div className="flex-1 flex gap-6">
         {/* Logo List */}
         <div className="w-1/2 bg-white rounded-lg border shadow-sm overflow-hidden flex flex-col">
-          <LogoList;
+          <LogoList
             logos={logos}
             loading={loading}
             selectedLogoId={selectedLogo?.id}
@@ -161,7 +159,7 @@ const LogoManagement: React.FC<LogoManagementProps></LogoManagementProps> = ({ _
             statusFilter={statusFilter}
             typeFilter={typeFilter}
             searchQuery={searchQuery}
-          /></LogoList>
+          />
 
           {/* Pagination */}
           {logos.length > 0 && (
@@ -171,9 +169,9 @@ const LogoManagement: React.FC<LogoManagementProps></LogoManagementProps> = ({ _
                   Showing {offset + 1}-{Math.min(offset + logos.length, totalLogos)} of {totalLogos}
                 </span>
                 <div className="flex space-x-2">
-                  <button;
+                  <button
                     onClick={() => handlePageChange(Math.max(0, offset - limit))}
-                    disabled={offset === 0};
+                    disabled={offset === 0}
                     className={`px-3 py-1 rounded text-sm ${
                       offset === 0
                         ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
@@ -182,7 +180,7 @@ const LogoManagement: React.FC<LogoManagementProps></LogoManagementProps> = ({ _
                   >
                     Previous
                   </button>
-                  <button;
+                  <button
                     onClick={() => handlePageChange(offset + limit)}
                     disabled={offset + limit >= totalLogos}
                     className={`px-3 py-1 rounded text-sm ${
@@ -208,7 +206,7 @@ const LogoManagement: React.FC<LogoManagementProps></LogoManagementProps> = ({ _
               onPublish={handlePublishLogo}
               onDelete={handleDeleteLogo}
               onUpdate={loadLogos}
-            /></LogoDetail>
+            />
           ) : (
             <div className="bg-white rounded-lg border shadow-sm p-8 flex flex-col items-center justify-center h-full">
               <svg
@@ -219,7 +217,7 @@ const LogoManagement: React.FC<LogoManagementProps></LogoManagementProps> = ({ _
               >
                 <path
                   strokeLinecap="round"
-                  strokeLinejoin="round";
+                  strokeLinejoin="round"
                   strokeWidth={2}
                   d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
                 />
@@ -228,11 +226,11 @@ const LogoManagement: React.FC<LogoManagementProps></LogoManagementProps> = ({ _
               <p className="text-gray-500 mt-1">
                 Select a logo to view details or create a new one.
               </p>
-              <button;
+              <button
                 onClick={() => setIsCreateModalOpen(true)}
                 className="mt-4 flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
-                <PlusIcon className="w-5 h-5 mr-2" /></PlusIcon>
+                <PlusIcon className="w-5 h-5 mr-2" />
                 Create Logo
               </button>
             </div>
@@ -244,7 +242,7 @@ const LogoManagement: React.FC<LogoManagementProps></LogoManagementProps> = ({ _
       {isCreateModalOpen && (
         <CreateLogoModal
           tenantId={tenantId}
-          onClose={() =></CreateLogoModal> setIsCreateModalOpen(false)}
+          onClose={() => setIsCreateModalOpen(false)}
           onSuccess={loadLogos}
         />
       )}

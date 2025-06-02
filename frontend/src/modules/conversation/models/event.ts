@@ -8,6 +8,10 @@ export enum ConversationEventType {
   MESSAGE_READ = 'message_read',
   PRODUCT_CLICKED = 'product_clicked',
   ORDER_PLACED = 'order_placed',
+  CONVERSATION_STARTED = 'conversation_started',
+  USER_JOINED = 'user_joined',
+  USER_LEFT = 'user_left',
+  CONVERSATION_CLOSED = 'conversation_closed',
   // Add more event types as needed
 }
 
