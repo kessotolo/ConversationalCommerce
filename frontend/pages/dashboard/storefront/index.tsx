@@ -1,5 +1,8 @@
 import React from 'react';
 import { Eye, BarChart3, ShoppingBag, TrendingUp } from 'lucide-react';
+import { ThemeProvider } from '@/components/ThemeProvider';
+import { useTheme } from '@/contexts/ThemeContext';
+import StorefrontLinks from '@/components/dashboard/StorefrontLinks';
 
 // Layout component to use theme context
 function StorefrontPageContent() {
