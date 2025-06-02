@@ -13,6 +13,9 @@ from sqlalchemy import func, cast, Date, and_
 from app.core.websocket.monitoring import connection_manager
 import asyncio
 from textblob import TextBlob
+from fastapi.responses import StreamingResponse
+import csv
+from io import StringIO
 
 router = APIRouter()
 
@@ -312,3 +315,107 @@ def get_conversation_quality(db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to compute conversation quality: {str(e)}")
+
+
+@router.get("/conversation-analytics/export")
+def export_conversation_analytics_csv(db: Session = Depends(get_db)):
+    """
+    Export conversation analytics as CSV.
+    """
+    try:
+        # Reuse analytics logic
+        start = datetime.utcnow() - timedelta(days=30)
+        end = datetime.utcnow()
+        q = db.query(ConversationEvent).filter(
+            ConversationEvent.created_at >= start,
+            ConversationEvent.created_at <= end
+        )
+        events = q.all()
+        output = StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["id", "conversation_id", "user_id",
+                        "event_type", "created_at", "payload"])
+        for e in events:
+            writer.writerow([
+                str(e.id),
+                str(e.conversation_id) if e.conversation_id else '',
+                str(e.user_id) if e.user_id else '',
+                e.event_type,
+                e.created_at.isoformat(),
+                str(e.payload)
+            ])
+        output.seek(0)
+        return StreamingResponse(output, media_type="text/csv", headers={"Content-Disposition": "attachment; filename=conversation_analytics.csv"})
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to export analytics: {str(e)}")
+
+
+@router.get("/conversation-quality/export")
+def export_conversation_quality_csv(db: Session = Depends(get_db)):
+    """
+    Export conversation quality leaderboard as CSV.
+    """
+    try:
+        # Reuse quality logic
+        conv_ids = db.query(ConversationEvent.conversation_id).filter(
+            ConversationEvent.conversation_id != None).distinct().all()
+        results = []
+        for (conv_id,) in conv_ids:
+            events = db.query(ConversationEvent).filter(
+                ConversationEvent.conversation_id == conv_id).all()
+            if not events:
+                continue
+            sent_times = [
+                e.created_at for e in events if e.event_type == 'message_sent']
+            read_times = [
+                e.created_at for e in events if e.event_type == 'message_read']
+            response_times = []
+            for sent in sent_times:
+                after_reads = [r for r in read_times if r > sent]
+                if after_reads:
+                    response_times.append(
+                        (after_reads[0] - sent).total_seconds())
+            avg_response_time = sum(
+                response_times) / len(response_times) if response_times else None
+            sentiments = []
+            for e in events:
+                s = (e.payload or {}).get('sentiment', {})
+                if isinstance(s, dict) and 'polarity' in s:
+                    sentiments.append(s['polarity'])
+            avg_sentiment = sum(sentiments) / \
+                len(sentiments) if sentiments else None
+            resolved = any((e.payload or {}).get('intent') == 'resolved' or (
+                e.metadata or {}).get('resolved') for e in events)
+            score = 0
+            if avg_response_time is not None:
+                score += max(0, 1 - min(avg_response_time / 60, 1)) * 0.4
+            if avg_sentiment is not None:
+                score += ((avg_sentiment + 1) / 2) * 0.4
+            if resolved:
+                score += 0.2
+            results.append({
+                "conversation_id": str(conv_id),
+                "avg_response_time_seconds": avg_response_time,
+                "avg_sentiment": avg_sentiment,
+                "resolved": resolved,
+                "quality_score": round(score, 3)
+            })
+        results.sort(key=lambda x: x["quality_score"], reverse=True)
+        output = StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["conversation_id", "quality_score",
+                        "avg_response_time_seconds", "avg_sentiment", "resolved"])
+        for row in results:
+            writer.writerow([
+                row["conversation_id"],
+                row["quality_score"],
+                row["avg_response_time_seconds"] if row["avg_response_time_seconds"] is not None else '',
+                row["avg_sentiment"] if row["avg_sentiment"] is not None else '',
+                'yes' if row["resolved"] else 'no'
+            ])
+        output.seek(0)
+        return StreamingResponse(output, media_type="text/csv", headers={"Content-Disposition": "attachment; filename=conversation_quality.csv"})
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to export quality leaderboard: {str(e)}")

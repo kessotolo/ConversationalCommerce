@@ -256,6 +256,14 @@ export default function AnalyticsPage() {
     // In production, this would generate and download a CSV file
   };
 
+  // Export CSV handlers
+  const handleExportAnalytics = () => {
+    window.open('/api/conversation-analytics/export', '_blank');
+  };
+  const handleExportQuality = () => {
+    window.open('/api/conversation-quality/export', '_blank');
+  };
+
   return (
     <div className="space-y-8">
       {/* Real-time Event & Alert Feed */}
@@ -303,6 +311,9 @@ export default function AnalyticsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Total Conversation Events</CardTitle>
+            <Button variant="outline" size="sm" onClick={handleExportAnalytics} className="ml-auto">
+              Export CSV
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">
@@ -363,6 +374,9 @@ export default function AnalyticsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Conversation Quality Leaderboard</CardTitle>
+            <Button variant="outline" size="sm" onClick={handleExportQuality} className="ml-auto">
+              Export CSV
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
