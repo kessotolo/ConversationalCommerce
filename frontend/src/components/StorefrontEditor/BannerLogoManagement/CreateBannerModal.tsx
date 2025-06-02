@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { InputChangeEvent } from '@/types/events';
 import type { UUID } from '@/modules/core';
-import type { Asset } from '@/lib/api/storefrontEditor.types';
+// Use Asset type from the lib API until full migration is complete
+import type { Asset, CreateBannerRequest } from '@/lib/api/storefrontEditor.types';
 import { createBanner, getAssets } from '@/lib/api/storefrontEditor';
 import { XMarkIcon, ExclamationTriangleIcon, PhotoIcon } from '@heroicons/react/24/outline';
-import type { CreateBannerRequest } from '@/lib/api/storefrontEditor.types';
 
 interface CreateBannerModalProps {
   tenantId: UUID;

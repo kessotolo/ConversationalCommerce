@@ -38,6 +38,20 @@ The following defines which modules can import from which others:
 - **Theme**: Can import from Core, Tenant
 - **Monitoring**: Can import from Core
 
+### Module Public APIs
+
+Each module exposes its types and functionality through a public API (index.ts file). Other modules should only import from this public API, not from internal module files.
+
+```typescript
+// CORRECT: Import from module's public API
+import { UUID, Entity } from '@/modules/core';
+
+// INCORRECT: Import directly from module internals
+import { UUID } from '@/modules/core/models/base';
+```
+
+We've implemented ESLint rules to enforce these boundaries and detect violations using custom scripts.
+
 ## Import Guidelines
 
 ### Preferred Import Patterns
@@ -147,11 +161,21 @@ We are systematically eliminating all `any` types from the codebase through a ph
 - Implemented proper return types for custom hooks like `useThemeStyles`
 - Strengthened form submission handlers with correct event types
 - Enhanced monitoring components to use type-safe WebSocket message handling
+- Created scripts to identify import restriction violations across modules
+- Enhanced Core module's public API to export all foundational types
+- Implemented batch-fix approach to eliminate bridge patterns systematically
+
+**Current Progress (Phase 3):**
+
+- Enforcing module boundaries through public APIs (index.ts files)
+- Eliminating bridge patterns that were created during architectural evolution
+- Ensuring all imports follow the modular monolith architecture principles
+- Systematically fixing import violations in StorefrontEditor components
 
 **Next Phases:**
 
-1. **Phase 4:** Error Handling and Dynamic Index Signatures
-2. **Phase 5:** Type Declarations and Legacy/3rd-Party Integration
+1. **Phase 4:** Complete module boundary enforcement and error handling improvements
+2. **Phase 5:** Type declarations for external integrations and full architectural consistency
 
 #### Type Safety Best Practices for All Developers and AI Assistants
 
