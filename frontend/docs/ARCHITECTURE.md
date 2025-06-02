@@ -393,24 +393,24 @@ ESLint is configured with selective overrides to flag these issues appropriately
   - Validate new theme features or migrations.
   - Document architectural decisions and best practices.
 
-## Conversation Event Logging & Analytics (2025)
+## Conversation Analytics & Dashboard (2025)
 
-### ConversationEvent Model & Schema
+### Analytics Aggregation & Reporting
+- The backend exposes `/conversation-analytics` (see `backend/app/api/routers/conversation.py`)
+  - Returns: total event count, counts by type, counts by day, average response time
+  - Supports date range and event type filters
+  - Designed for extensibility (add new metrics as needed)
 
-To enable structured, extensible event logging for analytics and monitoring, the codebase introduces a new `ConversationEvent` model (backend) and interface (frontend):
+### Dashboard Integration
+- The frontend dashboard (`frontend/src/app/dashboard/analytics/page.tsx`) displays:
+  - Total conversation events (stat card)
+  - Events by type (pie chart)
+  - Events by day (line chart)
+  - Average response time (stat card)
+- Widgets fetch live data from the backend and are ready for further extension (filters, funnel, heatmap, etc.)
 
-- **Purpose:** Logs all significant events in a conversation (not just messages), e.g., message sent/read, product clicked, order placed, etc.
-- **Extensibility:** Uses an `event_type` enum and a flexible `payload` (JSON/Record) for arbitrary event data. New event types can be added to the enum in both backend and frontend.
-- **Backend:**
-  - SQLAlchemy model: `backend/app/models/conversation_event.py`
-  - Pydantic schemas: `backend/app/schemas/conversation_event.py`
-  - Alembic migration: `backend/alembic/versions/add_conversation_event.py`
-- **Frontend:**
-  - TypeScript interface: `frontend/src/modules/conversation/models/event.ts`
-  - Public API: `frontend/src/modules/conversation/index.ts`
-- **Best Practices:**
-  - Always use the enum for event types (never string literals)
-  - Extend the event type enum in both backend and frontend when adding new event types
-  - Use the `payload` and `metadata` fields for arbitrary analytics data
-
-This model is the single source of truth for conversation event logging and analytics, and is designed for future extensibility and strict type safety.
+### Best Practices
+- Add new metrics to the backend endpoint and document them
+- Use strict typing and clear API contracts for analytics data
+- Visualize new metrics in the dashboard using chart.js or similar
+- Keep analytics extensible for future business needs

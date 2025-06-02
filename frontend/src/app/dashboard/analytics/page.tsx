@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   ShoppingBag,
@@ -15,10 +15,6 @@ import {
   Truck,
   MessageSquare,
 } from 'lucide-react';
-import { CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { StatCard } from '@/components/dashboard/StatCard';
-import { Card } from '@/components/ui/Card';
 import { Line, Pie, Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -32,6 +28,10 @@ import {
   Legend,
   Filler,
 } from 'chart.js';
+import { CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { StatCard } from '@/components/dashboard/StatCard';
+import { Card } from '@/components/ui/Card';
 
 ChartJS.register(
   CategoryScale,
@@ -107,6 +107,64 @@ export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState<'7days' | '30days' | '90days' | 'custom'>('30days');
   const [hasData] = useState(true); // Set to false to test empty state
 
+  // Conversation analytics state
+  const [convAnalytics, setConvAnalytics] = useState<any>(null);
+  const [loadingConv, setLoadingConv] = useState(false);
+
+  useEffect(() => {
+    // Fetch conversation analytics from backend
+    const fetchAnalytics = async () => {
+      setLoadingConv(true);
+      try {
+        const res = await fetch('/api/conversation-analytics');
+        if (!res.ok) throw new Error('Failed to fetch conversation analytics');
+        const data = await res.json();
+        setConvAnalytics(data);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.warn('Failed to fetch conversation analytics', err);
+      } finally {
+        setLoadingConv(false);
+      }
+    };
+    fetchAnalytics();
+  }, []);
+
+  // Prepare chart data for events by type
+  const eventTypeChart = convAnalytics && {
+    labels: Object.keys(convAnalytics.counts_by_type || {}),
+    datasets: [
+      {
+        label: 'Events',
+        data: Object.values(convAnalytics.counts_by_type || {}),
+        backgroundColor: [
+          '#2563eb',
+          '#16b981',
+          '#f59e0b',
+          '#dc2626',
+          '#8b5cf6',
+          '#f43f5e',
+          '#0ea5e9',
+          '#fbbf24',
+        ],
+      },
+    ],
+  };
+
+  // Prepare chart data for events by day
+  const eventDayChart = convAnalytics && {
+    labels: (convAnalytics.counts_by_day || []).map((d: any) => d.date),
+    datasets: [
+      {
+        label: 'Events per Day',
+        data: (convAnalytics.counts_by_day || []).map((d: any) => d.count),
+        borderColor: '#2563eb',
+        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+        fill: true,
+      },
+    ],
+  };
+
   const lineOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -145,6 +203,66 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-8">
+      {/* Conversation Analytics Widgets */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Conversation Events</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">
+              {loadingConv ? '...' : (convAnalytics?.total_count ?? '--')}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Events by Type</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {eventTypeChart ? (
+              <Pie
+                data={eventTypeChart}
+                options={{ responsive: true, maintainAspectRatio: false }}
+                height={120}
+              />
+            ) : (
+              <div className="text-gray-400">No data</div>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Events by Day</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {eventDayChart ? (
+              <Line
+                data={eventDayChart}
+                options={{ responsive: true, maintainAspectRatio: false }}
+                height={120}
+              />
+            ) : (
+              <div className="text-gray-400">No data</div>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Avg. Response Time (s)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">
+              {loadingConv
+                ? '...'
+                : convAnalytics?.avg_response_time_seconds !== null &&
+                    convAnalytics?.avg_response_time_seconds !== undefined
+                  ? convAnalytics.avg_response_time_seconds.toFixed(2)
+                  : '--'}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
       {/* Header Row */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-2">
         <div>
@@ -187,11 +305,7 @@ export default function AnalyticsPage() {
       {/* Empty State */}
       {!hasData ? (
         <div className="flex flex-col items-center justify-center py-24">
-          <img
-            src="/empty-box.svg"
-            alt="No analytics data"
-            className="w-32 h-32 mb-6 opacity-80"
-          />
+          <img src="/empty-box.svg" alt="No analytics data" className="w-32 h-32 mb-6 opacity-80" />
           <h2 className="text-xl font-semibold mb-2">No analytics data yet</h2>
           <p className="text-gray-500 mb-6">
             Analytics will appear here as your store gets orders and customers.
