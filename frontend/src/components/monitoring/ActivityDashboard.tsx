@@ -1,22 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { useWebSocket } from '../../hooks/useWebSocket';
-import {
-  Box,
-  Grid,
-  Paper,
-  Typography,
-  TableContainer,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  IconButton,
-  Chip
-} from '@mui/material';
-import { Refresh as RefreshIcon } from '@mui/icons-material';
-
+import { useWebSocket } from '@/hooks/useWebSocket';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import Chip from '@mui/material/Chip';
+import TableContainer from '@mui/material/TableContainer';
+import Table from '@mui/material/Table';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import TableCell from '@mui/material/TableCell';
+import TableBody from '@mui/material/TableBody';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import type { ChipProps } from '@mui/material/Chip';
 
 interface Activity {
   id: string;
@@ -30,7 +28,7 @@ interface Activity {
   timestamp: string;
   ip_address: string;
   user_agent: string;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   severity: 'low' | 'medium' | 'high';
 }
 
@@ -41,6 +39,20 @@ interface ActivityStats {
   byUser: Record<string, number>;
 }
 
+type ChipColor = ChipProps['color'];
+function toChipColor(val: string): ChipColor {
+  const allowed: ChipColor[] = [
+    'default',
+    'error',
+    'warning',
+    'info',
+    'primary',
+    'success',
+    'secondary',
+  ];
+  return allowed.includes(val as ChipColor) ? (val as ChipColor) : 'default';
+}
+
 const ActivityDashboard: React.FC = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [stats, setStats] = useState<ActivityStats>({
@@ -49,7 +61,8 @@ const ActivityDashboard: React.FC = () => {
     byStatus: {},
     byUser: {},
   });
-  const [filter, setFilter] = useState({
+  const [/* filter */,
+    /* setFilter */] = useState<{ resourceType: string; statusCode: string; user: string }>({
     resourceType: '',
     statusCode: '',
     user: '',
@@ -208,7 +221,7 @@ const ActivityDashboard: React.FC = () => {
                     <TableCell>
                       <Chip
                         label={activity.method}
-                        color={getMethodColor(activity.method) as any}
+                        color={toChipColor(getMethodColor(activity.method))}
                         size="small"
                       />
                     </TableCell>
@@ -216,7 +229,7 @@ const ActivityDashboard: React.FC = () => {
                     <TableCell>
                       <Chip
                         label={activity.severity}
-                        color={getSeverityColor(activity.severity) as any}
+                        color={toChipColor(getSeverityColor(activity.severity))}
                         size="small"
                       />
                     </TableCell>

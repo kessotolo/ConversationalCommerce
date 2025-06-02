@@ -1,5 +1,4 @@
 import React from 'react';
-import { Status } from '@/modules/core/models/base';
 
 const TestComponent: React.FC = () => {
   return (

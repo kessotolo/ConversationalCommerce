@@ -2,19 +2,38 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, ArrowUpRight, DollarSign, Users, User } from 'lucide-react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import {  CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { StatCard } from '@/components/dashboard/StatCard';
 import {
-  
   ShoppingBag,
   ArrowUpRight,
   DollarSign,
+  Users,
+  User,
+  Download,
+  Eye,
+  RefreshCcw,
+  Package,
+  Truck,
+  MessageSquare,
 } from 'lucide-react';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { StatCard } from '@/components/dashboard/StatCard';
+import { Card } from '@/components/ui/Card';
+import { Line, Pie, Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Tooltip,
+  Legend,
+  Filler,
+} from 'chart.js';
 
-// Register ChartJS components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -161,12 +180,7 @@ export default function AnalyticsPage() {
                 Custom
               </button>
             </div>
-            <Button
-              onClick={exportReport}
-              
-              
-              className="flex items-center"
-            >
+            <Button onClick={exportReport} className="flex items-center">
               <Download className="h-4 w-4 mr-2" />
               Export CSV
             </Button>
@@ -244,12 +258,7 @@ export default function AnalyticsPage() {
               <CardHeader>
                 <CardTitle className="flex justify-between items-center">
                   <span>Sales Trend</span>
-                  <Button
-                    onClick={exportReport}
-                    
-                    
-                    className="flex items-center"
-                  >
+                  <Button onClick={exportReport} className="flex items-center">
                     <Download className="h-4 w-4 mr-2" />
                     Export Report
                   </Button>

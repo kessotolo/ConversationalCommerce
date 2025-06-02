@@ -1,4 +1,4 @@
-import { UUID } from '@/modules/core/models/base';
+import { UUID } from '@/modules/core';
 
 export interface CartItem {
   id: UUID;

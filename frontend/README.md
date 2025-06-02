@@ -105,12 +105,14 @@ We're making significant progress in our systematic refactoring of imports and t
 - **Phase 2 ✅**: Fixed cross-module imports in library files (`/lib/cart.ts`, `/lib/api/storefrontEditor.ts`, `/lib/api.ts`)
 - **Phase 3 ✅**: Standardized component and hook imports, eliminated all `any` types and improved type safety
 - **Phase 4 ✅**: Fixed context-related imports in provider components and inter-context dependencies
-- **Phase 5 🔄**: Eliminating bridge patterns and enforcing module boundaries through public APIs
-  - Created scripts to identify import restriction violations
-  - Enhanced Core module public API to export all foundational types
-  - Started batch-fixing import violations in StorefrontEditor components
+- **Phase 5 ✅**: Eliminated bridge patterns and enforced module boundaries through public APIs
+  - Removed legacy bridge pattern files from `/types/` directory
+  - Migrated common types to appropriate modules (event and WebSocket types to core module)
+  - Created scripts to automate import fixing from bridge files to module public APIs
+  - Enhanced Core module public API with proper type exports
+  - Fixed ESLint configuration to enforce architectural boundaries
 
-**🚀 Progress: 80%** - We're systematically improving the codebase architecture by enforcing module boundaries and public APIs.
+**🚀 Progress: 90%** - We've successfully completed the architectural cleanup by enforcing module boundaries and public APIs.
 
 #### Import Best Practices
 
@@ -498,3 +500,16 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+
+## 🧹 Code Quality, Linting, and Type Safety
+
+- **Strict ESLint Configuration**: The frontend enforces strict architectural boundaries and type safety using ESLint and TypeScript. All cross-module imports must go through module public APIs (`index.ts`) or DTOs. Direct internal imports and bridge files are prohibited and will be flagged by CI.
+- **No Bridge Files**: All legacy bridge files (e.g., `src/types/events.ts`, `src/types/websocket.ts`) have been removed. Types must be imported from their module's public API.
+- **No Backup/Test Artifacts**: `.bak`, `.old`, and similar backup/test files are not allowed in the codebase and are regularly cleaned up.
+- **CI Enforcement**: All PRs must pass lint (`npm run lint`) and type checks (`npm run type-check`). Violations block merges to protected branches.
+- **Type Safety**: No `any` types are allowed. Use `unknown` with type guards for dynamic data. All module boundaries use explicit interfaces and DTOs.
+
+### How to Fix Lint/Type Errors
+- **Restricted Import**: Change your import to use the module's public API or DTO file.
+- **Unused Variable/Import**: Remove or use the variable/import as needed.
+- **Type Error**: Add or refine type annotations, avoid `any`, and use generics or type guards as appropriate.

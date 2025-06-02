@@ -1,6 +1,6 @@
 import React from 'react';
-import { TenantProvider } from '../contexts/TenantContext';
-import { ThemeProvider as CustomThemeProvider } from '../contexts/ThemeContext';
+import { TenantProvider } from '@/contexts/TenantContext';
+import { ThemeProvider as CustomThemeProvider } from '@/contexts/ThemeContext';
 
 interface ThemeProviderProps {
   children: React.ReactNode;

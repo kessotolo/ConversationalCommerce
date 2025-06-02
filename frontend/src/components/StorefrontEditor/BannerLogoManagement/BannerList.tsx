@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import type { Banner } from '@/modules/storefront/models/banner';
-import type { UUID } from '@/modules/core/models/base';
-import { BannerStatus, BannerType } from '@/modules/storefront/models/banner';
+import type { Banner } from '@/lib/api/storefrontEditor.types';
 import { useDrag, useDrop } from 'react-dnd';
-import { Menu as Bars3Icon, Search as MagnifyingGlassIcon, Filter as FunnelIcon } from 'lucide-react';
-
+import {
+  Menu as Bars3Icon,
+  Search as MagnifyingGlassIcon,
+  Filter as FunnelIcon,
+} from 'lucide-react';
+import type { FormSubmitEvent } from '@/modules/core';
 
 // Item type for drag and drop
 const BANNER_ITEM = 'banner';
@@ -12,17 +14,20 @@ const BANNER_ITEM = 'banner';
 // DnD item interface
 interface DragItem {
   index: number;
-  id: UUID;
+  id: string;
   type: string;
 }
 
 interface BannerItemProps {
   banner: Banner;
   index: number;
-  selectedBannerId?: UUID;
+  selectedBannerId?: string;
   onBannerSelect: (banner: Banner) => void;
   onBannerReorder: (sourceIndex: number, destinationIndex: number) => Promise<boolean>;
 }
+
+type BannerStatus = Banner['status'];
+type BannerType = string; // DTO does not define banner_type, so this is a TODO for backend alignment
 
 // Draggable Banner Item Component
 const BannerItem: React.FC<BannerItemProps> = ({
@@ -117,13 +122,11 @@ const BannerItem: React.FC<BannerItemProps> = ({
   // Get status badge class
   const getStatusBadgeClass = (status: BannerStatus): string => {
     switch (status) {
-      case BannerStatus.DRAFT:
+      case 'draft':
         return 'bg-gray-100 text-gray-800';
-      case BannerStatus.PUBLISHED:
+      case 'active':
         return 'bg-green-100 text-green-800';
-      case BannerStatus.SCHEDULED:
-        return 'bg-blue-100 text-blue-800';
-      case BannerStatus.INACTIVE:
+      case 'inactive':
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -163,15 +166,8 @@ const BannerItem: React.FC<BannerItemProps> = ({
             <span
               className={`text-xs px-2 py-1 rounded-full ${getStatusBadgeClass(banner.status)}`}
             >
-              {banner.status}
+              {banner.status.charAt(0).toUpperCase() + banner.status.slice(1)}
             </span>
-          </div>
-
-          <div className="text-xs text-gray-500 mb-2">
-            <span className="capitalize mr-2">Type: {banner.banner_type}</span>
-            {banner.display_order !== undefined && (
-              <span className="mr-2">Order: {banner.display_order}</span>
-            )}
           </div>
 
           <div className="flex justify-between text-xs text-gray-500">
@@ -183,7 +179,7 @@ const BannerItem: React.FC<BannerItemProps> = ({
             </div>
 
             {/* Active indicator */}
-            {isActive() && banner.status === BannerStatus.PUBLISHED && (
+            {isActive() && banner.status === 'active' && (
               <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
                 Active
               </span>
@@ -198,7 +194,7 @@ const BannerItem: React.FC<BannerItemProps> = ({
 interface BannerListProps {
   banners: Banner[];
   loading: boolean;
-  selectedBannerId?: UUID;
+  selectedBannerId?: string;
   onBannerSelect: (banner: Banner) => void;
   onBannerReorder: (sourceIndex: number, destinationIndex: number) => Promise<boolean>;
   onFilterChange: (status: BannerStatus | 'all', type: BannerType | 'all', query: string) => void;
@@ -222,7 +218,7 @@ const BannerList: React.FC<BannerListProps> = ({
   const [filterOpen, setFilterOpen] = useState(false);
 
   // Handle search submission
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: FormSubmitEvent) => {
     e.preventDefault();
     onFilterChange(statusFilter, typeFilter, localSearchQuery);
   };
@@ -296,7 +292,7 @@ const BannerList: React.FC<BannerListProps> = ({
                 >
                   All
                 </button>
-                {Object.values(BannerStatus).map((status) => (
+                {(['draft', 'active', 'inactive'] as BannerStatus[]).map((status) => (
                   <button
                     key={status}
                     onClick={() => onFilterChange(status, typeFilter, localSearchQuery)}
@@ -307,36 +303,6 @@ const BannerList: React.FC<BannerListProps> = ({
                     }`}
                   >
                     {status.charAt(0).toUpperCase() + status.slice(1)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Banner Type Filter */}
-            <div>
-              <h4 className="text-xs font-medium text-gray-700 mb-2">Banner Type</h4>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => onFilterChange(statusFilter, 'all', localSearchQuery)}
-                  className={`text-xs px-2 py-1 rounded-full ${
-                    typeFilter === 'all'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                  }`}
-                >
-                  All Types
-                </button>
-                {Object.values(BannerType).map((type) => (
-                  <button
-                    key={type}
-                    onClick={() => onFilterChange(statusFilter, type, localSearchQuery)}
-                    className={`text-xs px-2 py-1 rounded-full ${
-                      typeFilter === type
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                    }`}
-                  >
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
                   </button>
                 ))}
               </div>

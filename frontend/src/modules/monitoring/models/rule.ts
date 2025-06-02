@@ -1,4 +1,3 @@
-
 import { TenantScoped } from '@/modules/core/models/base';
 
 export enum RuleSeverity {
@@ -8,17 +7,18 @@ export enum RuleSeverity {
   CRITICAL = 'critical',
 }
 
-export interface RuleCondition {
+export interface RuleCondition<T = unknown> {
   field: string;
   operator: string;
-  value: any;
+  value: T;
   duration_seconds?: number;
 }
 
-export interface Rule extends TenantScoped {
+export interface Rule<T = unknown> extends TenantScoped {
   name: string;
   description: string;
   severity: RuleSeverity;
-  conditions: RuleCondition[];
+  conditions: RuleCondition<T>[];
   enabled: boolean;
+  value: T;
 }

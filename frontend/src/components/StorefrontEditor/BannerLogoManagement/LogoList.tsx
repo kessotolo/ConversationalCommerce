@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
-import type { Logo } from '@/modules/storefront/models/logo';
-import type { UUID } from '@/modules/core/models/base';
-import { LogoStatus, LogoType } from '@/modules/storefront/models/logo';
+import type { Logo } from '@/lib/api/storefrontEditor.types';
+import type { UUID } from '@/modules/core/types';
 import { Search as MagnifyingGlassIcon, Filter as FunnelIcon } from 'lucide-react';
-
+import type { FormSubmitEvent } from '@/modules/core';
 
 interface LogoListProps {
   logos: Logo[];
   loading: boolean;
   selectedLogoId?: UUID;
   onLogoSelect: (logo: Logo) => void;
-  onFilterChange: (status: LogoStatus | 'all', type: LogoType | 'all', query: string) => void;
-  statusFilter: LogoStatus | 'all';
-  typeFilter: LogoType | 'all';
+  onFilterChange: (status: string | 'all', type: string | 'all', query: string) => void;
+  statusFilter: string | 'all';
+  typeFilter: string | 'all';
   searchQuery: string;
 }
 
@@ -30,7 +29,7 @@ const LogoList: React.FC<LogoListProps> = ({
   const [filterOpen, setFilterOpen] = useState(false);
 
   // Handle search submission
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: FormSubmitEvent) => {
     e.preventDefault();
     onFilterChange(statusFilter, typeFilter, localSearchQuery);
   };
@@ -52,13 +51,13 @@ const LogoList: React.FC<LogoListProps> = ({
   };
 
   // Get status badge class
-  const getStatusBadgeClass = (status: LogoStatus): string => {
+  const getStatusBadgeClass = (status: string): string => {
     switch (status) {
-      case LogoStatus.DRAFT:
+      case 'draft':
         return 'bg-gray-100 text-gray-800';
-      case LogoStatus.PUBLISHED:
+      case 'published':
         return 'bg-green-100 text-green-800';
-      case LogoStatus.INACTIVE:
+      case 'inactive':
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -128,7 +127,7 @@ const LogoList: React.FC<LogoListProps> = ({
                 >
                   All
                 </button>
-                {Object.values(LogoStatus).map((status) => (
+                {['DRAFT', 'PUBLISHED', 'INACTIVE'].map((status) => (
                   <button
                     key={status}
                     onClick={() => onFilterChange(status, typeFilter, localSearchQuery)}
@@ -158,7 +157,7 @@ const LogoList: React.FC<LogoListProps> = ({
                 >
                   All Types
                 </button>
-                {Object.values(LogoType).map((type) => (
+                {['LOGO', 'ICON', 'TEXT'].map((type) => (
                   <button
                     key={type}
                     onClick={() => onFilterChange(statusFilter, type, localSearchQuery)}
@@ -240,7 +239,7 @@ const LogoList: React.FC<LogoListProps> = ({
                       </div>
 
                       {/* Active indicator */}
-                      {logo.status === LogoStatus.PUBLISHED && (
+                      {logo.status === 'published' && (
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
                           Active
                         </span>

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import type { Asset } from '@/modules/storefront/models/asset';
-import type { UUID } from '@/modules/core/models/base';
-import { AssetType } from '@/modules/storefront/models/asset';
+import type { Asset } from '@/lib/api/storefrontEditor.types';
+import type { UUID } from '@/modules/core';
 import { updateAsset, deleteAsset, optimizeAsset } from '@/lib/api/storefrontEditor';
 import {
   XMarkIcon,
@@ -16,7 +15,7 @@ import {
   DocumentIcon,
   CheckCircleIcon,
 } from '@heroicons/react/24/outline';
-
+import type { InputChangeEvent } from '@/modules/core';
 
 interface AssetDetailsProps {
   asset: Asset;
@@ -25,14 +24,13 @@ interface AssetDetailsProps {
   onClose: () => void;
 }
 
-const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, tenantId, onUpdate, onClose }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isOptimizing, setIsOptimizing] = useState(false);
-  const [formData, setFormData] = useState({
+const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, _tenantId, onUpdate, onClose }) => {
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [isOptimizing, setIsOptimizing] = useState<boolean>(false);
+  const [formData, setFormData] = useState<{ title: string }>({
     title: asset.title,
-    alt_text: asset.alt_text || '',
-    description: asset.description || '',
+    // TODO: alt_text and description are not present in the DTO. Add to DTO if needed.
   });
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -53,15 +51,15 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, tenantId, onUpdate, 
   };
 
   // Get asset icon based on type
-  const getAssetIcon = (assetType: AssetType) => {
+  const getAssetIcon = (assetType: string) => {
     switch (assetType) {
-      case AssetType.IMAGE:
+      case 'image':
         return <PhotoIcon className="h-6 w-6 text-blue-500" />;
-      case AssetType.VIDEO:
+      case 'video':
         return <FilmIcon className="h-6 w-6 text-purple-500" />;
-      case AssetType.DOCUMENT:
+      case 'document':
         return <DocumentTextIcon className="h-6 w-6 text-yellow-500" />;
-      case AssetType.AUDIO:
+      case 'audio':
         return <MusicalNoteIcon className="h-6 w-6 text-green-500" />;
       default:
         return <DocumentIcon className="h-6 w-6 text-gray-500" />;
@@ -69,7 +67,7 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, tenantId, onUpdate, 
   };
 
   // Handle input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: InputChangeEvent) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
@@ -141,7 +139,7 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, tenantId, onUpdate, 
   };
 
   // Check if asset is an image
-  const isImage = asset.asset_type === AssetType.IMAGE;
+  const isImage = asset.asset_type === 'image';
 
   return (
     <div className="bg-white border rounded-lg shadow-sm overflow-hidden h-full flex flex-col">
@@ -160,7 +158,7 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, tenantId, onUpdate, 
       <div className="p-4 border-b flex justify-center bg-gray-50">
         {isImage ? (
           <img
-            src={`/api/assets/${asset.file_path.replace(/^.*[\\\/]/, '')}`}
+            src={`/api/assets/${asset.file_path.replace(/^.*[\\/]/, '')}`}
             alt={asset.title}
             className="max-h-48 max-w-full object-contain"
           />
@@ -200,36 +198,6 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, tenantId, onUpdate, 
                   onChange={handleInputChange}
                   required
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                />
-              </div>
-
-              {isImage && (
-                <div>
-                  <label htmlFor="alt_text" className="block text-sm font-medium text-gray-700">
-                    Alt Text
-                  </label>
-                  <input
-                    type="text"
-                    id="alt_text"
-                    name="alt_text"
-                    value={formData.alt_text}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-              )}
-
-              <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                  Description
-                </label>
-                <textarea
-                  id="description"
-                  name="description"
-                  rows={3}
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
 
@@ -283,20 +251,6 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, tenantId, onUpdate, 
                 <dt className="text-sm font-medium text-gray-500">Title</dt>
                 <dd className="mt-1 text-sm text-gray-900">{asset.title}</dd>
               </div>
-
-              {asset.alt_text && (
-                <div className="col-span-2">
-                  <dt className="text-sm font-medium text-gray-500">Alt Text</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{asset.alt_text}</dd>
-                </div>
-              )}
-
-              {asset.description && (
-                <div className="col-span-2">
-                  <dt className="text-sm font-medium text-gray-500">Description</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{asset.description}</dd>
-                </div>
-              )}
 
               <div className="col-span-2">
                 <dt className="text-sm font-medium text-gray-500">Used In</dt>
@@ -380,7 +334,7 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, tenantId, onUpdate, 
               </button>
 
               <a
-                href={`/api/assets/${asset.file_path.replace(/^.*[\\\/]/, '')}`}
+                href={`/api/assets/${asset.file_path.replace(/^.*[\\/]/, '')}`}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"

@@ -23,7 +23,6 @@ const StoreContent = dynamic(() => import('@/components/store/StoreContent'), {
   loading: () => <div className="p-4 text-center">Loading store content...</div>,
 });
 
-
 export default function StorePage(props) {
   // Extract merchantId from the dynamic route parameters
   const { merchantId } = props.params;

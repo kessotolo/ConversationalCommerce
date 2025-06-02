@@ -9,6 +9,22 @@ export interface SelectProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
 }
 
+interface SelectContextType {
+  isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  selectedValue: string;
+  setSelectedValue: React.Dispatch<React.SetStateAction<string>>;
+  onValueChange?: (value: string) => void;
+}
+
+const SelectContext = React.createContext<SelectContextType | undefined>(undefined);
+
+function useSelectContext() {
+  const context = React.useContext(SelectContext);
+  if (!context) throw new Error('Select subcomponent must be used within a <Select>');
+  return context;
+}
+
 export function Select({
   className,
   value,
@@ -41,9 +57,13 @@ export function Select({
   }, []);
 
   return (
-    <div className={cn('relative', className)} ref={ref} {...props}>
-      {children}
-    </div>
+    <SelectContext.Provider
+      value={{ isOpen, setIsOpen, selectedValue, setSelectedValue, onValueChange }}
+    >
+      <div className={cn('relative', className)} ref={ref} {...props}>
+        {children}
+      </div>
+    </SelectContext.Provider>
   );
 }
 
@@ -52,16 +72,7 @@ export interface SelectTriggerProps extends React.ButtonHTMLAttributes<HTMLButto
 }
 
 export function SelectTrigger({ className, children, ...props }: SelectTriggerProps) {
-  const context = React.useContext(
-    React.createContext<{
-      isOpen: boolean;
-      setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    }>({
-      isOpen: false,
-      setIsOpen: () => {},
-    }),
-  );
-
+  const { isOpen, setIsOpen } = useSelectContext();
   return (
     <button
       type="button"
@@ -69,7 +80,7 @@ export function SelectTrigger({ className, children, ...props }: SelectTriggerPr
         'flex h-10 w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
         className,
       )}
-      onClick={() => context.setIsOpen(!context.isOpen)}
+      onClick={() => setIsOpen(!isOpen)}
       {...props}
     >
       {children}
@@ -83,19 +94,8 @@ export interface SelectValueProps {
 }
 
 export function SelectValue({ placeholder }: SelectValueProps) {
-  const context = React.useContext(
-    React.createContext<{
-      selectedValue: string;
-    }>({
-      selectedValue: '',
-    }),
-  );
-
-  return (
-    <span className="flex-1 truncate">
-      {context.selectedValue || placeholder || 'Select option'}
-    </span>
-  );
+  const { selectedValue } = useSelectContext();
+  return <span className="flex-1 truncate">{selectedValue || placeholder || 'Select option'}</span>;
 }
 
 export interface SelectContentProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -103,15 +103,9 @@ export interface SelectContentProps extends React.HTMLAttributes<HTMLDivElement>
 }
 
 export function SelectContent({ className, children, ...props }: SelectContentProps) {
-  const context = React.useContext(
-    React.createContext<{
-      isOpen: boolean;
-    }>({
-      isOpen: false,
-    }),
-  );
+  const { isOpen } = useSelectContext();
 
-  if (!context.isOpen) return null;
+  if (!isOpen) return null;
 
   return (
     <div
@@ -132,28 +126,16 @@ export interface SelectItemProps extends React.ButtonHTMLAttributes<HTMLButtonEl
 }
 
 export function SelectItem({ className, value, children, ...props }: SelectItemProps) {
-  const context = React.useContext(
-    React.createContext<{
-      selectedValue: string;
-      setSelectedValue: React.Dispatch<React.SetStateAction<string>>;
-      onValueChange?: (value: string) => void;
-      setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    }>({
-      selectedValue: '',
-      setSelectedValue: () => {},
-      onValueChange: undefined,
-      setIsOpen: () => {},
-    }),
-  );
+  const { selectedValue, setSelectedValue, onValueChange, setIsOpen } = useSelectContext();
 
-  const isSelected = context.selectedValue === value;
+  const isSelected = selectedValue === value;
 
   const handleSelect = () => {
-    context.setSelectedValue(value);
-    if (context.onValueChange) {
-      context.onValueChange(value);
+    setSelectedValue(value);
+    if (onValueChange) {
+      onValueChange(value);
     }
-    context.setIsOpen(false);
+    setIsOpen(false);
   };
 
   return (

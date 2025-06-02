@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { ClockIcon, TrashIcon, PencilIcon, CalendarIcon, ExclamationTriangleIcon, CheckIcon, XMarkIcon, PhotoIcon, LinkIcon, UserGroupIcon } from '@heroicons/react/24/outline';
-import type { Banner } from '@/modules/storefront/models/banner';
-import type { UUID } from '@/modules/core/models/base';
-import type { Asset } from '@/modules/storefront/models/asset';
-import { BannerStatus, BannerType, TargetAudience } from '@/modules/storefront/models/banner';
+import {
+  ClockIcon,
+  TrashIcon,
+  PencilIcon,
+  CalendarIcon,
+  ExclamationTriangleIcon,
+  CheckIcon,
+  XMarkIcon,
+  PhotoIcon,
+  LinkIcon,
+  UserGroupIcon,
+} from '@heroicons/react/24/outline';
+import type { Banner, Asset } from '@/lib/api/storefrontEditor.types';
+import type { UUID } from '@/modules/core/types';
 import { updateBanner, getAssets } from '@/lib/api/storefrontEditor';
+import type { InputChangeEvent, FormSubmitEvent } from '@/modules/core';
 
 interface BannerDetailProps {
   banner: Banner;
@@ -17,30 +27,25 @@ interface BannerDetailProps {
 
 const BannerDetail: React.FC<BannerDetailProps> = ({
   banner,
-  tenantId,
+  _tenantId,
   onPublish,
   onDelete,
   onUpdate,
 }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [assetList, setAssetList] = useState<Asset[]>([]);
-  const [loadingAssets, setLoadingAssets] = useState(false);
+  const [loadingAssets, setLoadingAssets] = useState<boolean>(false);
+  const [assetId, setAssetId] = useState<string>('');
 
   // Form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{ title: string; start_date: string; end_date: string }>({
     title: banner.title,
-    banner_type: banner.banner_type,
-    asset_id: banner.asset_id,
-    link_url: banner.link_url || '',
-    content: banner.content || {},
     start_date: banner.start_date || '',
     end_date: banner.end_date || '',
-    target_audience: banner.target_audience || [TargetAudience.ALL],
-    custom_styles: banner.custom_styles || {},
   });
 
   // Load assets for selection
@@ -50,7 +55,7 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
         setLoadingAssets(true);
         try {
           const response = await getAssets(tenantId, { asset_type: 'image', limit: 50 });
-          setAssetList(response.items);
+          setAssetList(response.data.assets);
         } catch (err) {
           console.error('Error loading assets:', err);
         } finally {
@@ -75,40 +80,13 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
   };
 
   // Handle input changes
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
-  ) => {
+  const handleInputChange = (e: InputChangeEvent) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // Handle checkbox changes for target audience
-  const handleTargetAudienceChange = (audience: TargetAudience) => {
-    const current = [...formData.target_audience];
-
-    // If ALL is selected, remove all other options
-    if (audience === TargetAudience.ALL) {
-      setFormData({ ...formData, target_audience: [TargetAudience.ALL] });
-      return;
-    }
-
-    // If switching from ALL to something else, remove ALL
-    const newAudience = current.includes(TargetAudience.ALL)
-      ? [audience]
-      : current.includes(audience)
-        ? current.filter((a) => a !== audience) // Remove if already selected
-        : [...current, audience]; // Add if not selected
-
-    // If nothing selected, default to ALL
-    if (newAudience.length === 0) {
-      setFormData({ ...formData, target_audience: [TargetAudience.ALL] });
-    } else {
-      setFormData({ ...formData, target_audience: newAudience });
-    }
-  };
-
   // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormSubmitEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -172,11 +150,10 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
   };
 
   // Get the selected asset details
-  const selectedAsset = assetList.find((asset) => asset.id === formData.asset_id);
+  const selectedAsset = assetList.find((asset) => asset.id === assetId);
 
   // Check if banner can be published
-  const canPublish =
-    banner.status === BannerStatus.DRAFT || banner.status === BannerStatus.INACTIVE;
+  const canPublish = banner.status === 'draft' || banner.status === 'inactive';
 
   return (
     <div className="bg-white rounded-lg border shadow-sm overflow-hidden h-full flex flex-col">
@@ -280,34 +257,16 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
             </div>
 
             <div>
-              <label htmlFor="banner_type" className="block text-sm font-medium text-gray-700">
-                Banner Type *
-              </label>
-              <select
-                id="banner_type"
-                name="banner_type"
-                value={formData.banner_type}
-                onChange={handleInputChange}
-                required
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              >
-                {Object.values(BannerType).map((type) => (
-                  <option key={type} value={type}>
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
               <label htmlFor="asset_id" className="block text-sm font-medium text-gray-700">
                 Banner Image *
               </label>
               <select
                 id="asset_id"
                 name="asset_id"
-                value={formData.asset_id}
-                onChange={handleInputChange}
+                value={assetId}
+                onChange={(e) => {
+                  setAssetId(e.target.value);
+                }}
                 required
                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 disabled={loadingAssets}
@@ -433,30 +392,17 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
                 </div>
 
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Type</dt>
-                  <dd className="mt-1 text-sm text-gray-900 capitalize">{banner.banner_type}</dd>
-                </div>
-
-                <div>
                   <dt className="text-sm font-medium text-gray-500">Status</dt>
                   <dd className="mt-1 text-sm">
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
-                      ${banner.status === BannerStatus.DRAFT ? 'bg-gray-100 text-gray-800' : ''}
-                      ${banner.status === BannerStatus.PUBLISHED ? 'bg-green-100 text-green-800' : ''}
-                      ${banner.status === BannerStatus.SCHEDULED ? 'bg-blue-100 text-blue-800' : ''}
-                      ${banner.status === BannerStatus.INACTIVE ? 'bg-red-100 text-red-800' : ''}
-                    `}
+                          ${banner.status === 'draft' ? 'bg-gray-100 text-gray-800' : ''}
+                          ${banner.status === 'active' ? 'bg-green-100 text-green-800' : ''}
+                          ${banner.status === 'inactive' ? 'bg-red-100 text-red-800' : ''}
+                        `}
                     >
                       {banner.status}
                     </span>
-                  </dd>
-                </div>
-
-                <div className="col-span-2">
-                  <dt className="text-sm font-medium text-gray-500">Display Order</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
-                    {banner.display_order || 'Not set'}
                   </dd>
                 </div>
               </dl>
@@ -474,114 +420,168 @@ const BannerDetail: React.FC<BannerDetailProps> = ({
                       className="max-h-full max-w-full object-contain"
                       onError={(e) => {
                         e.currentTarget.src =
-                          'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCA1MCA1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjUwIiBoZWlnaHQ9IjUwIiBmaWxsPSIjRTVFN0VCIi8+CjxwYXRoIGQ9Ik0xOC45NTMxIDIzLjA5MzhDMjAuMDYyNSAyMy4wOTM4IDIwLjk3NjYgMjIuMTc5NyAyMC45NzY2IDIxLjA3MDNDMjAuOTc2NiAxOS45NjA5IDIwLjA2MjUgMTkuMDQ2OSAxOC45NTMxIDE5LjA0NjlDMTcuODQzOCAxOS4wNDY5IDE2LjkyOTcgMTkuOTYwOSAxNi45Mjk3IDIxLjA3MDNDMTYuOTI5NyAyMi4xNzk3IDE3Ljg0MzggMjMuMDkzOCAxOC45NTMxIDIzLjA5MzhaIiBmaWxsPSIjOTRBM0IzIi8+CjxwYXRoIGQ9Ik0zMy4wMDc4IDMwLjk3NjZDMzMuMDA3OCAzMC40Njg4IDMyLjU5MzggMzAuMDU0NyAzMi4wODU5IDMwLjA1NDdIMTcuOTE0MUMxNy40MDYyIDMwLjA1NDcgMTYuOTkyMiAzMC40Njg4IDE2Ljk5MjIgMzAuOTc2NkMxNi45OTIyIDMxLjQ4NDQgMTcuNDA2MiAzMS44OTg0IDE3LjkxNDEgMzEuODk4NEgzMi4wODU5QzMyLjU5MzggMzEuODk4NCAzMy4wMDc4IDMxLjQ4NDQgMzMuMDA3OCAzMC45NzY2WiIgZmlsbD0iIzk0QTNCMyIvPgo8cGF0aCBkPSJNMzYuMzI4MSAyNS44MjAzQzM2LjMyODEgMjUuNDYwOSAzNi4wOTM4IDI1LjEyNSAzNS43MzQ0IDI0Ljk2MDlDMzUuMzcgMjQuODIwMyAzNC45NjQ4IDI0Ljg1OTQgMzQuNjQwNiAyNS4xMTcyTDMxLjMyODEgMjcuNzUzOUwyNi43NSAyMS41MTE3QzI2LjQ4NDQgMjEuMTU2MiAyNS45OTIyIDIxLjA3ODEgMjUuNjM2NyAyMS4zNDM4TDE4LjA3MDMgMjcuMTE3MkwxNS4yODkxIDI0LjgzNTlDMTQuOTQ1MyAyNC41NTQ3IDE0LjQ1MzEgMjQuNTM1MiAxNC4wODk4IDI0Ljc4MTJDMTMuNzI2NiAyNS4wMjczIDEzLjU1ODYgMjUuNDg0NCAxMy42OTkyIDI1Ljg5ODRMMTYuMTg3NSAzMy4yMzQ0QzE2LjI4OTEgMzMuNTI3MyAxNi41MzUyIDMzLjc1MzkgMTYuODMyIDMzLjgyODFDMTYuODk0NSAzMy44NDM4IDE2Ljk1NzAgMzMuODQ3NyAxNy4wMTk1IDMzLjg0NzdDMTcuMjU3OCAzMy44NDc3IDE3LjQ4ODMgMzMuNzYxNyAxNy42NjQxIDMzLjYwMTZMMjUuNzM0NCAyNi4zMzU5TDMwLjMyODEgMzIuNTk3N0MzMC41MzEyIDMyLjg2MzMgMzAuODQzOCAzMy4wMDc4IDMxLjE3MTkgMzMuMDA3OEMzMS4zNjMzIDMzLjAwNzggMzEuNTU4NiAzMi45NTMxIDMxLjcyNjYgMzIuODI4MUwzNS45MTQxIDI5LjU3MDNDMzYuMTc5NyAyOS4zNzExIDM2LjMyODEgMjkuMDU0NyAzNi4zMjgxIDI4LjcxODhWMjUuODIwM1oiIGZpbGw9IiM5NEEzQjMiLz4KPC9zdmc+Cg==';
-                      }}
-                    />
-                  ) : (
-                    <div className="text-gray-400 flex flex-col items-center">
-                      <PhotoIcon className="h-12 w-12 mb-2" />
-                      <span className="text-sm">No image set</span>
+      ) : (
+                    <div className="space-y-6">
+                      {/* Banner Information */}
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-500 mb-2">Banner Information</h4>
+                        <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
+                          <div className="col-span-2">
+                            <dt className="text-sm font-medium text-gray-500">Title</dt>
+                            <dd className="mt-1 text-sm text-gray-900">{banner.title}</dd>
+                          </div>
+
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">Type</dt>
+                            <dd className="mt-1 text-sm text-gray-900 capitalize">{banner.banner_type}</dd>
+                          </div>
+
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">Status</dt>
+                            <dd className="mt-1 text-sm">
+                              <span
+                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
+                      ${banner.status === 'draft' ? 'bg-gray-100 text-gray-800' : ''}
+                      ${banner.status === 'active' ? 'bg-green-100 text-green-800' : ''}
+                      ${banner.status === 'inactive' ? 'bg-red-100 text-red-800' : ''}
+                    `}
+                              >
+                                {banner.status}
+                              </span>
+                            </dd>
+                          </div>
+
+                          <div className="col-span-2">
+                            <dt className="text-sm font-medium text-gray-500">Display Order</dt>
+                            <dd className="mt-1 text-sm text-gray-900">
+                              {banner.display_order || 'Not set'}
+                            </dd>
+                          </div>
+                        </dl>
+                      </div>
+
+                      {/* Banner Preview */}
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-500 mb-2">Banner Preview</h4>
+                        <div className="bg-gray-100 p-2 rounded-md flex justify-center items-center border">
+                          <div className="h-48 max-w-full flex items-center justify-center">
+                            {banner.asset_id ? (
+                              <img
+                                src={`/api/assets/${banner.asset_id}`}
+                                alt={banner.title}
+                                className="max-h-full max-w-full object-contain"
+                                onError={(e) => {
+                                  e.currentTarget.src =
+                                    'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCA1MCA1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjUwIiBoZWlnaHQ9IjUwIiBmaWxsPSIjRTVFN0VCIi8+CjxwYXRoIGQ9Ik0xOC45NTMxIDIzLjA5MzhDMjAuMDYyNSAyMy4wOTM4IDIwLjk3NjYgMjIuMTc5NyAyMC45NzY2IDIxLjA3MDNDMjAuOTc2NiAxOS45NjA5IDIwLjA2MjUgMTkuMDQ2OSAxOC45NTMxIDE5LjA0NjlDMTcuODQzOCAxOS4wNDY5IDE2LjkyOTcgMTkuOTYwOSAxNi45Mjk3IDIxLjA3MDNDMTYuOTI5NyAyMi4xNzk3IDE3Ljg0MzggMjMuMDkzOCAxOC45NTMxIDIzLjA5MzhaIiBmaWxsPSIjOTRBM0IzIi8+CjxwYXRoIGQ9Ik0zMy4wMDc4IDMwLjk3NjZDMzMuMDA3OCAzMC40Njg4IDMyLjU5MzggMzAuMDU0NyAzMi4wODU5IDMwLjA1NDdIMTcuOTE0MUMxNy40MDYyIDMwLjA1NDcgMTYuOTkyMiAzMC40Njg4IDE2Ljk5MjIgMzAuOTc2NkMxNi45OTIyIDMxLjQ4NDQgMTcuNDA2MiAzMS44OTg0IDE3LjkxNDEgMzEuODk4NEgzMi4wODU5QzMyLjU5MzggMzEuODk4NCAzMy4wMDc4IDMxLjQ4NDQgMzMuMDA3OCAzMC45NzY2WiIgZmlsbD0iIzk0QTNCMyIvPgo8cGF0aCBkPSJNMzYuMzI4MSAyNS44MjAzQzM2LjMyODEgMjUuNDYwOSAzNi4wOTM4IDI1LjEyNSAzNS43MzQ0IDI0Ljk2MDlDMzUuMzcgMjQuODIwMyAzNC45NjQ4IDI0Ljg1OTQgMzQuNjQwNiAyNS4xMTcyTDMxLjMyODEgMjcuNzUzOUwyNi43NSAyMS41MTE3QzI2LjQ4NDQgMjEuMTU2MiAyNS45OTIyIDIxLjA3ODEgMjUuNjM2NyAyMS4zNDM4TDE4LjA3MDMgMjcuMTE3MkwxNS4yODkxIDI0LjgzNTlDMTQuOTQ1MyAyNC41NTQ3IDE0LjQ1MzEgMjQuNTM1MiAxNC4wODk4IDI0Ljc4MTJDMTMuNzI2NiAyNS4wMjczIDEzLjU1ODYgMjUuNDg0NCAxMy42OTkyIDI1Ljg5ODRMMTYuMTg3NSAzMy4yMzQ0QzE2LjI4OTEgMzMuNTI3MyAxNi41MzUyIDMzLjc1MzkgMTYuODMyIDMzLjgyODFDMTYuODk0NSAzMy44NDM4IDE2Ljk1NzAgMzMuODQ3NyAxNy4wMTk1IDMzLjg0NzdDMTcuMjU3OCAzMy44NDc3IDE3LjQ4ODMgMzMuNzYxNyAxNy42NjQxIDMzLjYwMTZMMjUuNzM0NCAyNi4zMzU5TDMwLjMyODEgMzIuNTk3N0MzMC41MzEyIDMyLjg2MzMgMzAuODQzOCAzMy4wMDc4IDMxLjE3MTkgMzMuMDA3OEMzMS4zNjMzIDMzLjAwNzggMzEuNTU4NiAzMi45NTMxIDMxLjcyNjYgMzIuODI4MUwzNS45MTQxIDI5LjU3MDNDMzYuMTc5NyAyOS4zNzExIDM2LjMyODEgMjkuMDU0NyAzNi4zMjgxIDI4LjcxODhWMjUuODIwM1oiIGZpbGw9IiM5NEEzQjMiLz4KPC9zdmc+Cg==';
+                                }}
+                              />
+                            ) : (
+                              <div className="text-gray-400 flex flex-col items-center">
+                                <PhotoIcon className="h-12 w-12 mb-2" />
+                                <span className="text-sm">No image set</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Link Information */}
+                      <div className="flex items-start">
+                        <LinkIcon className="h-5 w-5 text-gray-400 mt-0.5 mr-2" />
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-700">Link URL</h4>
+                          <p className="text-sm text-gray-500 break-all">
+                            {banner.link_url || 'No link set'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Date Information */}
+                      <div className="flex items-start">
+                        <CalendarIcon className="h-5 w-5 text-gray-400 mt-0.5 mr-2" />
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-700">Schedule</h4>
+                          <div className="grid grid-cols-2 gap-4 mt-1">
+                            <div>
+                              <p className="text-xs text-gray-500">Start Date</p>
+                              <p className="text-sm">{formatDate(banner.start_date)}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500">End Date</p>
+                              <p className="text-sm">{formatDate(banner.end_date)}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Target Audience */}
+                      <div className="flex items-start">
+                        <UserGroupIcon className="h-5 w-5 text-gray-400 mt-0.5 mr-2" />
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-700">Target Audience</h4>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {banner.target_audience && banner.target_audience.length > 0 ? (
+                              banner.target_audience.map((audience) => (
+                                <span
+                                  key={audience}
+                                  className="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded-full capitalize"
+                                >
+                                  {audience.replace('_', ' ')}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-sm text-gray-500">All users</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Metadata */}
+                      <div className="bg-gray-50 p-3 rounded-md">
+                        <h4 className="text-xs font-medium text-gray-500 mb-2">Metadata</h4>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="text-gray-500">Created:</span>
+                            <span className="ml-1">{formatDate(banner.created_at)}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Created By:</span>
+                            <span className="ml-1">{banner.created_by}</span>
+                          </div>
+                          {banner.modified_at && (
+                            <div>
+                              <span className="text-gray-500">Modified:</span>
+                              <span className="ml-1">{formatDate(banner.modified_at)}</span>
+                            </div>
+                          )}
+                          {banner.published_at && (
+                            <div>
+                              <span className="text-gray-500">Published:</span>
+                              <span className="ml-1">{formatDate(banner.published_at)}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
-              </div>
-            </div>
 
-            {/* Link Information */}
-            <div className="flex items-start">
-              <LinkIcon className="h-5 w-5 text-gray-400 mt-0.5 mr-2" />
-              <div>
-                <h4 className="text-sm font-medium text-gray-700">Link URL</h4>
-                <p className="text-sm text-gray-500 break-all">
-                  {banner.link_url || 'No link set'}
-                </p>
-              </div>
-            </div>
-
-            {/* Date Information */}
-            <div className="flex items-start">
-              <CalendarIcon className="h-5 w-5 text-gray-400 mt-0.5 mr-2" />
-              <div>
-                <h4 className="text-sm font-medium text-gray-700">Schedule</h4>
-                <div className="grid grid-cols-2 gap-4 mt-1">
-                  <div>
-                    <p className="text-xs text-gray-500">Start Date</p>
-                    <p className="text-sm">{formatDate(banner.start_date)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">End Date</p>
-                    <p className="text-sm">{formatDate(banner.end_date)}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Target Audience */}
-            <div className="flex items-start">
-              <UserGroupIcon className="h-5 w-5 text-gray-400 mt-0.5 mr-2" />
-              <div>
-                <h4 className="text-sm font-medium text-gray-700">Target Audience</h4>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {banner.target_audience && banner.target_audience.length > 0 ? (
-                    banner.target_audience.map((audience) => (
-                      <span
-                        key={audience}
-                        className="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded-full capitalize"
+                {/* Footer */}
+                {
+                  !isEditing && !isDeleting && (
+                    <div className="p-4 border-t">
+                      <button
+                        onClick={() => setIsDeleting(true)}
+                        className="inline-flex items-center px-3 py-1.5 border border-red-300 shadow-sm text-sm leading-4 font-medium rounded-md text-red-700 bg-white hover:bg-red-50"
                       >
-                        {audience.replace('_', ' ')}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-sm text-gray-500">All users</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Metadata */}
-            <div className="bg-gray-50 p-3 rounded-md">
-              <h4 className="text-xs font-medium text-gray-500 mb-2">Metadata</h4>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div>
-                  <span className="text-gray-500">Created:</span>
-                  <span className="ml-1">{formatDate(banner.created_at)}</span>
-                </div>
-                <div>
-                  <span className="text-gray-500">Created By:</span>
-                  <span className="ml-1">{banner.created_by}</span>
-                </div>
-                {banner.modified_at && (
-                  <div>
-                    <span className="text-gray-500">Modified:</span>
-                    <span className="ml-1">{formatDate(banner.modified_at)}</span>
-                  </div>
-                )}
-                {banner.published_at && (
-                  <div>
-                    <span className="text-gray-500">Published:</span>
-                    <span className="ml-1">{formatDate(banner.published_at)}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Footer */}
-      {!isEditing && !isDeleting && (
-        <div className="p-4 border-t">
-          <button
-            onClick={() => setIsDeleting(true)}
-            className="inline-flex items-center px-3 py-1.5 border border-red-300 shadow-sm text-sm leading-4 font-medium rounded-md text-red-700 bg-white hover:bg-red-50"
-          >
-            <TrashIcon className="h-4 w-4 mr-2" />
-            Delete Banner
-          </button>
-        </div>
-      )}
-    </div>
-  );
+                        <TrashIcon className="h-4 w-4 mr-2" />
+                        Delete Banner
+                      </button>
+                    </div>
+                  )
+                }
+              </div >
+              );
 };
 
-export default BannerDetail;
+              export default BannerDetail;

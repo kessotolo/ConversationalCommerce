@@ -64,7 +64,10 @@ export enum Status {
 export interface ApplicationError extends Error {
   code: string;
   statusCode?: number;
-  details?: Record<string, any>;
+  /**
+   * Additional error details. Use unknown for dynamic data.
+   */
+  details?: Record<string, unknown>;
 }
 
 // Audit Information
@@ -83,18 +86,18 @@ export interface Draftable extends Entity, AuditInfo {
 }
 
 // Filter Types
-export interface FilterOption {
+export interface FilterOption<T = unknown> {
   id: string;
   label: string;
-  value: any;
+  value: T;
 }
 
-export interface FilterGroup {
+export interface FilterGroup<T = unknown> {
   id: string;
   label: string;
   type: 'select' | 'multiselect' | 'range' | 'boolean';
-  options?: FilterOption[];
-  defaultValue?: any;
+  options?: FilterOption<T>[];
+  defaultValue?: T;
 }
 
 // Address Type
@@ -107,4 +110,17 @@ export interface Address {
   country: string;
   isDefault?: boolean;
   type?: 'billing' | 'shipping' | 'both';
+}
+
+// Define a type for details if possible, otherwise use unknown
+export interface BaseDetails {
+  // Add known fields here, or use unknown if truly dynamic
+  [key: string]: unknown;
+}
+
+// Replace 'value: any' and 'defaultValue?: any' with generics
+export interface BaseModel<T = unknown> {
+  value: T;
+  defaultValue?: T;
+  details?: BaseDetails;
 }

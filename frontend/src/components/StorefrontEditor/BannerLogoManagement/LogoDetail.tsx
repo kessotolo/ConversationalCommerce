@@ -1,11 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { ClockIcon, TrashIcon, PencilIcon, CalendarIcon, ExclamationTriangleIcon, CheckIcon, XMarkIcon, PhotoIcon } from '@heroicons/react/24/outline';
-import type { Logo } from '@/modules/storefront/models/logo';
-import type { UUID } from '@/modules/core/models/base';
-import type { Asset } from '@/modules/storefront/models/asset';
-import { LogoStatus, LogoType } from '@/modules/storefront/models/logo';
+import {
+  ClockIcon,
+  TrashIcon,
+  PencilIcon,
+  CalendarIcon,
+  ExclamationTriangleIcon,
+  CheckIcon,
+  XMarkIcon,
+  PhotoIcon,
+} from '@heroicons/react/24/outline';
+import type { Logo, Asset } from '@/lib/api/storefrontEditor.types';
+import type { UUID } from '@/modules/core/types';
 import { updateLogo, getAssets } from '@/lib/api/storefrontEditor';
+import type { InputChangeEvent } from '@/modules/core';
 
 interface LogoDetailProps {
   logo: Logo;
@@ -17,21 +25,29 @@ interface LogoDetailProps {
 
 const LogoDetail: React.FC<LogoDetailProps> = ({
   logo,
-  tenantId,
+  _tenantId,
   onPublish,
   onDelete,
   onUpdate,
 }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [assetList, setAssetList] = useState<Asset[]>([]);
-  const [loadingAssets, setLoadingAssets] = useState(false);
+  const [loadingAssets, setLoadingAssets] = useState<boolean>(false);
 
   // Form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    logo_type: string;
+    asset_id: string;
+    display_settings: Record<string, unknown>;
+    responsive_settings: Record<string, unknown>;
+    start_date: string;
+    end_date: string;
+  }>({
     name: logo.name,
     logo_type: logo.logo_type,
     asset_id: logo.asset_id,
@@ -48,7 +64,7 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
         setLoadingAssets(true);
         try {
           const response = await getAssets(tenantId, { asset_type: 'image', limit: 50 });
-          setAssetList(response.items);
+          setAssetList(response.data.assets);
         } catch (err) {
           console.error('Error loading assets:', err);
         } finally {
@@ -73,9 +89,7 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
   };
 
   // Handle input changes
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
-  ) => {
+  const handleInputChange = (e: InputChangeEvent) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
@@ -148,7 +162,10 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
   const selectedAsset = assetList.find((asset) => asset.id === formData.asset_id);
 
   // Check if logo can be published
-  const canPublish = logo.status === LogoStatus.DRAFT || logo.status === LogoStatus.INACTIVE;
+  const canPublish = logo.status === 'draft' || logo.status === 'inactive';
+
+  // Use a local array of allowed logo_type values for the select
+  const logoTypes = ['primary', 'secondary', 'footer', 'mobile', 'favicon'];
 
   return (
     <div className="bg-white rounded-lg border shadow-sm overflow-hidden h-full flex flex-col">
@@ -261,7 +278,7 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
                 required
                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               >
-                {Object.values(LogoType).map((type) => (
+                {logoTypes.map((type) => (
                   <option key={type} value={type}>
                     {type.charAt(0).toUpperCase() + type.slice(1)}
                   </option>
@@ -269,12 +286,11 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
               </select>
 
               <p className="mt-1 text-xs text-gray-500">
-                {formData.logo_type === LogoType.PRIMARY && 'The main logo displayed in the header'}
-                {formData.logo_type === LogoType.SECONDARY &&
-                  'Alternative logo used in specific contexts'}
-                {formData.logo_type === LogoType.FOOTER && 'Logo displayed in the footer'}
-                {formData.logo_type === LogoType.MOBILE && 'Optimized logo for mobile devices'}
-                {formData.logo_type === LogoType.FAVICON && 'Small icon displayed in browser tabs'}
+                {formData.logo_type === 'primary' && 'The main logo displayed in the header'}
+                {formData.logo_type === 'secondary' && 'Alternative logo used in specific contexts'}
+                {formData.logo_type === 'footer' && 'Logo displayed in the footer'}
+                {formData.logo_type === 'mobile' && 'Optimized logo for mobile devices'}
+                {formData.logo_type === 'favicon' && 'Small icon displayed in browser tabs'}
               </p>
             </div>
 
@@ -401,9 +417,9 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
                   <dd className="mt-1 text-sm">
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
-                      ${logo.status === LogoStatus.DRAFT ? 'bg-gray-100 text-gray-800' : ''}
-                      ${logo.status === LogoStatus.PUBLISHED ? 'bg-green-100 text-green-800' : ''}
-                      ${logo.status === LogoStatus.INACTIVE ? 'bg-red-100 text-red-800' : ''}
+                      ${logo.status === 'draft' ? 'bg-gray-100 text-gray-800' : ''}
+                      ${logo.status === 'published' ? 'bg-green-100 text-green-800' : ''}
+                      ${logo.status === 'inactive' ? 'bg-red-100 text-red-800' : ''}
                     `}
                     >
                       {logo.status}
@@ -447,7 +463,11 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
                     {Object.entries(logo.display_settings || {}).map(([key, value]) => (
                       <div key={key}>
                         <dt className="text-gray-500 capitalize">{key.replace('_', ' ')}</dt>
-                        <dd>{value}</dd>
+                        <dd>
+                          {typeof value === 'string' || typeof value === 'number'
+                            ? value
+                            : String(value)}
+                        </dd>
                       </div>
                     ))}
                   </dl>

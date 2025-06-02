@@ -3,17 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { ArrowLeft } from 'lucide-react';
-import {  CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { useToast, ToastProvider } from '@/components/ui/ToastProvider';
 import { useUser } from '@clerk/nextjs';
-import {  CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { useToast, ToastProvider } from '@/components/ui/ToastProvider';
-import { ArrowLeft } from 'lucide-react';
 
 interface ActivityEvent {
   id: string;

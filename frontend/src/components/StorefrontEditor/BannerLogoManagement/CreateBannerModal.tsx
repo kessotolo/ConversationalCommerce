@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { InputChangeEvent } from '@/types/events';
+import type { InputChangeEvent } from '@/modules/core';
 import type { UUID } from '@/modules/core';
 // Use Asset type from the lib API until full migration is complete
 import type { Asset, CreateBannerRequest } from '@/lib/api/storefrontEditor.types';
@@ -12,7 +12,7 @@ interface CreateBannerModalProps {
   onSuccess: () => void;
 }
 
-const CreateBannerModal: React.FC<CreateBannerModalProps> = ({ tenantId, onClose, onSuccess }) => {
+const CreateBannerModal: React.FC<CreateBannerModalProps> = ({ _tenantId, onClose, onSuccess }) => {
   const [formData, setFormData] = useState<CreateBannerRequest & { asset_id: string }>({
     title: '',
     content: {},

@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import type { Theme } from '@/modules/theme/models/theme';
-import { useTenant } from './TenantContext';
-import { defaultTheme } from '../utils/defaultTheme';
-
+import type { Theme } from '@/modules/theme/types';
+import { useTenant } from '@/contexts/TenantContext';
+import { defaultTheme } from '@/utils/defaultTheme';
 
 interface ThemeContextType {
   theme: Theme;

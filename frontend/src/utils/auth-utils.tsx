@@ -58,6 +58,14 @@ export function useAuth() {
 }
 
 // Higher order component for protected routes
+
+export function getStoredAuthToken(): string | null {
+  // Get token from localStorage
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('authToken');
+  }
+  return null;
+}
 export function withAuth<P extends object>(Component: React.ComponentType<P>) {
   return function AuthenticatedComponent(props: P) {
     const { isLoading, isAuthenticated, redirectToLogin } = useAuth();

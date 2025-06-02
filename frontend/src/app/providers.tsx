@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { AuthProvider } from '@/utils/auth-utils';
+import { ClerkProvider } from '@clerk/nextjs';
 
 // This wrapper provides authentication services throughout the application
 // and properly handles UUID standardization for database entities

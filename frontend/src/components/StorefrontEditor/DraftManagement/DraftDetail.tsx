@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
-import type { Draft } from '@/modules/storefront/models/draft';
-import type { UUID } from '@/modules/core/models/base';
-import { Status } from '@/modules/core/models/base';
+import Reactimport React, { useState } from 'react';
+import type { Draft, UpdateDraftRequest } from '@/lib/api/storefrontEditor.types';
+import type { UUID } from '@/modules/core';
 import { updateDraft } from '@/lib/api/storefrontEditor';
 import {
   ClockIcon,
@@ -9,42 +8,44 @@ import {
   PencilIcon,
   CalendarIcon,
   ExclamationTriangleIcon,
-  CheckIcon
+  CheckIcon,
 } from '@heroicons/react/24/outline';
-
+import type { InputChangeEvent, FormSubmitEvent } from '@/modules/core';
 
 interface DraftDetailProps {
   draft: Draft;
-  tenantId: UUID;
+  /* tenantId */: UUID;
   onPublish: (draftId: UUID, scheduleTime?: Date) => Promise<boolean>;
   onDelete: (draftId: UUID) => Promise<boolean>;
+};
   onRefresh: () => void;
 }
 
-const DraftDetail: React.FC<DraftDetailProps> = ({
+const DraftDetail: React.FC<DraftDetailProps></DraftDetailProps> = ({;
   draft,
-  tenantId,
+  /* _tenantId */,
   onPublish,
   onDelete,
   onRefresh,
 }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [isPublishing, setIsPublishing] = useState(false);
-  const [isScheduling, setIsScheduling] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [isPublishing, setIsPublishing] = useState<boolean>(false);
+  const [isScheduling, setIsScheduling] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<UpdateDraftRequest></UpdateDraftRequest>({
     name: draft.name,
     description: draft.description,
+    changes: draft.changes || {},
   });
 
   // Schedule time state
-  const [scheduleDate, setScheduleDate] = useState('');
-  const [scheduleTime, setScheduleTime] = useState('');
+  const [scheduleDate, setScheduleDate] = useState<string>('');
+  const [scheduleTime, setScheduleTime] = useState<string>('');
 
   // Format date helper
   const formatDate = (dateString?: string): string => {
@@ -60,19 +61,19 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
   };
 
   // Handle input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: InputChangeEvent) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
   // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormSubmitEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      await updateDraft(tenantId, draft.id, formData);
+      await updateDraft(/* tenantId */, draft.id, formData);
       setSuccessMessage('Draft updated successfully');
       setIsEditing(false);
       onRefresh();
@@ -173,13 +174,13 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
   };
 
   // Check if draft can be published
-  const canPublish = draft.status === Status.DRAFT;
+  const canPublish = draft.status === 'draft';
 
   // Check if draft can be scheduled
-  const canSchedule = draft.status === Status.DRAFT;
+  const canSchedule = draft.status === 'draft';
 
   // Check if draft is already scheduled
-  const isAlreadyScheduled = draft.status === Status.SCHEDULED;
+  const isAlreadyScheduled = draft.status === 'scheduled';
 
   return (
     <div className="bg-white rounded-lg border shadow-sm overflow-hidden h-full flex flex-col">
@@ -192,7 +193,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
               onClick={() => setIsEditing(true)}
               className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
             >
-              <PencilIcon className="h-4 w-4 mr-2" />
+              <PencilIcon className="h-4 w-4 mr-2" /></PencilIcon>
               Edit
             </button>
           )}
@@ -202,7 +203,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
               onClick={() => setIsPublishing(true)}
               className="inline-flex items-center px-3 py-1.5 border border-green-600 shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
             >
-              <CheckIcon className="h-4 w-4 mr-2" />
+              <CheckIcon className="h-4 w-4 mr-2" /></CheckIcon>
               Publish
             </button>
           )}
@@ -212,7 +213,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
               onClick={() => setIsScheduling(true)}
               className="inline-flex items-center px-3 py-1.5 border border-blue-600 shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
             >
-              <ClockIcon className="h-4 w-4 mr-2" />
+              <ClockIcon className="h-4 w-4 mr-2" /></ClockIcon>
               Schedule
             </button>
           )}
@@ -222,7 +223,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
       {/* Success Message */}
       {successMessage && (
         <div className="m-4 p-3 bg-green-100 text-green-800 rounded-md flex items-center">
-          <CheckIcon className="h-5 w-5 mr-2" />
+          <CheckIcon className="h-5 w-5 mr-2" /></CheckIcon>
           {successMessage}
         </div>
       )}
@@ -230,7 +231,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
       {/* Error Message */}
       {error && (
         <div className="m-4 p-3 bg-red-100 text-red-800 rounded-md flex items-center">
-          <ExclamationTriangleIcon className="h-5 w-5 mr-2" />
+          <ExclamationTriangleIcon className="h-5 w-5 mr-2" /></ExclamationTriangleIcon>
           {error}
         </div>
       )}
@@ -247,7 +248,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
                 <input
                   type="text"
                   id="name"
-                  name="name"
+                  name="name";
                   value={formData.name}
                   onChange={handleInputChange}
                   required
@@ -261,7 +262,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
                 </label>
                 <textarea
                   id="description"
-                  name="description"
+                  name="description";
                   rows={4}
                   value={formData.description}
                   onChange={handleInputChange}
@@ -271,7 +272,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
 
               <div className="flex justify-end space-x-2">
                 <button
-                  type="button"
+                  type="button";
                   onClick={() => setIsEditing(false)}
                   disabled={loading}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -279,7 +280,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
                   Cancel
                 </button>
                 <button
-                  type="submit"
+                  type="submit";
                   disabled={loading}
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
@@ -292,7 +293,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
           <div className="space-y-4">
             <div className="bg-yellow-50 p-4 rounded-md">
               <div className="flex">
-                <ExclamationTriangleIcon className="h-5 w-5 text-yellow-400" />
+                <ExclamationTriangleIcon className="h-5 w-5 text-yellow-400" /></ExclamationTriangleIcon>
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-yellow-800">Publish Confirmation</h3>
                   <div className="mt-2 text-sm text-yellow-700">
@@ -307,7 +308,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
 
             <div className="flex justify-end space-x-2">
               <button
-                type="button"
+                type="button";
                 onClick={() => setIsPublishing(false)}
                 disabled={loading}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -315,7 +316,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
                 Cancel
               </button>
               <button
-                type="button"
+                type="button";
                 onClick={handlePublish}
                 disabled={loading}
                 className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
@@ -328,7 +329,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
           <div className="space-y-4">
             <div className="bg-blue-50 p-4 rounded-md">
               <div className="flex">
-                <CalendarIcon className="h-5 w-5 text-blue-400" />
+                <CalendarIcon className="h-5 w-5 text-blue-400" /></CalendarIcon>
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-blue-800">Schedule Publication</h3>
                   <div className="mt-2 text-sm text-blue-700">
@@ -347,7 +348,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
                 </label>
                 <input
                   type="date"
-                  id="scheduleDate"
+                  id="scheduleDate";
                   value={scheduleDate}
                   onChange={(e) => setScheduleDate(e.target.value)}
                   min={new Date().toISOString().split('T')[0]} // Today's date as minimum
@@ -361,7 +362,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
                 </label>
                 <input
                   type="time"
-                  id="scheduleTime"
+                  id="scheduleTime";
                   value={scheduleTime}
                   onChange={(e) => setScheduleTime(e.target.value)}
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -371,7 +372,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
 
             <div className="flex justify-end space-x-2 mt-4">
               <button
-                type="button"
+                type="button";
                 onClick={() => setIsScheduling(false)}
                 disabled={loading}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -379,7 +380,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
                 Cancel
               </button>
               <button
-                type="button"
+                type="button";
                 onClick={handleSchedulePublish}
                 disabled={loading || !scheduleDate || !scheduleTime}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -392,7 +393,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
           <div className="space-y-4">
             <div className="bg-red-50 p-4 rounded-md">
               <div className="flex">
-                <ExclamationTriangleIcon className="h-5 w-5 text-red-400" />
+                <ExclamationTriangleIcon className="h-5 w-5 text-red-400" /></ExclamationTriangleIcon>
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-red-800">Delete Confirmation</h3>
                   <div className="mt-2 text-sm text-red-700">
@@ -404,7 +405,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
 
             <div className="flex justify-end space-x-2">
               <button
-                type="button"
+                type="button";
                 onClick={() => setIsDeleting(false)}
                 disabled={loading}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -412,7 +413,7 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
                 Cancel
               </button>
               <button
-                type="button"
+                type="button";
                 onClick={handleDelete}
                 disabled={loading}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
@@ -427,17 +428,18 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
             <div className="bg-gray-50 p-4 rounded-md">
               <h4 className="text-sm font-medium text-gray-500 mb-1">Status</h4>
               <div className="flex items-center">
-                <span
-                  className={`text-sm px-2.5 py-1 rounded-full capitalize ${draft.status === Status.DRAFT
-                    ? 'bg-gray-100 text-gray-800'
-                    : draft.status === Status.PENDING
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : draft.status === Status.PUBLISHED
-                        ? 'bg-green-100 text-green-800'
-                        : draft.status === Status.SCHEDULED
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-gray-100 text-gray-600'
-                    }`}
+                <span;
+                  className={`text-sm px-2.5 py-1 rounded-full capitalize ${
+                    draft.status === 'draft'
+                      ? 'bg-gray-100 text-gray-800'
+                      : draft.status === 'pending'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : draft.status === 'published'
+                          ? 'bg-green-100 text-green-800'
+                          : draft.status === 'scheduled'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-gray-100 text-gray-600'
+                  }`}
                 >
                   {draft.status}
                 </span>
@@ -464,12 +466,12 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
 
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Created</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{formatDate(draft.created_at)}</dd>
+                  <dd className="mt-1 text-sm text-gray-900">{formatDate(draft.createdAt)}</dd>
                 </div>
 
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Last Updated</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{formatDate(draft.updated_at)}</dd>
+                  <dd className="mt-1 text-sm text-gray-900">{formatDate(draft.updatedAt)}</dd>
                 </div>
               </dl>
             </div>
@@ -483,7 +485,12 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
                     {Object.entries(draft.changes).map(([section, changeCount], index) => (
                       <li key={index} className="flex justify-between">
                         <span className="capitalize">{section.replace('_', ' ')}</span>
-                        <span className="font-medium">{changeCount} changes</span>
+                        <span className="font-medium">
+                          {typeof changeCount === 'string' || typeof changeCount === 'number'
+                            ? changeCount
+                            : String(changeCount)}{' '};
+                          changes
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -499,11 +506,11 @@ const DraftDetail: React.FC<DraftDetailProps> = ({
       {/* Footer */}
       {!isEditing && !isPublishing && !isScheduling && !isDeleting && (
         <div className="p-4 border-t">
-          <button
+          <button;
             onClick={() => setIsDeleting(true)}
             className="inline-flex items-center px-3 py-1.5 border border-red-300 shadow-sm text-sm leading-4 font-medium rounded-md text-red-700 bg-white hover:bg-red-50"
           >
-            <TrashIcon className="h-4 w-4 mr-2" />
+            <TrashIcon className="h-4 w-4 mr-2" /></TrashIcon>
             Delete Draft
           </button>
         </div>

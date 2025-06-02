@@ -107,6 +107,7 @@ The frontend follows a modular monolith architecture with clear module boundarie
 - **Monitoring Module**: System monitoring and alerts
 
 Each module contains its own:
+
 - **Models**: Domain models and types
 - **Services**: Business logic and data access
 - **Components**: UI components specific to the module
@@ -122,6 +123,7 @@ The codebase follows strict import guidelines to maintain architectural integrit
 - Consistent import organization
 
 Example:
+
 ```typescript
 // Correct pattern
 import type { UUID } from '@/modules/core/models/base';
@@ -198,7 +200,7 @@ Implementation:
 # Backend model example with standardized UUID
 class User(Base):
     __tablename__ = "users"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String, unique=True, index=True)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
@@ -207,7 +209,7 @@ class User(Base):
 # Example of relationship with UUID foreign key
 class Tenant(Base):
     __tablename__ = "tenants"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String, nullable=False)
     # One-to-one relationship with cascade delete
@@ -407,7 +409,7 @@ async def assign_role(tenant_id: UUID, user_id: UUID, role: StorefrontRole) -> P
             role=role
         )
         db.add(permission)
-    
+
     await db.commit()
     await db.refresh(permission)
     return permission
@@ -420,19 +422,19 @@ Handles media asset management:
 ```python
 # Simplified asset service example
 async def upload_asset(
-    tenant_id: UUID, 
-    file: UploadFile, 
+    tenant_id: UUID,
+    file: UploadFile,
     metadata: AssetMetadata
 ) -> Asset:
     """Upload and process a new asset."""
     # Validate file type and size
     validate_file(file)
-    
+
     # Generate file path and save file
     filename = generate_unique_filename(file.filename)
     file_path = f"assets/{tenant_id}/{filename}"
     await save_file(file, file_path)
-    
+
     # Create asset record
     asset = Asset(
         tenant_id=tenant_id,
@@ -447,15 +449,15 @@ async def upload_asset(
         alt_text=metadata.alt_text,
         metadata=metadata.additional_metadata
     )
-    
+
     db.add(asset)
     await db.commit()
     await db.refresh(asset)
-    
+
     # Queue optimization if it's an image
     if asset.asset_type == AssetType.IMAGE:
         await queue_image_optimization(asset.id)
-    
+
     return asset
 ```
 
@@ -469,10 +471,10 @@ async def create_banner(tenant_id: UUID, data: BannerCreate) -> Banner:
     """Create a new banner."""
     # Validate asset exists and belongs to the tenant
     await validate_asset_ownership(tenant_id, data.asset_id)
-    
+
     # Determine display order
     max_order = await get_max_banner_order(tenant_id)
-    
+
     banner = Banner(
         tenant_id=tenant_id,
         title=data.title,
@@ -489,7 +491,7 @@ async def create_banner(tenant_id: UUID, data: BannerCreate) -> Banner:
         status=BannerStatus.DRAFT,
         created_by=data.user_id
     )
-    
+
     db.add(banner)
     await db.commit()
     await db.refresh(banner)
@@ -506,7 +508,7 @@ async def create_logo(tenant_id: UUID, data: LogoCreate) -> Logo:
     """Create a new logo."""
     # Validate asset exists and belongs to the tenant
     await validate_asset_ownership(tenant_id, data.asset_id)
-    
+
     logo = Logo(
         tenant_id=tenant_id,
         name=data.name,
@@ -519,7 +521,7 @@ async def create_logo(tenant_id: UUID, data: LogoCreate) -> Logo:
         status=LogoStatus.DRAFT,
         created_by=data.user_id
     )
-    
+
     db.add(logo)
     await db.commit()
     await db.refresh(logo)
@@ -549,11 +551,13 @@ async def create_logo(tenant_id: UUID, data: LogoCreate) -> Logo:
 The following considerations are critical during the build and deployment process:
 
 1. **Database Migration Sequence**:
+
    - Execute UUID migration scripts before application deployment
    - Verify data integrity after migration completion
    - Maintain backward compatibility during transition period
 
 2. **Authentication System Updates**:
+
    - Update Clerk environment variables before deployment
    - Ensure middleware compatibility with Next.js App Router
    - Test authentication flows thoroughly post-deployment
@@ -692,3 +696,16 @@ The following considerations are critical during the build and deployment proces
 3. **Testing**: Include tests for new features
 4. **Documentation**: Update documentation for changes
 5. **Review Process**: Code review by at least one team member
+
+## 🧹 Code Quality, Linting, and Type Safety
+
+- **Strict ESLint Configuration**: The codebase enforces strict architectural boundaries and type safety using ESLint and TypeScript. All cross-module imports must go through module public APIs (`index.ts`) or DTOs. Direct internal imports and bridge files are prohibited and will be flagged by CI.
+- **No Bridge Files**: All legacy bridge files (e.g., `src/types/events.ts`, `src/types/websocket.ts`) have been removed. Types must be imported from their module's public API.
+- **No Backup/Test Artifacts**: `.bak`, `.old`, and similar backup/test files are not allowed in the codebase and are regularly cleaned up.
+- **CI Enforcement**: All PRs must pass lint (`npm run lint`) and type checks (`npm run type-check`). Violations block merges to protected branches.
+- **Type Safety**: No `any` types are allowed. Use `unknown` with type guards for dynamic data. All module boundaries use explicit interfaces and DTOs.
+
+### How to Fix Lint/Type Errors
+- **Restricted Import**: Change your import to use the module's public API or DTO file.
+- **Unused Variable/Import**: Remove or use the variable/import as needed.
+- **Type Error**: Add or refine type annotations, avoid `any`, and use generics or type guards as appropriate.

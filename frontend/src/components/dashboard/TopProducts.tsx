@@ -1,8 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { formatCurrency } from '@/lib/utils';
-import {  CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import {  CardHeader, CardTitle, CardContent } from '../ui/Card';
+import { CardHeader, CardTitle, CardContent, Card } from '@/components/ui/Card';
 
 interface Product {
   id: string;

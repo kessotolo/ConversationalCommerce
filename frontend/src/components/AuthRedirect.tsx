@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { useAuth } from '@clerk/nextjs';
 
 export function AuthRedirect() {
   const { isLoaded, isSignedIn } = useAuth();

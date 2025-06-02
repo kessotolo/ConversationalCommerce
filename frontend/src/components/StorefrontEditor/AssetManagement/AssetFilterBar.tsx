@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { AssetType } from '@/modules/storefront/models/asset';
 import {
   MagnifyingGlassIcon,
   FunnelIcon,
   ArrowUpIcon,
   ArrowDownIcon,
 } from '@heroicons/react/24/outline';
-
+import type { FormSubmitEvent } from '@/modules/core';
 
 interface AssetFilterBarProps {
-  assetType: AssetType | null;
+  assetType: 'image' | 'video' | 'document' | 'audio' | null;
   searchQuery: string;
   sortBy: string;
   sortDesc: boolean;
-  onFilterChange: (type: AssetType | null, query: string, sort: string, direction: boolean) => void;
+  onFilterChange: (
+    type: 'image' | 'video' | 'document' | 'audio' | null,
+    query: string,
+    sort: string,
+    direction: boolean,
+  ) => void;
 }
 
 const AssetFilterBar: React.FC<AssetFilterBarProps> = ({
@@ -23,8 +27,8 @@ const AssetFilterBar: React.FC<AssetFilterBarProps> = ({
   sortDesc,
   onFilterChange,
 }) => {
-  const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
-  const [filterOpen, setFilterOpen] = useState(false);
+  const [localSearchQuery, setLocalSearchQuery] = useState<string>(searchQuery);
+  const [filterOpen, setFilterOpen] = useState<boolean>(false);
 
   // Update local search when prop changes
   useEffect(() => {
@@ -32,13 +36,13 @@ const AssetFilterBar: React.FC<AssetFilterBarProps> = ({
   }, [searchQuery]);
 
   // Handle search input
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: FormSubmitEvent) => {
     e.preventDefault();
     onFilterChange(assetType, localSearchQuery, sortBy, sortDesc);
   };
 
   // Handle asset type filter
-  const handleAssetTypeChange = (type: AssetType | null) => {
+  const handleAssetTypeChange = (type: 'image' | 'video' | 'document' | 'audio' | null) => {
     onFilterChange(type, localSearchQuery, sortBy, sortDesc);
   };
 
@@ -144,10 +148,12 @@ const AssetFilterBar: React.FC<AssetFilterBarProps> = ({
             >
               All
             </button>
-            {Object.values(AssetType).map((type) => (
+            {['image', 'video', 'document', 'audio'].map((type) => (
               <button
                 key={type}
-                onClick={() => handleAssetTypeChange(type)}
+                onClick={() =>
+                  handleAssetTypeChange(type as 'image' | 'video' | 'document' | 'audio')
+                }
                 className={`px-3 py-1 text-sm rounded-full ${
                   assetType === type
                     ? 'bg-blue-100 text-blue-800'

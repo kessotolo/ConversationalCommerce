@@ -17,7 +17,7 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'via.placeholder.com',
         pathname: '/**',
-      }
+      },
     ],
   },
   async redirects() {
@@ -34,6 +34,6 @@ const nextConfig = {
       },
     ];
   },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

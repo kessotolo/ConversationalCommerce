@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import type { Version } from '@/modules/storefront/models/version';
-import type { UUID } from '@/modules/core/models/base';
+import type { Version } from '@/modules/storefront';
+import type { UUID } from '@/modules/core';
 import {
   FunnelIcon,
   MagnifyingGlassIcon,
@@ -8,7 +8,7 @@ import {
   CalendarIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-
+import type { FormSubmitEvent } from '@/modules/core';
 
 interface VersionListProps {
   versions: Version[];
@@ -65,7 +65,7 @@ const VersionList: React.FC<VersionListProps> = ({
   }
 
   // Handle search submission
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: FormSubmitEvent) => {
     e.preventDefault();
     onSearch(localSearchQuery);
   };

@@ -1,8 +1,7 @@
 'use client';
 
-// TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
+// import Link from 'next/link';
 import { productService } from '@/lib/api';
 import ProductCard from '@/components/storefront/ProductCard';
 import { useCart } from '@/lib/cart';
@@ -29,7 +28,7 @@ export default function ClientStore({ merchantId }: ClientStoreProps) {
 
   useEffect(() => {
     fetchProducts();
-  }, [merchantId, fetch]);
+  }, [merchantId]);
 
   const fetchProducts = async () => {
     try {
@@ -37,10 +36,22 @@ export default function ClientStore({ merchantId }: ClientStoreProps) {
       setError(null);
       // Here you would typically filter products by merchant ID
       const response = await productService.getProducts();
-      setProducts(response.data);
-    } catch (error: any) {
-      console.error('Error fetching products:', error);
-      setError('Failed to load products. Please try again later.');
+      setProducts(
+        response.data.products.map((p) => ({
+          id: p.id,
+          name: p.name,
+          description: p.description || '',
+          price: p.price,
+          image_url: p.imageUrl || null,
+          created_at: p.createdAt,
+          is_available: true, // or set based on your logic
+        })),
+      );
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error('Error fetching products:', error);
+        setError('Failed to load products. Please try again later.');
+      }
     } finally {
       setIsLoading(false);
     }

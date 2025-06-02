@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-
 interface Tenant {
   id: string; // UUID format from backend
   name: string;

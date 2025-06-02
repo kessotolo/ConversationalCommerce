@@ -1,6 +1,7 @@
 import React from 'react';
 import { ThemeProvider } from './ThemeProvider';
-import { AuthProvider } from '../contexts/AuthContext';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { TenantProvider } from '@/contexts/TenantContext';
 
 /**
  * Root provider that wraps the application with all context providers
@@ -14,7 +15,9 @@ interface AppProviderProps {
 export function AppProvider({ children }: AppProviderProps) {
   return (
     <AuthProvider>
-      <ThemeProvider>{children}</ThemeProvider>
+      <ThemeProvider>
+        <TenantProvider>{children}</TenantProvider>
+      </ThemeProvider>
     </AuthProvider>
   );
 }

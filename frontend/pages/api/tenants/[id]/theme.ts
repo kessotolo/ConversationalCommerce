@@ -7,13 +7,13 @@ type ErrorResponse = {
 
 /**
  * API endpoint to get a tenant's theme by tenant ID
- * 
+ *
  * This endpoint fetches theme data from the backend based on the tenant ID
  * It's used by the ThemeContext to load the appropriate theme
  */
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Theme | ErrorResponse>
+  res: NextApiResponse<Theme | ErrorResponse>,
 ) {
   const { id } = req.query;
 
@@ -23,13 +23,13 @@ export default async function handler(
 
   try {
     // In a real implementation, this would be an API call to your backend
-    // For example: 
+    // For example:
     // const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tenants/${id}/theme`);
     // const data = await response.json();
 
     // For demo purposes, we'll mock the theme data
     // Replace this with an actual API call to your backend that fetches the StorefrontTheme
-    
+
     // Base theme that all tenant themes derive from
     const baseTheme: Theme = {
       id: 'default',
@@ -165,7 +165,7 @@ export default async function handler(
         },
       },
     };
-    
+
     // Custom themes for specific tenants
     const mockThemeData: Record<string, Theme> = {
       '12345678-1234-5678-1234-567812345678': {
@@ -194,7 +194,7 @@ export default async function handler(
       },
       '00000000-0000-0000-0000-000000000000': baseTheme, // Default tenant gets base theme
     };
-    
+
     const theme = mockThemeData[id] || baseTheme;
     return res.status(200).json(theme);
   } catch (error) {

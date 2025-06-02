@@ -6,6 +6,6 @@ export interface AuditLogEntry extends TenantScoped {
   action: string;
   resource_type: string;
   resource_id: UUID;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   timestamp: string;
 }

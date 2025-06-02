@@ -1,12 +1,22 @@
 'use client';
 
-// TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/Button';
 import { formatDate } from '@/lib/utils';
-import { Check, Phone } from 'lucide-react';
+import {
+  Check,
+  Phone,
+  Clock,
+  CheckCheck,
+  Search,
+  Video,
+  MoreVertical,
+  ImageIcon,
+  Send,
+  MessageCircle,
+} from 'lucide-react';
 
 // Mock conversations
 const mockConversations = [
@@ -144,15 +154,17 @@ export default function MessagesPage() {
         setConversations(mockConversations);
         setIsLoading(false);
       }, 1000);
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch conversations');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || 'Failed to fetch conversations');
+      }
       setIsLoading(false);
     }
   };
 
   // Send a message
-  const sendMessage = async () => {
-    if (!newMessage.trim() || !selectedConversation) return;
+  // Unused message handler removed
+  // const sendMessage = useCallback(...);
 
     const messageToSend = {
       id: Date.now().toString(),
@@ -335,13 +347,13 @@ export default function MessagesPage() {
                     </div>
                   </div>
                   <div className="flex space-x-2">
-                    <Button   className="h-8 w-8 p-0" title="Voice Call">
+                    <Button className="h-8 w-8 p-0" title="Voice Call">
                       <Phone className="h-4 w-4" />
                     </Button>
-                    <Button   className="h-8 w-8 p-0" title="Video Call">
+                    <Button className="h-8 w-8 p-0" title="Video Call">
                       <Video className="h-4 w-4" />
                     </Button>
-                    <Button   className="h-8 w-8 p-0" title="More Options">
+                    <Button className="h-8 w-8 p-0" title="More Options">
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </div>
@@ -407,12 +419,7 @@ export default function MessagesPage() {
                 {/* Message input */}
                 <div className="p-4 border-t bg-white">
                   <div className="flex">
-                    <Button
-                      
-                      
-                      className="h-10 w-10 p-0 mr-2"
-                      title="Attach Image"
-                    >
+                    <Button className="h-10 w-10 p-0 mr-2" title="Attach Image">
                       <ImageIcon className="h-5 w-5" />
                     </Button>
                     <input
@@ -430,8 +437,6 @@ export default function MessagesPage() {
                       disabled={isLoading || isExpired}
                     />
                     <Button
-                      
-                      
                       className="h-10 w-10 p-0 ml-2 bg-[#6C9A8B] hover:bg-[#588074] text-white rounded-full"
                       onClick={sendMessage}
                       disabled={isLoading || !newMessage.trim() || isExpired}

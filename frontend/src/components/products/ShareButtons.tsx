@@ -1,6 +1,26 @@
 import React, { useState } from 'react';
-import { MessageCircle, Send, Camera, Copy } from 'lucide-react';
-import {  CardContent } from '@/components/ui/Card';
+import { MessageCircle, Send, Camera } from 'lucide-react';
+import { CardContent } from '@/components/ui/Card';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import Grid from '@mui/material/Grid';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress';
+import ButtonGroup from '@mui/material/ButtonGroup';
+import Card from '@mui/material/Card';
+import FacebookIcon from '@mui/icons-material/Facebook';
+import TwitterIcon from '@mui/icons-material/Twitter';
+import QrCodeIcon from '@mui/icons-material/QrCode';
+import CheckIcon from '@mui/icons-material/Check';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import ShareIcon from '@mui/icons-material/Share';
 
 // Custom TikTok icon
 const TikTokIcon = () => (
@@ -26,7 +46,7 @@ interface ShareResponse {
   utm_url?: string;
   campaign?: string;
   error?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 const ShareButtons: React.FC<ShareButtonsProps> = ({
@@ -54,14 +74,14 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
     {
       id: 'facebook',
       name: 'Facebook',
-      icon: <Facebook />,
+      icon: <FacebookIcon />,
       color: '#1877F2',
       endpoint: '/api/v1/share/facebook-link',
     },
     {
       id: 'twitter',
       name: 'Twitter',
-      icon: <Twitter />,
+      icon: <TwitterIcon />,
       color: '#1DA1F2',
       endpoint: '/api/v1/share/twitter-link',
     },
@@ -89,7 +109,7 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
     {
       id: 'qr-code',
       name: 'QR Code',
-      icon: <QrCode />,
+      icon: <QrCodeIcon />,
       color: '#555555',
       endpoint: '/api/v1/share/qr-code',
     },
@@ -229,7 +249,11 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
                     color="primary"
                     size="small"
                   >
-                    {copySuccess ? <Check size={18} /> : <Copy size={18} />}
+                    {copySuccess ? (
+                      <CheckIcon fontSize="small" />
+                    ) : (
+                      <ContentCopyIcon fontSize="small" />
+                    )}
                   </IconButton>
                 </Box>
               </>
@@ -279,7 +303,11 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
                     size="small"
                     sx={{ position: 'absolute', top: 8, right: 8 }}
                   >
-                    {copySuccess ? <Check size={18} /> : <Copy size={18} />}
+                    {copySuccess ? (
+                      <CheckIcon fontSize="small" />
+                    ) : (
+                      <ContentCopyIcon fontSize="small" />
+                    )}
                   </IconButton>
                 </Box>
               </>
@@ -394,7 +422,7 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
             }}
             disabled={loading}
           >
-            <Share2 />
+            <ShareIcon />
           </IconButton>
         </ButtonGroup>
 
@@ -421,10 +449,12 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
                       }}
                       onClick={() => setActiveDialog(platform.id)}
                     >
-                      <CardContent sx={{ textAlign: 'center' }}>
-                        <Box sx={{ color: platform.color, mb: 1 }}>{platform.icon}</Box>
-                        <Typography variant="body2">{platform.name}</Typography>
-                      </CardContent>
+                      <Box sx={{ textAlign: 'center' }}>
+                        <CardContent>
+                          <Box sx={{ color: platform.color, mb: 1 }}>{platform.icon}</Box>
+                          <Typography variant="body2">{platform.name}</Typography>
+                        </CardContent>
+                      </Box>
                     </Card>
                   </Grid>
                 ))}
@@ -505,10 +535,12 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
                     }}
                     onClick={() => setActiveDialog(platform.id)}
                   >
-                    <CardContent sx={{ textAlign: 'center' }}>
-                      <Box sx={{ color: platform.color, mb: 1 }}>{platform.icon}</Box>
-                      <Typography variant="body2">{platform.name}</Typography>
-                    </CardContent>
+                    <Box sx={{ textAlign: 'center' }}>
+                      <CardContent>
+                        <Box sx={{ color: platform.color, mb: 1 }}>{platform.icon}</Box>
+                        <Typography variant="body2">{platform.name}</Typography>
+                      </CardContent>
+                    </Box>
                   </Card>
                 </Grid>
               ))}

@@ -19,8 +19,8 @@ export interface Logo extends TenantScoped {
   name: string;
   logo_type: LogoType;
   asset_id: UUID;
-  display_settings: Record<string, any>;
-  responsive_settings: Record<string, any>;
+  display_settings: Record<string, unknown>;
+  responsive_settings: Record<string, unknown>;
   start_date?: string;
   end_date?: string;
   status: LogoStatus;

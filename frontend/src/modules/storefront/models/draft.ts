@@ -4,7 +4,7 @@ import { PaginatedResult } from '@/modules/core/models/pagination';
 export interface Draft extends Draftable {
   name: string;
   description: string;
-  changes: Record<string, any>;
+  changes: Record<string, unknown>;
   // status is inherited from Draftable
 }
 

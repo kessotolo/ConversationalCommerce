@@ -1,6 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import Chip from '@mui/material/Chip';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import Table from '@mui/material/Table';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import TableCell from '@mui/material/TableCell';
+import TableBody from '@mui/material/TableBody';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import CircularProgress from '@mui/material/CircularProgress';
+import type { ChipProps } from '@mui/material/Chip';
 
 interface Violation {
   id: string;
@@ -9,7 +25,7 @@ interface Violation {
   action: string;
   status: string;
   reason?: string;
-  details?: any;
+  details?: unknown;
   start_at: string;
   end_at?: string;
   user_id?: string;
@@ -31,14 +47,33 @@ interface ViolationTrend {
   count: number;
 }
 
+type ChipColor = ChipProps['color'];
+function toChipColor(val: string): ChipColor {
+  const allowed: ChipColor[] = [
+    'default',
+    'error',
+    'warning',
+    'info',
+    'primary',
+    'success',
+    'secondary',
+  ];
+  return allowed.includes(val as ChipColor) ? (val as ChipColor) : 'default';
+}
+
 const ViolationDashboard: React.FC = () => {
   const [violations, setViolations] = useState<Violation[]>([]);
   const [stats, setStats] = useState<ViolationStats | null>(null);
   const [trends, setTrends] = useState<ViolationTrend[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [selectedViolation, setSelectedViolation] = useState<Violation | null>(null);
-  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-  const [filters, setFilters] = useState({
+  const [detailDialogOpen, setDetailDialogOpen] = useState<boolean>(false);
+  const [filters, setFilters] = useState<{
+    status: string;
+    action: string;
+    severity: string;
+    type: string;
+  }>({
     status: '',
     action: '',
     severity: '',
@@ -240,11 +275,15 @@ const ViolationDashboard: React.FC = () => {
                     <Chip
                       label={v.severity}
                       size="small"
-                      color={getSeverityColor(v.severity) as any}
+                      color={toChipColor(getSeverityColor(v.severity))}
                     />
                   </TableCell>
                   <TableCell>
-                    <Chip label={v.status} size="small" color={getStatusColor(v.status) as any} />
+                    <Chip
+                      label={v.status}
+                      size="small"
+                      color={toChipColor(getStatusColor(v.status))}
+                    />
                   </TableCell>
                   <TableCell>{v.user_id || 'N/A'}</TableCell>
                   <TableCell>{new Date(v.created_at).toLocaleString()}</TableCell>

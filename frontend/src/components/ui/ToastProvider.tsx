@@ -1,17 +1,29 @@
 import React, { createContext, useState, useContext } from 'react';
-import { Toast, ToastProps } from './toast';
+import { Toast, ToastProps } from '@/components/ui/toast';
 
 type ToastContextType = {
   toast: (props: ToastProps) => void;
   dismiss: (id: string) => void;
 };
 
-const ToastContext = createContext<ToastContextType>({
+/**
+ * Toast context for showing and dismissing toasts.
+ * Use the useToast hook to access.
+ */
+export const ToastContext = createContext<ToastContextType>({
   toast: () => {},
   dismiss: () => {},
 });
 
-export const useToast = () => useContext(ToastContext);
+/**
+ * Typed hook for toast context.
+ * Throws if used outside ToastProvider.
+ */
+export const useToast = () => {
+  const ctx = useContext(ToastContext);
+  if (!ctx) throw new Error('useToast must be used within a ToastProvider');
+  return ctx;
+};
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<(ToastProps & { id: string })[]>([]);

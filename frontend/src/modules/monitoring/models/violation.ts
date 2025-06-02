@@ -6,7 +6,7 @@ export interface Violation extends Entity {
   action: string;
   status: string;
   reason?: string;
-  details?: any;
+  details?: unknown;
   start_at: string;
   end_at?: string;
   user_id?: UUID;

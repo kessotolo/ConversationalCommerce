@@ -5,7 +5,17 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import SettingsDrawer from '@/components/dashboard/SettingsDrawer';
-import { Home, ShoppingBag, Package, Users, BarChart, MessageCircle, Settings, Store, User } from 'lucide-react';
+import {
+  Home,
+  ShoppingBag,
+  Package,
+  Users,
+  BarChart,
+  MessageCircle,
+  Settings,
+  Store,
+  User,
+} from 'lucide-react';
 import UserButton from '@/components/auth/UserButton';
 
 const navItems = [
@@ -27,7 +37,7 @@ const navItems = [
   {
     name: 'Customers',
     href: '/dashboard/customers',
-    icon: Users
+    icon: Users,
   },
   {
     name: 'Analytics',

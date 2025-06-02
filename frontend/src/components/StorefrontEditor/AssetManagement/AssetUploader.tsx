@@ -1,10 +1,16 @@
 import React, { useState, useRef } from 'react';
-import { Upload } from 'lucide-react';
-import { Dialog } from '@headlessui/react';
-import { XMarkIcon, PhotoIcon, DocumentIcon, DocumentTextIcon, DocumentPlusIcon, ExclamationTriangleIcon, CheckIcon, FilmIcon, MusicalNoteIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline';
-import type { UUID } from '@/modules/core/models/base';
-import { AssetType } from '@/modules/storefront/models/asset';
+import {
+  XMarkIcon,
+  PhotoIcon,
+  DocumentTextIcon,
+  DocumentPlusIcon,
+  FilmIcon,
+  MusicalNoteIcon,
+  ArrowUpTrayIcon,
+} from '@heroicons/react/24/outline';
+import type { UUID } from '@/modules/core/types';
 import { uploadAsset } from '@/lib/api/storefrontEditor';
+import type { InputChangeEvent } from '@/modules/core';
 
 interface AssetUploaderProps {
   tenantId: UUID;
@@ -12,20 +18,21 @@ interface AssetUploaderProps {
   onSuccess: () => void;
 }
 
-const AssetUploader: React.FC<AssetUploaderProps> = ({ tenantId, onClose, onSuccess }) => {
+const AssetUploader: React.FC<AssetUploaderProps> = ({ _tenantId, onClose, onSuccess }) => {
   const [files, setFiles] = useState<File[]>([]);
   const [titles, setTitles] = useState<{ [key: string]: string }>({});
   const [altTexts, setAltTexts] = useState<{ [key: string]: string }>({});
-  const [uploading, setUploading] = useState(false);
+  const [uploading, setUploading] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [uploadSuccess, setUploadSuccess] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Handle file selection
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newFiles = Array.from(e.target.files);
+  const handleFileChange = (e: InputChangeEvent) => {
+    const input = e.target as HTMLInputElement;
+    if (input.files) {
+      const newFiles = Array.from(input.files);
 
       // Initialize titles with filenames (without extensions)
       const newTitles = { ...titles };
@@ -38,7 +45,7 @@ const AssetUploader: React.FC<AssetUploaderProps> = ({ tenantId, onClose, onSucc
       setTitles(newTitles);
 
       // Reset input value to allow selecting the same file again
-      e.target.value = '';
+      input.value = '';
     }
   };
 
@@ -83,31 +90,31 @@ const AssetUploader: React.FC<AssetUploaderProps> = ({ tenantId, onClose, onSucc
   };
 
   // Determine asset type from file
-  const getAssetType = (file: File): AssetType => {
+  const getAssetType = (file: File): string => {
     const mimeType = file.type;
-    if (mimeType.startsWith('image/')) return AssetType.IMAGE;
-    if (mimeType.startsWith('video/')) return AssetType.VIDEO;
-    if (mimeType.startsWith('audio/')) return AssetType.AUDIO;
+    if (mimeType.startsWith('image/')) return 'image';
+    if (mimeType.startsWith('video/')) return 'video';
+    if (mimeType.startsWith('audio/')) return 'audio';
     if (
       mimeType === 'application/pdf' ||
       mimeType.includes('document') ||
       mimeType.includes('text/')
     )
-      return AssetType.DOCUMENT;
-    return AssetType.OTHER;
+      return 'document';
+    return 'other';
   };
 
   // Get appropriate icon based on asset type
   const getAssetIcon = (file: File) => {
     const assetType = getAssetType(file);
     switch (assetType) {
-      case AssetType.IMAGE:
+      case 'image':
         return <PhotoIcon className="h-8 w-8 text-blue-500" />;
-      case AssetType.VIDEO:
+      case 'video':
         return <FilmIcon className="h-8 w-8 text-purple-500" />;
-      case AssetType.DOCUMENT:
+      case 'document':
         return <DocumentTextIcon className="h-8 w-8 text-yellow-500" />;
-      case AssetType.AUDIO:
+      case 'audio':
         return <MusicalNoteIcon className="h-8 w-8 text-green-500" />;
       default:
         return <DocumentPlusIcon className="h-8 w-8 text-gray-500" />;
@@ -148,12 +155,12 @@ const AssetUploader: React.FC<AssetUploaderProps> = ({ tenantId, onClose, onSucc
         formData.append('asset_type', getAssetType(file));
 
         // Add alt text only for images
-        if (getAssetType(file) === AssetType.IMAGE && altTexts[fileName]) {
+        if (getAssetType(file) === 'image' && altTexts[fileName]) {
           formData.append('alt_text', altTexts[fileName]);
         }
 
         // Upload the file
-        await uploadAsset(tenantId, formData);
+        const response = await uploadAsset(tenantId, formData);
 
         // Mark as successfully uploaded
         successfulUploads.push(fileName);
@@ -251,7 +258,7 @@ const AssetUploader: React.FC<AssetUploaderProps> = ({ tenantId, onClose, onSucc
               <div className="space-y-3">
                 {files.map((file, index) => {
                   const fileName = file.name;
-                  const isImage = getAssetType(file) === AssetType.IMAGE;
+                  const isImage = getAssetType(file) === 'image';
                   const isUploaded = uploadSuccess.includes(fileName);
                   const hasError = errors[fileName];
                   const progress = uploadProgress[fileName] || 0;

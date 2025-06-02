@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useUser } from '@clerk/nextjs';
 
 export default function Navbar() {
   const { isSignedIn, user } = useUser();

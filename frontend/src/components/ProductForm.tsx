@@ -1,10 +1,11 @@
-// TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
+import Image from 'next/image';
+
 import React, { useState } from 'react';
 import { productService } from '@/lib/api';
 import ImageUploader from './ImageUploader';
 
 interface ProductFormProps {
-  onSubmit: (data: any) => void;
+  onSubmit: (data: unknown) => void;
 }
 
 export default function ProductForm({ onSubmit }: ProductFormProps) {
@@ -23,15 +24,22 @@ export default function ProductForm({ onSubmit }: ProductFormProps) {
     setSuccess(null);
 
     try {
-      const formData = new FormData();
-      formData.append('name', name);
-      formData.append('description', description);
-      formData.append('price', price);
+      let imageUrl: string | undefined = undefined;
       if (selectedImage) {
-        formData.append('image', selectedImage);
+        const imageFormData = new FormData();
+        imageFormData.append('image', selectedImage);
+        const uploadResponse = await productService.uploadImage(imageFormData);
+        imageUrl = uploadResponse.data.imageUrl;
       }
 
-      const response = await productService.createProduct(formData);
+      const productRequest = {
+        name,
+        description,
+        price: parseFloat(price),
+        imageUrl,
+      };
+
+      const response = await productService.createProduct(productRequest);
       onSubmit(response.data);
       setSuccess('Product created successfully!');
 
@@ -40,9 +48,11 @@ export default function ProductForm({ onSubmit }: ProductFormProps) {
       setDescription('');
       setPrice('');
       setSelectedImage(null);
-    } catch (error: any) {
-      console.error('Error creating product:', error);
-      setError(error.message || 'Failed to create product. Please try again.');
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error('Error creating product:', error);
+        setError(error.message || 'Failed to create product. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }

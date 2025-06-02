@@ -25,38 +25,31 @@ type ErrorResponse = {
 
 /**
  * API endpoint to create a new tenant (store) for a user
- * 
+ *
  * This creates the tenant record, initializes with default theme,
  * and associates it with the authenticated user
  */
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<TenantResponse | ErrorResponse>
+  res: NextApiResponse<TenantResponse | ErrorResponse>,
 ) {
   // Only allow POST for tenant creation
   if (req.method !== 'POST') {
-    return res.status(405).json({ 
-      error: 'Method Not Allowed', 
-      message: 'Only POST requests are supported' 
+    return res.status(405).json({
+      error: 'Method Not Allowed',
+      message: 'Only POST requests are supported',
     });
   }
 
   try {
-    const {
-      storeName,
-      businessName,
-      phoneNumber,
-      storeEmail,
-      category,
-      subdomain,
-      userId,
-    } = req.body as TenantRequest;
+    const { storeName, businessName, phoneNumber, storeEmail, category, subdomain, userId } =
+      req.body as TenantRequest;
 
     // Validate required fields
     if (!storeName || !businessName || !phoneNumber || !subdomain || !userId) {
       return res.status(400).json({
         error: 'Bad Request',
-        message: 'Missing required fields'
+        message: 'Missing required fields',
       });
     }
 
@@ -65,7 +58,7 @@ export default async function handler(
     if (!subdomainRegex.test(subdomain)) {
       return res.status(400).json({
         error: 'Bad Request',
-        message: 'Invalid subdomain format'
+        message: 'Invalid subdomain format',
       });
     }
 
@@ -73,11 +66,11 @@ export default async function handler(
     // This would typically be an API call to your backend
     // For now, we'll mock this check
     const isSubdomainAvailable = await checkSubdomainAvailability(subdomain);
-    
+
     if (!isSubdomainAvailable) {
       return res.status(409).json({
         error: 'Conflict',
-        message: 'Subdomain is already taken'
+        message: 'Subdomain is already taken',
       });
     }
 
@@ -105,7 +98,7 @@ export default async function handler(
     console.error('Error creating tenant:', error);
     return res.status(500).json({
       error: 'Internal Server Error',
-      message: 'Failed to create tenant'
+      message: 'Failed to create tenant',
     });
   }
 }
@@ -114,8 +107,8 @@ export default async function handler(
 // In production, this would call your backend API
 async function checkSubdomainAvailability(subdomain: string): Promise<boolean> {
   // Simulate API call with a short delay
-  await new Promise(resolve => setTimeout(resolve, 300));
-  
+  await new Promise((resolve) => setTimeout(resolve, 300));
+
   // Mock database check - in production this would be a real check
   const takenSubdomains = ['test', 'admin', 'api', 'app', 'demo', 'dev', 'staging'];
   return !takenSubdomains.includes(subdomain);
@@ -123,22 +116,24 @@ async function checkSubdomainAvailability(subdomain: string): Promise<boolean> {
 
 // Mock function to create a tenant
 // In production, this would call your backend API
-async function createTenant(data: TenantRequest): Promise<TenantResponse & { customDomain?: string }> {
+async function createTenant(
+  data: TenantRequest,
+): Promise<TenantResponse & { customDomain?: string }> {
   // Simulate API call with a short delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
   // Generate a UUID for the new tenant
-  const id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+  const id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
-  
+
   // In production, this would create:
   // 1. A Tenant record
   // 2. A default StorefrontTheme linked to the tenant
   // 3. Association between the user and tenant
-  
+
   return {
     id,
     subdomain: data.subdomain,

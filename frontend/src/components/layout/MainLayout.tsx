@@ -1,6 +1,21 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import NotificationCenter from '../monitoring/NotificationCenter';
+import NotificationCenter from '@/components/monitoring/NotificationCenter';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import Drawer from '@mui/material/Drawer';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import MenuIcon from '@mui/icons-material/Menu';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import Dashboard from '@mui/icons-material/Dashboard';
+import ShoppingCart from '@mui/icons-material/ShoppingCart';
+import People from '@mui/icons-material/People';
+import Settings from '@mui/icons-material/Settings';
 
 interface MainLayoutProps {
   children: React.ReactNode;

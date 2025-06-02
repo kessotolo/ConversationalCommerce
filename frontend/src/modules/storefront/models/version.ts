@@ -8,13 +8,17 @@ export interface Version extends Entity {
   change_summary: string;
   change_description: string;
   tags: string[];
-  configuration_snapshot: Record<string, any>;
+  configuration_snapshot: Record<string, unknown>;
+  differences: Record<string, unknown>;
 }
 
 export type VersionList = PaginatedResult<Version>;
 
 export interface VersionDiff {
-  differences: Record<string, any>;
+  /**
+   * Key-value map of differences between versions. Use unknown for dynamic data.
+   */
+  differences: Record<string, unknown>;
   version1: UUID;
   version2: UUID;
 }

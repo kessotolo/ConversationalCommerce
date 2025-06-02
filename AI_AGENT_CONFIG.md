@@ -9,6 +9,7 @@ ConversationalCommerce is digitizing how Africans (and eventually the world) con
 **Core Objective**: Enable frictionless product discovery, conversation, checkout, and repeat sales — all inside messaging platforms.
 
 **Target Users**:
+
 - **Sellers**: Small to medium businesses in emerging markets
 - **Buyers**: Mobile-first consumers, primarily on Android devices
 - **Admins**: Internal and global platform administrators
@@ -31,6 +32,7 @@ ConversationalCommerce is digitizing how Africans (and eventually the world) con
 ### Module Boundaries
 
 **Strict Import Rules**:
+
 - **Core**: Cannot import from other modules (base module)
 - **Tenant**: Can import from Core
 - **Conversation**: Can import from Core, Tenant
@@ -48,7 +50,7 @@ import type { UUID, Entity } from '@/modules/core/models/base';
 import { Status } from '@/modules/core/models/base';
 
 // ❌ INCORRECT: Never use bridge files or centralized type directories
-import { UUID } from '@/types/base';  // WRONG!
+import { UUID } from '@/types/base'; // WRONG!
 
 // ❌ INCORRECT: Never violate module boundaries
 import { TenantService } from '@/modules/tenant/services/TenantService'; // WRONG in Core module!

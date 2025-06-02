@@ -1,18 +1,18 @@
 {
-    "//": "AI-ASSISTANT-DIRECTIVE: Follow strict module boundary rules defined below",
-    "rules": {
-        "//": "AI-ASSISTANT-DIRECTIVE: Never create files in src/types directory",
-        "//": "AI-ASSISTANT-DIRECTIVE: Always use direct module imports",
-        "//": "AI-ASSISTANT-DIRECTIVE: Follow module boundary constraints defined in ARCHITECTURE.md"
-    },
-    "moduleBoundaries": {
-        "core": [],
-        "tenant": ["core"],
-        "conversation": ["core", "tenant"],
-        "product": ["core", "tenant"],
-        "order": ["core", "tenant", "product"],
-        "storefront": ["core", "tenant", "product", "order"],
-        "theme": ["core", "tenant"],
-        "monitoring": ["core"]
-    }
+  "//": "AI-ASSISTANT-DIRECTIVE: Follow strict module boundary rules defined below",
+  "rules": {
+    "//": "AI-ASSISTANT-DIRECTIVE: Never create files in src/types directory",
+    "//": "AI-ASSISTANT-DIRECTIVE: Always use direct module imports",
+    "//": "AI-ASSISTANT-DIRECTIVE: Follow module boundary constraints defined in ARCHITECTURE.md"
+  },
+  "moduleBoundaries": {
+    "core": [],
+    "tenant": ["core"],
+    "conversation": ["core", "tenant"],
+    "product": ["core", "tenant"],
+    "order": ["core", "tenant", "product"],
+    "storefront": ["core", "tenant", "product", "order"],
+    "theme": ["core", "tenant"],
+    "monitoring": ["core"]
+  }
 }

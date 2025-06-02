@@ -9,6 +9,11 @@ export enum AssetType {
   OTHER = 'other',
 }
 
+// Define AssetMetadata if possible, otherwise use Record<string, unknown>
+export interface AssetMetadata {
+  [key: string]: unknown;
+}
+
 export interface Asset extends TenantScoped {
   filename: string;
   original_filename: string;
@@ -19,11 +24,11 @@ export interface Asset extends TenantScoped {
   alt_text?: string;
   title: string;
   description?: string;
-  metadata: Record<string, any>;
+  metadata: AssetMetadata;
   is_active: boolean;
   is_optimized: boolean;
   usage_count: number;
-  usage_locations?: any[];
+  usage_locations?: string[]; // Replace with a more specific type if possible
 }
 
 export type AssetList = PaginatedResult<Asset>;

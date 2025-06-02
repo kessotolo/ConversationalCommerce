@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useTenant } from './TenantContext';
-
+import { useTenant } from '@/contexts/TenantContext';
 
 // Interface for auth with UUID tenant connection
 interface AuthUser {

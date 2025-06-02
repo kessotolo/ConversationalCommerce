@@ -13,7 +13,10 @@ import {
   MessageCircle,
   MoreHorizontal,
   LogOut,
+  Store,
+  User,
 } from 'lucide-react';
+import { UserButton } from '@clerk/nextjs';
 
 // Bottom navigation items - limited to 5 for mobile best practices
 const bottomNavItems = [

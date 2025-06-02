@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Toast, ToastProps } from './toast';
+import { Toast, ToastProps } from '@/components/ui/toast';
 
 type ToastActionElement = React.ReactElement;
 
@@ -34,9 +34,6 @@ export function ToastProvider({ children }: ToasterProps) {
 
   const toast = ({ ...props }: ToastProps) => {
     const id = Math.random().toString(36).substring(2, 9);
-
-    const update = (toast: ToasterToast) =>
-      setToasts((toasts) => toasts.map((t) => (t.id === toast.id ? { ...t, ...toast } : t)));
 
     const dismiss = (toastId: string) => {
       setToasts((toasts) => toasts.filter((t) => t.id !== toastId));

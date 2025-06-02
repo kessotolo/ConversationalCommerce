@@ -1,7 +1,6 @@
 import React from 'react';
-import type { Draft } from '@/modules/storefront/models/draft';
-import type { UUID } from '@/modules/core/models/base';
-import { Status } from '@/modules/core/models/base';
+import type { Draft } from '@/lib/api/storefrontEditor.types';
+import type { UUID } from '@/modules/core';
 
 interface DraftListProps {
   drafts: Draft[];
@@ -14,7 +13,7 @@ const DraftList: React.FC<DraftListProps> = ({
   drafts,
   loading,
   selectedDraftId,
-  onDraftSelect
+  onDraftSelect,
 }) => {
   // Format date helper
   const formatDate = (dateString?: string): string => {
@@ -28,18 +27,16 @@ const DraftList: React.FC<DraftListProps> = ({
   };
 
   // Get status badge class based on status
-  const getStatusBadgeClass = (status: Status): string => {
+  const getStatusBadgeClass = (status: Draft['status']): string => {
     switch (status) {
-      case Status.DRAFT:
+      case 'draft':
         return 'bg-gray-100 text-gray-800';
-      case Status.PENDING:
+      case 'pending':
         return 'bg-yellow-100 text-yellow-800';
-      case Status.PUBLISHED:
+      case 'published':
         return 'bg-green-100 text-green-800';
-      case Status.SCHEDULED:
+      case 'scheduled':
         return 'bg-blue-100 text-blue-800';
-      case Status.ARCHIVED:
-        return 'bg-gray-100 text-gray-600';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -79,11 +76,11 @@ const DraftList: React.FC<DraftListProps> = ({
               {draft.status}
             </span>
           </div>
-          <p className="text-sm text-gray-500 mb-2 line-clamp-2" title={draft.description}>
-            {draft.description}
+          <p className="text-sm text-gray-500 mb-2 line-clamp-2" title={draft.description || ''}>
+            {draft.description || ''}
           </p>
           <div className="flex justify-between text-xs text-gray-500">
-            <span>Last updated: {formatDate(draft.updated_at)}</span>
+            <span>Last updated: {formatDate(draft.updatedAt)}</span>
           </div>
         </div>
       ))}

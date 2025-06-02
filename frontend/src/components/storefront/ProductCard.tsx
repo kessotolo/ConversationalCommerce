@@ -1,7 +1,8 @@
+import React from 'react';
 import { useState } from 'react';
 import Image from 'next/image';
-import { useTheme } from '../../contexts/ThemeContext';
-import { useThemeStyles } from '../../hooks/useThemeStyles';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useThemeStyles } from '@/hooks/useThemeStyles';
 
 interface Product {
   id: string;
@@ -25,20 +26,20 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
 
   // Combine default styles with hover state styles when needed
   const cardStyle = {
-    ...styles.productCard.style,
-    ...(isHovered ? styles.productCard.hoverStyle : {}),
+    ...styles.product.style,
+    ...(isHovered ? styles.product.hoverStyle : {}),
   };
 
   return (
     <div
-      className={styles.productCard.className}
+      className={styles.product.className}
       style={cardStyle}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div
-        className={styles.productCard.imageContainer.className}
-        style={styles.productCard.imageContainer.style}
+        className={styles.product.imageContainer.className}
+        style={styles.product.imageContainer.style}
       >
         {product.image_url ? (
           <Image src={product.image_url} alt={product.name} fill className="object-cover" />
@@ -53,17 +54,17 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         {!product.is_available && (
           <div
             className="absolute top-2 right-2 px-2 py-1 rounded text-sm"
-            style={styles.productCard.badge.style}
+            style={styles.product.badge.style}
           >
             Out of Stock
           </div>
         )}
       </div>
-      <div className={styles.productCard.content.className}>
-        <h3 style={styles.productCard.title.style}>{product.name}</h3>
-        <p style={styles.productCard.description.style}>{product.description}</p>
+      <div className={styles.product.content.className}>
+        <h3 style={styles.product.title.style}>{product.name}</h3>
+        <p style={styles.product.description.style}>{product.description}</p>
         <div className="flex items-center justify-between mt-2">
-          <span style={styles.productCard.price.style}>${product.price.toFixed(2)}</span>
+          <span style={styles.product.price.style}>${product.price.toFixed(2)}</span>
           {product.is_available && (
             <button
               onClick={onAddToCart}

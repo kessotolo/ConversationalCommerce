@@ -29,6 +29,7 @@ This project uses a multi-README approach to organize documentation:
 ## 🛠️ Tech Stack
 
 ### Backend
+
 - **FastAPI**: High-performance Python framework
 - **PostgreSQL**: Reliable relational database with native UUID support
   - **UUID Standardization**: All models use PostgreSQL UUID(as_uuid=True) for primary and foreign keys
@@ -41,6 +42,7 @@ This project uses a multi-README approach to organize documentation:
 - **Twilio**: WhatsApp messaging integration
 
 ### Frontend
+
 - **Next.js 15**: React framework with App Router architecture
   - **Client/Server Components**: Proper separation following Next.js best practices
   - **Dynamic Routing**: Type-safe parameter handling in dynamic routes
@@ -67,7 +69,9 @@ The platform is designed with a mobile-first approach, recognizing that most use
 ## 🔄 Recent Updates
 
 ### May 2025: Database UUID Standardization & Authentication Improvements
+
 - **UUID Standardization**: All database models now use PostgreSQL native UUID types
+
   - Primary and foreign keys converted from String to UUID(as_uuid=True)
   - Improved database integrity and performance with native UUID types
   - Complex migration process to handle existing String-based UUID values
@@ -79,7 +83,9 @@ The platform is designed with a mobile-first approach, recognizing that most use
   - Streamlined tenant-specific authentication flow
 
 ### May 2025: Streamlined Seller Onboarding & Theme System
+
 - **Low-Friction Onboarding Flow**:
+
   - Minimal 4-5 field signup process focused on essential business information
   - Real-time subdomain generation and preview as users type their store name
   - Automatic tenant creation with default theme assignment
@@ -88,6 +94,7 @@ The platform is designed with a mobile-first approach, recognizing that most use
   - Intelligent user flow with existing tenant detection
 
 - **Theme Context Provider**:
+
   - Complete theme system with context providers for accessing theme values throughout the app
   - Default theme fallback for new tenants and error states
   - Theme preview capability with cookie-based storage
@@ -95,6 +102,7 @@ The platform is designed with a mobile-first approach, recognizing that most use
   - Component-specific styling derived from theme values
 
 - **Multi-Tenant Architecture**:
+
   - Enhanced tenant resolution with both subdomain and custom domain support
   - Automatic subdomain generation from business names with conflict resolution
   - Middleware for extracting tenant information from request headers
@@ -109,7 +117,9 @@ The platform is designed with a mobile-first approach, recognizing that most use
   - Accessibility improvements with tenant-defined contrast ratios
 
 ### May 2025: Multi-Tenant Storefront System
+
 - **Complete Storefront Infrastructure**:
+
   - Multi-tenant storefront with subdomain support (`tenant.domain.com`) and custom domain verification
   - Tenant isolation with PostgreSQL Row-Level Security (RLS)
   - Redis-based caching layer with performance optimization
@@ -119,8 +129,8 @@ The platform is designed with a mobile-first approach, recognizing that most use
   - DNS verification for custom domains with TXT record validation
   - SSL certificate verification and monitoring
   - Automated background verification service
-  
 - **Storefront Content API**:
+
   - Tenant-aware endpoints with proper caching headers
   - Featured products, categories, and navigation menus
   - Product catalog with advanced filtering and pagination
@@ -144,7 +154,9 @@ The platform is designed with a mobile-first approach, recognizing that most use
 ```
 
 ### May 2025: Enhanced Sharing Features
+
 - **WhatsApp Share Link Generator**:
+
   - Secure share link generation with UTM tracking
   - Tenant verification requirement
   - Share event logging for analytics
@@ -152,20 +164,26 @@ The platform is designed with a mobile-first approach, recognizing that most use
   - Storefront URL integration
 
   **API Endpoint:**
+
   ```http
   GET /api/v1/share/whatsapp-link?product_id=PRODUCT_ID&campaign=CAMPAIGN&source=SOURCE&medium=MEDIUM
   ```
+
   **Query Parameters:**
+
   - `product_id` (required): The product to share
   - `campaign` (optional): UTM campaign name
   - `source` (optional): UTM source (e.g., whatsapp)
   - `medium` (optional): UTM medium (e.g., share)
 
   **Example Usage:**
+
   ```http
   GET /api/v1/share/whatsapp-link?product_id=123&campaign=launch&source=whatsapp&medium=share
   ```
+
   **Response:**
+
   ```json
   {
     "whatsapp_link": "https://wa.me/?text=Check%20out%20this%20product%3A%20https%3A%2F%2Fstorefront.com%2Fp%2F123%3Futm_campaign%3Dlaunch%26utm_source%3Dwhatsapp%26utm_medium%3Dshare"
@@ -173,6 +191,7 @@ The platform is designed with a mobile-first approach, recognizing that most use
   ```
 
 - **QR Code Generator**:
+
   - Customizable QR code sizes
   - Tenant verification requirement
   - Event logging for tracking
@@ -180,18 +199,24 @@ The platform is designed with a mobile-first approach, recognizing that most use
   - Secure link generation
 
   **API Endpoint:**
+
   ```http
   GET /api/v1/share/qr-code?product_id=PRODUCT_ID&size=SIZE
   ```
+
   **Query Parameters:**
+
   - `product_id` (required): The product to generate a QR code for
   - `size` (optional): Size of the QR code in pixels (default: 256)
 
   **Example Usage:**
+
   ```http
   GET /api/v1/share/qr-code?product_id=123&size=300
   ```
+
   **Response:**
+
   - Returns a PNG image of the QR code for the product share link
 
 - **Share Service Layer**:
@@ -202,7 +227,9 @@ The platform is designed with a mobile-first approach, recognizing that most use
   - Rate limiting support
 
 ### May 2025: Multi-Platform Social Sharing
+
 - **Cross-Platform Social Features**: Added comprehensive sharing capabilities for products
+
   - WhatsApp sharing with direct messaging and UTM tracking
   - Instagram sharing with caption generation and story instructions
   - TikTok sharing with profile links and content suggestions
@@ -223,17 +250,21 @@ The platform is designed with a mobile-first approach, recognizing that most use
   - Responsive design for mobile and desktop views
 
 ### May 2025: Next.js and Material UI v7 Compatibility
+
 - **Material UI v7 Integration**: Updated components to use the latest Material UI v7 API
+
   - Fixed Grid component usage with proper syntax
   - Updated ListItem and related components to follow v7 patterns
   - Improved component styling approaches compatible with MUI v7
 
 - **Next.js Optimization**:
+
   - Replaced React Router with Next.js routing system
   - Updated environment variable references from React App format to Next.js format
   - Added client-side safety checks for browser-specific operations
 
 - **WebSocket and Real-time Features**:
+
   - Enhanced WebSocket connections to safely handle client-side rendering
   - Improved toast notification system for real-time alerts
   - Fixed tenant isolation in monitoring components
@@ -246,6 +277,7 @@ The platform is designed with a mobile-first approach, recognizing that most use
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js 18+ and npm/yarn
 - Python 3.10+
 - PostgreSQL database
@@ -305,6 +337,7 @@ uvicorn app.main:app --reload
 ### Environment Variables
 
 #### Frontend (.env.local)
+
 ```
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_xxx
 CLERK_SECRET_KEY=sk_xxx
@@ -312,6 +345,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
 #### Backend (.env)
+
 ```
 DATABASE_URL=postgresql://user:password@localhost:5432/dbname
 CLOUDINARY_CLOUD_NAME=your_cloud_name
@@ -409,18 +443,21 @@ backend/
 ### Comprehensive Protection System Implementation (May 2025)
 
 - **Content Moderation System**:
+
   - AI-powered content filtering using Detoxify, TextBlob, and spaCy for toxicity, sentiment, and language analysis
   - Customizable filtering rules with field-specific conditions and severity levels
   - Multi-stage review workflow with pending, approved, and rejected states
   - Tenant-isolated moderation policies for each merchant
 
 - **Behavior Analysis System**:
+
   - Pattern detection engine for identifying suspicious user activities
   - Evidence collection and storage for review and enforcement
   - Confidence scoring system for reducing false positives
   - Review interface for manual verification of detected patterns
 
 - **Violation Management**:
+
   - Progressive enforcement system (warning → temporary ban → permanent ban)
   - Automatic escalation based on violation history and severity
   - Violation dashboard with filtering by type, severity, and status
@@ -544,26 +581,31 @@ npm run dev
 This platform has been built with the following core principles in mind:
 
 ### Build for Scale from MVP
+
 - Modular architecture allows for easy expansion
 - API versioning to support future changes
 - Multi-tenant support planned for future phases
 
 ### Mobile-First Design
+
 - Bottom tab navigation optimized for African market users
 - Direct camera integration for product management
 - Responsive design that works on all device sizes
 
 ### Clean, Composable Code
+
 - Component-based architecture in the frontend
 - Service pattern in the backend
 - Consistent file and directory structure
 
 ### Environment-Based Configuration
+
 - Separate development and production settings
 - Easy deployment to different environments
 - Secrets management through environment variables
 
 ### Modular Architecture
+
 - Separation of concerns across all layers
 - Pluggable services for easy replacement
 - Clear boundaries between components
@@ -609,13 +651,16 @@ python -m pytest tests/api/test_products_parameterized.py
 ### Database & Performance
 
 - **Optimistic Locking**: Prevents data corruption from concurrent modifications
+
   - Implementation: Version column on models with automatic increment
   - Usage: All update operations check version before committing changes
 
 - **Database Indexing**: Strategic indexes for frequently queried fields
+
   - Improved Performance: Faster filtering by seller, price, and product status
 
 - **Batch Operations**: Efficient handling of bulk updates
+
   - Endpoint: `POST /api/v1/products/batch`
   - Use Case: Update multiple products in a single database operation
 
@@ -626,14 +671,17 @@ python -m pytest tests/api/test_products_parameterized.py
 ### Security Enhancements
 
 - **Role-Based Access Control**: Fine-grained permissions by user role
+
   - Roles: `seller`, `admin`, `customer`
   - Implementation: `app/core/security/role_based_auth.py`
 
 - **Audit Logging**: Comprehensive security trail for sensitive operations
+
   - Tracked Actions: Create, update, delete, and read operations
   - Implementation: `app/services/audit_service.py`
 
 - **Standardized Error Handling**: Consistent error responses across the API
+
   - Implementation: `app/core/errors/error_response.py`
   - Benefits: Better client experience and easier troubleshooting
 
@@ -644,6 +692,7 @@ python -m pytest tests/api/test_products_parameterized.py
 ## 📱 Application Structure
 
 ### Backend
+
 - `/app`: Main application code
   - `/api`: API endpoints and routers
   - `/core`: Core functionality
@@ -657,6 +706,7 @@ python -m pytest tests/api/test_products_parameterized.py
   - `/db`: Database session and connection management
 
 ### Frontend
+
 - `/src`: Main source code
   - `/app`: Next.js App Router pages
   - `/components`: Reusable UI components
@@ -702,6 +752,7 @@ The system supports multiple role-based test tokens:
 - `customer_token`: Customer role for testing buyer flows
 
 Example usage in tests:
+
 ```python
 def test_admin_function(client):
     # Get admin privileges
@@ -734,3 +785,16 @@ This project is proprietary and confidential.
 ## 🤝 Contributing
 
 Please contact the repository owner for contribution guidelines.
+
+## 🧹 Code Quality, Linting, and Type Safety
+
+- **Strict ESLint Configuration**: The codebase enforces strict architectural boundaries and type safety using ESLint and TypeScript. All cross-module imports must go through module public APIs (`index.ts`) or DTOs. Direct internal imports and bridge files are prohibited and will be flagged by CI.
+- **No Bridge Files**: All legacy bridge files (e.g., `src/types/events.ts`, `src/types/websocket.ts`) have been removed. Types must be imported from their module's public API.
+- **No Backup/Test Artifacts**: `.bak`, `.old`, and similar backup/test files are not allowed in the codebase and are regularly cleaned up.
+- **CI Enforcement**: All PRs must pass lint (`npm run lint`) and type checks (`npm run type-check`). Violations block merges to protected branches.
+- **Type Safety**: No `any` types are allowed. Use `unknown` with type guards for dynamic data. All module boundaries use explicit interfaces and DTOs.
+
+### How to Fix Lint/Type Errors
+- **Restricted Import**: Change your import to use the module's public API or DTO file.
+- **Unused Variable/Import**: Remove or use the variable/import as needed.
+- **Type Error**: Add or refine type annotations, avoid `any`, and use generics or type guards as appropriate.

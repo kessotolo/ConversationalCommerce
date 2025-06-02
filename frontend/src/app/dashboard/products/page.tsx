@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Plus, Edit, Trash2, Badge, BadgeX, Search, BadgeCheck } from 'lucide-react';
+import {Plus, Edit, Trash2, BadgeX, Search, BadgeCheck} from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 
 // Product type
@@ -222,7 +222,7 @@ export default function ProductsDashboardPage() {
         </div>
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl shadow-inner border border-gray-100">
-            <img src="/empty-box.svg" alt="No products" className="w-32 h-32 mb-6 opacity-80" />
+            <Image src="/empty-box.svg" alt="No products" width={500} height={300}  className="w-32 h-32 mb-6 opacity-80" / />
             <h2 className="text-xl font-semibold mb-2">No products yet</h2>
             <p className="text-gray-500 mb-6">Start adding products to see them listed here.</p>
             <button

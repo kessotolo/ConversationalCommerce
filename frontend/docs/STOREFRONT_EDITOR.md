@@ -47,11 +47,13 @@ All identifiers use UUIDs following the PostgreSQL UUID type standards. This pro
 
 **Purpose**: Container for banner and logo management with tab navigation
 **Key Features**:
+
 - Tab-based UI using Headless UI's Tab components
 - Proper styling with Tailwind CSS
 - Smooth tab transitions
 
 **Implementation Notes**:
+
 ```tsx
 // Simplified implementation
 const BannerLogoManagement: React.FC<BannerLogoManagementProps> = ({ tenantId }) => {
@@ -64,8 +66,12 @@ const BannerLogoManagement: React.FC<BannerLogoManagementProps> = ({ tenantId })
         <Tab>Logos</Tab>
       </Tab.List>
       <Tab.Panels>
-        <Tab.Panel><BannerManagement tenantId={tenantId} /></Tab.Panel>
-        <Tab.Panel><LogoManagement tenantId={tenantId} /></Tab.Panel>
+        <Tab.Panel>
+          <BannerManagement tenantId={tenantId} />
+        </Tab.Panel>
+        <Tab.Panel>
+          <LogoManagement tenantId={tenantId} />
+        </Tab.Panel>
       </Tab.Panels>
     </Tab.Group>
   );
@@ -76,11 +82,13 @@ const BannerLogoManagement: React.FC<BannerLogoManagementProps> = ({ tenantId })
 
 **Purpose**: Manages banner CRUD operations
 **Key Features**:
+
 - List/detail view structure
 - Banner reordering with react-dnd
 - Filtering and pagination
 
 **API Interactions**:
+
 - `getBanners`: Fetches banners with filtering and pagination
 - `createBanner`: Creates a new banner
 - `updateBanner`: Updates an existing banner
@@ -92,11 +100,13 @@ const BannerLogoManagement: React.FC<BannerLogoManagementProps> = ({ tenantId })
 
 **Purpose**: Manages logo CRUD operations
 **Key Features**:
+
 - List/detail view structure
 - Filtering by logo type and status
 - Scheduling with start/end dates
 
 **API Interactions**:
+
 - `getLogos`: Fetches logos with filtering and pagination
 - `createLogo`: Creates a new logo
 - `updateLogo`: Updates an existing logo
@@ -104,6 +114,7 @@ const BannerLogoManagement: React.FC<BannerLogoManagementProps> = ({ tenantId })
 - `deleteLogo`: Removes a logo
 
 **Logo Types**:
+
 - PRIMARY: Main header logo
 - SECONDARY: Alternative logo for specific contexts
 - FOOTER: Logo used in the footer
@@ -168,6 +179,7 @@ Potential enhancements to consider:
 Common issues and solutions:
 
 1. **Missing Dependencies**: Ensure all required packages are installed
+
    ```
    npm install @headlessui/react @heroicons/react react-dnd react-dnd-html5-backend
    ```
@@ -175,3 +187,89 @@ Common issues and solutions:
 2. **Type Errors**: Check that all props match their expected types
 
 3. **Styling Issues**: Verify Tailwind CSS classes are correct and applied
+
+## API DTOs and Error Handling
+
+### Main DTOs
+
+#### Asset
+
+```
+interface Asset {
+  id: string;
+  title: string;
+  asset_type: 'image' | 'video' | 'document' | 'audio';
+  file_path: string;
+  original_filename: string;
+  file_size: number;
+  is_optimized: boolean;
+  usage_count: number;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at?: string;
+}
+```
+
+#### Banner
+
+```
+interface Banner {
+  id: string;
+  title: string;
+  content: Record<string, unknown>;
+  start_date?: string;
+  end_date?: string;
+  status: 'draft' | 'published' | 'inactive';
+  created_at: string;
+  updated_at?: string;
+}
+```
+
+#### Logo
+
+```
+interface Logo {
+  id: string;
+  name: string;
+  logo_type: string; // e.g. 'primary', 'secondary', etc.
+  asset_id: string;
+  display_settings: Record<string, unknown>;
+  responsive_settings: Record<string, unknown>;
+  status: 'draft' | 'published' | 'inactive';
+  start_date?: string;
+  end_date?: string;
+  created_at: string;
+  updated_at?: string;
+}
+```
+
+> **Note:** Align string union values with backend enums as needed. See TODOs in code for any pending backend alignment.
+
+### Error Handling
+
+All API/service errors should be handled using the `parseApiError` utility from `/lib/utils.ts`:
+
+```
+import { parseApiError } from '@/lib/utils';
+
+try {
+  await someApiCall();
+} catch (error) {
+  setError(parseApiError(error));
+}
+```
+
+This ensures user-friendly, consistent error messages across the app.
+
+## 🧹 Code Quality, Linting, and Type Safety
+
+- **Strict ESLint Configuration**: Storefront Editor components follow strict architectural boundaries and type safety using ESLint and TypeScript. All cross-module imports must go through module public APIs (`index.ts`) or DTOs. Direct internal imports and bridge files are prohibited and will be flagged by CI.
+- **No Bridge Files**: All legacy bridge files (e.g., `src/types/events.ts`, `src/types/websocket.ts`) have been removed. Types must be imported from their module's public API.
+- **No Backup/Test Artifacts**: `.bak`, `.old`, and similar backup/test files are not allowed in the codebase and are regularly cleaned up.
+- **CI Enforcement**: All PRs must pass lint (`npm run lint`) and type checks (`npm run type-check`). Violations block merges to protected branches.
+- **Type Safety**: No `any` types are allowed. Use `unknown` with type guards for dynamic data. All module boundaries use explicit interfaces and DTOs.
+
+### How to Fix Lint/Type Errors
+- **Restricted Import**: Change your import to use the module's public API or DTO file.
+- **Unused Variable/Import**: Remove or use the variable/import as needed.
+- **Type Error**: Add or refine type annotations, avoid `any`, and use generics or type guards as appropriate.

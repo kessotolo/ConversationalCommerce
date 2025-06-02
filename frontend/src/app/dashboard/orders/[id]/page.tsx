@@ -6,8 +6,31 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/Card';
-import { ArrowLeft, Package, Truck, X, Clock, MessageSquare, Printer, RefreshCw, AlertTriangle, MapPin, Calendar, Send, Check, User, Phone } from 'lucide-react';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+  CardDescription,
+} from '@/components/ui/Card';
+import {
+  ArrowLeft,
+  Package,
+  Truck,
+  X,
+  Clock,
+  MessageSquare,
+  Printer,
+  RefreshCw,
+  AlertTriangle,
+  MapPin,
+  Calendar,
+  Send,
+  Check,
+  User,
+  Phone,
+} from 'lucide-react';
 
 // Define types
 type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
@@ -38,8 +61,9 @@ interface Order {
 }
 
 export default function OrderPage() {
-  const { id } = useParams();
   const router = useRouter();
+  const params = useParams() as Record<string, string>;
+  const id = params.id;
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -95,7 +119,7 @@ export default function OrderPage() {
     setUpdating(true);
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       setStatus(newStatus);
       setUpdated(true);
       setTimeout(() => setUpdated(false), 3000);
@@ -319,7 +343,13 @@ export default function OrderPage() {
                   <div key={item.id} className="flex items-center justify-between border-b pb-4">
                     <div className="flex items-center space-x-4">
                       <div className="h-12 w-12 rounded overflow-hidden bg-gray-100">
-                        {item.image && <img src={item.image} alt={item.name} className="h-full w-full object-cover" />}
+                        {item.image && (
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="h-full w-full object-cover"
+                          />
+                        )}
                       </div>
                       <div>
                         <p className="font-medium">{item.name}</p>
@@ -328,9 +358,7 @@ export default function OrderPage() {
                         </p>
                       </div>
                     </div>
-                    <div className="font-medium">
-                      {formatCurrency(item.price * item.quantity)}
-                    </div>
+                    <div className="font-medium">{formatCurrency(item.price * item.quantity)}</div>
                   </div>
                 ))}
               </div>
@@ -377,9 +405,7 @@ export default function OrderPage() {
                 </div>
                 <div>
                   <p className="text-sm">{formatPhoneNumber(order?.customer.phone || '')}</p>
-                  <Button className="text-xs btn-ghost p-0 h-auto mt-1">
-                    Send Message
-                  </Button>
+                  <Button className="text-xs btn-ghost p-0 h-auto mt-1">Send Message</Button>
                 </div>
               </div>
             </CardContent>

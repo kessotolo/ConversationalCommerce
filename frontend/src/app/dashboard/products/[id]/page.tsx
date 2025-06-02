@@ -200,149 +200,149 @@ export default function ProductPage() {
         </div>
       </div>
 
-        {/* Product form */}
-        <div className="bg-white rounded-lg shadow p-4 space-y-6">
-          {/* Product image */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Product Image</label>
-            <div className="flex flex-col items-center sm:flex-row sm:items-start gap-4">
-              <div className="w-32 h-32 rounded-md overflow-hidden bg-gray-100">
-                <img
-                  src={newImage || product?.image}
-                  alt={product?.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              <div className="flex flex-col gap-2 justify-center">
-                {/* Camera capture - mobile only */}
-                <label className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50">
-                  <Camera className="h-5 w-5 text-gray-400 mr-2" />
-                  <span className="text-sm">Take Photo</span>
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    capture="environment"
-                    onChange={handleCapture}
-                  />
-                </label>
-
-                {/* File upload */}
-                <label className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50">
-                  <Upload className="h-5 w-5 text-gray-400 mr-2" />
-                  <span className="text-sm">Upload Image</span>
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleFileUpload}
-                  />
-                </label>
-              </div>
-            </div>
-          </div>
-
-          {/* Product details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Product Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                value={product?.name}
-                onChange={(e) => handleChange('name', e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+      {/* Product form */}
+      <div className="bg-white rounded-lg shadow p-4 space-y-6">
+        {/* Product image */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">Product Image</label>
+          <div className="flex flex-col items-center sm:flex-row sm:items-start gap-4">
+            <div className="w-32 h-32 rounded-md overflow-hidden bg-gray-100">
+              <img
+                src={newImage || product?.image}
+                alt={product?.name}
+                className="w-full h-full object-cover"
               />
             </div>
 
-            <div>
-              <label htmlFor="price" className="block text-sm font-medium text-gray-700">
-                Price
-              </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-500 sm:text-sm">$</span>
-                </div>
+            <div className="flex flex-col gap-2 justify-center">
+              {/* Camera capture - mobile only */}
+              <label className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50">
+                <Camera className="h-5 w-5 text-gray-400 mr-2" />
+                <span className="text-sm">Take Photo</span>
                 <input
-                  type="number"
-                  id="price"
-                  value={product?.price}
-                  onChange={(e) => handleChange('price', parseFloat(e.target.value))}
-                  className="block w-full pl-7 pr-12 rounded-md border-gray-300 focus:border-primary focus:ring-primary"
-                  placeholder="0.00"
-                  step="0.01"
-                  min="0"
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleCapture}
                 />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="category" className="block text-sm font-medium text-gray-700">
-                Category
               </label>
-              <input
-                type="text"
-                id="category"
-                value={product?.category}
-                onChange={(e) => handleChange('category', e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                list="categories"
-              />
-              <datalist id="categories">
-                {categories.map((category) => (
-                  <option key={category} value={category} />
-                ))}
-              </datalist>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Stock Status</label>
-              <div className="mt-1 flex items-center">
+              {/* File upload */}
+              <label className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50">
+                <Upload className="h-5 w-5 text-gray-400 mr-2" />
+                <span className="text-sm">Upload Image</span>
                 <input
-                  type="checkbox"
-                  id="inStock"
-                  checked={product?.inStock}
-                  onChange={(e) => handleChange('inStock', e.target.checked)}
-                  className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleFileUpload}
                 />
-                <label htmlFor="inStock" className="ml-2 block text-sm text-gray-700">
-                  In Stock
-                </label>
-              </div>
-            </div>
-
-            <div className="md:col-span-2">
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                Description
               </label>
-              <textarea
-                id="description"
-                value={product?.description}
-                onChange={(e) => handleChange('description', e.target.value)}
-                rows={4}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-              />
             </div>
-          </div>
-
-          {/* Delete button */}
-          <div className="pt-4 border-t">
-            <button
-              className="flex items-center text-red-600 hover:text-red-800"
-              onClick={() => {
-                if (confirm('Are you sure you want to delete this product?')) {
-                  router.push('/dashboard/products');
-                }
-              }}
-            >
-              <Trash2 size={16} className="mr-1" />
-              <span>Delete Product</span>
-            </button>
           </div>
         </div>
+
+        {/* Product details */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              Product Name
+            </label>
+            <input
+              type="text"
+              id="name"
+              value={product?.name}
+              onChange={(e) => handleChange('name', e.target.value)}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="price" className="block text-sm font-medium text-gray-700">
+              Price
+            </label>
+            <div className="mt-1 relative rounded-md shadow-sm">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span className="text-gray-500 sm:text-sm">$</span>
+              </div>
+              <input
+                type="number"
+                id="price"
+                value={product?.price}
+                onChange={(e) => handleChange('price', parseFloat(e.target.value))}
+                className="block w-full pl-7 pr-12 rounded-md border-gray-300 focus:border-primary focus:ring-primary"
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+              Category
+            </label>
+            <input
+              type="text"
+              id="category"
+              value={product?.category}
+              onChange={(e) => handleChange('category', e.target.value)}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+              list="categories"
+            />
+            <datalist id="categories">
+              {categories.map((category) => (
+                <option key={category} value={category} />
+              ))}
+            </datalist>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Stock Status</label>
+            <div className="mt-1 flex items-center">
+              <input
+                type="checkbox"
+                id="inStock"
+                checked={product?.inStock}
+                onChange={(e) => handleChange('inStock', e.target.checked)}
+                className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+              />
+              <label htmlFor="inStock" className="ml-2 block text-sm text-gray-700">
+                In Stock
+              </label>
+            </div>
+          </div>
+
+          <div className="md:col-span-2">
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+              Description
+            </label>
+            <textarea
+              id="description"
+              value={product?.description}
+              onChange={(e) => handleChange('description', e.target.value)}
+              rows={4}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+            />
+          </div>
+        </div>
+
+        {/* Delete button */}
+        <div className="pt-4 border-t">
+          <button
+            className="flex items-center text-red-600 hover:text-red-800"
+            onClick={() => {
+              if (confirm('Are you sure you want to delete this product?')) {
+                router.push('/dashboard/products');
+              }
+            }}
+          >
+            <Trash2 size={16} className="mr-1" />
+            <span>Delete Product</span>
+          </button>
+        </div>
       </div>
+    </div>
   );
 }

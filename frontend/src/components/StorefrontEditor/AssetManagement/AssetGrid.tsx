@@ -1,27 +1,30 @@
 import React from 'react';
-import { Upload } from 'lucide-react';
-import type { Asset } from '@/modules/storefront/models/asset';
-import type { UUID } from '@/modules/core/models/base';
-import { AssetType } from '@/modules/storefront/models/asset';
-import { Image as PhotoIcon, Film as FilmIcon, FileText as DocumentTextIcon, Music as MusicalNoteIcon, File as DocumentIcon } from 'lucide-react';
+import type { Asset } from '@/modules/storefront';
+import {
+  Image as PhotoIcon,
+  Film as FilmIcon,
+  FileText as DocumentTextIcon,
+  Music as MusicalNoteIcon,
+  File as DocumentIcon,
+} from 'lucide-react';
 
 interface AssetGridProps {
   assets: Asset[];
   onAssetSelect: (asset: Asset) => void;
-  selectedAssetId?: UUID;
+  selectedAssetId?: string;
 }
 
 const AssetGrid: React.FC<AssetGridProps> = ({ assets, selectedAssetId, onAssetSelect }) => {
   // Get appropriate icon based on asset type
-  const getAssetIcon = (assetType: AssetType) => {
+  const getAssetIcon = (assetType: Asset['asset_type']) => {
     switch (assetType) {
-      case AssetType.IMAGE:
+      case 'image':
         return <PhotoIcon className="h-8 w-8 text-blue-500" />;
-      case AssetType.VIDEO:
+      case 'video':
         return <FilmIcon className="h-8 w-8 text-purple-500" />;
-      case AssetType.DOCUMENT:
+      case 'document':
         return <DocumentTextIcon className="h-8 w-8 text-yellow-500" />;
-      case AssetType.AUDIO:
+      case 'audio':
         return <MusicalNoteIcon className="h-8 w-8 text-green-500" />;
       default:
         return <DocumentIcon className="h-8 w-8 text-gray-500" />;
@@ -39,16 +42,15 @@ const AssetGrid: React.FC<AssetGridProps> = ({ assets, selectedAssetId, onAssetS
 
   // Generate preview URL for the asset
   const getAssetPreviewUrl = (asset: Asset): string => {
-    // This is a placeholder. In a real implementation, you would use the actual CDN or API URL
-    // that serves optimized thumbnails of assets
-    if (asset.asset_type === AssetType.IMAGE) {
-      // For optimized images, check if there's a small thumbnail version
-      if (asset.is_optimized && asset.metadata?.optimized_versions?.['200x200']) {
-        return `/api/assets/${asset.file_path.replace(/^.*[\\\/]/, '')}`;
+    if (asset.asset_type === 'image') {
+      if (
+        asset.is_optimized &&
+        (asset.metadata?.optimized_versions as Record<string, string>)?.['200x200']
+      ) {
+        return `/api/assets/${asset.file_path.replace(/^.*[\\/]/, '')}`;
       }
-      return `/api/assets/${asset.file_path.replace(/^.*[\\\/]/, '')}`;
+      return `/api/assets/${asset.file_path.replace(/^.*[\\/]/, '')}`;
     }
-
     return '';
   };
 
@@ -76,7 +78,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ assets, selectedAssetId, onAssetS
         >
           {/* Asset Preview */}
           <div className="h-32 flex items-center justify-center bg-gray-100 border-b">
-            {asset.asset_type === AssetType.IMAGE ? (
+            {asset.asset_type === 'image' ? (
               <img
                 src={getAssetPreviewUrl(asset)}
                 alt={asset.title}

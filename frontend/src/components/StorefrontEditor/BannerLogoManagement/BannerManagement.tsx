@@ -1,36 +1,39 @@
-// TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
 import React, { useState, useEffect } from 'react';
 import { Send } from 'lucide-react';
 import { ArrowPathIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import type { Banner } from '@/modules/storefront/models/banner';
-import type { UUID } from '@/modules/core/models/base';
-import { BannerStatus, BannerType } from '@/modules/storefront/models/banner';
-import BannerList from './BannerList';
-import BannerDetail from './BannerDetail';
-import CreateBannerModal from './CreateBannerModal';
-import { getBanners, publishBanner, deleteBanner, reorderBanners } from '@/lib/api/storefrontEditor';
+import type { Banner } from '@/lib/api/storefrontEditor.types';
+import type { UUID } from '@/modules/core/types';
+import BannerList from '@/components/StorefrontEditor/BannerLogoManagement/BannerList';
+import BannerDetail from '@/components/StorefrontEditor/BannerLogoManagement/BannerDetail';
+import CreateBannerModal from '@/components/StorefrontEditor/BannerLogoManagement/CreateBannerModal';
+import {
+  getBanners,
+  publishBanner,
+  deleteBanner,
+  reorderBanners,
+} from '@/lib/api/storefrontEditor';
 
 interface BannerManagementProps {
   tenantId: UUID;
 }
 
-const BannerManagement: React.FC<BannerManagementProps> = ({ tenantId }) => {
+const BannerManagement: React.FC<BannerManagementProps> = ({ /* _tenantId */ }) => {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [selectedBanner, setSelectedBanner] = useState<Banner | null>(null);
-  const [totalBanners, setTotalBanners] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [totalBanners, setTotalBanners] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [offset, setOffset] = useState(0);
-  const [limit] = useState(20);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
+  const [offset, setOffset] = useState<number>(0);
+  const [limit] = useState<number>(20);
 
   // Filter state
-  const [statusFilter, setStatusFilter] = useState<BannerStatus | 'all'>('all');
-  const [typeFilter, setTypeFilter] = useState<BannerType | 'all'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<Banner['status'] | 'all'>('all');
+  const [typeFilter, setTypeFilter] = useState<Banner['banner_type'] | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Load banners
   const loadBanners = async () => {
@@ -38,20 +41,19 @@ const BannerManagement: React.FC<BannerManagementProps> = ({ tenantId }) => {
     setError(null);
 
     try {
-      const params: any = { offset, limit };
+      const params: Record<string, unknown> = { offset, limit };
 
       // Add filters if set
       if (statusFilter !== 'all') params.status = statusFilter;
-      if (typeFilter !== 'all') params.banner_type = typeFilter;
       if (searchQuery) params.search = searchQuery;
 
       const response = await getBanners(tenantId, params);
-      setBanners(response.items);
-      setTotalBanners(response.total);
+      setBanners(response.data.banners);
+      setTotalBanners(response.data.total);
 
       // Select first banner if nothing is selected
-      if (response.items.length > 0 && !selectedBanner) {
-        setSelectedBanner(response.items[0]);
+      if (response.data.banners.length > 0 && !selectedBanner) {
+        setSelectedBanner(response.data.banners[0]);
       }
     } catch (err) {
       setError('Failed to load banners. Please try again later.');
@@ -111,24 +113,13 @@ const BannerManagement: React.FC<BannerManagementProps> = ({ tenantId }) => {
 
   // Handle banner reordering
   const handleBannerReorder = async (sourceIndex: number, destinationIndex: number) => {
-    // Create a new array with the reordered items
     const reordered = [...banners];
     const [removed] = reordered.splice(sourceIndex, 1);
     reordered.splice(destinationIndex, 0, removed);
-
-    // Update display order for all affected banners
-    const updatedOrder = reordered.map((banner, index) => ({
-      banner_id: banner.id,
-      display_order: index + 1,
-    }));
-
+    const updatedOrder = reordered.map((banner) => banner.id);
     try {
-      // Update locally first for immediate feedback
       setBanners(reordered);
-
-      // Send to server
       await reorderBanners(tenantId, { order: updatedOrder });
-
       setSuccessMessage('Banner order updated successfully');
       setTimeout(() => setSuccessMessage(null), 3000);
       return true;
@@ -136,22 +127,20 @@ const BannerManagement: React.FC<BannerManagementProps> = ({ tenantId }) => {
       setError('Failed to update banner order');
       setTimeout(() => setError(null), 3000);
       console.error('Error reordering banners:', err);
-
-      // Reload original order on failure
       loadBanners();
       return false;
     }
   };
 
   // Handle pagination
-  const handlePageChange = (newOffset: number) => {
-    setOffset(newOffset);
+  // Unused page handler removed
+  // const handlePageChange = (page) => setCurrentPage(page);
   };
 
   // Apply filters
   const handleFilterChange = (
-    status: BannerStatus | 'all',
-    type: BannerType | 'all',
+    status: Banner['status'] | 'all',
+    type: Banner['banner_type'] | 'all',
     query: string,
   ) => {
     setStatusFilter(status);

@@ -1,6 +1,5 @@
 'use client';
 
-// TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { CreditCard, Bell, MessageSquare, Upload, Trash2, Save, Store } from 'lucide-react';
@@ -8,6 +7,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import type { InputChangeEvent } from '@/modules/core';
 
 // Mock store settings
 const mockStoreSettings = {
@@ -82,16 +82,16 @@ export default function SettingsPage() {
           setSuccessMessage(null);
         }, 3000);
       }, 1000);
-    } catch (err: any) {
-      setError(err.message || 'Failed to save settings');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || 'Failed to save settings');
+      }
       setIsLoading(false);
     }
   };
 
   // Handle input change
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-  ) => {
+  const handleInputChange = (e: InputChangeEvent) => {
     const { name, value } = e.target;
     setStore({
       ...store,
@@ -162,15 +162,12 @@ export default function SettingsPage() {
                     )}
                   </div>
                   <div className="flex gap-2">
-                    <Button  className="flex items-center">
+                    <Button className="flex items-center">
                       <Upload className="h-4 w-4 mr-2" />
                       Upload Logo
                     </Button>
                     {store.logo && (
-                      <Button
-                        
-                        className="flex items-center text-red-500 border-red-200 hover:bg-red-50"
-                      >
+                      <Button className="flex items-center text-red-500 border-red-200 hover:bg-red-50">
                         <Trash2 className="h-4 w-4 mr-2" />
                         Remove
                       </Button>
@@ -375,9 +372,7 @@ export default function SettingsPage() {
                         <p className="text-sm text-gray-600 mt-1">{template.content}</p>
                       </div>
                     ))}
-                    <Button  className="w-full mt-2">
-                      Add Template
-                    </Button>
+                    <Button className="w-full mt-2">Add Template</Button>
                   </div>
                 </div>
               </div>
@@ -434,18 +429,14 @@ export default function SettingsPage() {
                     </label>
                   </div>
                 </div>
-                <Button  className="w-full mt-2">
-                  Add Payment Method
-                </Button>
+                <Button className="w-full mt-2">Add Payment Method</Button>
               </div>
             </CardContent>
           </Card>
         </div>
 
         <div className="mt-6 flex justify-end">
-          <Button  className="mr-2">
-            Cancel
-          </Button>
+          <Button className="mr-2">Cancel</Button>
           <Button onClick={saveSettings} disabled={isLoading}>
             {isLoading ? (
               <>

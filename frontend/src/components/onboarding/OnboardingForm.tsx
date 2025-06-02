@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
-
+import { useUser } from '@clerk/nextjs';
 
 interface OnboardingFormProps {
   onSubmitSuccess?: () => void;

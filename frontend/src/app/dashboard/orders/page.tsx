@@ -1,15 +1,17 @@
+import Image from 'next/image';
+
 'use client';
 
-// TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import {  CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';
 import { orderService } from '@/lib/api';
-import { Check } from 'lucide-react';
+import { Check, RefreshCcw, Search, Eye, MessageSquare, Package, Truck } from 'lucide-react';
+import { Card } from '@/components/ui/Card';
 
 // Define order types to match component requirements
 type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
@@ -121,8 +123,10 @@ export default function OrdersPage() {
         setOrders(mockOrders);
         setIsLoading(false);
       }, 1000);
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch orders');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || 'Failed to fetch orders');
+      }
       setIsLoading(false);
     }
   };
@@ -154,8 +158,10 @@ export default function OrdersPage() {
         );
         setIsLoading(false);
       }, 500);
-    } catch (err: any) {
-      setError(err.message || 'Failed to update order status');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || 'Failed to update order status');
+      }
       setIsLoading(false);
     }
   };
@@ -229,7 +235,7 @@ export default function OrdersPage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
           <h1 className="text-2xl font-bold tracking-tight mb-4 sm:mb-0">Orders</h1>
           <div className="flex space-x-3">
-            <Button onClick={fetchOrders}  className="flex items-center">
+            <Button onClick={fetchOrders} className="flex items-center">
               <RefreshCcw className="h-4 w-4 mr-2" />
               {isLoading ? 'Refreshing...' : 'Refresh'}
             </Button>
@@ -325,7 +331,6 @@ export default function OrdersPage() {
             </span>
             <div className="flex gap-2 flex-wrap">
               <Button
-                
                 className="btn-outline"
                 onClick={handleBulkMarkProcessing}
                 disabled={selectedOrders.length === 0}
@@ -333,7 +338,6 @@ export default function OrdersPage() {
                 Mark as Processing
               </Button>
               <Button
-                
                 className="btn-outline"
                 onClick={handleBulkMarkShipped}
                 disabled={selectedOrders.length === 0}
@@ -341,14 +345,13 @@ export default function OrdersPage() {
                 Mark as Shipped
               </Button>
               <Button
-                
                 className="btn-destructive"
                 onClick={handleBulkDelete}
                 disabled={selectedOrders.length === 0}
               >
                 Delete
               </Button>
-              <Button  className="btn-ghost" onClick={() => setSelectedOrders([])}>
+              <Button className="btn-ghost" onClick={() => setSelectedOrders([])}>
                 Cancel
               </Button>
             </div>
@@ -432,18 +435,11 @@ export default function OrdersPage() {
                         <td className="py-3 px-4">
                           <div className="flex space-x-2">
                             <Link href={`/dashboard/orders/${order?.id}`}>
-                              <Button
-                                
-                                
-                                className="h-8 w-8 p-0"
-                                title="View Order Details"
-                              >
+                              <Button className="h-8 w-8 p-0" title="View Order Details">
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </Link>
                             <Button
-                              
-                              
                               className="h-8 w-8 p-0"
                               title="Message Customer"
                               onClick={() => messageCustomer(order?.phone)}
@@ -453,8 +449,6 @@ export default function OrdersPage() {
                             {/* Quick status update buttons */}
                             {order?.status === 'pending' && (
                               <Button
-                                
-                                
                                 className="h-8 w-8 p-0 text-blue-600"
                                 title="Mark as Processing"
                                 onClick={() => updateOrderStatus(order?.id, 'processing')}
@@ -464,8 +458,6 @@ export default function OrdersPage() {
                             )}
                             {order?.status === 'processing' && (
                               <Button
-                                
-                                
                                 className="h-8 w-8 p-0 text-purple-600"
                                 title="Mark as Shipped"
                                 onClick={() => updateOrderStatus(order?.id, 'shipped')}
@@ -475,8 +467,6 @@ export default function OrdersPage() {
                             )}
                             {order?.status === 'shipped' && (
                               <Button
-                                
-                                
                                 className="h-8 w-8 p-0 text-green-600"
                                 title="Mark as Delivered"
                                 onClick={() => updateOrderStatus(order?.id, 'delivered')}
@@ -493,7 +483,7 @@ export default function OrdersPage() {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-24">
-                <img src="/empty-box.svg" alt="No orders" className="w-32 h-32 mb-6 opacity-80" />
+                <Image src="/empty-box.svg" alt="No orders" width={500} height={300}  className="w-32 h-32 mb-6 opacity-80" / />
                 <h2 className="text-xl font-semibold mb-2">No orders found</h2>
                 <p className="text-gray-500 mb-6">
                   Orders will appear here as customers make purchases.

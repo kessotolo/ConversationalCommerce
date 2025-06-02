@@ -1,8 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ChevronRight, Users, User } from 'lucide-react';
-import {   ChevronRight } from 'lucide-react';
+import {ChevronRight, Users, Search} from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 
 // Mock orders data (replace with real data/API in production)
@@ -54,7 +53,7 @@ const customers = Object.values(
       }
       return acc;
     },
-    {} as Record<string, any>,
+    {} as Record<string, unknown>,
   ),
 );
 

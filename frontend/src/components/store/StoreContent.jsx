@@ -19,7 +19,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
+// import Link from 'next/link';
 import { productService } from '@/lib/api';
 import ProductCard from '@/components/storefront/ProductCard';
 import { useCart } from '@/lib/cart';

@@ -1,32 +1,28 @@
 {
-    "root": true,
-    "env": {
-        "browser": true,
-        "es2021": true,
-        "node": true
-    },
-    "extends": [
-        "eslint:recommended",
-        "plugin:@typescript-eslint/recommended",
-        "plugin:react/recommended",
-        "plugin:prettier/recommended"
-    ],
-    "parser": "@typescript-eslint/parser",
-    "plugins": [
-        "@typescript-eslint",
-        "react",
-        "prettier"
-    ],
-    "ignorePatterns": [
-        "node_modules/",
-        "**/node_modules/",
-        "dist/",
-        "build/",
-        ".next/",
-        "venv/",
-        "venv_py312/"
-    ],
-    "rules": {
-        "prettier/prettier": "error"
-    }
+  "root": true,
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react/recommended",
+    "plugin:prettier/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint", "react", "prettier"],
+  "ignorePatterns": [
+    "node_modules/",
+    "**/node_modules/",
+    "dist/",
+    "build/",
+    ".next/",
+    "venv/",
+    "venv_py312/"
+  ],
+  "rules": {
+    "prettier/prettier": "error"
+  }
 }

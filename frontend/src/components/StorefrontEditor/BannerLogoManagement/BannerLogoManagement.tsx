@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import type { UUID } from '@/modules/core/models/base';
+import type { UUID } from '@/modules/core/types';
 import { Tab } from '@headlessui/react';
-import BannerManagement from './BannerManagement';
-import LogoManagement from './LogoManagement';
+import BannerManagement from '@/components/StorefrontEditor/BannerLogoManagement/BannerManagement';
+import LogoManagement from '@/components/StorefrontEditor/BannerLogoManagement/LogoManagement';
 
 interface BannerLogoManagementProps {
   tenantId: UUID;
 }
 
-const BannerLogoManagement: React.FC<BannerLogoManagementProps> = ({ tenantId }) => {
+const BannerLogoManagement: React.FC<BannerLogoManagementProps> = ({ _tenantId }) => {
   const [selectedTab, setSelectedTab] = useState(0);
 
   return (

@@ -1,21 +1,17 @@
-// TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
 import { useState, useEffect, useCallback } from 'react';
+import type { WebSocketMessage } from '@/modules/core';
 
-interface WebSocketHook {
-  lastMessage: WebSocketEvent | null;
-  sendMessage: (message: any) => void;
+// WebSocket hook for type-safe message payloads
+export interface WebSocketHook {
+  lastMessage: WebSocketMessage | null;
+  sendMessage: (message: WebSocketMessage) => void;
   isConnected: boolean;
-}
-
-interface WebSocketEvent {
-  data: string;
-  type: string;
 }
 
 export const useWebSocket = (url: string): WebSocketHook => {
   const [socket, setSocket] = useState<WebSocket | null>(null);
-  const [lastMessage, setLastMessage] = useState<WebSocketEvent | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
+  const [isConnected, setIsConnected] = useState<boolean>(false);
 
   useEffect(() => {
     // Only create WebSocket in browser environment and with valid URL
@@ -34,7 +30,17 @@ export const useWebSocket = (url: string): WebSocketHook => {
         };
 
         ws.onmessage = (event) => {
-          setLastMessage(event);
+          try {
+            const payload = JSON.parse(event.data) as WebSocketMessage;
+            // Validate that it's a proper WebSocketMessage with type field
+            if (payload && typeof payload === 'object' && 'type' in payload) {
+              setLastMessage(payload);
+            } else {
+              console.warn('Received malformed WebSocket message:', payload);
+            }
+          } catch (e) {
+            console.error('Error parsing WebSocket message:', e);
+          }
         };
 
         ws.onerror = (error) => {
@@ -56,10 +62,12 @@ export const useWebSocket = (url: string): WebSocketHook => {
     return () => {};
   }, [url]);
 
-  const sendMessage = useCallback(
-    (message: any) => {
-      if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify(message));
+  // Unused message handler removed
+  // const sendMessage = useCallback(...);
+      } else if (socket) {
+        console.warn('WebSocket is not open. Message not sent:', message);
+      } else {
+        console.warn('WebSocket not initialized. Message not sent:', message);
       }
     },
     [socket],

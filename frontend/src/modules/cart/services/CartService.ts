@@ -1,5 +1,5 @@
-import { UUID } from '@/modules/core/models/base';
-import { CartItem } from '@/modules/cart/models/cart';
+import { UUID } from '@/modules/core';
+import { CartItem } from '@/modules/cart';
 
 /**
  * Interface for the cart service
@@ -19,13 +19,13 @@ export interface CartService {
  * Includes offline resilience with local storage persistence
  */
 export class LocalStorageCartService implements CartService {
-  private storage: Storage;
+  private storage: Storage | null;
   private storageKey: string;
   private items: CartItem[];
 
   constructor(storageKey = 'cart_items') {
     this.storageKey = storageKey;
-    this.storage = typeof window !== 'undefined' ? window.localStorage : (null as any);
+    this.storage = typeof window !== 'undefined' ? window.localStorage : null;
     this.items = this.loadItems();
   }
 

@@ -1,12 +1,12 @@
-import { useAuth } from '@clerk/nextjs';
+/**
+ * getToken.ts - Get authentication token without using React hooks
+ */
+import { getStoredAuthToken } from '@/utils/auth-utils';
 
-export async function getToken(): Promise<string | null> {
-  try {
-    const { getToken } = useAuth();
-    const token = await getToken();
-    return token;
-  } catch (error) {
-    console.error('Error getting auth token:', error);
-    return null;
-  }
+/**
+ * Get the current authentication token
+ * Implemented without React hooks to avoid ESLint issues
+ */
+export function getToken(): string | null {
+  return getStoredAuthToken();
 }

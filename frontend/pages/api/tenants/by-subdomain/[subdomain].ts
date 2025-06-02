@@ -13,13 +13,13 @@ type ErrorResponse = {
 
 /**
  * API endpoint to get tenant by subdomain
- * 
+ *
  * This endpoint fetches tenant data from the backend based on the subdomain
  * It's used by the TenantContext to resolve the current tenant
  */
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Tenant | ErrorResponse>
+  res: NextApiResponse<Tenant | ErrorResponse>,
 ) {
   const { subdomain } = req.query;
 
@@ -29,7 +29,7 @@ export default async function handler(
 
   try {
     // In a real implementation, this would be an API call to your backend
-    // For example: 
+    // For example:
     // const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tenants/subdomain/${subdomain}`);
     // const data = await response.json();
 
@@ -42,24 +42,24 @@ export default async function handler(
         subdomain: 'default',
       });
     }
-    
+
     // Simulating tenant lookup
     const mockTenantData: Record<string, Tenant> = {
-      'tenant1': {
+      tenant1: {
         id: '12345678-1234-5678-1234-567812345678',
         name: 'Tenant 1',
         subdomain: 'tenant1',
       },
-      'tenant2': {
+      tenant2: {
         id: '87654321-8765-4321-8765-432187654321',
         name: 'Tenant 2',
         subdomain: 'tenant2',
         customDomain: 'tenant2-custom.com',
       },
     };
-    
+
     const tenant = mockTenantData[subdomain];
-    
+
     if (tenant) {
       return res.status(200).json(tenant);
     } else {

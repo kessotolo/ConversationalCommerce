@@ -22,7 +22,7 @@ export enum ComponentStatus {
 export interface Component extends TenantScoped {
   name: string;
   component_type: ComponentType;
-  configuration: Record<string, any>;
+  configuration: Record<string, unknown>;
   description?: string;
   is_global: boolean;
   tags: string[];

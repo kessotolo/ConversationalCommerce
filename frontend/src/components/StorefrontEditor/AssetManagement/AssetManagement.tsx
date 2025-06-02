@@ -1,34 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Upload } from 'lucide-react';
-import { PlusIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
-import type { Asset } from '@/modules/storefront/models/asset';
-import type { UUID } from '@/modules/core/models/base';
-import { AssetType } from '@/modules/storefront/models/asset';
-import { getAssets, deleteAsset } from '@/lib/api/storefrontEditor';
-import AssetGrid from './AssetGrid';
-import AssetUploader from './AssetUploader';
-import AssetFilterBar from './AssetFilterBar';
-import AssetDetails from './AssetDetails';
+import { PlusIcon } from '@heroicons/react/24/outline';
+import type { Asset } from '@/lib/api/storefrontEditor.types';
+import { getAssets } from '@/lib/api/storefrontEditor';
+import AssetGrid from '@/components/StorefrontEditor/AssetManagement/AssetGrid';
+import AssetUploader from '@/components/StorefrontEditor/AssetManagement/AssetUploader';
+import AssetFilterBar from '@/components/StorefrontEditor/AssetManagement/AssetFilterBar';
+import AssetDetails from '@/components/StorefrontEditor/AssetManagement/AssetDetails';
 
 interface AssetManagementProps {
-  tenantId: UUID;
+  tenantId: string;
 }
 
-const AssetManagement: React.FC<AssetManagementProps> = ({ tenantId }) => {
+const AssetManagement: React.FC<AssetManagementProps> = ({ _tenantId }) => {
   const [assets, setAssets] = useState<Asset[]>([]);
-  const [totalAssets, setTotalAssets] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
-  const [isUploaderOpen, setIsUploaderOpen] = useState(false);
+  const [isUploaderOpen, setIsUploaderOpen] = useState<boolean>(false);
 
   // Filters
-  const [assetType, setAssetType] = useState<AssetType | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('created_at');
-  const [sortDesc, setSortDesc] = useState(true);
-  const [limit, setLimit] = useState(20);
-  const [offset, setOffset] = useState(0);
+  const [assetType, setAssetType] = useState<'image' | 'video' | 'audio' | 'document' | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [sortBy, setSortBy] = useState<string>('created_at');
+  const [sortDesc, setSortDesc] = useState<boolean>(true);
+  const [offset, setOffset] = useState<number>(0);
 
   // Load assets
   const loadAssets = async () => {
@@ -41,13 +36,11 @@ const AssetManagement: React.FC<AssetManagementProps> = ({ tenantId }) => {
         search_query: searchQuery || undefined,
         sort_by: sortBy,
         sort_desc: sortDesc,
-        limit,
         offset,
       };
 
       const response = await getAssets(tenantId, params);
-      setAssets(response.items);
-      setTotalAssets(response.total);
+      setAssets(response.data.assets);
     } catch (err) {
       setError('Failed to load assets. Please try again later.');
       console.error('Error loading assets:', err);
@@ -59,7 +52,7 @@ const AssetManagement: React.FC<AssetManagementProps> = ({ tenantId }) => {
   // Load assets on initial load and when filters change
   useEffect(() => {
     loadAssets();
-  }, [tenantId, assetType, searchQuery, sortBy, sortDesc, limit, offset]);
+  }, [tenantId, assetType, searchQuery, sortBy, sortDesc, offset]);
 
   // Handle asset selection
   const handleAssetSelect = (asset: Asset) => {
@@ -73,13 +66,13 @@ const AssetManagement: React.FC<AssetManagementProps> = ({ tenantId }) => {
   };
 
   // Handle pagination
-  const handlePageChange = (newOffset: number) => {
-    setOffset(newOffset);
+  // Unused page handler removed
+  // const handlePageChange = (page) => setCurrentPage(page);
   };
 
   // Handle filter changes
   const handleFilterChange = (
-    type: AssetType | null,
+    type: 'image' | 'video' | 'audio' | 'document' | null,
     query: string,
     sort: string,
     direction: boolean,
@@ -133,12 +126,12 @@ const AssetManagement: React.FC<AssetManagementProps> = ({ tenantId }) => {
               {/* Pagination */}
               <div className="flex justify-between items-center mt-4">
                 <div className="text-sm text-gray-700">
-                  Showing {offset + 1} to {Math.min(offset + assets.length, totalAssets)} of{' '}
-                  {totalAssets} assets
+                  Showing {offset + 1} to {Math.min(offset + assets.length, assets.length)} of{' '}
+                  {assets.length} assets
                 </div>
                 <div className="flex space-x-2">
                   <button
-                    onClick={() => handlePageChange(Math.max(0, offset - limit))}
+                    onClick={() => handlePageChange(Math.max(0, offset - 20))}
                     disabled={offset === 0}
                     className={`px-3 py-1 rounded ${
                       offset === 0
@@ -149,10 +142,10 @@ const AssetManagement: React.FC<AssetManagementProps> = ({ tenantId }) => {
                     Previous
                   </button>
                   <button
-                    onClick={() => handlePageChange(offset + limit)}
-                    disabled={offset + limit >= totalAssets}
+                    onClick={() => handlePageChange(offset + 20)}
+                    disabled={offset + 20 >= assets.length}
                     className={`px-3 py-1 rounded ${
-                      offset + limit >= totalAssets
+                      offset + 20 >= assets.length
                         ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                         : 'bg-blue-600 text-white hover:bg-blue-700'
                     }`}

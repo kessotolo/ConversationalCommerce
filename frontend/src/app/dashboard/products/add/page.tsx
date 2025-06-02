@@ -1,6 +1,5 @@
 'use client';
 
-// TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
 import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -8,7 +7,8 @@ import Image from 'next/image';
 import { ArrowLeft, Camera, Upload, Trash2, MessageSquare, Globe, Check, Save } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/Button';
-import {  CardContent } from '@/components/ui/Card';
+import { Card } from '@/components/ui/Card';
+import { CardContent } from '@/components/ui/Card';
 
 interface NewProduct {
   name: string;
@@ -117,7 +117,7 @@ export default function AddProductPage() {
   };
 
   // Handle field change
-  const handleChange = (field: keyof NewProduct, value: any) => {
+  const handleChange = (field: keyof NewProduct, value: unknown) => {
     setProduct({
       ...product,
       [field]: value,
@@ -171,7 +171,9 @@ export default function AddProductPage() {
                 >
                   <MessageSquare className="mr-2 h-4 w-4" />
                   WhatsApp
-                  {product?.channels.whatsapp && <Check size={16} className="ml-2 text-green-600" />}
+                  {product?.channels.whatsapp && (
+                    <Check size={16} className="ml-2 text-green-600" />
+                  )}
                 </button>
 
                 <button
@@ -234,7 +236,6 @@ export default function AddProductPage() {
                     <Button
                       type="button"
                       onClick={openCamera}
-                      
                       className="flex-1 sm:flex-none flex items-center justify-center gap-2"
                     >
                       <Camera size={16} />
@@ -244,7 +245,6 @@ export default function AddProductPage() {
                     <Button
                       type="button"
                       onClick={openFileUpload}
-                      
                       className="flex-1 sm:flex-none flex items-center justify-center gap-2"
                     >
                       <Upload size={16} />

@@ -1,31 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import type { Draft } from '@/modules/storefront/models/draft';
-import type { UUID } from '@/modules/core/models/base';
-import { Status } from '@/modules/core/models/base';
+import Reactimport React, { useState, useEffect } from 'react';
+import type { UUID } from '@/modules/core';
 import { getDrafts, publishDraft, deleteDraft } from '@/lib/api/storefrontEditor';
-import DraftList from './DraftList';
-import DraftDetail from './DraftDetail';
-import CreateDraftModal from './CreateDraftModal';
+import type {Draft} from '@/lib/api/storefrontEditor.types';
+import DraftList from '@/components/StorefrontEditor/DraftManagement/DraftList';
+import DraftDetail from '@/components/StorefrontEditor/DraftManagement/DraftDetail';
+import CreateDraftModal from '@/components/StorefrontEditor/DraftManagement/CreateDraftModal';
 import { PlusIcon } from '@heroicons/react/24/outline';
 
-
 interface DraftManagementProps {
-  tenantId: UUID;
+};
+  tenantId: UUID;,
 }
 
-const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
-  const [drafts, setDrafts] = useState<Draft[]>([]);
-  const [selectedDraft, setSelectedDraft] = useState<Draft | null>(null);
-  const [totalDrafts, setTotalDrafts] = useState(0);
-  const [loading, setLoading] = useState(true);
+const DraftManagement: React.FC<DraftManagementProps></DraftManagementProps> = ({ _tenantId }) => {;
+  const [drafts, setDrafts] = useState<Draft[]></Draft>([]);
+  const [selectedDraft, setSelectedDraft] = useState<Draft | null></Draft>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [skip, setSkip] = useState(0);
-  const [limit] = useState(10);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
+  const [skip, setSkip] = useState<number>(0);
+  const [limit] = useState<number>(10);
 
   // Filter state
-  const [statusFilter, setStatusFilter] = useState<Status | 'all'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<Draft['status'] | 'all'></Draft>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Load drafts
   const loadDrafts = async () => {
@@ -34,12 +32,11 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
 
     try {
       const response = await getDrafts(tenantId, skip, limit);
-      setDrafts(response.items);
-      setTotalDrafts(response.total);
+      setDrafts(response.data.drafts);
 
       // Select first draft if nothing is selected
-      if (response.items.length > 0 && !selectedDraft) {
-        setSelectedDraft(response.items[0]);
+      if (response.data.drafts.length > 0 && !selectedDraft) {
+        setSelectedDraft(response.data.drafts[0]);
       }
     } catch (err) {
       setError('Failed to load drafts. Please try again later.');
@@ -90,8 +87,8 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
   };
 
   // Handle pagination
-  const handlePageChange = (newSkip: number) => {
-    setSkip(newSkip);
+  // Unused page handler removed
+  // const handlePageChange = (page) => setCurrentPage(page);
   };
 
   // Apply filters
@@ -105,7 +102,7 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
     if (
       searchQuery &&
       !draft.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !draft.description.toLowerCase().includes(searchQuery.toLowerCase())
+      !(draft.description || '').toLowerCase().includes(searchQuery.toLowerCase())
     ) {
       return false;
     }
@@ -117,11 +114,11 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
     <div className="h-full flex flex-col">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">Draft Management</h2>
-        <button
+        <button;
           onClick={() => setIsCreateModalOpen(true)}
           className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
-          <PlusIcon className="w-5 h-5 mr-2" />
+          <PlusIcon className="w-5 h-5 mr-2" /></PlusIcon>
           Create Draft
         </button>
       </div>
@@ -137,39 +134,43 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
         <div className="w-1/3 bg-white rounded-lg border shadow-sm overflow-hidden">
           <div className="p-4 border-b">
             <div className="flex gap-2 mb-3">
-              <button
+              <button;
                 onClick={() => setStatusFilter('all')}
-                className={`text-xs px-3 py-1 rounded-full ${statusFilter === 'all'
-                  ? 'bg-blue-100 text-blue-800'
-                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                  }`}
+                className={`text-xs px-3 py-1 rounded-full ${
+                  statusFilter === 'all'
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                }`}
               >
                 All
               </button>
-              <button
-                onClick={() => setStatusFilter(Status.DRAFT)}
-                className={`text-xs px-3 py-1 rounded-full ${statusFilter === Status.DRAFT
-                  ? 'bg-blue-100 text-blue-800'
-                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                  }`}
+              <button;
+                onClick={() => setStatusFilter('draft')}
+                className={`text-xs px-3 py-1 rounded-full ${
+                  statusFilter === 'draft'
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                }`}
               >
                 Drafts
               </button>
-              <button
-                onClick={() => setStatusFilter(Status.PENDING)}
-                className={`text-xs px-3 py-1 rounded-full ${statusFilter === Status.PENDING
-                  ? 'bg-blue-100 text-blue-800'
-                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                  }`}
+              <button;
+                onClick={() => setStatusFilter('pending')}
+                className={`text-xs px-3 py-1 rounded-full ${
+                  statusFilter === 'pending'
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                }`}
               >
                 Pending
               </button>
-              <button
-                onClick={() => setStatusFilter(Status.SCHEDULED)}
-                className={`text-xs px-3 py-1 rounded-full ${statusFilter === Status.SCHEDULED
-                  ? 'bg-blue-100 text-blue-800'
-                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                  }`}
+              <button;
+                onClick={() => setStatusFilter('scheduled')}
+                className={`text-xs px-3 py-1 rounded-full ${
+                  statusFilter === 'scheduled'
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                }`}
               >
                 Scheduled
               </button>
@@ -177,7 +178,7 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
 
             <div className="relative">
               <input
-                type="text"
+                type="text";
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search drafts..."
@@ -192,7 +193,7 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
                 >
                   <path
                     strokeLinecap="round"
-                    strokeLinejoin="round"
+                    strokeLinejoin="round";
                     strokeWidth={2}
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                   />
@@ -201,43 +202,12 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
             </div>
           </div>
 
-          <DraftList
+          <DraftList;
             drafts={filteredDrafts}
             loading={loading}
             selectedDraftId={selectedDraft?.id}
             onDraftSelect={handleDraftSelect}
-          />
-
-          {/* Pagination */}
-          <div className="p-3 border-t flex justify-between items-center">
-            <span className="text-sm text-gray-600">
-              {filteredDrafts.length > 0
-                ? `Showing ${skip + 1}-${skip + filteredDrafts.length} of ${totalDrafts}`
-                : 'No drafts found'}
-            </span>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => handlePageChange(Math.max(0, skip - limit))}
-                disabled={skip === 0}
-                className={`px-3 py-1 rounded ${skip === 0
-                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => handlePageChange(skip + limit)}
-                disabled={skip + limit >= totalDrafts}
-                className={`px-3 py-1 rounded ${skip + limit >= totalDrafts
-                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
-              >
-                Next
-              </button>
-            </div>
-          </div>
+          /></DraftList>
         </div>
 
         {/* Draft Detail */}
@@ -249,7 +219,7 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
               onPublish={handlePublishDraft}
               onDelete={handleDeleteDraft}
               onRefresh={loadDrafts}
-            />
+            /></DraftDetail>
           ) : (
             <div className="bg-white rounded-lg border shadow-sm p-8 flex flex-col items-center justify-center h-full">
               <svg
@@ -260,7 +230,7 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
               >
                 <path
                   strokeLinecap="round"
-                  strokeLinejoin="round"
+                  strokeLinejoin="round";
                   strokeWidth={2}
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
@@ -269,11 +239,11 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
               <p className="text-gray-500 mt-1">
                 Select a draft to view details or create a new one.
               </p>
-              <button
+              <button;
                 onClick={() => setIsCreateModalOpen(true)}
                 className="mt-4 flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
-                <PlusIcon className="w-5 h-5 mr-2" />
+                <PlusIcon className="w-5 h-5 mr-2" /></PlusIcon>
                 Create Draft
               </button>
             </div>
@@ -285,7 +255,7 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
       {isCreateModalOpen && (
         <CreateDraftModal
           tenantId={tenantId}
-          onClose={() => setIsCreateModalOpen(false)}
+          onClose={() =></CreateDraftModal> setIsCreateModalOpen(false)}
           onSuccess={loadDrafts}
         />
       )}
@@ -294,3 +264,4 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
 };
 
 export default DraftManagement;
+

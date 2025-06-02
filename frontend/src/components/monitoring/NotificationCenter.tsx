@@ -1,26 +1,48 @@
 import React, { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { useWebSocket } from '../../hooks/useWebSocket';
+import { useWebSocket } from '@/hooks/useWebSocket';
+import type { isNotification } from '@/modules/core';
+import type { NotificationPayload } from '@/modules/core';
+import IconButton from '@mui/material/IconButton';
+import Badge from '@mui/material/Badge';
+import Drawer from '@mui/material/Drawer';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Chip from '@mui/material/Chip';
+import Divider from '@mui/material/Divider';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import ErrorIcon from '@mui/icons-material/Error';
+import WarningIcon from '@mui/icons-material/Warning';
+import InfoIcon from '@mui/icons-material/Info';
+import SuccessIcon from '@mui/icons-material/CheckCircle';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import CloseIcon from '@mui/icons-material/Close';
+
 interface Notification {
   id: string;
   title: string;
   message: string;
   priority: 'low' | 'medium' | 'high' | 'urgent';
   created_at: string;
-  metadata: Record<string, any>;
+  timestamp: string;
+  read: boolean;
+  metadata: Record<string, unknown>;
 }
 
 const NotificationCenter: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
 
   const [tenantId, setTenantId] = useState<string>('');
 
   // Get tenant ID from localStorage (client-side only)
   useEffect(() => {
     setTenantId(localStorage.getItem('tenant_id') || '');
-  }, []);
+  }, [getItem]);
 
   // WebSocket connection - only establish when tenantId is available
   const { lastMessage } = useWebSocket(
@@ -30,14 +52,41 @@ const NotificationCenter: React.FC = () => {
   );
 
   useEffect(() => {
-    if (lastMessage) {
-      const data = JSON.parse(lastMessage.data);
-      if (data.type === 'notification') {
-        setNotifications((prev) => [data.data, ...prev]);
-        setUnreadCount((prev) => prev + 1);
-      }
+    if (lastMessage && isNotification(lastMessage)) {
+      // Use type-safe payload with proper properties
+      const newNotification: Notification = {
+        id: lastMessage.payload.id,
+        title: `New alert: ${lastMessage.payload.message}`,
+        message: lastMessage.payload.message,
+        priority: mapSeverityToPriority(lastMessage.payload.severity),
+        created_at: lastMessage.payload.timestamp,
+        timestamp: lastMessage.payload.timestamp,
+        read: false,
+        metadata: { source: 'websocket' },
+      };
+
+      setNotifications((prev) => [newNotification, ...prev]);
+      setUnreadCount((prev) => prev + 1);
     }
   }, [lastMessage]);
+
+  // Helper function to map severity to priority
+  const mapSeverityToPriority = (
+    severity: NotificationPayload['severity'],
+  ): Notification['priority'] => {
+    switch (severity) {
+      case 'error':
+        return 'urgent';
+      case 'warning':
+        return 'high';
+      case 'info':
+        return 'medium';
+      case 'success':
+        return 'low';
+      default:
+        return 'medium';
+    }
+  };
 
   const handleClose = (notificationId: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
@@ -138,6 +187,9 @@ const NotificationCenter: React.FC = () => {
                     >
                       {notification.message}
                     </Typography>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                      {String(notification.metadata.source || 'system')}
+                    </Typography>
                     <Typography component="span" variant="caption" color="text.secondary">
                       {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                     </Typography>
@@ -149,7 +201,7 @@ const NotificationCenter: React.FC = () => {
                         color="text.secondary"
                         sx={{ display: 'block' }}
                       >
-                        {key}: {value}
+                        {key}: {String(value)}
                       </Typography>
                     ))}
                   </>

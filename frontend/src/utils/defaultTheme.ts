@@ -1,4 +1,4 @@
-import type { Theme } from '@/modules/theme/models/theme';
+import type { Theme } from '@/modules/theme/types';
 
 export const defaultTheme: Theme = {
   id: 'default',

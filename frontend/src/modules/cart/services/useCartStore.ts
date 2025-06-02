@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { LocalStorageCartService } from './CartService';
-import { UUID } from '@/modules/core/models/base';
-import { CartItem } from '@/modules/cart/models/cart';
+import { LocalStorageCartService } from '@/modules/cart';
+import { UUID } from '@/modules/core';
+import { CartItem } from '@/modules/cart';
 
 /**
  * A Zustand store that wraps our CartService

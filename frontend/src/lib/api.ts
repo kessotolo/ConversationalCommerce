@@ -1,13 +1,13 @@
-// TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
 // Try dynamic import as a workaround
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const axios = require('axios').default || require('axios');
 
 // Import standardized configuration optimized for African markets
 import { API_BASE_URL, API_TIMEOUT, RETRY_ATTEMPTS, FEATURES } from '@/config';
+import { parseApiError } from '@/lib/utils';
 
 // Define response and error types for better type safety
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   data: T;
   status: number;
   message?: string;
@@ -16,7 +16,7 @@ export interface ApiResponse<T = any> {
 export interface ApiError {
   status: number;
   message: string;
-  errors?: any;
+  errors?: Record<string, unknown>;
 }
 
 // Create axios instance with base configuration optimized for intermittent connectivity
@@ -30,21 +30,21 @@ const apiClient = axios.create({
 });
 
 // Add retry logic for better resilience in low-connectivity environments
-apiClient.interceptors.response.use(null, async (error: any) => {
-  const { config } = error;
-  if (!config || !config.retry) {
-    config.retry = 0;
+apiClient.interceptors.response.use(null, async (error: unknown) => {
+  if (typeof error !== 'object' || error === null || !('config' in error)) {
+    throw parseApiError(error);
   }
-
-  if (config.retry >= RETRY_ATTEMPTS) {
-    return Promise.reject(error);
+  const err = error as { config: unknown };
+  if (!err.config.retry) {
+    err.config.retry = 0;
   }
-
-  // Exponential backoff for retries
-  config.retry += 1;
-  const delay = 1000 * Math.pow(2, config.retry);
+  if (err.config.retry >= RETRY_ATTEMPTS) {
+    throw parseApiError(error);
+  }
+  err.config.retry += 1;
+  const delay = 1000 * Math.pow(2, err.config.retry);
   await new Promise((resolve) => setTimeout(resolve, delay));
-  return apiClient(config);
+  return apiClient(err.config);
 });
 
 // Add offline detection and queueing if enabled
@@ -59,7 +59,7 @@ if (FEATURES.offlineMode && typeof window !== 'undefined') {
   });
 
   // Request queue for offline mode
-  const requestQueue: any[] = [];
+  const requestQueue: Array<Record<string, unknown>> = [];
 
   // Process queue when back online
   window.addEventListener('online', async () => {
@@ -75,11 +75,11 @@ if (FEATURES.offlineMode && typeof window !== 'undefined') {
 }
 
 // Add request interceptor to include auth token
-apiClient.interceptors.request.use((config: any) => {
+apiClient.interceptors.request.use((config: unknown) => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('clerk-token');
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (token && typeof config === 'object' && config !== null && 'headers' in config) {
+      (config as { headers: Record<string, string> }).headers.Authorization = `Bearer ${token}`;
     }
   }
   return config;
@@ -87,45 +87,60 @@ apiClient.interceptors.request.use((config: any) => {
 
 // Add response interceptor for error handling
 apiClient.interceptors.response.use(
-  (response: any) => response,
-  (error: any) => {
+  (response: unknown) => response,
+  (error: unknown) => {
     console.error('API error:', error);
-    return Promise.reject({
-      status: error.response?.status,
-      message: error.response?.data?.message || error.message,
-      errors: error.response?.data?.errors,
-    });
+    throw parseApiError(error);
   },
 );
 
+// Import types
+import type {
+  Product,
+  CreateProductRequest,
+  UpdateProductRequest,
+  ProductResponse,
+  ProductsResponse,
+  Order,
+  CreateOrderRequest,
+  OrderResponse,
+  OrdersResponse,
+  DashboardStatsResponse,
+} from '@/modules/core';
+
+import type { Product as CoreProduct, Order as CoreOrder } from '@/modules/core';
+
 // Product endpoints
 export const productService = {
-  getProducts: async () => {
+  getProducts: async (): Promise<ApiResponse<ProductsResponse>> => {
     const response = await apiClient.get('/api/v1/products');
     return response.data;
   },
 
-  getProduct: async (id: string) => {
+  getProduct: async (id: string): Promise<ApiResponse<ProductResponse>> => {
     const response = await apiClient.get(`/api/v1/products/${id}`);
     return response.data;
   },
 
-  createProduct: async (data: any) => {
+  createProduct: async (data: CreateProductRequest): Promise<ApiResponse<ProductResponse>> => {
     const response = await apiClient.post('/api/v1/products', data);
     return response.data;
   },
 
-  updateProduct: async (id: string, data: any) => {
+  updateProduct: async (
+    id: string,
+    data: UpdateProductRequest,
+  ): Promise<ApiResponse<ProductResponse>> => {
     const response = await apiClient.put(`/api/v1/products/${id}`, data);
     return response.data;
   },
 
-  deleteProduct: async (id: string) => {
+  deleteProduct: async (id: string): Promise<ApiResponse<{ success: boolean }>> => {
     const response = await apiClient.delete(`/api/v1/products/${id}`);
     return response.data;
   },
 
-  uploadImage: async (formData: FormData) => {
+  uploadImage: async (formData: FormData): Promise<ApiResponse<{ imageUrl: string }>> => {
     const response = await apiClient.post('/api/v1/products/upload-image', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
@@ -137,22 +152,22 @@ export const productService = {
 
 // Order endpoints
 export const orderService = {
-  getOrders: async () => {
+  getOrders: async (): Promise<ApiResponse<OrdersResponse>> => {
     const response = await apiClient.get('/api/v1/orders');
     return response.data;
   },
 
-  getOrder: async (id: string) => {
+  getOrder: async (id: string): Promise<ApiResponse<OrderResponse>> => {
     const response = await apiClient.get(`/api/v1/orders/${id}`);
     return response.data;
   },
 
-  createOrder: async (data: any) => {
+  createOrder: async (data: CreateOrderRequest): Promise<ApiResponse<OrderResponse>> => {
     const response = await apiClient.post('/api/v1/orders', data);
     return response.data;
   },
 
-  updateOrderStatus: async (id: string, status: string) => {
+  updateOrderStatus: async (id: string, status: string): Promise<ApiResponse<OrderResponse>> => {
     const response = await apiClient.patch(`/api/v1/orders/${id}/status`, { status });
     return response.data;
   },
@@ -160,7 +175,7 @@ export const orderService = {
 
 // Dashboard endpoints
 export const dashboardService = {
-  getStats: async () => {
+  getStats: async (): Promise<ApiResponse<DashboardStatsResponse>> => {
     const response = await apiClient.get('/api/v1/dashboard/stats');
     return response.data;
   },
@@ -173,7 +188,7 @@ export const healthCheck = async (): Promise<boolean> => {
     return response.data?.status === 'ok';
   } catch (error) {
     console.error('Backend health check failed:', error);
-    return false;
+    throw parseApiError(error);
   }
 };
 

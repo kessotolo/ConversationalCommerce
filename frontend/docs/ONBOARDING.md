@@ -16,16 +16,16 @@ The ConversationalCommerce frontend follows a **modular monolith architecture**.
 
 Our codebase is organized into these modules:
 
-| Module | Responsibility | Can Import From |
-|--------|----------------|----------------|
-| **Core** | Base types, utilities, cross-cutting concerns | *None (base module)* |
-| **Tenant** | Merchant configuration and management | Core |
-| **Conversation** | Messaging system | Core, Tenant |
-| **Product** | Product catalog management | Core, Tenant |
-| **Order** | Order processing and transactions | Core, Tenant, Product |
-| **Storefront** | Storefront configuration | Core, Tenant, Product, Order |
-| **Theme** | Theming engine and configuration | Core, Tenant |
-| **Monitoring** | System monitoring and alerts | Core |
+| Module           | Responsibility                                | Can Import From              |
+| ---------------- | --------------------------------------------- | ---------------------------- |
+| **Core**         | Base types, utilities, cross-cutting concerns | _None (base module)_         |
+| **Tenant**       | Merchant configuration and management         | Core                         |
+| **Conversation** | Messaging system                              | Core, Tenant                 |
+| **Product**      | Product catalog management                    | Core, Tenant                 |
+| **Order**        | Order processing and transactions             | Core, Tenant, Product        |
+| **Storefront**   | Storefront configuration                      | Core, Tenant, Product, Order |
+| **Theme**        | Theming engine and configuration              | Core, Tenant                 |
+| **Monitoring**   | System monitoring and alerts                  | Core                         |
 
 ## Import Guidelines
 
@@ -58,6 +58,7 @@ We've standardized on these key types:
 - **TenantScoped**: For multi-tenant data with `tenant_id`
 
 Example:
+
 ```typescript
 import type { Entity } from '@/modules/core/models/base';
 
@@ -100,3 +101,16 @@ We enforce our architecture through:
 - Ask questions in our #architecture Slack channel
 
 Welcome aboard! We're excited to have you contribute to ConversationalCommerce.
+
+## Code Quality, Linting, and Type Safety
+
+- **Strict ESLint Configuration**: The codebase enforces strict architectural boundaries and type safety using ESLint and TypeScript. All cross-module imports must go through module public APIs (`index.ts`) or DTOs. Direct internal imports and bridge files are prohibited and will be flagged by CI.
+- **No Bridge Files**: All legacy bridge files (e.g., `src/types/events.ts`, `src/types/websocket.ts`) have been removed. Types must be imported from their module's public API.
+- **No Backup/Test Artifacts**: `.bak`, `.old`, and similar backup/test files are not allowed in the codebase and are regularly cleaned up.
+- **CI Enforcement**: All PRs must pass lint (`npm run lint`) and type checks (`npm run type-check`). Violations block merges to protected branches.
+- **Type Safety**: No `any` types are allowed. Use `unknown` with type guards for dynamic data. All module boundaries use explicit interfaces and DTOs.
+
+### How to Fix Lint/Type Errors
+- **Restricted Import**: Change your import to use the module's public API or DTO file.
+- **Unused Variable/Import**: Remove or use the variable/import as needed.
+- **Type Error**: Add or refine type annotations, avoid `any`, and use generics or type guards as appropriate.

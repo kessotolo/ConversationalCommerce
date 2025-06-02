@@ -13,13 +13,13 @@ type ErrorResponse = {
 
 /**
  * API endpoint to get tenant by custom domain
- * 
+ *
  * This endpoint fetches tenant data from the backend based on a custom domain
  * It's used by the TenantContext when a user accesses the site via a custom domain
  */
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Tenant | ErrorResponse>
+  res: NextApiResponse<Tenant | ErrorResponse>,
 ) {
   const { domain } = req.query;
 
@@ -29,7 +29,7 @@ export default async function handler(
 
   try {
     // In a real implementation, this would be an API call to your backend
-    // For example: 
+    // For example:
     // const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tenants/domain/${encodeURIComponent(domain)}`);
     // const data = await response.json();
 
@@ -50,19 +50,20 @@ export default async function handler(
       },
       'joescoffee.com': {
         id: 'abcdef12-3456-7890-abcd-ef1234567890',
-        name: 'Joe\'s Coffee',
+        name: "Joe's Coffee",
         subdomain: 'joes-coffee',
         customDomain: 'joescoffee.com',
       },
     };
-    
+
     // Clean up the domain parameter (remove protocol, www, trailing slashes)
-    const cleanDomain = domain.replace(/^https?:\/\//i, '')
-                             .replace(/^www\./i, '')
-                             .replace(/\/+$/, '');
-    
+    const cleanDomain = domain
+      .replace(/^https?:\/\//i, '')
+      .replace(/^www\./i, '')
+      .replace(/\/+$/, '');
+
     const tenant = mockTenantData[cleanDomain];
-    
+
     if (tenant) {
       return res.status(200).json(tenant);
     } else {

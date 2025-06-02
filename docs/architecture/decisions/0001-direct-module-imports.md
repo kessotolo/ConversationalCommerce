@@ -9,6 +9,7 @@ Accepted
 In the early development of the ConversationalCommerce platform, we initially centralized types in `/types/` directory files like `storefrontEditor.ts`, `Monitoring.ts`, `Theme.ts`, and `Violation.ts`. As the codebase evolved into a modular monolith architecture, we created proper domain models in module directories (`@core/models/base`, `@storefront/models/*`, etc.), but kept the original type files as bridges for backward compatibility.
 
 This approach created several issues:
+
 - Technical debt through indirection
 - Increased maintenance burden with duplicate type definitions
 - Import confusion for developers
@@ -25,6 +26,7 @@ We have decided to:
 4. Structure our imports according to our modular monolith architecture
 
 Example of the preferred approach:
+
 ```typescript
 // PREFERRED: Direct module imports
 import type { UUID, Entity } from '@core/models/base';
@@ -33,6 +35,7 @@ import type { Banner } from '@storefront/models/banner';
 ```
 
 Instead of:
+
 ```typescript
 // AVOID: Bridge file imports
 import { UUID, Status as DraftStatus } from '../types/storefrontEditor';
@@ -48,6 +51,7 @@ import { UUID, Status as DraftStatus } from '../types/storefrontEditor';
 - Better IDE support with direct imports
 - Easier to understand code organization for new developers
 - Support for tree-shaking in type imports
+- **Ongoing CI Enforcement**: Lint and type checks are run in CI/CD and block merges on violations.
 
 ### Negative
 
@@ -62,10 +66,12 @@ import { UUID, Status as DraftStatus } from '../types/storefrontEditor';
 3. Fixed TypeScript errors resulting from the migration
 4. Added architecture documentation
 5. Removed bridge files once all imports were migrated
+6. **Strictly enforce these rules in CI/CD and documentation.**
 
 ## Follow-up Actions
 
-1. Enhance ESLint rules to enforce module boundaries
-2. Add automated tests to verify architectural compliance
-3. Update developer documentation and onboarding materials
-4. Monitor for any accidental recreation of bridge patterns
+1. Enhance ESLint rules to enforce module boundaries (**Complete**)
+2. Add automated tests to verify architectural compliance (**Ongoing in CI**)
+3. Update developer documentation and onboarding materials (**Complete**)
+4. Monitor for any accidental recreation of bridge patterns (**Ongoing**)
+5. **Regularly clean up backup/test files and enforce no `.bak`/bridge files in the codebase.**

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useAuth } from '@clerk/nextjs';
 
 export function TokenSaver() {
   const { getToken } = useAuth();

@@ -28,13 +28,13 @@ export interface Banner extends TenantScoped {
   banner_type: BannerType;
   asset_id: UUID;
   link_url?: string;
-  content?: Record<string, any>;
+  content?: Record<string, unknown>;
   start_date?: string;
   end_date?: string;
   display_order: number;
   target_audience?: TargetAudience[];
-  custom_target?: Record<string, any>;
-  custom_styles?: Record<string, any>;
+  custom_target?: Record<string, unknown>;
+  custom_styles?: Record<string, unknown>;
   status: BannerStatus;
   created_by: UUID;
   modified_at?: string;

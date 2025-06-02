@@ -1,9 +1,39 @@
-// TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
 // Using dynamic import approach for axios like in the main API file
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const axios = require('axios').default || require('axios');
 import { API_BASE_URL, API_TIMEOUT, RETRY_ATTEMPTS, FEATURES } from '@/config';
-
+import type {
+  Draft,
+  CreateDraftRequest,
+  UpdateDraftRequest,
+  DraftResponse,
+  DraftsResponse,
+  Asset,
+  UploadAssetRequest,
+  AssetResponse,
+  AssetsResponse,
+  Banner,
+  CreateBannerRequest,
+  BannerResponse,
+  BannersResponse,
+  Logo,
+  CreateLogoRequest,
+  LogoResponse,
+  LogosResponse,
+  StorefrontComponent,
+  CreateComponentRequest,
+  ComponentResponse,
+  ComponentsResponse,
+  Permission,
+  AssignRoleRequest,
+  SetSectionPermissionRequest,
+  SetComponentPermissionRequest,
+  PermissionResponse,
+  PermissionsResponse,
+  ApiResponse,
+} from '@/modules/storefront';
+import { parseApiError } from '@/lib/utils';
+import type { Asset, Banner, Logo } from '@/modules/storefront';
 
 // Create optimized axios instance for storefront editor
 // Using separate instance with specific timeout for editor operations
@@ -17,20 +47,31 @@ const editorAxios = axios.create({
 });
 
 // Add retry logic for better resilience in low-connectivity environments common in African markets
-editorAxios.interceptors.response.use(null, async (error: any) => {
-  if (!error.config || !error.config.retry) {
-    error.config.retry = 0;
+editorAxios.interceptors.response.use(null, async (error: unknown) => {
+  // Use type guard for axios errors
+  if (typeof error === 'object' && error !== null && 'config' in error) {
+    const err = error as { config: Record<string, unknown> };
+    if (typeof err.config === 'object' && err.config !== null) {
+      if (!('retry' in err.config)) {
+        (err.config as Record<string, unknown>)['retry'] = 0;
+      }
+      if (
+        typeof (err.config as Record<string, unknown>)['retry'] === 'number' &&
+        ((err.config as Record<string, unknown>)['retry'] as number) >= RETRY_ATTEMPTS
+      ) {
+        return Promise.reject(parseApiError(error));
+      }
+      (err.config as Record<string, unknown>)['retry'] =
+        ((err.config as Record<string, unknown>)['retry'] as number) + 1;
+      const delay =
+        1000 *
+        Math.pow(2, (err.config as Record<string, unknown>)['retry'] as number) *
+        (0.9 + Math.random() * 0.2);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      return editorAxios(err.config);
+    }
   }
-
-  if (error.config.retry >= RETRY_ATTEMPTS) {
-    return Promise.reject(error);
-  }
-
-  // Exponential backoff with jitter for network variability
-  error.config.retry += 1;
-  const delay = 1000 * Math.pow(2, error.config.retry) * (0.9 + Math.random() * 0.2); // Add jitter
-  await new Promise((resolve) => setTimeout(resolve, delay));
-  return editorAxios(error.config);
+  return Promise.reject(parseApiError(error));
 });
 
 // Types for the API responses using UUIDs
@@ -59,7 +100,11 @@ const progressiveLoad = <T>(data: T, priority: string[] = []): T => {
 };
 
 // Draft/Publish API
-export const getDrafts = async (tenantId: UUID, skip = 0, limit = 10) => {
+export const getDrafts = async (
+  tenantId: UUID,
+  skip = 0,
+  limit = 10,
+): Promise<ApiResponse<DraftsResponse>> => {
   try {
     // Reduce limit in low bandwidth mode to load faster
     const adjustedLimit = FEATURES.lowBandwidthMode ? Math.min(limit, 5) : limit;
@@ -81,41 +126,55 @@ export const getDrafts = async (tenantId: UUID, skip = 0, limit = 10) => {
       }
     }
 
-    throw error;
+    throw parseApiError(error);
   }
 };
 
-export const getDraft = async (tenantId: UUID, draftId: UUID) => {
+export const getDraft = async (
+  tenantId: UUID,
+  draftId: UUID,
+): Promise<ApiResponse<DraftResponse>> => {
   try {
     const response = await editorAxios.get(`${API_URL}/${tenantId}/drafts/${draftId}`);
     return response.data;
   } catch (error) {
     console.error('Failed to fetch draft:', error);
-    throw error;
+    throw parseApiError(error);
   }
 };
 
-export const createDraft = async (tenantId: UUID, draftData: any) => {
+export const createDraft = async (
+  tenantId: UUID,
+  draftData: CreateDraftRequest,
+): Promise<ApiResponse<DraftResponse>> => {
   try {
     const response = await editorAxios.post(`${API_URL}/${tenantId}/drafts`, draftData);
     return response.data;
   } catch (error) {
     console.error('Failed to create draft:', error);
-    throw error;
+    throw parseApiError(error);
   }
 };
 
-export const updateDraft = async (tenantId: UUID, draftId: UUID, draftData: any) => {
+export const updateDraft = async (
+  tenantId: UUID,
+  draftId: UUID,
+  draftData: UpdateDraftRequest,
+): Promise<ApiResponse<DraftResponse>> => {
   try {
     const response = await editorAxios.put(`${API_URL}/${tenantId}/drafts/${draftId}`, draftData);
     return response.data;
   } catch (error) {
     console.error('Failed to update draft:', error);
-    throw error;
+    throw parseApiError(error);
   }
 };
 
-export const publishDraft = async (tenantId: UUID, draftId: UUID, scheduleTime?: Date) => {
+export const publishDraft = async (
+  tenantId: UUID,
+  draftId: UUID,
+  scheduleTime?: Date,
+): Promise<ApiResponse<DraftResponse>> => {
   try {
     const response = await editorAxios.put(`${API_URL}/${tenantId}/drafts/${draftId}/publish`, {
       schedule_time: scheduleTime ? scheduleTime.toISOString() : undefined,
@@ -123,17 +182,20 @@ export const publishDraft = async (tenantId: UUID, draftId: UUID, scheduleTime?:
     return response.data;
   } catch (error) {
     console.error('Failed to publish draft:', error);
-    throw error;
+    throw parseApiError(error);
   }
 };
 
-export const deleteDraft = async (tenantId: UUID, draftId: UUID) => {
+export const deleteDraft = async (
+  tenantId: UUID,
+  draftId: UUID,
+): Promise<ApiResponse<{ success: boolean }>> => {
   try {
     const response = await editorAxios.delete(`${API_URL}/${tenantId}/drafts/${draftId}`);
     return response.data;
   } catch (error) {
     console.error('Failed to delete draft:', error);
-    throw error;
+    throw parseApiError(error);
   }
 };
 
@@ -146,7 +208,7 @@ export const getVersions = async (tenantId: UUID, skip = 0, limit = 10, tags?: s
     return response.data;
   } catch (error) {
     console.error('Failed to fetch versions:', error);
-    throw error;
+    throw parseApiError(error);
   }
 };
 
@@ -156,7 +218,7 @@ export const getVersion = async (tenantId: UUID, versionId: UUID) => {
     return response.data;
   } catch (error) {
     console.error('Failed to fetch version:', error);
-    throw error;
+    throw parseApiError(error);
   }
 };
 
@@ -166,7 +228,7 @@ export const restoreVersion = async (tenantId: UUID, versionId: UUID) => {
     return response.data;
   } catch (error) {
     console.error('Failed to restore version:', error);
-    throw error;
+    throw parseApiError(error);
   }
 };
 
@@ -178,22 +240,25 @@ export const compareVersions = async (tenantId: UUID, v1: UUID, v2: UUID) => {
     return response.data;
   } catch (error) {
     console.error('Failed to compare versions:', error);
-    throw error;
+    throw parseApiError(error);
   }
 };
 
 // Permissions API
-export const getPermissions = async (tenantId: UUID) => {
+export const getPermissions = async (tenantId: UUID): Promise<ApiResponse<PermissionsResponse>> => {
   try {
     const response = await editorAxios.get(`${API_URL}/${tenantId}/permissions`);
     return response.data;
   } catch (error) {
     console.error('Failed to fetch permissions:', error);
-    throw error;
+    throw parseApiError(error);
   }
 };
 
-export const getUserPermission = async (tenantId: UUID, userId: UUID) => {
+export const getUserPermission = async (
+  tenantId: UUID,
+  userId: UUID,
+): Promise<ApiResponse<PermissionResponse>> => {
   try {
     const response = await editorAxios.get(`${API_URL}/${tenantId}/permissions/${userId}`);
     return response.data;
@@ -203,7 +268,11 @@ export const getUserPermission = async (tenantId: UUID, userId: UUID) => {
   }
 };
 
-export const assignRole = async (tenantId: UUID, userId: UUID, roleData: any) => {
+export const assignRole = async (
+  tenantId: UUID,
+  userId: UUID,
+  roleData: AssignRoleRequest,
+): Promise<ApiResponse<PermissionResponse>> => {
   try {
     const response = await editorAxios.put(
       `${API_URL}/${tenantId}/permissions/${userId}/role`,
@@ -216,7 +285,11 @@ export const assignRole = async (tenantId: UUID, userId: UUID, roleData: any) =>
   }
 };
 
-export const setSectionPermission = async (tenantId: UUID, userId: UUID, sectionData: any) => {
+export const setSectionPermission = async (
+  tenantId: UUID,
+  userId: UUID,
+  sectionData: SetSectionPermissionRequest,
+): Promise<ApiResponse<PermissionResponse>> => {
   try {
     const response = await editorAxios.put(
       `${API_URL}/${tenantId}/permissions/${userId}/section`,
@@ -229,7 +302,11 @@ export const setSectionPermission = async (tenantId: UUID, userId: UUID, section
   }
 };
 
-export const setComponentPermission = async (tenantId: UUID, userId: UUID, componentData: any) => {
+export const setComponentPermission = async (
+  tenantId: UUID,
+  userId: UUID,
+  componentData: SetComponentPermissionRequest,
+): Promise<ApiResponse<PermissionResponse>> => {
   try {
     const response = await editorAxios.put(
       `${API_URL}/${tenantId}/permissions/${userId}/component`,
@@ -242,7 +319,10 @@ export const setComponentPermission = async (tenantId: UUID, userId: UUID, compo
   }
 };
 
-export const removePermission = async (tenantId: UUID, userId: UUID) => {
+export const removePermission = async (
+  tenantId: UUID,
+  userId: UUID,
+): Promise<ApiResponse<{ success: boolean }>> => {
   try {
     const response = await editorAxios.delete(`${API_URL}/${tenantId}/permissions/${userId}`);
     return response.data;
@@ -252,18 +332,41 @@ export const removePermission = async (tenantId: UUID, userId: UUID) => {
   }
 };
 
-export const getAuditLog = async (tenantId: UUID, params?: any) => {
+// Define AuditLogParams, PageTemplateParams, and PageLayoutData types
+export interface AuditLogParams {
+  startDate?: string;
+  endDate?: string;
+  actionTypes?: string[];
+  userId?: string;
+  page?: number;
+  limit?: number;
+}
+export interface PageTemplateParams {
+  category?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
+}
+export interface PageLayoutData {
+  layout: Record<string, unknown>;
+  updatedBy: string;
+}
+
+export const getAuditLog = async (tenantId: UUID, params?: AuditLogParams) => {
   try {
     const response = await editorAxios.get(`${API_URL}/${tenantId}/audit-log`, { params });
     return response.data;
   } catch (error) {
     console.error('Failed to fetch audit log:', error);
-    throw error;
+    throw parseApiError(error);
   }
 };
 
 // Asset Management API
-export const getAssets = async (tenantId: UUID, params?: any) => {
+export const getAssets = async (
+  tenantId: UUID,
+  params?: Record<string, unknown>,
+): Promise<ApiResponse<AssetsResponse>> => {
   try {
     const response = await editorAxios.get(`${API_URL}/${tenantId}/assets`, { params });
     return response.data;
@@ -273,7 +376,10 @@ export const getAssets = async (tenantId: UUID, params?: any) => {
   }
 };
 
-export const getAsset = async (tenantId: UUID, assetId: UUID) => {
+export const getAsset = async (
+  tenantId: UUID,
+  assetId: UUID,
+): Promise<ApiResponse<AssetResponse>> => {
   try {
     const response = await editorAxios.get(`${API_URL}/${tenantId}/assets/${assetId}`);
     return response.data;
@@ -283,7 +389,10 @@ export const getAsset = async (tenantId: UUID, assetId: UUID) => {
   }
 };
 
-export const uploadAsset = async (tenantId: UUID, formData: FormData) => {
+export const uploadAsset = async (
+  tenantId: UUID,
+  formData: FormData,
+): Promise<ApiResponse<AssetResponse>> => {
   try {
     const response = await editorAxios.post(`${API_URL}/${tenantId}/assets`, formData, {
       headers: {
@@ -297,7 +406,11 @@ export const uploadAsset = async (tenantId: UUID, formData: FormData) => {
   }
 };
 
-export const updateAsset = async (tenantId: UUID, assetId: UUID, assetData: any) => {
+export const updateAsset = async (
+  tenantId: UUID,
+  assetId: UUID,
+  assetData: Partial<Asset>,
+): Promise<ApiResponse<AssetResponse>> => {
   try {
     const response = await editorAxios.put(`${API_URL}/${tenantId}/assets/${assetId}`, assetData);
     return response.data;
@@ -307,7 +420,10 @@ export const updateAsset = async (tenantId: UUID, assetId: UUID, assetData: any)
   }
 };
 
-export const deleteAsset = async (tenantId: UUID, assetId: UUID) => {
+export const deleteAsset = async (
+  tenantId: UUID,
+  assetId: UUID,
+): Promise<ApiResponse<{ success: boolean }>> => {
   try {
     const response = await editorAxios.delete(`${API_URL}/${tenantId}/assets/${assetId}`);
     return response.data;
@@ -317,7 +433,10 @@ export const deleteAsset = async (tenantId: UUID, assetId: UUID) => {
   }
 };
 
-export const optimizeAsset = async (tenantId: UUID, assetId: UUID) => {
+export const optimizeAsset = async (
+  tenantId: UUID,
+  assetId: UUID,
+): Promise<ApiResponse<AssetResponse>> => {
   try {
     const response = await editorAxios.post(`${API_URL}/${tenantId}/assets/${assetId}/optimize`);
     return response.data;
@@ -328,7 +447,10 @@ export const optimizeAsset = async (tenantId: UUID, assetId: UUID) => {
 };
 
 // Banner Management API
-export const getBanners = async (tenantId: UUID, params?: any) => {
+export const getBanners = async (
+  tenantId: UUID,
+  params?: Record<string, unknown>,
+): Promise<ApiResponse<BannersResponse>> => {
   try {
     const response = await editorAxios.get(`${API_URL}/${tenantId}/banners`, { params });
     return response.data;
@@ -338,7 +460,10 @@ export const getBanners = async (tenantId: UUID, params?: any) => {
   }
 };
 
-export const getBanner = async (tenantId: UUID, bannerId: UUID) => {
+export const getBanner = async (
+  tenantId: UUID,
+  bannerId: UUID,
+): Promise<ApiResponse<BannerResponse>> => {
   try {
     const response = await editorAxios.get(`${API_URL}/${tenantId}/banners/${bannerId}`);
     return response.data;
@@ -348,7 +473,10 @@ export const getBanner = async (tenantId: UUID, bannerId: UUID) => {
   }
 };
 
-export const createBanner = async (tenantId: UUID, bannerData: any) => {
+export const createBanner = async (
+  tenantId: UUID,
+  bannerData: CreateBannerRequest,
+): Promise<ApiResponse<BannerResponse>> => {
   try {
     const response = await editorAxios.post(`${API_URL}/${tenantId}/banners`, bannerData);
     return response.data;
@@ -358,7 +486,11 @@ export const createBanner = async (tenantId: UUID, bannerData: any) => {
   }
 };
 
-export const updateBanner = async (tenantId: UUID, bannerId: UUID, bannerData: any) => {
+export const updateBanner = async (
+  tenantId: UUID,
+  bannerId: UUID,
+  bannerData: Partial<Banner>,
+): Promise<ApiResponse<BannerResponse>> => {
   try {
     const response = await editorAxios.put(
       `${API_URL}/${tenantId}/banners/${bannerId}`,
@@ -371,7 +503,10 @@ export const updateBanner = async (tenantId: UUID, bannerId: UUID, bannerData: a
   }
 };
 
-export const publishBanner = async (tenantId: UUID, bannerId: UUID) => {
+export const publishBanner = async (
+  tenantId: UUID,
+  bannerId: UUID,
+): Promise<ApiResponse<BannerResponse>> => {
   try {
     const response = await editorAxios.put(`${API_URL}/${tenantId}/banners/${bannerId}/publish`);
     return response.data;
@@ -381,7 +516,10 @@ export const publishBanner = async (tenantId: UUID, bannerId: UUID) => {
   }
 };
 
-export const deleteBanner = async (tenantId: UUID, bannerId: UUID) => {
+export const deleteBanner = async (
+  tenantId: UUID,
+  bannerId: UUID,
+): Promise<ApiResponse<{ success: boolean }>> => {
   try {
     const response = await editorAxios.delete(`${API_URL}/${tenantId}/banners/${bannerId}`);
     return response.data;
@@ -391,7 +529,10 @@ export const deleteBanner = async (tenantId: UUID, bannerId: UUID) => {
   }
 };
 
-export const reorderBanners = async (tenantId: UUID, orderData: any) => {
+export const reorderBanners = async (
+  tenantId: UUID,
+  orderData: { order: UUID[] },
+): Promise<ApiResponse<BannersResponse>> => {
   try {
     const response = await editorAxios.put(`${API_URL}/${tenantId}/banners/order`, orderData);
     return response.data;
@@ -402,7 +543,10 @@ export const reorderBanners = async (tenantId: UUID, orderData: any) => {
 };
 
 // Logo Management API
-export const getLogos = async (tenantId: UUID, params?: any) => {
+export const getLogos = async (
+  tenantId: UUID,
+  params?: Record<string, unknown>,
+): Promise<ApiResponse<LogosResponse>> => {
   try {
     const response = await editorAxios.get(`${API_URL}/${tenantId}/logos`, { params });
     return response.data;
@@ -412,7 +556,7 @@ export const getLogos = async (tenantId: UUID, params?: any) => {
   }
 };
 
-export const getLogo = async (tenantId: UUID, logoId: UUID) => {
+export const getLogo = async (tenantId: UUID, logoId: UUID): Promise<ApiResponse<LogoResponse>> => {
   try {
     const response = await editorAxios.get(`${API_URL}/${tenantId}/logos/${logoId}`);
     return response.data;
@@ -422,7 +566,10 @@ export const getLogo = async (tenantId: UUID, logoId: UUID) => {
   }
 };
 
-export const createLogo = async (tenantId: UUID, logoData: any) => {
+export const createLogo = async (
+  tenantId: UUID,
+  logoData: CreateLogoRequest,
+): Promise<ApiResponse<LogoResponse>> => {
   try {
     const response = await editorAxios.post(`${API_URL}/${tenantId}/logos`, logoData);
     return response.data;
@@ -432,7 +579,11 @@ export const createLogo = async (tenantId: UUID, logoData: any) => {
   }
 };
 
-export const updateLogo = async (tenantId: UUID, logoId: UUID, logoData: any) => {
+export const updateLogo = async (
+  tenantId: UUID,
+  logoId: UUID,
+  logoData: Partial<Logo>,
+): Promise<ApiResponse<LogoResponse>> => {
   try {
     const response = await editorAxios.put(`${API_URL}/${tenantId}/logos/${logoId}`, logoData);
     return response.data;
@@ -442,7 +593,10 @@ export const updateLogo = async (tenantId: UUID, logoId: UUID, logoData: any) =>
   }
 };
 
-export const deleteLogo = async (tenantId: UUID, logoId: UUID) => {
+export const deleteLogo = async (
+  tenantId: UUID,
+  logoId: UUID,
+): Promise<ApiResponse<{ success: boolean }>> => {
   try {
     const response = await editorAxios.delete(`${API_URL}/${tenantId}/logos/${logoId}`);
     return response.data;
@@ -452,7 +606,10 @@ export const deleteLogo = async (tenantId: UUID, logoId: UUID) => {
   }
 };
 
-export const publishLogo = async (tenantId: UUID, logoId: UUID) => {
+export const publishLogo = async (
+  tenantId: UUID,
+  logoId: UUID,
+): Promise<ApiResponse<LogoResponse>> => {
   try {
     const response = await editorAxios.put(`${API_URL}/${tenantId}/logos/${logoId}/publish`);
     return response.data;
@@ -463,7 +620,10 @@ export const publishLogo = async (tenantId: UUID, logoId: UUID) => {
 };
 
 // Component API
-export const getComponents = async (tenantId: UUID, params?: any) => {
+export const getComponents = async (
+  tenantId: UUID,
+  params?: Record<string, unknown>,
+): Promise<ApiResponse<ComponentsResponse>> => {
   try {
     const response = await editorAxios.get(`${API_URL}/${tenantId}/components`, { params });
     return response.data;
@@ -473,7 +633,10 @@ export const getComponents = async (tenantId: UUID, params?: any) => {
   }
 };
 
-export const getComponent = async (tenantId: UUID, componentId: UUID) => {
+export const getComponent = async (
+  tenantId: UUID,
+  componentId: UUID,
+): Promise<ApiResponse<ComponentResponse>> => {
   try {
     const response = await editorAxios.get(`${API_URL}/${tenantId}/components/${componentId}`);
     return response.data;
@@ -483,7 +646,10 @@ export const getComponent = async (tenantId: UUID, componentId: UUID) => {
   }
 };
 
-export const createComponent = async (tenantId: UUID, componentData: any) => {
+export const createComponent = async (
+  tenantId: UUID,
+  componentData: CreateComponentRequest,
+): Promise<ApiResponse<ComponentResponse>> => {
   try {
     const response = await editorAxios.post(`${API_URL}/${tenantId}/components`, componentData);
     return response.data;
@@ -493,7 +659,11 @@ export const createComponent = async (tenantId: UUID, componentData: any) => {
   }
 };
 
-export const updateComponent = async (tenantId: UUID, componentId: UUID, componentData: any) => {
+export const updateComponent = async (
+  tenantId: UUID,
+  componentId: UUID,
+  componentData: Partial<StorefrontComponent>,
+): Promise<ApiResponse<ComponentResponse>> => {
   try {
     const response = await editorAxios.put(
       `${API_URL}/${tenantId}/components/${componentId}`,
@@ -506,7 +676,10 @@ export const updateComponent = async (tenantId: UUID, componentId: UUID, compone
   }
 };
 
-export const deleteComponent = async (tenantId: UUID, componentId: UUID) => {
+export const deleteComponent = async (
+  tenantId: UUID,
+  componentId: UUID,
+): Promise<ApiResponse<{ success: boolean }>> => {
   try {
     const response = await editorAxios.delete(`${API_URL}/${tenantId}/components/${componentId}`);
     return response.data;
@@ -516,17 +689,21 @@ export const deleteComponent = async (tenantId: UUID, componentId: UUID) => {
   }
 };
 
-export const getPageTemplates = async (tenantId: UUID, params?: any) => {
+export const getPageTemplates = async (tenantId: UUID, params?: PageTemplateParams) => {
   try {
     const response = await editorAxios.get(`${API_URL}/${tenantId}/page-templates`, { params });
     return response.data;
   } catch (error) {
     console.error('Failed to fetch page templates:', error);
-    throw error;
+    throw parseApiError(error);
   }
 };
 
-export const updatePageLayout = async (tenantId: UUID, pageId: UUID, layoutData: any) => {
+export const updatePageLayout = async (
+  tenantId: UUID,
+  pageId: UUID,
+  layoutData: PageLayoutData,
+) => {
   try {
     const response = await editorAxios.put(
       `${API_URL}/${tenantId}/pages/${pageId}/layout`,
@@ -535,6 +712,6 @@ export const updatePageLayout = async (tenantId: UUID, pageId: UUID, layoutData:
     return response.data;
   } catch (error) {
     console.error('Failed to update page layout:', error);
-    throw error;
+    throw parseApiError(error);
   }
 };

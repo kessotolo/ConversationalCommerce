@@ -18,6 +18,7 @@ The ConversationalCommerce platform has standardized on UUID types for database 
 ## 📱 Mobile-First Deployment
 
 This backend is optimized for mobile-first deployment targeting African markets, with consideration for:
+
 - Intermittent connectivity
 - Lower bandwidth environments
 - Scalable infrastructure
@@ -26,6 +27,7 @@ This backend is optimized for mobile-first deployment targeting African markets,
 ### Deployment Entry Points
 
 Multiple entry points are provided for compatibility across deployment platforms:
+
 - `server.py` - Universal entry point with explicit Python path handling
 - `asgi.py` - Simple ASGI entry point for uvicorn
 - `wsgi.py` - WSGI compatibility layer
@@ -55,12 +57,14 @@ The platform includes advanced NLP (Natural Language Processing) capabilities fo
 There are several ways to ensure all required NLP models are available:
 
 #### Option 1: Use the Provided Setup Script
+
 ```bash
 # Download all required models and start the application
 ./backend/scripts/start_with_nlp.sh
 ```
 
 #### Option 2: Download Models Separately
+
 ```bash
 # Just download the required models
 python backend/scripts/download_nlp_models.py
@@ -70,6 +74,7 @@ cd backend && uvicorn app.main:app --reload
 ```
 
 #### Option 3: Manual Installation
+
 ```bash
 python -m spacy download en_core_web_sm
 python -m nltk.downloader punkt stopwords averaged_perceptron_tagger
@@ -81,6 +86,7 @@ pip install detoxify
 If you encounter NLP-related errors:
 
 1. Verify model installations:
+
    ```bash
    python backend/scripts/download_nlp_models.py --verify
    ```
@@ -165,16 +171,19 @@ The platform now includes a comprehensive multi-tenant storefront infrastructure
 This platform now includes a robust, extensible, and modern system for real-time monitoring, content moderation, behavior analysis, progressive enforcement, and staff review. Key features:
 
 ### 1. Behavior & Content Monitoring Foundation
+
 - **Activity Tracking Middleware:** Captures all API activity, collects request/response data, and feeds it into the behavior analysis engine.
 - **Audit Logging:** Tracks security-sensitive operations and user actions for compliance and review.
 
 ### 2. Content Moderation System
+
 - **Content Filter Rules & Analysis:** Supports text, sentiment, language, and toxicity analysis (now with real Detoxify integration). Rules engine for pattern matching, thresholds, and custom actions (flag, reject, require review).
 - **Review Workflow:** Manual review queue, reviewer assignment, review status tracking, and notifications.
 - **API Endpoints:** Manage rules, analyze content, review results, and query moderation history.
 - **Database Migrations:** Tables for filter rules and analysis results, with proper indexing and tenant isolation.
 
 ### 3. Behavior Analysis & Pattern Detection
+
 - **Behavior Pattern Models:** Define suspicious/risky behaviors with conditions, severity, thresholds, and cooldowns.
 - **Pattern Detection & Evidence Collection:** Automated detection, confidence scoring, and evidence gathering (activity, system metrics, user history).
 - **Review & Notification:** Review workflow for detections, with in-app notifications for staff.
@@ -182,6 +191,7 @@ This platform now includes a robust, extensible, and modern system for real-time
 - **Database Migrations:** Tables for patterns, detections, and evidence.
 
 ### 4. Enforcement & Progressive Actions
+
 - **Violation Model & Tracking:** Tracks violations (content, behavior, security) with severity, action, status, and resolution notes.
 - **Escalation & Enforcement Logic:** Automatic escalation from warning → temp ban → perm ban based on violation history. Enforcement actions: disables user accounts, sets ban durations, and logs all actions.
 - **Integration:** Behavior analysis and rules engine now automatically create and escalate violations when detections occur.
@@ -189,18 +199,22 @@ This platform now includes a robust, extensible, and modern system for real-time
 - **Database Migrations:** Table for violations, with indexes for fast queries.
 
 ### 5. Analytics & Dashboarding
+
 - **Statistics & Trends Endpoints:** Backend endpoints for violation counts by type, severity, action, and status. Time-series endpoint for violation trends (for dashboard charts).
 - **Frontend Violation Dashboard:** React component for listing, filtering, and reviewing violations. Statistics and trends visualizations. Dialog for viewing and resolving violations with notes.
 
 ### 6. Security & Resource Controls
+
 - **Tenant-Aware Rate Limiting & Quotas:** Per-tenant API rate limits, resource quotas, and usage tracking.
 - **Progressive Trust System (Planned):** Foundation for trust levels, verification, and feature gating.
 
 ### 7. Real-Time Monitoring & Notification
+
 - **WebSocket Service:** Real-time activity monitoring and alerting.
 - **Notification System:** In-app, email, and SMS notifications for alerts, reviews, and escalations.
 
 ### 8. Codebase Improvements
+
 - **Pydantic Schemas:** For all new models and endpoints.
 - **API Router Registration:** All new endpoints are registered and ready for use.
 - **Frontend Types:** TypeScript types for violations, stats, and trends.
@@ -248,6 +262,7 @@ ALTER TABLE table_name FORCE ROW LEVEL SECURITY;
 #### 3. Tenant Context Middleware
 
 The `TenantMiddleware` class:
+
 - Extracts the tenant ID from the `X-Tenant-ID` header
 - Validates that the tenant exists in the database
 - Sets the tenant ID in request state for access in dependencies
@@ -267,6 +282,7 @@ The platform implements tenant-specific rate limiting and resource quotas to ens
 #### 1. Rate Limiting
 
 - **Per-Tenant Limits:**
+
   - Requests per minute (default: 60)
   - Requests per hour (default: 1000)
   - Requests per day (default: 10000)
@@ -284,10 +300,12 @@ The platform implements tenant-specific rate limiting and resource quotas to ens
 #### 2. Resource Quotas
 
 - **Storage Limits:**
+
   - Maximum storage per tenant (default: 1GB)
   - Current storage usage tracking
 
 - **Product Limits:**
+
   - Maximum products per tenant (default: 1000)
   - Current product count tracking
 
@@ -311,12 +329,14 @@ The platform will implement a comprehensive progressive trust system to ensure p
 #### 1. Trust Levels
 
 - **Level 0: Unverified Seller**
+
   - Basic profile creation
   - Limited to 5 product listings
   - Manual order processing
   - Basic store features
 
 - **Level 1: Verified Seller**
+
   - Email and phone verified
   - Business details verified
   - Up to 50 product listings
@@ -324,6 +344,7 @@ The platform will implement a comprehensive progressive trust system to ensure p
   - Payment processing enabled
 
 - **Level 2: Trusted Seller**
+
   - Business registration verified
   - Tax information verified
   - Full product listing capacity
@@ -342,12 +363,14 @@ The platform will implement a comprehensive progressive trust system to ensure p
 #### 2. Verification Process
 
 - **Basic Verification**
+
   - Email verification
   - Phone number verification
   - Basic business information
   - Store setup completion
 
 - **Business Verification**
+
   - Business registration document
   - Tax identification
   - Business address verification
@@ -362,6 +385,7 @@ The platform will implement a comprehensive progressive trust system to ensure p
 #### 3. Trust Score System
 
 The trust score will be calculated based on:
+
 - Account age
 - Order volume
 - Customer ratings
@@ -373,18 +397,21 @@ The trust score will be calculated based on:
 #### 4. Feature Access by Level
 
 - **Level 0 Features**
+
   - Basic store setup
   - Manual order management
   - Basic product listings
   - Standard support
 
 - **Level 1 Features**
+
   - Automated order processing
   - Basic analytics
   - Email notifications
   - Payment processing
 
 - **Level 2 Features**
+
   - Advanced analytics
   - Bulk operations
   - Custom automation rules
@@ -476,6 +503,7 @@ assert products[0].tenant_id == tenant2_id
 ## 🛠️ Development Setup
 
 ### Prerequisites
+
 - Python 3.10+
 - PostgreSQL 15+
 - Virtualenv or similar
@@ -502,6 +530,7 @@ alembic upgrade head
 ### Environment Variables
 
 Required environment variables in `.env`:
+
 ```
 DATABASE_URL=postgresql://user:password@localhost/dbname
 PROJECT_NAME=Conversational Commerce
@@ -525,6 +554,7 @@ flake8
 ## 📚 API Documentation
 
 Once the application is running, you can access:
+
 - Swagger UI: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
 - OpenAPI JSON: `http://localhost:8000/api/v1/openapi.json`
@@ -536,6 +566,7 @@ The platform implements a comprehensive real-time monitoring system to track act
 #### 1. Activity Tracking
 
 - **Activity Tracker Middleware**
+
   - Tracks all API requests and responses
   - Records user actions, resource access, and system events
   - Captures detailed metadata for each activity
@@ -551,12 +582,14 @@ The platform implements a comprehensive real-time monitoring system to track act
 #### 2. Rules Engine
 
 - **Rule Management**
+
   - Create, update, and delete monitoring rules
   - Define conditions based on activity patterns
   - Set severity levels (LOW, MEDIUM, HIGH, CRITICAL)
   - Enable/disable rules per tenant
 
 - **Rule Conditions**
+
   - Field-based conditions
   - Time-based conditions
   - Pattern matching
@@ -572,6 +605,7 @@ The platform implements a comprehensive real-time monitoring system to track act
 #### 3. WebSocket Service
 
 - **Real-time Updates**
+
   - WebSocket connections for live monitoring
   - Tenant-specific channels
   - Activity broadcasting
@@ -590,12 +624,14 @@ The platform provides a multi-channel notification system to keep users informed
 #### 1. Notification Channels
 
 - **In-App Notifications**
+
   - Real-time WebSocket delivery
   - Priority-based styling
   - Interactive notifications
   - Mark as read functionality
 
 - **Email Notifications**
+
   - HTML and plain text support
   - Priority-based subject lines
   - Detailed message formatting
@@ -610,12 +646,14 @@ The platform provides a multi-channel notification system to keep users informed
 #### 2. Notification Features
 
 - **Priority Levels**
+
   - URGENT (red)
   - HIGH (orange)
   - MEDIUM (blue)
   - LOW (green)
 
 - **Notification Management**
+
   - Mark as read/unread
   - Delete notifications
   - Filter by priority
@@ -630,6 +668,7 @@ The platform provides a multi-channel notification system to keep users informed
 #### 3. Integration with Rules Engine
 
 - **Automatic Notifications**
+
   - Rule-triggered alerts
   - Severity-based channel selection
   - Cooldown periods
@@ -648,6 +687,7 @@ The platform implements several security features to protect tenant data and sys
 #### 1. Rate Limiting
 
 - **Per-Tenant Limits**
+
   - Requests per minute
   - Requests per hour
   - Requests per day
@@ -661,6 +701,7 @@ The platform implements several security features to protect tenant data and sys
 #### 2. Resource Quotas
 
 - **Storage Limits**
+
   - Per-tenant storage quotas
   - Usage tracking
   - Automatic cleanup
@@ -673,6 +714,7 @@ The platform implements several security features to protect tenant data and sys
 #### 3. Activity Monitoring
 
 - **Suspicious Activity Detection**
+
   - Pattern recognition
   - Anomaly detection
   - Automated alerts
@@ -691,17 +733,20 @@ The platform implements a comprehensive content moderation system to ensure cont
 #### 1. Content Analysis Service
 
 - **Text Analysis**
+
   - Pattern matching
   - Regular expression support
   - Token analysis
   - Stop word filtering
 
 - **Sentiment Analysis**
+
   - Polarity detection
   - Subjectivity analysis
   - Threshold-based flagging
 
 - **Language Analysis**
+
   - Entity recognition
   - Part-of-speech tagging
   - Noun phrase extraction
@@ -715,12 +760,14 @@ The platform implements a comprehensive content moderation system to ensure cont
 #### 2. Filter Rules Engine
 
 - **Rule Management**
+
   - Create, update, and delete rules
   - Enable/disable rules
   - Rule prioritization
   - Tenant-specific rules
 
 - **Rule Types**
+
   - Text pattern matching
   - Sentiment thresholds
   - Language requirements
@@ -735,12 +782,14 @@ The platform implements a comprehensive content moderation system to ensure cont
 #### 3. Content Review Workflow
 
 - **Review Process**
+
   - Manual review queue
   - Review status tracking
   - Reviewer assignment
   - Review history
 
 - **Review Actions**
+
   - Approve content
   - Reject content
   - Request changes
@@ -755,12 +804,14 @@ The platform implements a comprehensive content moderation system to ensure cont
 #### 4. Automated Content Checking
 
 - **Real-time Analysis**
+
   - Immediate content checking
   - Batch processing
   - Scheduled scans
   - Historical content review
 
 - **Analysis Results**
+
   - Detailed analysis reports
   - Match explanations
   - Confidence scores
@@ -775,12 +826,14 @@ The platform implements a comprehensive content moderation system to ensure cont
 #### 5. Content Moderation Dashboard
 
 - **Overview**
+
   - Pending reviews
   - Recent actions
   - Statistics
   - Performance metrics
 
 - **Review Interface**
+
   - Content preview
   - Analysis details
   - Action buttons

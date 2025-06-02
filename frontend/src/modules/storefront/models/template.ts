@@ -19,7 +19,7 @@ export enum TemplateStatus {
 export interface PageTemplate extends TenantScoped {
   name: string;
   template_type: PageTemplateType;
-  structure: Record<string, any>;
+  structure: Record<string, unknown>;
   description?: string;
   is_default: boolean;
   tags: string[];

@@ -1,4 +1,4 @@
-import { clsx, type ClassValue } from 'clsx';
+import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
@@ -53,4 +53,45 @@ export function formatPhoneNumber(phoneNumber: string): string {
   }
 
   return phoneNumber;
+}
+
+/**
+ * Parses an unknown error from API/service calls and returns a user-friendly message.
+ * Handles Axios, fetch, and generic JS errors.
+ */
+export function parseApiError(error: unknown): string {
+  if (!error) return 'An unknown error occurred.';
+
+  // Axios error (with response)
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const err = error as { response?: { data?: { message?: string; detail?: string } | string } };
+    if (
+      err.response?.data &&
+      typeof err.response.data === 'object' &&
+      'message' in err.response.data &&
+      typeof err.response.data.message === 'string'
+    )
+      return err.response.data.message;
+    if (
+      err.response?.data &&
+      typeof err.response.data === 'object' &&
+      'detail' in err.response.data &&
+      typeof err.response.data.detail === 'string'
+    )
+      return err.response.data.detail;
+    if (typeof err.response?.data === 'string') return err.response.data;
+    return 'A server error occurred.';
+  }
+
+  // Fetch error (with message)
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    const err = error as { message?: string };
+    if (typeof err.message === 'string') return err.message;
+  }
+
+  // String error
+  if (typeof error === 'string') return error;
+
+  // Fallback
+  return 'An unexpected error occurred.';
 }

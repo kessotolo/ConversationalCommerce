@@ -1,21 +1,17 @@
-// TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
-import React, { useState, useEffect } from 'react';
-import type { Version, VersionDiff } from '@/modules/storefront/models/version';
-import type { UUID } from '@/modules/core/models/base';
-import { compareVersions } from '@/lib/api/storefrontEditor';
-import {
-  ArrowsRightLeftIcon,
-  ExclamationTriangleIcon
-} from '@heroicons/react/24/outline';
+import Reactimport React, { useState, useEffect } from 'react';
+import type { Version, VersionDiff } from '@/modules/storefront';
+import type { UUID } from '@/modules/core';
+import { ArrowsRightLeftIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 interface VersionCompareProps {
   version1: Version;
+};
   version2: Version;
-  tenantId: UUID;
+  /* tenantId */: UUID;
 }
 
-const VersionCompare: React.FC<VersionCompareProps> = ({ version1, version2, tenantId }) => {
-  const [diff, setDiff] = useState<VersionDiff | null>(null);
+const VersionCompare: React.FC<VersionCompareProps></VersionCompareProps> = ({ version1, version2, /* _tenantId */ }) => {
+  const [diff, setDiff] = useState<VersionDiff | null></VersionDiff>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,7 +22,7 @@ const VersionCompare: React.FC<VersionCompareProps> = ({ version1, version2, ten
       setError(null);
 
       try {
-        const response = await compareVersions(tenantId, version1.id, version2.id);
+        const response = await compareVersions(/* tenantId */, version1.id, version2.id);
         setDiff(response);
       } catch (err) {
         setError('Failed to load comparison data. Please try again later.');
@@ -54,10 +50,10 @@ const VersionCompare: React.FC<VersionCompareProps> = ({ version1, version2, ten
   // Render diff highlight
   const renderDiffValue = (
     key: string,
-    value: any,
+    value: unknown,
     type: 'added' | 'removed' | 'changed',
   ): JSX.Element => {
-    const colorClass =
+    const colorClass =;
       type === 'added'
         ? 'bg-green-100 text-green-800'
         : type === 'removed'
@@ -75,21 +71,23 @@ const VersionCompare: React.FC<VersionCompareProps> = ({ version1, version2, ten
   };
 
   // Group differences by section
-  const groupDifferences = (differences: Record<string, any>) => {
-    const sections: Record<string, any[]> = {};
+  const groupDifferences = (differences: Record<string, unknown>) => {
+    const sections: Record<string, unknown[]> = {};
 
     Object.entries(differences).forEach(([path, change]) => {
-      const parts = path.split('.');
-      const section = parts[0] || 'general';
+      if (typeof change === 'object' && change !== null && 'path' in change && 'change' in change) {
+        const parts = path.split('.');
+        const section = parts[0] || 'general';
 
-      if (!sections[section]) {
-        sections[section] = [];
+        if (!sections[section]) {
+          sections[section] = [];
+        }
+
+        sections[section].push({
+          path,
+          change,
+        });
       }
-
-      sections[section].push({
-        path,
-        change,
-      });
     });
 
     return sections;
@@ -101,11 +99,11 @@ const VersionCompare: React.FC<VersionCompareProps> = ({ version1, version2, ten
       <div className="p-4 border-b">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-medium">Compare Versions</h3>
-          <button
+          <button;
             onClick={handleSwapVersions}
             className="inline-flex items-center px-3 py-1.5 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
           >
-            <ArrowsRightLeftIcon className="h-4 w-4 mr-2" />
+            <ArrowsRightLeftIcon className="h-4 w-4 mr-2" /></ArrowsRightLeftIcon>
             Swap
           </button>
         </div>
@@ -138,7 +136,7 @@ const VersionCompare: React.FC<VersionCompareProps> = ({ version1, version2, ten
         ) : error ? (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
             <div className="flex">
-              <ExclamationTriangleIcon className="h-5 w-5 text-red-500 mr-2" />
+              <ExclamationTriangleIcon className="h-5 w-5 text-red-500 mr-2" /></ExclamationTriangleIcon>
               <span>{error}</span>
             </div>
           </div>
@@ -166,23 +164,30 @@ const VersionCompare: React.FC<VersionCompareProps> = ({ version1, version2, ten
                 </div>
                 <div className="p-3 space-y-3">
                   {changes.map((item, index) => {
-                    const { path, change } = item;
+                    const { path, change } = item as { path: string; change: unknown };
 
-                    // Determine change type
-                    const changeType = change.type;
+                    // Determine change type with type guard
+                    let changeType: string | undefined;
+                    let value: unknown, oldValue: unknown, newValue: unknown;
+                    if (typeof change === 'object' && change !== null && 'type' in change) {
+                      changeType = (change as { type: string }).type;
+                      value = (change as Record<string, unknown>).value;
+                      oldValue = (change as Record<string, unknown>).oldValue;
+                      newValue = (change as Record<string, unknown>).newValue;
+                    }
 
                     return (
                       <div key={index}>
                         <div className="text-xs text-gray-500 mb-1">{path}</div>
 
-                        {changeType === 'added' && renderDiffValue(path, change.value, 'added')}
+                        {changeType === 'added' && renderDiffValue(path, value, 'added')}
 
-                        {changeType === 'removed' && renderDiffValue(path, change.value, 'removed')}
+                        {changeType === 'removed' && renderDiffValue(path, value, 'removed')}
 
                         {changeType === 'changed' && (
                           <div className="space-y-2">
-                            {renderDiffValue(`${path} (before)`, change.oldValue, 'removed')}
-                            {renderDiffValue(`${path} (after)`, change.newValue, 'added')}
+                            {renderDiffValue(`${path} (before)`, oldValue, 'removed')}
+                            {renderDiffValue(`${path} (after)`, newValue, 'added')}
                           </div>
                         )}
                       </div>
@@ -202,7 +207,7 @@ const VersionCompare: React.FC<VersionCompareProps> = ({ version1, version2, ten
             >
               <path
                 strokeLinecap="round"
-                strokeLinejoin="round"
+                strokeLinejoin="round";
                 strokeWidth={2}
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />

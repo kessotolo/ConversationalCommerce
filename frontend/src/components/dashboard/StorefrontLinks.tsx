@@ -1,6 +1,6 @@
+import Link from 'next/link';
 import React from 'react';
 import { ExternalLink, Eye, QrCode, Settings, Edit } from 'lucide-react';
-import { Eye, Copy } from 'lucide-react';
 import { useTenant } from '@/contexts/TenantContext';
 
 interface StorefrontLinksProps {

@@ -1,7 +1,20 @@
-// TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
 import React from 'react';
-import {  CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import {  CardHeader, CardTitle, CardContent } from '../ui/Card';
+import { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Card } from '@/components/ui/Card';
+import { Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+  ChartOptions,
+} from 'chart.js';
+import type { TooltipItem } from 'chart.js';
 
 // Register ChartJS components
 ChartJS.register(
@@ -56,7 +69,7 @@ export function SalesChart({ data, period, isLoading = false }: SalesChartProps)
         mode: 'index',
         intersect: false,
         callbacks: {
-          label: function (context: any) {
+          label: function (context: TooltipItem<'line'>) {
             let label = context.dataset.label || '';
             if (label) {
               label += ': ';
@@ -82,10 +95,12 @@ export function SalesChart({ data, period, isLoading = false }: SalesChartProps)
       },
       y: {
         beginAtZero: true,
-        // Removed borderDash which was causing TypeScript errors
         ticks: {
-          callback: function (value: any) {
-            return '₦' + value.toLocaleString();
+          callback: function (tickValue: string | number) {
+            if (typeof tickValue === 'number') {
+              return '₦' + tickValue.toLocaleString();
+            }
+            return tickValue;
           },
         },
       },

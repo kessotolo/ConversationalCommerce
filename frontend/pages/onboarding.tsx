@@ -1,7 +1,8 @@
+import React from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth, useUser } from '@clerk/nextjs';
-import OnboardingForm from '../src/components/onboarding/OnboardingForm';
+import OnboardingForm from '@/components/onboarding/OnboardingForm';
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -22,7 +23,7 @@ export default function OnboardingPage() {
         if (response.ok) {
           const { hasTenant } = await response.json();
           setHasStore(hasTenant);
-          
+
           // If user already has a store, redirect to dashboard
           if (hasTenant) {
             router.push('/dashboard');
@@ -72,14 +73,12 @@ export default function OnboardingPage() {
           <h1 className="text-3xl font-extrabold text-gray-900">
             Welcome to Conversational Commerce
           </h1>
-          <p className="mt-3 text-xl text-gray-500">
-            Let's set up your store in just a few steps
-          </p>
+          <p className="mt-3 text-xl text-gray-500">Let's set up your store in just a few steps</p>
         </div>
 
         {/* Onboarding form */}
         <div className="bg-white shadow rounded-lg p-6 md:p-8 max-w-3xl mx-auto">
-          <OnboardingForm 
+          <OnboardingForm
             onSubmitSuccess={() => {
               // Show success message and redirect
               alert('Your store has been created successfully!');

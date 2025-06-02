@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Dialog } from '@headlessui/react';
 import { XMarkIcon, ExclamationTriangleIcon, PhotoIcon } from '@heroicons/react/24/outline';
-import type { UUID } from '@/modules/core/models/base';
-import type { Asset } from '@/modules/storefront/models/asset';
-import { LogoType } from '@/modules/storefront/models/logo';
+import type { UUID } from '@/modules/core/types';
+import type { CreateLogoRequest, Asset } from '@/lib/api/storefrontEditor.types';
 import { createLogo, getAssets } from '@/lib/api/storefrontEditor';
+import type { InputChangeEvent, FormSubmitEvent } from '@/modules/core';
 
 interface CreateLogoModalProps {
   tenantId: UUID;
@@ -13,16 +12,16 @@ interface CreateLogoModalProps {
   onSuccess: () => void;
 }
 
-const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ tenantId, onClose, onSuccess }) => {
+const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ _tenantId, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loadingAssets, setLoadingAssets] = useState(false);
 
   // Form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CreateLogoRequest>({
     name: '',
-    logo_type: LogoType.PRIMARY as LogoType,
+    logo_type: '',
     asset_id: '',
     display_settings: {},
     responsive_settings: {},
@@ -36,7 +35,7 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ tenantId, onClose, on
       setLoadingAssets(true);
       try {
         const response = await getAssets(tenantId, { asset_type: 'image', limit: 50 });
-        setAssets(response.items);
+        setAssets(response.data.assets);
       } catch (err) {
         console.error('Error loading assets:', err);
         setError('Failed to load assets. Please try again.');
@@ -49,27 +48,19 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ tenantId, onClose, on
   }, [tenantId]);
 
   // Handle input changes
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
-  ) => {
+  const handleInputChange = (e: InputChangeEvent) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
   // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormSubmitEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      await createLogo(tenantId, {
-        ...formData,
-        // Convert empty strings to null
-        start_date: formData.start_date || null,
-        end_date: formData.end_date || null,
-      });
-
+      await createLogo(tenantId, formData);
       onSuccess();
       onClose();
     } catch (err) {
@@ -151,22 +142,21 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ tenantId, onClose, on
                   required
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 >
-                  {Object.values(LogoType).map((type) => (
-                    <option key={type} value={type}>
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </option>
-                  ))}
+                  <option value="">Select type</option>
+                  <option value="primary">Primary</option>
+                  <option value="secondary">Secondary</option>
+                  <option value="footer">Footer</option>
+                  <option value="mobile">Mobile</option>
+                  <option value="favicon">Favicon</option>
                 </select>
 
                 <p className="mt-1 text-xs text-gray-500">
-                  {formData.logo_type === LogoType.PRIMARY &&
-                    'The main logo displayed in the header'}
-                  {formData.logo_type === LogoType.SECONDARY &&
+                  {formData.logo_type === 'primary' && 'The main logo displayed in the header'}
+                  {formData.logo_type === 'secondary' &&
                     'Alternative logo used in specific contexts'}
-                  {formData.logo_type === LogoType.FOOTER && 'Logo displayed in the footer'}
-                  {formData.logo_type === LogoType.MOBILE && 'Optimized logo for mobile devices'}
-                  {formData.logo_type === LogoType.FAVICON &&
-                    'Small icon displayed in browser tabs'}
+                  {formData.logo_type === 'footer' && 'Logo displayed in the footer'}
+                  {formData.logo_type === 'mobile' && 'Optimized logo for mobile devices'}
+                  {formData.logo_type === 'favicon' && 'Small icon displayed in browser tabs'}
                 </p>
               </div>
 
