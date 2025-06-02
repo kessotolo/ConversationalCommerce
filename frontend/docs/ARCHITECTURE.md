@@ -365,3 +365,52 @@ ESLint is configured with selective overrides to flag these issues appropriately
 - **Restricted Import**: Change your import to use the module's public API or DTO file.
 - **Unused Variable/Import**: Remove or use the variable/import as needed.
 - **Type Error**: Add or refine type annotations, avoid `any`, and use generics or type guards as appropriate.
+
+---
+
+## Theme Structure & Validation
+
+### Theme Interface
+- The `Theme` interface is the single source of truth for all theme-related data.
+- All theme objects (default, API, user-customized) must match the interface:
+  - `colors`: { primary, secondary, accent, background, text, error, success, warning }
+  - `typography`, `layout`, `componentStyles` (with all required sub-keys)
+
+### Best Practices
+- **Validate** all theme objects before use (especially from API or user input).
+- **Update** all theme objects and usages if the interface changes.
+- **Unit test** theme transformation logic.
+- **Consider runtime validation** (e.g., Zod/Yup) for user-customized themes.
+
+### AI Agent Usage for Theme Audits
+- The AI agent can:
+  - Audit theme structure across the codebase.
+  - Compare interface to all usages in components/hooks.
+  - Recommend fixes for missing/extra keys or structure mismatches.
+  - Suggest runtime validation and testing strategies.
+- Use the agent to:
+  - Troubleshoot UI issues related to theming.
+  - Validate new theme features or migrations.
+  - Document architectural decisions and best practices.
+
+## Conversation Event Logging & Analytics (2025)
+
+### ConversationEvent Model & Schema
+
+To enable structured, extensible event logging for analytics and monitoring, the codebase introduces a new `ConversationEvent` model (backend) and interface (frontend):
+
+- **Purpose:** Logs all significant events in a conversation (not just messages), e.g., message sent/read, product clicked, order placed, etc.
+- **Extensibility:** Uses an `event_type` enum and a flexible `payload` (JSON/Record) for arbitrary event data. New event types can be added to the enum in both backend and frontend.
+- **Backend:**
+  - SQLAlchemy model: `backend/app/models/conversation_event.py`
+  - Pydantic schemas: `backend/app/schemas/conversation_event.py`
+  - Alembic migration: `backend/alembic/versions/add_conversation_event.py`
+- **Frontend:**
+  - TypeScript interface: `frontend/src/modules/conversation/models/event.ts`
+  - Public API: `frontend/src/modules/conversation/index.ts`
+- **Best Practices:**
+  - Always use the enum for event types (never string literals)
+  - Extend the event type enum in both backend and frontend when adding new event types
+  - Use the `payload` and `metadata` fields for arbitrary analytics data
+
+This model is the single source of truth for conversation event logging and analytics, and is designed for future extensibility and strict type safety.

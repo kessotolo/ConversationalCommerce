@@ -4,3 +4,4 @@ from .order import Order
 from .seller_profile import SellerProfile
 from .storefront_theme import StorefrontTheme
 from .tenant import Tenant
+from .conversation_event import ConversationEvent

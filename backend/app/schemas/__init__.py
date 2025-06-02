@@ -1,1 +1,2 @@
 from .seller_profile import SellerProfileBase, SellerProfileCreate, SellerProfileUpdate, SellerProfileResponse
+from .conversation_event import ConversationEventBase, ConversationEventCreate, ConversationEventResponse

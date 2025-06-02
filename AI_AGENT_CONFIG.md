@@ -141,6 +141,13 @@ import { TenantService } from '@/modules/tenant/services/TenantService'; // WRON
 - Run `npm test` to ensure all tests pass
 - Review the ESLint rules in `.eslintrc.json` for detailed restrictions
 
+## 📊 Event Logging & Analytics Extensibility
+
+- The codebase uses a single-source-of-truth pattern for event logging (see ConversationEvent model/schema/interface)
+- All analytics and monitoring should use the extensible ConversationEvent pattern
+- When adding new event types, update both backend (enum, schema) and frontend (enum, interface)
+- See ARCHITECTURE.md for details
+
 ---
 
 By following these guidelines, AI agents will help maintain the architectural integrity, code quality, and product vision of the ConversationalCommerce platform.
