@@ -10,9 +10,10 @@ import {
   ArrowUturnLeftIcon,
 } from '@heroicons/react/24/outline';
 import type { UUID } from '@/modules/core/models';
+import type { Version } from '@/modules/storefront/models/version';
 
 interface VersionDetailProps {
-  version: any; // TODO: Replace 'any' with Version type when available
+  version: Version;
   tenantId: UUID;
   onRestore: (versionId: UUID) => Promise<boolean>;
 }
