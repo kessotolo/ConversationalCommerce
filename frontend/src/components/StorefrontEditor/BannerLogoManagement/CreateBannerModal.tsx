@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import type { UUID } from '@/modules/core/models/base';
-import type { Asset } from '@/modules/storefront/models/asset';
-import { BannerType, TargetAudience } from '@/modules/storefront/models/banner';
+import { InputChangeEvent } from '@/types/events';
+import type { UUID } from '@/modules/core';
+import type { Asset } from '@/lib/api/storefrontEditor.types';
 import { createBanner, getAssets } from '@/lib/api/storefrontEditor';
-import Link from 'next/link';
-import Image from 'next/image';
 import { XMarkIcon, ExclamationTriangleIcon, PhotoIcon } from '@heroicons/react/24/outline';
+import type { CreateBannerRequest } from '@/lib/api/storefrontEditor.types';
 
 interface CreateBannerModalProps {
   tenantId: UUID;
@@ -14,19 +13,17 @@ interface CreateBannerModalProps {
 }
 
 const CreateBannerModal: React.FC<CreateBannerModalProps> = ({ tenantId, onClose, onSuccess }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CreateBannerRequest & { asset_id: string }>({
     title: '',
-    banner_type: BannerType.HERO,
-    asset_id: '',
-    link_url: '',
+    content: {},
     start_date: '',
     end_date: '',
-    target_audience: [TargetAudience.ALL] as TargetAudience[],
+    asset_id: '', // TODO: Align with backend DTO if needed
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [assetList, setAssetList] = useState<Asset[]>([]);
-  const [loadingAssets, setLoadingAssets] = useState(true);
+  const [loadingAssets, setLoadingAssets] = useState<boolean>(true);
 
   // Load assets for selection
   useEffect(() => {
@@ -34,7 +31,7 @@ const CreateBannerModal: React.FC<CreateBannerModalProps> = ({ tenantId, onClose
       setLoadingAssets(true);
       try {
         const response = await getAssets(tenantId, { asset_type: 'image', limit: 50 });
-        setAssetList(response.items);
+        setAssetList(response.data.assets);
       } catch (err) {
         console.error('Error loading assets:', err);
         setError('Failed to load assets. Please try refreshing.');
@@ -47,40 +44,13 @@ const CreateBannerModal: React.FC<CreateBannerModalProps> = ({ tenantId, onClose
   }, [tenantId]);
 
   // Handle input changes
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
-  ) => {
+  const handleInputChange = (e: InputChangeEvent): void => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // Handle checkbox changes for target audience
-  const handleTargetAudienceChange = (audience: TargetAudience) => {
-    const current = [...formData.target_audience];
-
-    // If ALL is selected, remove all other options
-    if (audience === TargetAudience.ALL) {
-      setFormData({ ...formData, target_audience: [TargetAudience.ALL] });
-      return;
-    }
-
-    // If switching from ALL to something else, remove ALL
-    const newAudience = current.includes(TargetAudience.ALL)
-      ? [audience]
-      : current.includes(audience)
-        ? current.filter((a) => a !== audience) // Remove if already selected
-        : [...current, audience]; // Add if not selected
-
-    // If nothing selected, default to ALL
-    if (newAudience.length === 0) {
-      setFormData({ ...formData, target_audience: [TargetAudience.ALL] });
-    } else {
-      setFormData({ ...formData, target_audience: newAudience });
-    }
-  };
-
   // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
 
     if (!formData.title) {
@@ -97,7 +67,15 @@ const CreateBannerModal: React.FC<CreateBannerModalProps> = ({ tenantId, onClose
     setError(null);
 
     try {
-      await createBanner(tenantId, formData);
+      // asset_id is not part of the backend DTO, so include it in content
+      const payload: CreateBannerRequest = {
+        ...formData,
+        content: {
+          ...formData.content,
+          asset_id: formData.asset_id, // TODO: Align with backend if asset_id should be top-level
+        },
+      };
+      await createBanner(tenantId, payload);
       onSuccess();
       onClose();
     } catch (err) {
@@ -148,37 +126,6 @@ const CreateBannerModal: React.FC<CreateBannerModalProps> = ({ tenantId, onClose
             </div>
 
             <div>
-              <label htmlFor="banner_type" className="block text-sm font-medium text-gray-700">
-                Banner Type *
-              </label>
-              <select
-                id="banner_type"
-                name="banner_type"
-                value={formData.banner_type}
-                onChange={handleInputChange}
-                required
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              >
-                {Object.values(BannerType).map((type) => (
-                  <option key={type} value={type}>
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </option>
-                ))}
-              </select>
-
-              <p className="mt-1 text-xs text-gray-500">
-                {formData.banner_type === BannerType.HERO &&
-                  'Hero banners are large and prominently displayed at the top of the page'}
-                {formData.banner_type === BannerType.PROMOTION &&
-                  'Promotion banners highlight sales or special offers'}
-                {formData.banner_type === BannerType.ANNOUNCEMENT &&
-                  'Announcement banners communicate important information to users'}
-                {formData.banner_type === BannerType.SPECIAL &&
-                  'Special banners are used for unique or seasonal content'}
-              </p>
-            </div>
-
-            <div>
               <label htmlFor="asset_id" className="block text-sm font-medium text-gray-700">
                 Banner Image *
               </label>
@@ -217,7 +164,7 @@ const CreateBannerModal: React.FC<CreateBannerModalProps> = ({ tenantId, onClose
                   {selectedAsset ? (
                     <div className="mt-2 p-2 border rounded-md">
                       <img
-                        src={`/api/assets/${selectedAsset.file_path.replace(/^.*[\\\/]/, '')}`}
+                        src={`/api/assets/${selectedAsset.file_path.replace(/^.*[/]/, '')}`}
                         alt={selectedAsset.title}
                         className="max-h-32 max-w-full object-contain mx-auto"
                       />
@@ -229,21 +176,6 @@ const CreateBannerModal: React.FC<CreateBannerModalProps> = ({ tenantId, onClose
                   )}
                 </>
               )}
-            </div>
-
-            <div>
-              <label htmlFor="link_url" className="block text-sm font-medium text-gray-700">
-                Link URL
-              </label>
-              <input
-                type="url"
-                id="link_url"
-                name="link_url"
-                value={formData.link_url}
-                onChange={handleInputChange}
-                placeholder="https://example.com"
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -276,31 +208,6 @@ const CreateBannerModal: React.FC<CreateBannerModalProps> = ({ tenantId, onClose
                 />
               </div>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Target Audience
-              </label>
-              <div className="space-y-2">
-                {Object.values(TargetAudience).map((audience) => (
-                  <div key={audience} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`audience-${audience}`}
-                      checked={formData.target_audience.includes(audience)}
-                      onChange={() => handleTargetAudienceChange(audience)}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <label
-                      htmlFor={`audience-${audience}`}
-                      className="ml-2 block text-sm text-gray-700"
-                    >
-                      {audience.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
           </form>
         </div>
 
@@ -313,7 +220,7 @@ const CreateBannerModal: React.FC<CreateBannerModalProps> = ({ tenantId, onClose
             Cancel
           </button>
           <button
-            onClick={handleSubmit}
+            type="submit"
             disabled={loading || !formData.title || !formData.asset_id}
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300 disabled:cursor-not-allowed"
           >

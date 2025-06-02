@@ -1,12 +1,104 @@
 import { useMemo } from 'react';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
+/**
+ * Button style properties
+ */
+interface ButtonStyle {
+  className: string;
+  style: {
+    backgroundColor: string;
+    color: string;
+    border: string;
+    borderRadius: string;
+    padding: string;
+  };
+  hoverStyle: {
+    backgroundColor: string;
+    color: string;
+    border: string;
+  };
+}
+
+/**
+ * Card style properties
+ */
+interface CardStyle {
+  className: string;
+  style: {
+    backgroundColor: string;
+    color: string;
+    border: string;
+    borderRadius: string;
+    boxShadow: string;
+    padding: string;
+  };
+}
+
+/**
+ * Form style properties
+ */
+interface FormStyle {
+  input: {
+    className: string;
+    style: {
+      backgroundColor: string;
+      color: string;
+      border: string;
+      borderRadius: string;
+      padding: string;
+    };
+    focusStyle: {
+      borderColor: string;
+      outline: string;
+      boxShadow: string;
+    };
+  };
+  label: {
+    className: string;
+    style: {
+      color: string;
+      fontSize: string;
+      marginBottom: string;
+    };
+  };
+}
+
+/**
+ * Theme styles hook return type
+ */
+interface ThemeStyles {
+  button: {
+    primary: ButtonStyle;
+    secondary: ButtonStyle;
+  };
+  card: CardStyle;
+  form: FormStyle;
+  navigation: {
+    className: string;
+    style: {
+      backgroundColor: string;
+      color: string;
+    };
+    linkStyle: {
+      color: string;
+    };
+    activeLinkStyle: {
+      color: string;
+      borderBottom: string;
+    };
+    hoverLinkStyle: {
+      color: string;
+    };
+  };
+}
 
 /**
  * A hook to generate component-specific styles based on the current theme
  * This creates a bridge between the theme context and individual components
+ * @returns Strongly typed theme styles for components
  */
-export function useThemeStyles() {
+export function useThemeStyles(): ThemeStyles {
   const { theme } = useTheme();
 
   // Memoize the styles to prevent unnecessary recalculations
