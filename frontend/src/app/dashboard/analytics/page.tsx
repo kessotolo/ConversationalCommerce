@@ -115,6 +115,10 @@ export default function AnalyticsPage() {
   const [eventFeed, setEventFeed] = useState<any[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
 
+  // Conversation quality leaderboard
+  const [qualityLeaderboard, setQualityLeaderboard] = useState<any[]>([]);
+  const [loadingQuality, setLoadingQuality] = useState(false);
+
   useEffect(() => {
     // Fetch conversation analytics from backend
     const fetchAnalytics = async () => {
@@ -160,6 +164,25 @@ export default function AnalyticsPage() {
     return () => {
       ws.close();
     };
+  }, []);
+
+  useEffect(() => {
+    // Fetch conversation quality scores
+    const fetchQuality = async () => {
+      setLoadingQuality(true);
+      try {
+        const res = await fetch('/api/conversation-quality');
+        if (!res.ok) throw new Error('Failed to fetch conversation quality');
+        const data = await res.json();
+        setQualityLeaderboard(data);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.warn('Failed to fetch conversation quality', err);
+      } finally {
+        setLoadingQuality(false);
+      }
+    };
+    fetchQuality();
   }, []);
 
   // Prepare chart data for events by type
@@ -331,6 +354,63 @@ export default function AnalyticsPage() {
                     convAnalytics?.avg_response_time_seconds !== undefined
                   ? convAnalytics.avg_response_time_seconds.toFixed(2)
                   : '--'}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      {/* Conversation Quality Leaderboard */}
+      <div className="mb-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Conversation Quality Leaderboard</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr>
+                    <th className="text-left p-2">Conversation ID</th>
+                    <th className="text-left p-2">Score</th>
+                    <th className="text-left p-2">Avg. Response (s)</th>
+                    <th className="text-left p-2">Avg. Sentiment</th>
+                    <th className="text-left p-2">Resolved</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loadingQuality ? (
+                    <tr>
+                      <td colSpan={5} className="p-2 text-gray-400">
+                        Loading...
+                      </td>
+                    </tr>
+                  ) : qualityLeaderboard.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="p-2 text-gray-400">
+                        No data
+                      </td>
+                    </tr>
+                  ) : (
+                    qualityLeaderboard.map((row, i) => (
+                      <tr key={row.conversation_id} className={i < 3 ? 'bg-green-50' : ''}>
+                        <td className="p-2 font-mono">{row.conversation_id}</td>
+                        <td className="p-2 font-bold">{row.quality_score}</td>
+                        <td className="p-2">
+                          {row.avg_response_time_seconds !== null &&
+                          row.avg_response_time_seconds !== undefined
+                            ? row.avg_response_time_seconds.toFixed(1)
+                            : '--'}
+                        </td>
+                        <td className="p-2">
+                          {row.avg_sentiment !== null && row.avg_sentiment !== undefined
+                            ? row.avg_sentiment.toFixed(2)
+                            : '--'}
+                        </td>
+                        <td className="p-2">{row.resolved ? '✅' : '❌'}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           </CardContent>
         </Card>

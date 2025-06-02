@@ -9,9 +9,10 @@ from app.models.conversation_event import ConversationEvent
 from app.schemas.conversation_event import ConversationEventCreate, ConversationEventResponse
 from fastapi import status
 from datetime import datetime, timedelta
-from sqlalchemy import func, cast, Date
+from sqlalchemy import func, cast, Date, and_
 from app.core.websocket.monitoring import connection_manager
 import asyncio
+from textblob import TextBlob
 
 router = APIRouter()
 
@@ -48,11 +49,37 @@ def get_conversation_events(db: Session = Depends(get_db)):
 @router.post("/conversation-events", response_model=ConversationEventResponse, status_code=status.HTTP_201_CREATED)
 def log_conversation_event(event: ConversationEventCreate, db: Session = Depends(get_db)):
     try:
+        # Sentiment and intent analysis for message_sent events
+        payload = event.payload.copy() if event.payload else {}
+        if event.event_type == "message_sent" and payload.get("content"):
+            text = payload["content"]
+            # Sentiment analysis
+            blob = TextBlob(text)
+            sentiment = {
+                "polarity": blob.sentiment.polarity,
+                "subjectivity": blob.sentiment.subjectivity,
+                "label": "positive" if blob.sentiment.polarity > 0.2 else "negative" if blob.sentiment.polarity < -0.2 else "neutral"
+            }
+            payload["sentiment"] = sentiment
+            # Simple intent classification (rule-based)
+            lower = text.lower()
+            if any(word in lower for word in ["buy", "order", "purchase"]):
+                intent = "order"
+            elif any(word in lower for word in ["price", "cost", "how much"]):
+                intent = "inquiry"
+            elif any(word in lower for word in ["problem", "issue", "complaint", "not working"]):
+                intent = "complaint"
+            elif any(word in lower for word in ["thanks", "thank you", "great", "love"]):
+                intent = "feedback"
+            else:
+                intent = "other"
+            payload["intent"] = intent
+
         db_event = ConversationEvent(
             conversation_id=event.conversation_id,
             user_id=event.user_id,
             event_type=event.event_type,
-            payload=event.payload,
+            payload=payload,
             tenant_id=event.tenant_id,
             metadata=event.metadata,
             created_at=None  # Let default apply
@@ -180,3 +207,108 @@ def get_conversation_analytics(
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to aggregate analytics: {str(e)}")
+
+
+@router.get("/conversation-quality")
+def get_conversation_quality(db: Session = Depends(get_db)):
+    """
+    Returns a quality score for each conversation based on:
+    - Average response time (lower is better)
+    - Average sentiment polarity (higher is better)
+    - Resolution status (if available in payload/metadata)
+    Also detects anomalies and broadcasts alerts via WebSocket.
+    """
+    try:
+        conv_ids = db.query(ConversationEvent.conversation_id).filter(
+            ConversationEvent.conversation_id != None).distinct().all()
+        results = []
+        now = datetime.utcnow()
+        for (conv_id,) in conv_ids:
+            events = db.query(ConversationEvent).filter(
+                ConversationEvent.conversation_id == conv_id).all()
+            if not events:
+                continue
+            sent_times = [
+                e.created_at for e in events if e.event_type == 'message_sent']
+            read_times = [
+                e.created_at for e in events if e.event_type == 'message_read']
+            response_times = []
+            for sent in sent_times:
+                after_reads = [r for r in read_times if r > sent]
+                if after_reads:
+                    response_times.append(
+                        (after_reads[0] - sent).total_seconds())
+            avg_response_time = sum(
+                response_times) / len(response_times) if response_times else None
+            sentiments = []
+            for e in events:
+                s = (e.payload or {}).get('sentiment', {})
+                if isinstance(s, dict) and 'polarity' in s:
+                    sentiments.append(s['polarity'])
+            avg_sentiment = sum(sentiments) / \
+                len(sentiments) if sentiments else None
+            resolved = any((e.payload or {}).get('intent') == 'resolved' or (
+                e.metadata or {}).get('resolved') for e in events)
+            # Compute quality score
+            score = 0
+            if avg_response_time is not None:
+                score += max(0, 1 - min(avg_response_time / 60, 1)) * 0.4
+            if avg_sentiment is not None:
+                score += ((avg_sentiment + 1) / 2) * 0.4
+            if resolved:
+                score += 0.2
+            results.append({
+                "conversation_id": str(conv_id),
+                "avg_response_time_seconds": avg_response_time,
+                "avg_sentiment": avg_sentiment,
+                "resolved": resolved,
+                "quality_score": round(score, 3)
+            })
+            # --- Anomaly detection and alerting ---
+            # Only broadcast once per anomaly type per call
+            tenant_id = str(
+                events[0].tenant_id) if events and events[0].tenant_id else None
+            if tenant_id:
+                # 1. Slow response
+                if avg_response_time is not None and avg_response_time > 120:
+                    asyncio.create_task(connection_manager.broadcast_to_tenant(
+                        tenant_id,
+                        {
+                            "type": "alert",
+                            "alert_type": "slow_response",
+                            "message": f"Conversation {conv_id} has high avg response time: {avg_response_time:.1f}s",
+                            "severity": "high",
+                            "conversation_id": str(conv_id),
+                        }
+                    ))
+                # 2. Negative sentiment
+                if avg_sentiment is not None and avg_sentiment < -0.5:
+                    asyncio.create_task(connection_manager.broadcast_to_tenant(
+                        tenant_id,
+                        {
+                            "type": "alert",
+                            "alert_type": "negative_sentiment",
+                            "message": f"Conversation {conv_id} has very negative sentiment: {avg_sentiment:.2f}",
+                            "severity": "medium",
+                            "conversation_id": str(conv_id),
+                        }
+                    ))
+                # 3. Unresolved for > 1 day
+                if not resolved:
+                    last_event = max(events, key=lambda e: e.created_at)
+                    if (now - last_event.created_at).total_seconds() > 86400:
+                        asyncio.create_task(connection_manager.broadcast_to_tenant(
+                            tenant_id,
+                            {
+                                "type": "alert",
+                                "alert_type": "unresolved_long",
+                                "message": f"Conversation {conv_id} unresolved for over 1 day.",
+                                "severity": "medium",
+                                "conversation_id": str(conv_id),
+                            }
+                        ))
+        results.sort(key=lambda x: x["quality_score"], reverse=True)
+        return results
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to compute conversation quality: {str(e)}")

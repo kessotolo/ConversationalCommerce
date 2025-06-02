@@ -430,3 +430,23 @@ ESLint is configured with selective overrides to flag these issues appropriately
 - Use the WebSocket feed for operational dashboards and proactive monitoring
 - Extend the backend to broadcast additional event types or alerts as needed
 - Keep the frontend feed performant by limiting the number of displayed events
+
+## Advanced Analytics (2025)
+
+### Sentiment & Intent Analysis
+- On every message_sent event, the backend analyzes sentiment (TextBlob) and classifies intent (rule-based)
+- Results are stored in the event's payload (see `backend/app/api/routers/conversation.py`)
+
+### Conversation Quality Scoring
+- The backend exposes `/conversation-quality` (see `backend/app/api/routers/conversation.py`)
+  - Computes a quality score for each conversation based on response time, sentiment, and resolution
+  - Results are visualized in the dashboard leaderboard (`frontend/src/app/dashboard/analytics/page.tsx`)
+
+### Anomaly Detection & Alerting
+- The backend detects anomalies (slow response, negative sentiment, unresolved >1 day) and broadcasts alerts via WebSocket
+- Alerts appear in the real-time dashboard feed
+
+### Best Practices
+- Use NLP libraries for deeper analysis as needed
+- Tune quality scoring weights and anomaly thresholds for your business
+- Extend analytics endpoints and visualizations as new needs arise
