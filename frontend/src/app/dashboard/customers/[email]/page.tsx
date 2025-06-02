@@ -4,8 +4,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ChevronLeft, ShoppingBag } from 'lucide-react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
-// DashboardLayout now provided by layout.tsx
 import { useAuth } from '@/utils/auth-utils';
 
 // Mock orders data (should match main customers page)
@@ -61,18 +59,16 @@ export default function CustomerDetailPage() {
   const customerOrders = mockOrders.filter((o) => o.email === email);
   if (customerOrders.length === 0) {
     return (
-      <DashboardLayout>
-        <div className="max-w-2xl mx-auto px-4 py-12 text-center">
-          <Link
-            href="/dashboard/customers"
-            className="inline-flex items-center text-[#6C9A8B] mb-6"
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" /> Back to Customers
-          </Link>
-          <h2 className="text-xl font-bold mb-2">Customer not found</h2>
-          <p className="text-gray-500">No customer with this email exists.</p>
-        </div>
-      </DashboardLayout>
+      <div className="max-w-2xl mx-auto px-4 py-12 text-center">
+        <Link
+          href="/dashboard/customers"
+          className="inline-flex items-center text-[#6C9A8B] mb-6"
+        >
+          <ChevronLeft className="h-4 w-4 mr-1" /> Back to Customers
+        </Link>
+        <h2 className="text-xl font-bold mb-2">Customer not found</h2>
+        <p className="text-gray-500">No customer with this email exists.</p>
+      </div>
     );
   }
   const customer = {

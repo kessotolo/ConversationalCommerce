@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/utils/auth-utils';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { SalesChart } from '@/components/dashboard/SalesChart';
 import { RecentOrders } from '@/components/dashboard/RecentOrders';
@@ -310,7 +309,7 @@ export default function Dashboard() {
   }
 
   return (
-    <DashboardLayout>
+    <>
       <div className="min-h-screen bg-[#fdfcf7] py-6 px-2 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
@@ -526,6 +525,6 @@ export default function Dashboard() {
           <span className="text-xs">Profile</span>
         </Link>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

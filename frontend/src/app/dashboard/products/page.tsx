@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { Plus, Edit, Trash2, BadgeX, Search, BadgeCheck } from 'lucide-react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
 
 // Product type
 interface Product {
@@ -198,122 +197,120 @@ export default function ProductsDashboardPage() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-          <div className="flex gap-2 items-center w-full sm:w-auto">
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
-              <input
-                className="pl-10 pr-3 py-2 rounded-lg border border-gray-200 w-full focus:outline-none focus:ring-2 focus:ring-[#6C9A8B] bg-white"
-                placeholder="Search products..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <button
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#6C9A8B] text-white font-semibold shadow hover:bg-[#588074] transition"
-              onClick={handleOpenAdd}
-            >
-              <Plus size={18} /> Add product
-            </button>
-          </div>
-        </div>
-        {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl shadow-inner border border-gray-100">
-            <Image
-              src="/empty-box.svg"
-              alt="No products"
-              width={500}
-              height={300}
-              className="w-32 h-32 mb-6 opacity-80"
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <h1 className="text-2xl font-bold text-gray-900">Products</h1>
+        <div className="flex gap-2 items-center w-full sm:w-auto">
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+            <input
+              className="pl-10 pr-3 py-2 rounded-lg border border-gray-200 w-full focus:outline-none focus:ring-2 focus:ring-[#6C9A8B] bg-white"
+              placeholder="Search products..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
-            <h2 className="text-xl font-semibold mb-2">No products yet</h2>
-            <p className="text-gray-500 mb-6">Start adding products to see them listed here.</p>
-            <button
-              className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#6C9A8B] text-white font-semibold shadow hover:bg-[#588074] transition"
-              onClick={handleOpenAdd}
-            >
-              <Plus size={18} /> Add your first product
-            </button>
           </div>
-        ) : (
-          <div className="overflow-x-auto bg-white rounded-2xl shadow border border-gray-100">
-            <table className="min-w-full divide-y divide-gray-100">
-              <thead className="bg-[#f7faf9]">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Image
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Price
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Inventory
-                  </th>
-                  <th className="px-6 py-3" />
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-100">
-                {filtered.map((product) => (
-                  <tr key={product?.id} className="hover:bg-[#f7faf9] transition">
-                    <td className="px-6 py-4">
-                      <img
-                        src={product?.image_url}
-                        alt={product?.name}
-                        className="w-14 h-14 object-cover rounded-lg border border-gray-100"
-                      />
-                    </td>
-                    <td className="px-6 py-4 font-semibold text-gray-900">{product?.name}</td>
-                    <td className="px-6 py-4">
-                      {product?.status === 'Active' ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-100">
-                          <BadgeCheck size={14} /> Active
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
-                          <BadgeX size={14} /> Draft
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">${product?.price.toFixed(2)}</td>
-                    <td className="px-6 py-4">{product?.inventory}</td>
-                    <td className="px-6 py-4 flex gap-2">
-                      <button
-                        className="p-2 rounded hover:bg-gray-100 text-gray-500"
-                        title="Edit"
-                        onClick={() => handleOpenEdit(product)}
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button
-                        className="p-2 rounded hover:bg-red-50 text-red-500"
-                        title="Delete"
-                        onClick={() => handleDelete(product?.id)}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        <AddProductModal
-          open={modalOpen}
-          onClose={handleCloseModal}
-          onAdd={handleAddOrEditProduct}
-          editingProduct={editingProduct}
-        />
+          <button
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#6C9A8B] text-white font-semibold shadow hover:bg-[#588074] transition"
+            onClick={handleOpenAdd}
+          >
+            <Plus size={18} /> Add product
+          </button>
+        </div>
       </div>
-    </DashboardLayout>
+      {filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl shadow-inner border border-gray-100">
+          <Image
+            src="/empty-box.svg"
+            alt="No products"
+            width={500}
+            height={300}
+            className="w-32 h-32 mb-6 opacity-80"
+          />
+          <h2 className="text-xl font-semibold mb-2">No products yet</h2>
+          <p className="text-gray-500 mb-6">Start adding products to see them listed here.</p>
+          <button
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#6C9A8B] text-white font-semibold shadow hover:bg-[#588074] transition"
+            onClick={handleOpenAdd}
+          >
+            <Plus size={18} /> Add your first product
+          </button>
+        </div>
+      ) : (
+        <div className="overflow-x-auto bg-white rounded-2xl shadow border border-gray-100">
+          <table className="min-w-full divide-y divide-gray-100">
+            <thead className="bg-[#f7faf9]">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Image
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Price
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Inventory
+                </th>
+                <th className="px-6 py-3" />
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-100">
+              {filtered.map((product) => (
+                <tr key={product?.id} className="hover:bg-[#f7faf9] transition">
+                  <td className="px-6 py-4">
+                    <img
+                      src={product?.image_url}
+                      alt={product?.name}
+                      className="w-14 h-14 object-cover rounded-lg border border-gray-100"
+                    />
+                  </td>
+                  <td className="px-6 py-4 font-semibold text-gray-900">{product?.name}</td>
+                  <td className="px-6 py-4">
+                    {product?.status === 'Active' ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-100">
+                        <BadgeCheck size={14} /> Active
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
+                        <BadgeX size={14} /> Draft
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">${product?.price.toFixed(2)}</td>
+                  <td className="px-6 py-4">{product?.inventory}</td>
+                  <td className="px-6 py-4 flex gap-2">
+                    <button
+                      className="p-2 rounded hover:bg-gray-100 text-gray-500"
+                      title="Edit"
+                      onClick={() => handleOpenEdit(product)}
+                    >
+                      <Edit size={16} />
+                    </button>
+                    <button
+                      className="p-2 rounded hover:bg-red-50 text-red-500"
+                      title="Delete"
+                      onClick={() => handleDelete(product?.id)}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <AddProductModal
+        open={modalOpen}
+        onClose={handleCloseModal}
+        onAdd={handleAddOrEditProduct}
+        editingProduct={editingProduct}
+      />
+    </div>
   );
 }
