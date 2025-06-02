@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import type {Rule} from '@/modules/monitoring/types';
+import type { Rule } from '@/modules/monitoring/types';
 import { RuleSeverity } from '@/modules/monitoring/types';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -27,7 +27,7 @@ interface RulesManagerProps {
   tenantId: string;
 }
 
-const RulesManager: React.FC<RulesManagerProps> = ({ _tenantId }) => {
+const RulesManager: React.FC<RulesManagerProps> = ({ tenantId }) => {
   const [rules, setRules] = useState<Rule<unknown>[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingRule, setEditingRule] = useState<Rule<unknown> | null>(null);
@@ -40,7 +40,10 @@ const RulesManager: React.FC<RulesManagerProps> = ({ _tenantId }) => {
 
   useEffect(() => {
     fetchRules();
-  }, [tenantId]);
+    // tenantId is referenced in fetchRules but since it's not going to change
+    // and is part of the component scope, we don't need it as a dependency
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchRules = async () => {
     try {
@@ -86,7 +89,7 @@ const RulesManager: React.FC<RulesManagerProps> = ({ _tenantId }) => {
         },
         body: JSON.stringify({
           ...formData,
-          tenant_id: _tenantId,
+          tenant_id: tenantId,
         }),
       });
 

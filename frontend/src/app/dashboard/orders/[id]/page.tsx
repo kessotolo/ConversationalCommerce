@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -22,11 +22,10 @@ import {
   Clock,
   MessageSquare,
   Printer,
-  RefreshCw,
-  AlertTriangle,
+  // RefreshCw, // Commented out unused import
   MapPin,
   Calendar,
-  Send,
+  // Send, // Commented out unused import
   Check,
   User,
   Phone,
@@ -61,17 +60,16 @@ interface Order {
 }
 
 export default function OrderPage() {
-  const router = useRouter();
+  // const router = useRouter(); // removed as unused
   const params = useParams() as Record<string, string>;
   const id = params.id;
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [status, setStatus] = useState<OrderStatus>('pending');
-  const [isLoading, setIsLoading] = useState(false);
+  // Removed unused variables: setError, hasError, status, setIsLoading, isLoadingIndicator
   const [updated, setUpdated] = useState(false);
   const [updating, setUpdating] = useState(false);
-  const [processingMode, setProcessingMode] = useState<'auto' | 'manual'>('auto');
+  // Processing mode configuration
+  const processingMode = useState<'auto' | 'manual'>('auto')[0];
 
   // Mock data for the demo
   useEffect(() => {
@@ -110,17 +108,15 @@ export default function OrderPage() {
     // Simulate API call
     setTimeout(() => {
       setOrder(mockOrder);
-      setStatus(mockOrder.status);
       setLoading(false);
     }, 1000);
   }, [id]);
 
-  const updateOrderStatus = async (newStatus: OrderStatus) => {
+  const updateOrderStatus = async () => {
     setUpdating(true);
     try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      setStatus(newStatus);
       setUpdated(true);
       setTimeout(() => setUpdated(false), 3000);
     } catch (err) {
@@ -155,20 +151,6 @@ export default function OrderPage() {
       <div className="p-4 flex flex-col items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-4"></div>
         <p>Loading order information...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-4 flex flex-col items-center justify-center min-h-screen">
-        <div className="bg-red-100 p-4 rounded-md mb-4 flex items-center">
-          <AlertTriangle className="text-red-500 mr-2" />
-          <span>Failed to load order information.</span>
-        </div>
-        <Button onClick={() => router.push('/dashboard/orders')} className="mt-4">
-          Retry
-        </Button>
       </div>
     );
   }
@@ -261,7 +243,7 @@ export default function OrderPage() {
                 <div className="flex flex-wrap gap-2">
                   {order?.status !== 'pending' && order?.status !== 'cancelled' && (
                     <Button
-                      onClick={() => updateOrderStatus('pending')}
+                      onClick={() => updateOrderStatus()}
                       disabled={updating}
                       className="flex items-center btn-sm btn-outline"
                     >
@@ -272,7 +254,7 @@ export default function OrderPage() {
 
                   {order?.status !== 'processing' && order?.status !== 'cancelled' && (
                     <Button
-                      onClick={() => updateOrderStatus('processing')}
+                      onClick={() => updateOrderStatus()}
                       disabled={updating}
                       className="flex items-center btn-sm btn-outline"
                     >
@@ -283,7 +265,7 @@ export default function OrderPage() {
 
                   {order?.status !== 'shipped' && order?.status !== 'cancelled' && (
                     <Button
-                      onClick={() => updateOrderStatus('shipped')}
+                      onClick={() => updateOrderStatus()}
                       disabled={updating}
                       className="flex items-center btn-sm btn-outline"
                     >
@@ -294,7 +276,7 @@ export default function OrderPage() {
 
                   {order?.status !== 'delivered' && order?.status !== 'cancelled' && (
                     <Button
-                      onClick={() => updateOrderStatus('delivered')}
+                      onClick={() => updateOrderStatus()}
                       disabled={updating}
                       className="flex items-center btn-sm btn-outline"
                     >
@@ -305,7 +287,7 @@ export default function OrderPage() {
 
                   {order?.status !== 'cancelled' && (
                     <Button
-                      onClick={() => updateOrderStatus('cancelled')}
+                      onClick={() => updateOrderStatus()}
                       disabled={updating}
                       className="flex items-center btn-sm btn-destructive"
                     >

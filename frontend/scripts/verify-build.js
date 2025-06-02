@@ -56,69 +56,191 @@ function getAllFiles(dir, fileList = []) {
 function checkMissingImports() {
   console.log(`\n${colors.magenta}Checking for missing component imports...${colors.reset}`);
 
+  // List of built-in HTML/JSX tags and types to ignore
+  const builtInTags = new Set([
+    // HTML tags
+    'div',
+    'span',
+    'input',
+    'form',
+    'img',
+    'button',
+    'ul',
+    'li',
+    'a',
+    'p',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'table',
+    'thead',
+    'tbody',
+    'tr',
+    'td',
+    'th',
+    'label',
+    'select',
+    'option',
+    'textarea',
+    'svg',
+    'path',
+    'g',
+    'circle',
+    'rect',
+    'ellipse',
+    'polygon',
+    'line',
+    'polyline',
+    'text',
+    'defs',
+    'clipPath',
+    'foreignObject',
+    'iframe',
+    'canvas',
+    'audio',
+    'video',
+    'source',
+    'track',
+    'map',
+    'area',
+    'blockquote',
+    'cite',
+    'code',
+    'col',
+    'colgroup',
+    'data',
+    'datalist',
+    'dd',
+    'del',
+    'details',
+    'dfn',
+    'dialog',
+    'dl',
+    'dt',
+    'em',
+    'embed',
+    'fieldset',
+    'figcaption',
+    'figure',
+    'footer',
+    'header',
+    'hr',
+    'i',
+    'ins',
+    'kbd',
+    'legend',
+    'main',
+    'mark',
+    'menu',
+    'meter',
+    'nav',
+    'noscript',
+    'object',
+    'ol',
+    'optgroup',
+    'output',
+    'picture',
+    'pre',
+    'progress',
+    'q',
+    'rp',
+    'rt',
+    'ruby',
+    's',
+    'samp',
+    'section',
+    'small',
+    'strong',
+    'sub',
+    'summary',
+    'sup',
+    'template',
+    'time',
+    'u',
+    'var',
+    'wbr',
+    // React Fragments
+    'Fragment',
+    // HTML element types
+    'HTMLDivElement',
+    'HTMLInputElement',
+    'HTMLFormElement',
+    'HTMLButtonElement',
+    'HTMLImageElement',
+    'HTMLTableElement',
+    'HTMLSpanElement',
+    'HTMLAnchorElement',
+    'HTMLUListElement',
+    'HTMLOListElement',
+    'HTMLLIElement',
+    'HTMLParagraphElement',
+    'HTMLHeadingElement',
+    'HTMLCanvasElement',
+    'HTMLVideoElement',
+    'HTMLAudioElement',
+    'SVGElement',
+    'HTMLElement',
+  ]);
+
   // Get all React component files
   const tsxFiles = getAllFiles(srcDir).filter(
     (file) => file.endsWith('.tsx') || file.endsWith('.jsx'),
   );
-  const componentNames = new Set();
-  const importedComponents = new Map();
 
-  // Extract component names and imports
   tsxFiles.forEach((file) => {
     const content = fs.readFileSync(file, 'utf8');
 
-    // Extract exported component names
-    const exportMatches = content.match(
-      /export\s+(default\s+)?(?:function|const|class)\s+([A-Z][A-Za-z0-9_]*)/g,
+    // 1. Find all locally defined components/types/interfaces
+    const localDefs = new Set();
+
+    // Function, const, or class components
+    const localComponentMatches = content.matchAll(
+      /(function|const|class)\s+([A-Z][A-Za-z0-9_]*)/g,
     );
-    if (exportMatches) {
-      exportMatches.forEach((match) => {
-        const nameMatch = match.match(/([A-Z][A-Za-z0-9_]*)$/);
-        if (nameMatch && nameMatch[1]) {
-          componentNames.add(nameMatch[1]);
-        }
-      });
+    for (const match of localComponentMatches) {
+      localDefs.add(match[2]);
     }
 
-    // Extract imported components
-    const importMatches = content.match(/import\s+.*?from\s+['"][^'"]+['"]/g);
-    if (importMatches) {
-      importMatches.forEach((match) => {
-        if (!importedComponents.has(file)) {
-          importedComponents.set(file, new Set());
-        }
-        const components = importedComponents.get(file);
-
-        // Extract component names from import statements
-        const namedImports = match.match(/import\s+{([^}]+)}/);
-        if (namedImports && namedImports[1]) {
-          namedImports[1].split(',').forEach((imp) => {
-            const trimmedName = imp.trim().split(' as ')[0];
-            components.add(trimmedName);
-          });
-        }
-      });
+    // Types/interfaces
+    const localTypeMatches = content.matchAll(/(interface|type)\s+([A-Z][A-Za-z0-9_]*)/g);
+    for (const match of localTypeMatches) {
+      localDefs.add(match[2]);
     }
 
-    // Check for JSX usage of components that might not be imported
-    const jsxMatches = content.match(/<([A-Z][A-Za-z0-9_]*)/g);
-    if (jsxMatches) {
-      jsxMatches.forEach((match) => {
-        const componentName = match.substring(1);
-        if (
-          !componentNames.has(componentName) &&
-          (!importedComponents.has(file) || !importedComponents.get(file).has(componentName))
-        ) {
-          console.log(
-            `${colors.yellow}Warning: Component ${colors.white}${componentName}${colors.yellow} used in ${colors.white}${path.relative(rootDir, file)}${colors.yellow} might be missing an import${colors.reset}`,
-          );
-          warnings++;
-        }
-      });
+    // 2. Find all imported components/types
+    const imported = new Set();
+    const importMatches = content.matchAll(/import\s+.*?from\s+['"][^'"]+['"]/g);
+    for (const match of importMatches) {
+      // Named imports
+      const named = match[0].match(/import\s+{([^}]+)}/);
+      if (named && named[1]) {
+        named[1].split(',').forEach((imp) => {
+          const trimmed = imp.trim().split(' as ')[0];
+          imported.add(trimmed);
+        });
+      }
+      // Default import
+      const def = match[0].match(/import\s+([A-Z][A-Za-z0-9_]*)\s+from/);
+      if (def && def[1]) {
+        imported.add(def[1]);
+      }
+    }
+
+    // 3. Find all JSX usages
+    const jsxMatches = content.matchAll(/<([A-Z][A-Za-z0-9_]*)/g);
+    for (const match of jsxMatches) {
+      const name = match[1];
+      if (!imported.has(name) && !localDefs.has(name) && !builtInTags.has(name)) {
+        console.log(
+          `${colors.yellow}Warning: Component ${colors.white}${name}${colors.yellow} used in ${colors.white}${path.relative(rootDir, file)}${colors.yellow} might be missing an import${colors.reset}`,
+        );
+        warnings++;
+      }
     }
   });
-
-  console.log(`${componentNames.size} components found, checked for missing imports`);
 }
 
 /**

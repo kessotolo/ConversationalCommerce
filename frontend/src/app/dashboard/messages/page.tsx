@@ -121,7 +121,6 @@ export default function MessagesPage() {
   const [messages, setMessages] = useState(mockMessages);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -142,7 +141,6 @@ export default function MessagesPage() {
   // Fetch conversations with API integration structure
   const fetchConversations = async () => {
     setIsLoading(true);
-    setError(null);
 
     try {
       // This is where you would make a real API call
@@ -154,17 +152,20 @@ export default function MessagesPage() {
         setConversations(mockConversations);
         setIsLoading(false);
       }, 1000);
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message || 'Failed to fetch conversations');
-      }
+    } catch (err) {
+      console.error('Error fetching conversations:', err);
       setIsLoading(false);
     }
   };
 
-  // Send a message
-  // Unused message handler removed
-  // const sendMessage = useCallback(...);
+  // Load conversations on mount
+  useEffect(() => {
+    fetchConversations();
+  }, []);
+
+  // Send a new message
+  const sendMessage = () => {
+    if (!newMessage.trim() || !selectedConversation) return;
 
     const messageToSend = {
       id: Date.now().toString(),
@@ -210,6 +211,7 @@ export default function MessagesPage() {
 
   // Insert quick reply
   const insertQuickReply = (reply: string) => {
+    // Set the message input value to the quick reply text
     setNewMessage(reply);
   };
 
@@ -230,7 +232,9 @@ export default function MessagesPage() {
   };
 
   // Helper: get selected conversation object
-  const selectedConvObj = conversations.find((c) => c.id === selectedConversation);
+  const selectedConvObj = conversations.find(
+    (c: (typeof mockConversations)[0]) => c.id === selectedConversation,
+  );
   // Helper: get last message date
   const lastMsgDate =
     messages.length > 0 ? new Date(messages[messages.length - 1].timestamp) : null;
@@ -268,7 +272,7 @@ export default function MessagesPage() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
                 </div>
               ) : filteredConversations.length > 0 ? (
-                filteredConversations.map((conv) => (
+                filteredConversations.map((conv: (typeof mockConversations)[0]) => (
                   <button
                     key={conv.id}
                     className={`w-full text-left px-4 py-3 border-b flex items-start rounded-none transition-all duration-150 ${selectedConversation === conv.id ? 'bg-[#e8f6f1] border-l-4 border-[#6C9A8B]' : 'hover:bg-gray-100'}`}
@@ -279,39 +283,61 @@ export default function MessagesPage() {
                         <Image
                           src={conv.avatar}
                           alt={conv.customerName}
-                          fill
+                          width={48}
+                          height={48}
                           className="object-cover"
                         />
                       ) : (
-                        <div className="flex items-center justify-center h-full text-gray-500">
+                        <div className="flex items-center justify-center h-full w-full bg-[#e6f0eb] text-[#6C9A8B]">
                           {conv.customerName.charAt(0)}
+                        </div>
+                      )}
+                      {conv.unread > 0 && (
+                        <div className="absolute -bottom-1 -right-1 bg-[#6C9A8B] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          {conv.unread}
                         </div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-baseline">
+                      <div className="flex justify-between">
                         <h3 className="font-medium truncate">{conv.customerName}</h3>
-                        <span className="text-xs text-gray-500">
-                          {formatDate(conv.timestamp, 'time')}
-                        </span>
+                        <span className="text-xs text-gray-500">{formatDate(conv.timestamp)}</span>
                       </div>
-                      <p className="text-sm text-gray-600 truncate">{conv.lastMessage}</p>
-                      <p className="text-xs text-gray-400 mt-1">{conv.phone}</p>
+                      <div className="flex items-center text-sm text-gray-500 mt-1">
+                        <Phone className="h-3 w-3 mr-1" />
+                        <span className="truncate">{conv.phone}</span>
+                      </div>
+                      <p className="text-sm truncate mt-1">{conv.lastMessage}</p>
+                      {conv.orderId && (
+                        <div className="mt-1 text-xs">
+                          <span className="bg-[#f0f7f4] text-[#6C9A8B] px-2 py-0.5 rounded">
+                            {conv.orderId}
+                          </span>
+                          <span
+                            className={`ml-2 px-2 py-0.5 rounded ${
+                              conv.orderStatus === 'delivered'
+                                ? 'bg-green-100 text-green-800'
+                                : conv.orderStatus === 'processing'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-yellow-100 text-yellow-800'
+                            }`}
+                          >
+                            {conv.orderStatus}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                    {conv.unread > 0 && (
-                      <span className="ml-2 bg-[#6C9A8B] text-white text-xs font-medium rounded-full h-5 w-5 flex items-center justify-center">
-                        {conv.unread}
-                      </span>
-                    )}
                   </button>
                 ))
               ) : (
-                <div className="text-center py-8 text-gray-400">No conversations found</div>
+                <div className="flex flex-col items-center justify-center h-32 text-gray-500">
+                  <p>No conversations found</p>
+                </div>
               )}
             </div>
           </div>
 
-          {/* Message content area */}
+          {/* Chat area */}
           <div className="hidden sm:flex flex-col flex-1 bg-white">
             {selectedConversation ? (
               <>
@@ -319,133 +345,143 @@ export default function MessagesPage() {
                 <div className="px-4 py-3 border-b flex justify-between items-center bg-white">
                   <div className="flex items-center">
                     <div className="relative h-10 w-10 rounded-full overflow-hidden bg-gray-300 mr-3 border border-[#e6f0eb]">
-                      <Image
-                        src={
-                          selectedConvObj?.avatar ||
-                          'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg'
-                        }
-                        alt="Customer"
-                        fill
-                        className="object-cover"
-                      />
+                      {selectedConvObj?.avatar ? (
+                        <Image
+                          src={selectedConvObj.avatar}
+                          alt={selectedConvObj.customerName}
+                          width={40}
+                          height={40}
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full w-full bg-[#e6f0eb] text-[#6C9A8B]">
+                          {selectedConvObj?.customerName.charAt(0)}
+                        </div>
+                      )}
                     </div>
                     <div>
-                      <h3 className="font-medium flex items-center gap-2">
-                        {selectedConvObj?.customerName}
-                        {selectedConvObj?.orderId && (
-                          <a
-                            href={`/dashboard/orders/${selectedConvObj.orderId}`}
-                            className="text-xs px-2 py-1 rounded bg-[#e8f6f1] text-[#6C9A8B] font-semibold hover:underline"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Order #{selectedConvObj.orderId}
-                          </a>
-                        )}
-                      </h3>
-                      <p className="text-xs text-gray-400">{selectedConvObj?.phone}</p>
+                      <h3 className="font-medium">{selectedConvObj?.customerName}</h3>
+                      <div className="flex items-center text-xs text-gray-500">
+                        <Phone className="h-3 w-3 mr-1" />
+                        <span>{selectedConvObj?.phone}</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex space-x-2">
-                    <Button className="h-8 w-8 p-0" title="Voice Call">
-                      <Phone className="h-4 w-4" />
-                    </Button>
-                    <Button className="h-8 w-8 p-0" title="Video Call">
+                  <div className="flex">
+                    <Button
+                      className="h-8 w-8 p-0 mr-2"
+                      title="Video Call"
+                      variant="ghost"
+                      disabled={isExpired}
+                    >
                       <Video className="h-4 w-4" />
                     </Button>
-                    <Button className="h-8 w-8 p-0" title="More Options">
+                    <Button className="h-8 w-8 p-0" title="More Actions" variant="ghost">
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
-                {/* Expiry banner */}
-                {isExpired && (
-                  <div className="bg-yellow-50 border-b border-yellow-200 text-yellow-800 text-sm px-4 py-2 text-center">
-                    This conversation is closed. You can no longer send messages.
+
+                {/* Order status alert */}
+                {selectedConvObj?.orderId && (
+                  <div
+                    className={`px-4 py-2 text-sm ${
+                      selectedConvObj.orderStatus === 'delivered'
+                        ? 'bg-green-100'
+                        : selectedConvObj.orderStatus === 'processing'
+                          ? 'bg-blue-100'
+                          : 'bg-yellow-100'
+                    }`}
+                  >
+                    Order {selectedConvObj.orderId} is{' '}
+                    <span className="font-medium">{selectedConvObj.orderStatus}</span>
                   </div>
                 )}
 
-                {/* Messages area */}
-                <div className="flex-1 p-4 overflow-y-auto bg-[#f7faf9]">
-                  <div className="space-y-4">
-                    {messages.map((message) => (
+                {/* Message area */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#f7faf9]">
+                  {messages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex ${msg.sender === 'store' ? 'justify-end' : 'justify-start'}`}
+                    >
                       <div
-                        key={message.id}
-                        className={`flex ${
-                          message.sender === 'store' ? 'justify-end' : 'justify-start'
+                        className={`max-w-[75%] rounded-lg px-4 py-2 ${
+                          msg.sender === 'store'
+                            ? 'bg-[#6C9A8B] text-white rounded-tr-none'
+                            : 'bg-white border rounded-tl-none'
                         }`}
                       >
+                        <p>{msg.content}</p>
                         <div
-                          className={`max-w-[75%] rounded-2xl px-4 py-2 shadow-sm ${
-                            message.sender === 'store'
-                              ? 'bg-[#6C9A8B] text-white'
-                              : 'bg-white border border-[#e6f0eb] text-gray-800'
+                          className={`text-xs mt-1 flex justify-end items-center gap-1 ${
+                            msg.sender === 'store' ? 'text-[#e6f0eb]' : 'text-gray-500'
                           }`}
                         >
-                          <p>{message.content}</p>
-                          <div className="text-xs mt-1 flex justify-end items-center space-x-1">
-                            <span
-                              className={
-                                message.sender === 'store' ? 'text-[#e8f6f1]' : 'text-gray-400'
-                              }
-                            >
-                              {formatDate(message.timestamp, 'time')}
-                            </span>
-                            {message.sender === 'store' && renderMessageStatus(message.status)}
-                          </div>
+                          {formatDate(msg.timestamp, true)}
+                          {msg.sender === 'store' && renderMessageStatus(msg.status)}
                         </div>
                       </div>
-                    ))}
-                    <div ref={messagesEndRef} />
-                  </div>
+                    </div>
+                  ))}
+                  <div ref={messagesEndRef} />
                 </div>
 
                 {/* Quick replies */}
-                <div className="px-4 py-2 border-t border-b bg-[#f7faf9]">
-                  <p className="text-xs text-gray-500 mb-2">Quick Replies:</p>
-                  <div className="flex overflow-x-auto space-x-2 pb-2">
-                    {quickReplies.map((reply, index) => (
-                      <button
-                        key={index}
-                        className="px-3 py-1 border border-[#e6f0eb] rounded-full text-sm whitespace-nowrap hover:bg-[#e8f6f1] transition-colors"
-                        onClick={() => insertQuickReply(reply)}
-                      >
-                        {reply.length > 30 ? reply.substring(0, 30) + '...' : reply}
-                      </button>
-                    ))}
+                {!isExpired && (
+                  <div className="bg-white border-t px-4 py-2">
+                    <p className="text-xs text-gray-500 mb-2">Quick replies:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {quickReplies.map((reply, index) => (
+                        <button
+                          key={index}
+                          onClick={() => insertQuickReply(reply)}
+                          className="bg-[#f0f7f4] hover:bg-[#e8f6f1] text-[#6C9A8B] text-xs px-3 py-1 rounded-full"
+                        >
+                          {reply.length > 30 ? reply.substring(0, 30) + '...' : reply}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Message input */}
-                <div className="p-4 border-t bg-white">
-                  <div className="flex">
-                    <Button className="h-10 w-10 p-0 mr-2" title="Attach Image">
-                      <ImageIcon className="h-5 w-5" />
-                    </Button>
-                    <input
-                      type="text"
-                      placeholder="Type a message..."
-                      className="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#6C9A8B] bg-[#f7faf9]"
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          sendMessage();
-                        }
-                      }}
-                      disabled={isLoading || isExpired}
-                    />
-                    <Button
-                      className="h-10 w-10 p-0 ml-2 bg-[#6C9A8B] hover:bg-[#588074] text-white rounded-full"
-                      onClick={sendMessage}
-                      disabled={isLoading || !newMessage.trim() || isExpired}
-                      title="Send"
-                    >
-                      <Send className="h-5 w-5" />
-                    </Button>
+                {isExpired ? (
+                  <div className="p-4 border-t bg-gray-100">
+                    <div className="bg-yellow-100 text-yellow-800 p-3 rounded-lg text-sm">
+                      This conversation is no longer active. The order is complete or the
+                      conversation has expired.
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="p-4 border-t bg-white">
+                    <div className="flex">
+                      <Button className="h-10 w-10 p-0 mr-2" title="Attach Image">
+                        <ImageIcon className="h-5 w-5" />
+                      </Button>
+                      <input
+                        type="text"
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        placeholder="Type your message..."
+                        className="flex-1 border rounded-l-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#6C9A8B]"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            sendMessage();
+                          }
+                        }}
+                      />
+                      <Button
+                        onClick={sendMessage}
+                        disabled={!newMessage.trim()}
+                        className="bg-[#6C9A8B] hover:bg-[#5a8676] text-white rounded-l-none"
+                      >
+                        <Send className="h-5 w-5" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </>
             ) : (
               <div className="flex flex-1 flex-col items-center justify-center text-center bg-white">
@@ -453,8 +489,8 @@ export default function MessagesPage() {
                 <h2 className="text-xl font-semibold mb-2 text-gray-700">
                   No conversation selected
                 </h2>
-                <p className="text-gray-400 mb-6">
-                  Select a conversation to view and reply to messages.
+                <p className="text-gray-500 max-w-md">
+                  Select a conversation from the list to start messaging
                 </p>
               </div>
             )}

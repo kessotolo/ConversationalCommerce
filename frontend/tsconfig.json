@@ -57,11 +57,14 @@
     "jsxImportSource": "react"
   },
   "include": [
-    "**/*.ts",
     "**/*.tsx",
     "next-env.d.ts",
     ".next/types/**/*.ts",
-    "**/*.jsx"
+    "**/*.jsx",
+    "scripts/**/*.ts",
+    "scripts/**/*.js",
+    "src/**/*.ts",
+    ".eslintrc.js"
   ],
   "exclude": [
     "node_modules",
