@@ -1,188 +1,153 @@
 'use client';
 
-import { useState } from 'react';
-import Image from 'next/image';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useUser, SignIn, SignUp } from '@clerk/nextjs';
+import { ArrowDown, MessageCircle, Smartphone, LayoutDashboard, Star, Twitter, Linkedin, X } from 'lucide-react';
+
 export default function Home() {
   const [email, setEmail] = useState('');
+  const [modal, setModal] = useState<'login' | 'signup' | null>(null);
+  const router = useRouter();
+  const { isSignedIn, isLoaded } = useUser();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // In a real implementation, you'd handle this submission
-    window.location.href = `/sign-up?email=${encodeURIComponent(email)}`;
-  };
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      router.push('/dashboard');
+    }
+  }, [isLoaded, isSignedIn, router]);
+
+  if (isLoaded && isSignedIn) {
+    // Optionally, show a loading spinner or nothing while redirecting
+    return null;
+  }
 
   return (
-    <main className="min-h-screen bg-[#fdfcf7] flex flex-col">
-      {/* Hero Section */}
-      <section className="flex flex-col items-center justify-center px-4 pt-12 pb-10 w-full max-w-xl mx-auto">
-        <div className="w-full flex flex-col items-center">
-          {/* Headline and Subheadline */}
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 text-center leading-tight mb-1">
-            Commerce, Simplified.
-          </h1>
-          <p className="text-[#6C9A8B] text-lg font-semibold text-center mb-4">
-            Anywhere. Anytime.
-          </p>
-          {/* Market Photo with fallback */}
-          <div className="w-full flex flex-col items-center mb-4">
-            <Image
-              src="/market-photo.jpg"
-              alt="Market sellers and customers"
-              width={320}
-              height={240}
-              className="rounded-2xl shadow-lg border border-gray-100 object-cover w-full h-[240px]"
-              priority
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const fallback = document.getElementById('market-fallback');
-                if (fallback) fallback.style.display = 'flex';
-              }}
-            />
-            <div
-              id="market-fallback"
-              style={{ display: 'none' }}
-              className="w-full h-[240px] flex flex-col items-center justify-center rounded-2xl shadow-lg border border-gray-100 bg-[#f5f5f5] text-gray-400"
+    <main className="min-h-screen bg-white flex flex-col font-sans">
+      {/* Modal for Login/Signup */}
+      {modal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 relative w-full max-w-md mx-auto animate-fade-in">
+            <button
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 transition-colors"
+              onClick={() => setModal(null)}
+              aria-label="Close modal"
             >
-              <svg className="w-12 h-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M16 7a4 4 0 01.88 7.903A5.5 5.5 0 1112 6.5c.338 0 .67.03.995.086"
-                />
-              </svg>
-              <span className="text-sm">Market Photo Not Found</span>
-            </div>
+              <X className="w-5 h-5" />
+            </button>
+            {modal === 'login' ? (
+              <SignIn routing="hash" afterSignInUrl="/dashboard" />
+            ) : (
+              <SignUp routing="hash" afterSignUpUrl="/dashboard" />
+            )}
           </div>
-          {/* Tagline as signature statement */}
-          <p className="text-[#6C9A8B] text-base font-semibold text-center mb-6 italic">
-            Where commerce begins with a conversation
-          </p>
         </div>
-        <form onSubmit={handleSubmit} className="w-full flex flex-col sm:flex-row gap-3 mb-4">
+      )}
+      {/* Hero Section */}
+      <section className="relative flex flex-col items-center justify-center px-4 pt-20 pb-16 w-full max-w-2xl mx-auto">
+        {/* Gradient background blob */}
+        <div className="absolute inset-0 -z-10 flex items-center justify-center">
+          <div className="w-[600px] h-[400px] bg-gradient-to-tr from-[#6C9A8B] via-[#A8D5BA] to-white opacity-30 rounded-full blur-3xl" />
+        </div>
+        <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 text-center leading-tight mb-3 tracking-tight" style={{ fontFamily: 'Inter, DM Sans, Poppins, sans-serif' }}>
+          Commerce, Simplified.
+        </h1>
+        <p className="text-[#6C9A8B] text-lg font-medium text-center mb-6">
+          Anywhere. Anytime. <span className="text-[#FFD700]">|</span> For everyone.
+        </p>
+        <p className="text-gray-500 text-base text-center mb-8 italic max-w-md">
+          Where commerce begins with a conversation.
+        </p>
+        <form onSubmit={e => { e.preventDefault(); setModal('signup'); }} className="w-full flex flex-col sm:flex-row gap-3 mb-6">
           <input
             type="email"
             placeholder="Enter your email"
-            className="flex-grow px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#6C9A8B] bg-white"
+            className="flex-grow px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#A8D5BA] bg-white text-gray-900 placeholder-gray-400 shadow-sm"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            style={{ fontFamily: 'Inter, DM Sans, Poppins, sans-serif' }}
           />
           <button
             type="submit"
-            className="px-6 py-3 rounded-lg bg-[#6C9A8B] text-white font-bold text-lg shadow hover:bg-[#5d8a7b] transition-all"
+            className="px-6 py-3 rounded-lg bg-[#6C9A8B] text-white font-bold text-lg shadow hover:bg-[#FFD700] hover:text-[#6C9A8B] border-2 border-[#FFD700] transition-all duration-200"
+            style={{ fontFamily: 'Inter, DM Sans, Poppins, sans-serif' }}
           >
             Get Started
           </button>
         </form>
-        <div className="flex flex-col sm:flex-row gap-2 w-full justify-center">
-          <Link
-            href="#features"
-            className="text-[#6C9A8B] font-medium underline text-sm text-center"
+        <div className="flex flex-col sm:flex-row gap-2 w-full justify-center mb-4">
+          <button
+            onClick={() => setModal('login')}
+            className="text-[#6C9A8B] font-medium underline text-sm text-center hover:text-[#FFD700] transition-colors"
           >
-            See How It Works
-          </Link>
+            Login
+          </button>
           <span className="hidden sm:inline text-gray-300">|</span>
-          <Link href="#contact" className="text-gray-500 font-medium underline text-sm text-center">
-            Contact Sales
-          </Link>
+          <button
+            onClick={() => setModal('signup')}
+            className="text-gray-500 font-medium underline text-sm text-center hover:text-[#6C9A8B] transition-colors"
+          >
+            Sign Up
+          </button>
+        </div>
+        {/* Animated scroll-down indicator */}
+        <div className="flex flex-col items-center mt-4 animate-bounce">
+          <ArrowDown className="w-6 h-6 text-[#A8D5BA]" />
         </div>
       </section>
 
-      {/* Feature Highlights */}
-      <section
-        id="features"
-        className="bg-white rounded-t-3xl shadow-lg px-4 py-10 w-full max-w-xl mx-auto mb-8"
-      >
-        <div className="flex flex-col gap-8">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-[#A8D5BA]/30 flex items-center justify-center">
-              <svg
-                className="w-6 h-6 text-[#6C9A8B]"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
-                />
-              </svg>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">Mobile-First</h3>
-              <p className="text-gray-500 text-sm">
-                Run your business from your phone—no laptop needed.
-              </p>
-            </div>
+      {/* Feature Grid */}
+      <section id="features" className="w-full max-w-3xl mx-auto px-4 py-12 grid grid-cols-1 sm:grid-cols-3 gap-8">
+        <div className="flex flex-col items-center text-center">
+          <div className="w-14 h-14 rounded-full bg-[#A8D5BA]/30 flex items-center justify-center mb-3 border-2 border-[#FFD700]">
+            <Smartphone className="w-7 h-7 text-[#6C9A8B]" />
           </div>
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-[#A8D5BA]/30 flex items-center justify-center">
-              <svg
-                className="w-6 h-6 text-[#6C9A8B]"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                />
-              </svg>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">Messaging Commerce</h3>
-              <p className="text-gray-500 text-sm">
-                Sell where your customers chat. WhatsApp, Messenger, and more.
-              </p>
-            </div>
+          <h3 className="font-semibold text-gray-900 mb-1">Mobile-First</h3>
+          <p className="text-gray-500 text-sm">Run your business from your phone—no laptop needed.</p>
+        </div>
+        <div className="flex flex-col items-center text-center">
+          <div className="w-14 h-14 rounded-full bg-[#A8D5BA]/30 flex items-center justify-center mb-3 border-2 border-[#FFD700]">
+            <MessageCircle className="w-7 h-7 text-[#6C9A8B]" />
           </div>
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-[#A8D5BA]/30 flex items-center justify-center">
-              <svg
-                className="w-6 h-6 text-[#6C9A8B]"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                />
-              </svg>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">Unified Dashboard</h3>
-              <p className="text-gray-500 text-sm">Products, orders, and chats—all in one place.</p>
-            </div>
+          <h3 className="font-semibold text-gray-900 mb-1">Messaging Commerce</h3>
+          <p className="text-gray-500 text-sm">Sell where your customers chat. WhatsApp, Messenger, and more.</p>
+        </div>
+        <div className="flex flex-col items-center text-center">
+          <div className="w-14 h-14 rounded-full bg-[#A8D5BA]/30 flex items-center justify-center mb-3 border-2 border-[#FFD700]">
+            <LayoutDashboard className="w-7 h-7 text-[#6C9A8B]" />
           </div>
+          <h3 className="font-semibold text-gray-900 mb-1">Unified Dashboard</h3>
+          <p className="text-gray-500 text-sm">Products, orders, and chats—all in one place.</p>
         </div>
       </section>
 
-      {/* Social Proof */}
-      <section className="w-full max-w-xl mx-auto px-4 py-8">
-        <div className="bg-[#f8faf8] rounded-xl shadow p-6 flex flex-col items-center">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-[#6C9A8B] to-[#A8D5BA] flex items-center justify-center text-white text-lg font-bold mb-2">
+      {/* Social Proof / Testimonial */}
+      <section className="w-full max-w-xl mx-auto px-4 py-10">
+        <div className="bg-gradient-to-tr from-white via-[#A8D5BA]/30 to-white rounded-xl shadow-lg p-8 flex flex-col items-center border border-[#FFD700]/30">
+          <div className="w-14 h-14 rounded-full bg-gradient-to-r from-[#6C9A8B] to-[#A8D5BA] flex items-center justify-center text-white text-2xl font-bold mb-2 border-2 border-[#FFD700]">
             JD
           </div>
+          <Star className="w-6 h-6 text-[#FFD700] mb-2" />
           <p className="text-gray-800 text-center font-medium mb-1">
-            “I doubled my sales in just two weeks after listing my products for messaging apps.”
+            "I doubled my sales in just two weeks after listing my products for messaging apps."
           </p>
           <span className="text-gray-500 text-xs">Jamie D., Fashion Retailer</span>
         </div>
       </section>
 
-      {/* Minimal Footer */}
-      <footer className="w-full max-w-xl mx-auto px-4 py-6 text-center text-gray-400 text-xs">
-        &copy; {new Date().getFullYear()} ConvoCommerce. All rights reserved.
+      {/* Minimal Footer with Social Icons */}
+      <footer className="w-full max-w-2xl mx-auto px-4 py-8 text-center text-gray-400 text-xs flex flex-col items-center gap-2 border-t border-gray-100">
+        <div className="flex gap-4 justify-center mb-1">
+          <a href="https://twitter.com/" target="_blank" rel="noopener noreferrer" className="hover:text-[#6C9A8B] transition-colors">
+            <Twitter className="w-5 h-5" />
+          </a>
+          <a href="https://linkedin.com/" target="_blank" rel="noopener noreferrer" className="hover:text-[#6C9A8B] transition-colors">
+            <Linkedin className="w-5 h-5" />
+          </a>
+        </div>
+        <span>&copy; {new Date().getFullYear()} ConvoCommerce. All rights reserved.</span>
       </footer>
     </main>
   );
