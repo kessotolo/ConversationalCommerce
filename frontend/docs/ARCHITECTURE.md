@@ -450,3 +450,31 @@ ESLint is configured with selective overrides to flag these issues appropriately
 - Use NLP libraries for deeper analysis as needed
 - Tune quality scoring weights and anomaly thresholds for your business
 - Extend analytics endpoints and visualizations as new needs arise
+
+# Conversation Event Logging, Analytics, and Clerk Integration (2025)
+
+## Event Logging Architecture
+- All significant conversation actions (messages, joins, leaves, closes, etc.) are logged as structured events.
+- Event types are defined in both backend (Pydantic/SQLAlchemy) and frontend (TypeScript enums) for strict type safety.
+- Events are sent from the frontend using the `ConversationEventLogger` utility, which posts to the `/conversation-events` API.
+- Events include `conversation_id`, `user_id`, `tenant_id`, `event_type`, `payload`, and `metadata`.
+
+## Clerk Integration for User & Tenant IDs
+- The frontend uses Clerk's `useUser` and `useOrganization` hooks to obtain the real user and tenant (organization) IDs.
+- These IDs are included in every event log, ensuring multi-tenancy and user attribution.
+- Fallback to `user.publicMetadata.tenantId` if the user is not in an organization.
+
+## Analytics & Dashboard
+- The backend aggregates events for analytics (volume, type, response time, etc.) and exposes them via `/conversation-analytics`.
+- The frontend dashboard visualizes these metrics (stat cards, charts, heatmaps) and provides CSV export.
+- Real-time monitoring is enabled via WebSocket, broadcasting key events and alerts to admins.
+- The dashboard displays a live feed of recent events and anomalies.
+
+## Event Types
+- Supported event types include: `message_sent`, `message_read`, `product_clicked`, `order_placed`, `conversation_started`, `user_joined`, `user_left`, `conversation_closed`.
+- New event types can be added in a type-safe manner on both backend and frontend.
+
+## Best Practices
+- Always use the ConversationEventLogger for logging events in the frontend.
+- Ensure user and tenant IDs are sourced from Clerk context/hooks.
+- Extend analytics and monitoring by adding new event types and updating the dashboard as needed.

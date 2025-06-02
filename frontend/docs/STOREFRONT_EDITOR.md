@@ -174,6 +174,12 @@ Potential enhancements to consider:
 4. **A/B Testing**: Support for A/B testing of banners and logos
 5. **Analytics Integration**: Track banner/logo performance
 
+## Analytics & Event Logging Integration
+- All major actions in the Storefront Editor (e.g., asset changes, banner/logo updates) can be logged as structured events using the ConversationEventLogger utility.
+- Clerk integration ensures that user and tenant IDs are included in every event for accurate attribution.
+- These events power analytics and monitoring dashboards, enabling real-time and historical insights.
+- Event logging is type-safe and extensible; new event types can be added as needed.
+
 ## Troubleshooting
 
 Common issues and solutions:

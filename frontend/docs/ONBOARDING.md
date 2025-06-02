@@ -114,3 +114,30 @@ Welcome aboard! We're excited to have you contribute to ConversationalCommerce.
 - **Restricted Import**: Change your import to use the module's public API or DTO file.
 - **Unused Variable/Import**: Remove or use the variable/import as needed.
 - **Type Error**: Add or refine type annotations, avoid `any`, and use generics or type guards as appropriate.
+
+# Conversation Event Logging, Analytics, and Clerk Integration
+
+## Event Logging
+- All key conversation actions (messages, joins, leaves, closes, etc.) are logged as structured events.
+- Use the `ConversationEventLogger` utility to send events to the backend `/conversation-events` endpoint.
+- Events include `conversation_id`, `user_id`, `tenant_id`, `event_type`, `payload`, and `metadata`.
+
+## Clerk Integration
+- The frontend uses Clerk's `useUser` and `useOrganization` hooks to get the real user and tenant (organization) IDs.
+- These IDs are included in every event log for multi-tenancy and user attribution.
+- If the user is not in an organization, fallback to `user.publicMetadata.tenantId`.
+
+## Analytics & Dashboard
+- The backend aggregates events for analytics and exposes them via `/conversation-analytics`.
+- The dashboard visualizes metrics (event volume, type, response time, etc.) and supports CSV export.
+- Real-time monitoring is enabled via WebSocket, broadcasting key events and alerts to admins.
+- The dashboard displays a live feed of recent events and anomalies.
+
+## Event Types
+- Supported event types: `message_sent`, `message_read`, `product_clicked`, `order_placed`, `conversation_started`, `user_joined`, `user_left`, `conversation_closed`.
+- New event types can be added in a type-safe manner on both backend and frontend.
+
+## Best Practices
+- Always use the ConversationEventLogger for logging events in the frontend.
+- Ensure user and tenant IDs are sourced from Clerk context/hooks.
+- Extend analytics and monitoring by adding new event types and updating the dashboard as needed.
