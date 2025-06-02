@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/verify-build.js && node scripts/verify-architecture.js",
+    "prebuild": "node scripts/verify-build.cjs && node scripts/verify-architecture.cjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
