@@ -414,3 +414,19 @@ ESLint is configured with selective overrides to flag these issues appropriately
 - Use strict typing and clear API contracts for analytics data
 - Visualize new metrics in the dashboard using chart.js or similar
 - Keep analytics extensible for future business needs
+
+## Real-Time Monitoring & Alerts (2025)
+
+### WebSocket Monitoring
+- Conversation events are broadcast in real time to tenant admins via WebSocket (see `backend/app/core/websocket/monitoring.py` and `backend/app/api/routers/conversation.py`)
+- Key events (message sent/read, product clicked, order placed) are pushed to all connected admin clients
+- Anomaly detection and alerting can be added to broadcast alerts for issues (e.g., slow response times)
+
+### Dashboard Integration
+- The analytics dashboard (`frontend/src/app/dashboard/analytics/page.tsx`) displays a live feed of recent events and alerts
+- The frontend subscribes to the WebSocket endpoint and updates the feed in real time
+
+### Best Practices
+- Use the WebSocket feed for operational dashboards and proactive monitoring
+- Extend the backend to broadcast additional event types or alerts as needed
+- Keep the frontend feed performant by limiting the number of displayed events

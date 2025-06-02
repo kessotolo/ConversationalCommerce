@@ -10,6 +10,8 @@ from app.schemas.conversation_event import ConversationEventCreate, Conversation
 from fastapi import status
 from datetime import datetime, timedelta
 from sqlalchemy import func, cast, Date
+from app.core.websocket.monitoring import connection_manager
+import asyncio
 
 router = APIRouter()
 
@@ -58,6 +60,27 @@ def log_conversation_event(event: ConversationEventCreate, db: Session = Depends
         db.add(db_event)
         db.commit()
         db.refresh(db_event)
+
+        # Broadcast key events to tenant admins in real time
+        key_types = {"message_sent", "message_read",
+                     "product_clicked", "order_placed"}
+        if db_event.event_type in key_types:
+            asyncio.create_task(connection_manager.broadcast_to_tenant(
+                str(db_event.tenant_id),
+                {
+                    "type": "conversation_event",
+                    "event": {
+                        "id": str(db_event.id),
+                        "conversation_id": str(db_event.conversation_id) if db_event.conversation_id else None,
+                        "user_id": str(db_event.user_id) if db_event.user_id else None,
+                        "event_type": db_event.event_type,
+                        "payload": db_event.payload,
+                        "created_at": db_event.created_at.isoformat(),
+                        "metadata": db_event.metadata,
+                    }
+                }
+            ))
+
         return db_event
     except Exception as e:
         db.rollback()

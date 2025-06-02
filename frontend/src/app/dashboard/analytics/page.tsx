@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {
   ShoppingBag,
@@ -111,6 +111,10 @@ export default function AnalyticsPage() {
   const [convAnalytics, setConvAnalytics] = useState<any>(null);
   const [loadingConv, setLoadingConv] = useState(false);
 
+  // Real-time event and alert feed
+  const [eventFeed, setEventFeed] = useState<any[]>([]);
+  const wsRef = useRef<WebSocket | null>(null);
+
   useEffect(() => {
     // Fetch conversation analytics from backend
     const fetchAnalytics = async () => {
@@ -128,6 +132,34 @@ export default function AnalyticsPage() {
       }
     };
     fetchAnalytics();
+  }, []);
+
+  useEffect(() => {
+    // Connect to WebSocket for real-time events/alerts
+    const ws = new WebSocket(
+      typeof window !== 'undefined'
+        ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/api/ws/monitoring?tenant_id=demo`
+        : '',
+    );
+    wsRef.current = ws;
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'conversation_event' || data.type === 'alert') {
+          setEventFeed((prev) => [data, ...prev.slice(0, 49)]); // Keep last 50
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.warn('WebSocket message parse error', err);
+      }
+    };
+    ws.onerror = (err) => {
+      // eslint-disable-next-line no-console
+      console.warn('WebSocket error', err);
+    };
+    return () => {
+      ws.close();
+    };
   }, []);
 
   // Prepare chart data for events by type
@@ -203,6 +235,46 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-8">
+      {/* Real-time Event & Alert Feed */}
+      <div className="mb-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Live Conversation Events & Alerts</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="max-h-48 overflow-y-auto text-sm">
+              {eventFeed.length === 0 ? (
+                <div className="text-gray-400">No recent events or alerts</div>
+              ) : (
+                <ul>
+                  {eventFeed.map((e, i) => (
+                    <li key={i} className="mb-2">
+                      {e.type === 'conversation_event' ? (
+                        <span>
+                          <b>Event:</b> <span className="text-blue-700">{e.event.event_type}</span>{' '}
+                          &mdash; <span className="text-gray-500">{e.event.created_at}</span>
+                          {e.event.payload?.content && (
+                            <span>
+                              {' '}
+                              — <span className="italic">{e.event.payload.content}</span>
+                            </span>
+                          )}
+                        </span>
+                      ) : e.type === 'alert' ? (
+                        <span>
+                          <b className="text-red-700">ALERT:</b>{' '}
+                          <span className="font-semibold">{e.alert_type}</span> &mdash; {e.message}
+                          <span className="text-gray-500"> ({e.severity})</span>
+                        </span>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
       {/* Conversation Analytics Widgets */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <Card>
