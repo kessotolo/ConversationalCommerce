@@ -16,6 +16,11 @@ pnpm-debug.log*
 # --- Build artifacts ---
 dist/
 build/
+# TypeScript incremental compilation cache
+tsconfig.tsbuildinfo
+**/tsconfig.tsbuildinfo
+# SWC build cache
+.swc/
 
 # --- Environment / Secrets ---
 .env
@@ -23,9 +28,11 @@ build/
 .env.local
 .env.development.local
 .env.production.local
+.env.backup
 
 # --- Python (FastAPI backend) ---
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *.sqlite3
 *.db
@@ -34,7 +41,10 @@ __pycache__/
 *.log
 .venv/
 venv/
+venv_py312/
 pip-wheel-metadata/
+.pytest_cache/
+pytest_cache/
 
 # --- VSCode / JetBrains ---
 .vscode/
@@ -42,15 +52,18 @@ pip-wheel-metadata/
 
 # --- OS-specific ---
 .DS_Store
+**/.DS_Store
 Thumbs.db
 
 # --- Test files ---
 coverage/
-pytest_cache/
 
 # --- Logs ---
 logs/
 *.log
 
+# --- Auth and Temporary files ---
+.clerk/.tmp
 
-*.gitkeep
+# --- Keep these files even if they match patterns above ---
+!*.gitkeep
