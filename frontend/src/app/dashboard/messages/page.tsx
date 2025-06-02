@@ -313,10 +313,10 @@ export default function MessagesPage() {
                         </span>
                         <span
                           className={`ml-2 px-2 py-0.5 rounded ${conv.orderStatus === 'delivered'
-                              ? 'bg-green-100 text-green-800'
-                              : conv.orderStatus === 'processing'
-                                ? 'bg-blue-100 text-blue-800'
-                                : 'bg-yellow-100 text-yellow-800'
+                            ? 'bg-green-100 text-green-800'
+                            : conv.orderStatus === 'processing'
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-yellow-100 text-yellow-800'
                             }`}
                         >
                           {conv.orderStatus}
@@ -366,14 +366,13 @@ export default function MessagesPage() {
                 </div>
                 <div className="flex">
                   <Button
-                    className="h-8 w-8 p-0 mr-2"
+                    className="h-8 w-8 p-0 mr-2 btn-ghost"
                     title="Video Call"
-                    variant="ghost"
                     disabled={isExpired}
                   >
                     <Video className="h-4 w-4" />
                   </Button>
-                  <Button className="h-8 w-8 p-0" title="More Actions" variant="ghost">
+                  <Button className="h-8 w-8 p-0 btn-ghost" title="More Actions">
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </div>
@@ -383,10 +382,10 @@ export default function MessagesPage() {
               {selectedConvObj?.orderId && (
                 <div
                   className={`px-4 py-2 text-sm ${selectedConvObj.orderStatus === 'delivered'
-                      ? 'bg-green-100'
-                      : selectedConvObj.orderStatus === 'processing'
-                        ? 'bg-blue-100'
-                        : 'bg-yellow-100'
+                    ? 'bg-green-100'
+                    : selectedConvObj.orderStatus === 'processing'
+                      ? 'bg-blue-100'
+                      : 'bg-yellow-100'
                     }`}
                 >
                   Order {selectedConvObj.orderId} is{' '}
@@ -403,8 +402,8 @@ export default function MessagesPage() {
                   >
                     <div
                       className={`max-w-[75%] rounded-lg px-4 py-2 ${msg.sender === 'store'
-                          ? 'bg-[#6C9A8B] text-white rounded-tr-none'
-                          : 'bg-white border rounded-tl-none'
+                        ? 'bg-[#6C9A8B] text-white rounded-tr-none'
+                        : 'bg-white border rounded-tl-none'
                         }`}
                     >
                       <p>{msg.content}</p>
@@ -412,7 +411,7 @@ export default function MessagesPage() {
                         className={`text-xs mt-1 flex justify-end items-center gap-1 ${msg.sender === 'store' ? 'text-[#e6f0eb]' : 'text-gray-500'
                           }`}
                       >
-                        {formatDate(msg.timestamp, true)}
+                        {formatDate(msg.timestamp, 'time')}
                         {msg.sender === 'store' && renderMessageStatus(msg.status)}
                       </div>
                     </div>

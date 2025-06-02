@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import type { Asset } from '@/lib/api/storefrontEditor.types';
-import type { UUID } from '@/modules/core';
-import { updateAsset, deleteAsset, optimizeAsset } from '@/lib/api/storefrontEditor';
+
 import {
   XMarkIcon,
   PencilIcon,
@@ -15,11 +13,15 @@ import {
   DocumentIcon,
   CheckCircleIcon,
 } from '@heroicons/react/24/outline';
-import type { InputChangeEvent } from '@/modules/core';
+
+import type { InputChangeEvent } from '@core/models/events';
+import type { UUID } from '@/modules/core/models/base';
+import type { Asset } from '@/modules/storefront/models/asset';
+import { updateAsset, deleteAsset, optimizeAsset } from '@/lib/api/storefrontEditor';
 
 interface AssetDetailsProps {
   asset: Asset;
-  tenantId: UUID;
+  _tenantId: UUID;
   onUpdate: () => void;
   onClose: () => void;
 }
@@ -78,7 +80,7 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, _tenantId, onUpdate,
     setError(null);
 
     try {
-      await updateAsset(tenantId, asset.id, formData);
+      await updateAsset(_tenantId, asset.id, formData);
       setSuccessMessage('Asset updated successfully');
       setIsEditing(false);
       onUpdate();
@@ -99,7 +101,7 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, _tenantId, onUpdate,
     setError(null);
 
     try {
-      await optimizeAsset(tenantId, asset.id);
+      await optimizeAsset(_tenantId, asset.id);
       setSuccessMessage('Asset optimized successfully');
       onUpdate();
 
@@ -123,7 +125,7 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, _tenantId, onUpdate,
     setError(null);
 
     try {
-      await deleteAsset(tenantId, asset.id);
+      await deleteAsset(_tenantId, asset.id);
       onUpdate();
       onClose();
     } catch (err) {

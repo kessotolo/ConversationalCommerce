@@ -1,3 +1,21 @@
+# Architecture Overview
+
+## Direct Module Imports (ADR-0001)
+
+- All types and models must be imported directly from their module source (e.g., @/modules/core/models/base).
+- Bridge files (e.g., src/types/storefrontEditor.ts) are not allowed and will be flagged by lint/CI.
+- ESLint rules strictly enforce this pattern (see .eslintrc.js).
+- See [ADR-0001: Direct Module Imports vs Bridge Files](./architecture/decisions/0001-direct-module-imports.md) for rationale and migration details.
+
+**Benefits:**
+- Cleaner and more maintainable codebase
+- Clear module boundaries and dependencies
+- Improved type safety and consistency
+- Better IDE support and tree-shaking
+- Easier onboarding for new developers
+
+---
+
 # ConversationalCommerce Architecture Guidelines
 
 ## Modular Monolith Architecture

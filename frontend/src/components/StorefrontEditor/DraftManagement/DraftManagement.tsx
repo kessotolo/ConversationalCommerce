@@ -1,12 +1,13 @@
 import Reactimport React, { useState, useEffect } from 'react';
 import type { UUID } from '@/modules/core';
 import { getDrafts, publishDraft, deleteDraft } from '@/lib/api/storefrontEditor';
-import type {Draft} from '@/lib/api/storefrontEditor.types';
+
 import DraftList from '@/components/StorefrontEditor/DraftManagement/DraftList';
 import DraftDetail from '@/components/StorefrontEditor/DraftManagement/DraftDetail';
 import CreateDraftModal from '@/components/StorefrontEditor/DraftManagement/CreateDraftModal';
 import { PlusIcon } from '@heroicons/react/24/outline';
 
+import type { Draft } from '@/modules/storefront/models/draft';
 interface DraftManagementProps {
 };
   tenantId: UUID;,

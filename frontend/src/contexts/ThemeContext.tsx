@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import type { Theme } from '@/modules/theme/types';
+import type { Theme } from "@/modules/theme/models/theme";
 import { useTenant } from '@/contexts/TenantContext';
 import { defaultTheme } from '@/utils/defaultTheme';
 

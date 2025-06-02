@@ -1,7 +1,7 @@
-import Reactimport React, { useState } from 'react';
-import type { UserPermission } from '@/modules/storefront';
-import { StorefrontRole, StorefrontSectionType } from '@/modules/storefront';
-import type { UUID } from '@/modules/core';
+import React, { useState } from 'react';
+import type { UserPermission } from '@/modules/storefront/models/permission';
+import { StorefrontRole, StorefrontSectionType } from '@/modules/storefront/models/permission';
+import type { UUID } from '@/modules/core/models/base';
 import { assignRole, setSectionPermission, removePermission } from '@/lib/api/storefrontEditor';
 import {
   ShieldCheckIcon,
@@ -14,12 +14,11 @@ import {
 
 interface PermissionDetailProps {
   user: UserPermission;
-  /* tenantId */: UUID;
-};
+  tenantId: UUID;
   onUpdate: () => void;
 }
 
-const PermissionDetail: React.FC<PermissionDetailProps></PermissionDetailProps> = ({ user, /* _tenantId */, onUpdate }) => {
+const PermissionDetail: React.FC<PermissionDetailProps> = ({ user, tenantId, onUpdate }) => {
   const [isEditingRole, setIsEditingRole] = useState<boolean>(false);
   const [isEditingSections, setIsEditingSections] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
@@ -28,9 +27,9 @@ const PermissionDetail: React.FC<PermissionDetailProps></PermissionDetailProps> 
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Form state
-  const [selectedRole, setSelectedRole] = useState<StorefrontRole></StorefrontRole>(user.role);
+  const [selectedRole, setSelectedRole] = useState<StorefrontRole>(user.role);
   const [selectedPermissions, setSelectedPermissions] = useState<
-    Record<StorefrontSectionType, string[]></StorefrontSectionType>
+    Record<StorefrontSectionType, string[]>
   >(
     Object.entries(user.section_permissions).reduce(
       (acc, [section, permissions]) => {
@@ -39,7 +38,7 @@ const PermissionDetail: React.FC<PermissionDetailProps></PermissionDetailProps> 
           [section as StorefrontSectionType]: permissions,
         };
       },
-      {} as Record<StorefrontSectionType, string[]></StorefrontSectionType>,
+      {} as Record<StorefrontSectionType, string[]>,
     ),
   );
 
@@ -77,7 +76,7 @@ const PermissionDetail: React.FC<PermissionDetailProps></PermissionDetailProps> 
     setError(null);
 
     try {
-      await assignRole(/* tenantId */, user.user_id, { role: selectedRole });
+      await assignRole(tenantId, user.user_id, { role: selectedRole });
       setSuccessMessage('Role updated successfully');
       setIsEditingRole(false);
       onUpdate();
@@ -100,7 +99,7 @@ const PermissionDetail: React.FC<PermissionDetailProps></PermissionDetailProps> 
     try {
       for (const [section, permissions] of Object.entries(selectedPermissions)) {
         for (const permission of permissions) {
-          await setSectionPermission(/* tenantId */, user.user_id, {
+          await setSectionPermission(tenantId, user.user_id, {
             section,
             permission,
           });
@@ -127,7 +126,7 @@ const PermissionDetail: React.FC<PermissionDetailProps></PermissionDetailProps> 
     setError(null);
 
     try {
-      await removePermission(/* tenantId */, user.user_id);
+      await removePermission(tenantId, user.user_id);
       setSuccessMessage('User permissions removed successfully');
       setIsDeleting(false);
       onUpdate();
@@ -143,7 +142,7 @@ const PermissionDetail: React.FC<PermissionDetailProps></PermissionDetailProps> 
   };
 
   // Toggle permission for a section
-  const togglePermission = (section: StorefrontSectionType, permission: string) => {;
+  const togglePermission = (section: StorefrontSectionType, permission: string) => {
     const currentPermissions = selectedPermissions[section] || [];
 
     if (currentPermissions.includes(permission)) {
@@ -175,7 +174,7 @@ const PermissionDetail: React.FC<PermissionDetailProps></PermissionDetailProps> 
       {/* Success Message */}
       {successMessage && (
         <div className="m-4 p-3 bg-green-100 text-green-800 rounded-md flex items-center">
-          <CheckIcon className="h-5 w-5 mr-2" /></CheckIcon>
+          <CheckIcon className="h-5 w-5 mr-2" />
           {successMessage}
         </div>
       )}
@@ -183,7 +182,7 @@ const PermissionDetail: React.FC<PermissionDetailProps></PermissionDetailProps> 
       {/* Error Message */}
       {error && (
         <div className="m-4 p-3 bg-red-100 text-red-800 rounded-md flex items-center">
-          <ExclamationTriangleIcon className="h-5 w-5 mr-2" /></ExclamationTriangleIcon>
+          <ExclamationTriangleIcon className="h-5 w-5 mr-2" />
           {error}
         </div>
       )}
@@ -194,7 +193,7 @@ const PermissionDetail: React.FC<PermissionDetailProps></PermissionDetailProps> 
           <div className="space-y-4">
             <div className="bg-red-50 p-4 rounded-md">
               <div className="flex">
-                <ExclamationTriangleIcon className="h-5 w-5 text-red-400" /></ExclamationTriangleIcon>
+                <ExclamationTriangleIcon className="h-5 w-5 text-red-400" />
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-red-800">Remove User Permissions</h3>
                   <div className="mt-2 text-sm text-red-700">
@@ -209,7 +208,7 @@ const PermissionDetail: React.FC<PermissionDetailProps></PermissionDetailProps> 
 
             <div className="flex justify-end space-x-2">
               <button
-                type="button";
+                type="button"
                 onClick={() => setIsDeleting(false)}
                 disabled={loading}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -217,7 +216,7 @@ const PermissionDetail: React.FC<PermissionDetailProps></PermissionDetailProps> 
                 Cancel
               </button>
               <button
-                type="button";
+                type="button"
                 onClick={handlePermissionRemove}
                 disabled={loading}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
@@ -237,7 +236,7 @@ const PermissionDetail: React.FC<PermissionDetailProps></PermissionDetailProps> 
                     onClick={() => setIsEditingRole(true)}
                     className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
                   >
-                    <PencilIcon className="h-4 w-4 mr-1" /></PencilIcon>
+                    <PencilIcon className="h-4 w-4 mr-1" />
                     Edit
                   </button>
                 )}
@@ -250,15 +249,14 @@ const PermissionDetail: React.FC<PermissionDetailProps></PermissionDetailProps> 
                       <div
                         key={role}
                         onClick={() => setSelectedRole(role)}
-                        className={`p-2 border rounded-md cursor-pointer transition-colors ${
-                          selectedRole === role
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-300 hover:bg-gray-50'
-                        }`}
+                        className={`p-2 border rounded-md cursor-pointer transition-colors ${selectedRole === role
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-300 hover:bg-gray-50'
+                          }`}
                       >
                         <div className="flex items-center">
                           {selectedRole === role && (
-                            <CheckIcon className="h-4 w-4 text-blue-500 mr-1" /></CheckIcon>
+                            <CheckIcon className="h-4 w-4 text-blue-500 mr-1" />
                           )}
                           <span className={`text-sm ${selectedRole === role ? 'font-medium' : ''}`}>
                             {role.charAt(0).toUpperCase() + role.slice(1)}
@@ -279,7 +277,7 @@ const PermissionDetail: React.FC<PermissionDetailProps></PermissionDetailProps> 
 
                   <div className="flex justify-end space-x-2 mt-4">
                     <button
-                      type="button";
+                      type="button"
                       onClick={() => setIsEditingRole(false)}
                       disabled={loading}
                       className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -287,9 +285,9 @@ const PermissionDetail: React.FC<PermissionDetailProps></PermissionDetailProps> 
                       Cancel
                     </button>
                     <button
-                      type="button";
+                      type="button"
                       onClick={handleRoleUpdate}
-                      disabled={loading || selectedRole === user.role};
+                      disabled={loading || selectedRole === user.role}
                       className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
                       {loading ? 'Saving...' : 'Save'}
@@ -298,8 +296,8 @@ const PermissionDetail: React.FC<PermissionDetailProps></PermissionDetailProps> 
                 </div>
               ) : (
                 <div className="flex items-center">
-                  <ShieldCheckIcon className="h-5 w-5 text-gray-400 mr-2" /></ShieldCheckIcon>
-                  <span;
+                  <ShieldCheckIcon className="h-5 w-5 text-gray-400 mr-2" />
+                  <span
                     className={`text-sm px-2.5 py-1 rounded-full capitalize ${getRoleBadgeClass(user.role)}`}
                   >
                     {user.role}
@@ -338,7 +336,7 @@ const PermissionDetail: React.FC<PermissionDetailProps></PermissionDetailProps> 
                     onClick={() => setIsEditingSections(true)}
                     className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
                   >
-                    <PencilIcon className="h-4 w-4 mr-1" /></PencilIcon>
+                    <PencilIcon className="h-4 w-4 mr-1" />
                     Edit
                   </button>
                 )}
@@ -360,15 +358,14 @@ const PermissionDetail: React.FC<PermissionDetailProps></PermissionDetailProps> 
                               <button
                                 key={permission}
                                 onClick={() => togglePermission(sectionType, permission)}
-                                className={`px-3 py-1 text-sm rounded-full ${
-                                  permissions.includes(permission)
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                                }`}
+                                className={`px-3 py-1 text-sm rounded-full ${permissions.includes(permission)
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                                  }`}
                               >
                                 {permission}
                                 {permissions.includes(permission) && (
-                                  <XMarkIcon className="ml-1 inline-block h-3 w-3" /></XMarkIcon>
+                                  <XMarkIcon className="ml-1 inline-block h-3 w-3" />
                                 )}
                               </button>
                             ))}
@@ -380,7 +377,7 @@ const PermissionDetail: React.FC<PermissionDetailProps></PermissionDetailProps> 
 
                   <div className="flex justify-end space-x-2 mt-4">
                     <button
-                      type="button";
+                      type="button"
                       onClick={() => setIsEditingSections(false)}
                       disabled={loading}
                       className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -388,7 +385,7 @@ const PermissionDetail: React.FC<PermissionDetailProps></PermissionDetailProps> 
                       Cancel
                     </button>
                     <button
-                      type="button";
+                      type="button"
                       onClick={handleSectionUpdate}
                       disabled={loading}
                       className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -460,11 +457,11 @@ const PermissionDetail: React.FC<PermissionDetailProps></PermissionDetailProps> 
       {/* Footer */}
       {!isDeleting && !isEditingRole && !isEditingSections && (
         <div className="p-4 border-t">
-          <button;
+          <button
             onClick={() => setIsDeleting(true)}
             className="inline-flex items-center px-3 py-1.5 border border-red-300 shadow-sm text-sm leading-4 font-medium rounded-md text-red-700 bg-white hover:bg-red-50"
           >
-            <TrashIcon className="h-4 w-4 mr-2" /></TrashIcon>
+            <TrashIcon className="h-4 w-4 mr-2" />
             Remove All Permissions
           </button>
         </div>

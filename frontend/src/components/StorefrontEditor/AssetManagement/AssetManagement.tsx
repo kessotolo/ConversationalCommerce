@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import type { Asset } from '@/lib/api/storefrontEditor.types';
+
 import { getAssets } from '@/lib/api/storefrontEditor';
 import AssetGrid from '@/components/StorefrontEditor/AssetManagement/AssetGrid';
 import AssetUploader from '@/components/StorefrontEditor/AssetManagement/AssetUploader';
 import AssetFilterBar from '@/components/StorefrontEditor/AssetManagement/AssetFilterBar';
 import AssetDetails from '@/components/StorefrontEditor/AssetManagement/AssetDetails';
 
+import type { Asset } from '@/modules/storefront/models/asset';
 interface AssetManagementProps {
-  tenantId: string;
+  _tenantId: string;
 }
 
 const AssetManagement: React.FC<AssetManagementProps> = ({ _tenantId }) => {
@@ -39,7 +40,7 @@ const AssetManagement: React.FC<AssetManagementProps> = ({ _tenantId }) => {
         offset,
       };
 
-      const response = await getAssets(tenantId, params);
+      const response = await getAssets(_tenantId, params);
       setAssets(response.data.assets);
     } catch (err) {
       setError('Failed to load assets. Please try again later.');
@@ -52,7 +53,7 @@ const AssetManagement: React.FC<AssetManagementProps> = ({ _tenantId }) => {
   // Load assets on initial load and when filters change
   useEffect(() => {
     loadAssets();
-  }, [tenantId, assetType, searchQuery, sortBy, sortDesc, offset]);
+  }, [_tenantId, assetType, searchQuery, sortBy, sortDesc, offset]);
 
   // Handle asset selection
   const handleAssetSelect = (asset: Asset) => {
@@ -66,8 +67,8 @@ const AssetManagement: React.FC<AssetManagementProps> = ({ _tenantId }) => {
   };
 
   // Handle pagination
-  // Unused page handler removed
-  // const handlePageChange = (page) => setCurrentPage(page);
+  const handlePageChange = (newOffset: number) => {
+    setOffset(newOffset);
   };
 
   // Handle filter changes
@@ -162,7 +163,7 @@ const AssetManagement: React.FC<AssetManagementProps> = ({ _tenantId }) => {
           <div className="w-1/3">
             <AssetDetails
               asset={selectedAsset}
-              tenantId={tenantId}
+              _tenantId={_tenantId}
               onUpdate={handleAssetRefresh}
               onClose={() => setSelectedAsset(null)}
             />
@@ -173,7 +174,7 @@ const AssetManagement: React.FC<AssetManagementProps> = ({ _tenantId }) => {
       {/* Asset Uploader Modal */}
       {isUploaderOpen && (
         <AssetUploader
-          tenantId={tenantId}
+          _tenantId={_tenantId}
           onClose={() => setIsUploaderOpen(false)}
           onSuccess={handleAssetRefresh}
         />

@@ -1,5 +1,5 @@
 import Reactimport React, { useState, ReactNode } from 'react';
-import type { UUID } from '@/modules/core/types';
+import type { UUID } from "@/modules/core/models/base";
 import { Tab } from '@headlessui/react';
 import DraftManagement from '@/components/StorefrontEditor/DraftManagement/DraftManagement';
 import VersionHistory from '@/components/StorefrontEditor/VersionHistory/VersionHistory';

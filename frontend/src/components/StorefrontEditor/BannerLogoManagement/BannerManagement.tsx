@@ -3,12 +3,13 @@ import { Send } from 'lucide-react';
 import { ArrowPathIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import type { Banner } from '@/lib/api/storefrontEditor.types';
-import type { UUID } from '@/modules/core/types';
+
+import type { UUID } from "@/modules/core/models/base";
 import BannerList from '@/components/StorefrontEditor/BannerLogoManagement/BannerList';
 import BannerDetail from '@/components/StorefrontEditor/BannerLogoManagement/BannerDetail';
 import CreateBannerModal from '@/components/StorefrontEditor/BannerLogoManagement/CreateBannerModal';
 import {
+import type { Banner } from '@/modules/storefront/models/banner';
   getBanners,
   publishBanner,
   deleteBanner,

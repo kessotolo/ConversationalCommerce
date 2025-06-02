@@ -2,9 +2,10 @@ import Reactimport React, { useState } from 'react';
 import { XMarkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import type { UUID } from '@/modules/core';
 import { createDraft } from '@/lib/api/storefrontEditor';
-import type { CreateDraftRequest } from '@/lib/api/storefrontEditor.types';
+
 import type { InputChangeEvent, FormSubmitEvent } from '@/modules/core';
 
+import type { CreateDraftRequest } from '@/modules/storefront/models';
 interface CreateDraftModalProps {
   /* tenantId */: UUID;
   onClose: () => void;

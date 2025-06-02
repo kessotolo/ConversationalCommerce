@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import type { Rule } from '@/modules/monitoring/types';
-import { RuleSeverity } from '@/modules/monitoring/types';
+
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
@@ -22,6 +21,9 @@ import MenuItem from '@mui/material/MenuItem';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+
+import type { Rule } from "@/modules/monitoring/models/rule";
+import { RuleSeverity } from "@/modules/monitoring/models/rule";
 
 interface RulesManagerProps {
   tenantId: string;

@@ -1,7 +1,7 @@
-import Reactimport React, { useState, useEffect } from 'react';
-import type { UUID } from '@/modules/core/types';
-import type { UserPermission } from '@/modules/storefront/types';
-import { StorefrontRole } from '@/modules/storefront/types';
+import React, { useState, useEffect } from 'react';
+import type { UUID } from "@/modules/core/models/base";
+import type { UserPermission } from "@/modules/storefront/models/permission";
+import { StorefrontRole } from "@/modules/storefront/models/permission";
 import {
   getPermissions,
   assignRole,
@@ -15,20 +15,19 @@ import AddUserPermission from '@/components/StorefrontEditor/Permissions/AddUser
 import { RefreshCw as ArrowPathIcon, Plus as PlusIcon } from 'lucide-react';
 
 interface PermissionsProps {
-  /* tenantId */: UUID;
+  tenantId: UUID;
 }
 
-const Permissions: React.FC<PermissionsProps></PermissionsProps> = ({ /* _tenantId */ }) => {;
-  const [permissions, setPermissions] = useState<UserPermission[]></UserPermission>([]);
-  const [selected, setSelectedUser] = useState<UserPermission | null></UserPermission>(null);
-  const [/* total */, setTotalUsers] = useState<number>(0);
+const Permissions: React.FC<PermissionsProps> = ({ tenantId }) => {
+  const [permissions, setPermissions] = useState<UserPermission[]>([]);
+  const [selected, setSelectedUser] = useState<UserPermission | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isAddingUser, setIsAddingUser] = useState<boolean>(false);
 
   // Filter state
-  const [roleFilter, setRoleFilter] = useState<StorefrontRole | 'all'></StorefrontRole>('all');
+  const [roleFilter, setRoleFilter] = useState<StorefrontRole | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Load permissions
@@ -37,9 +36,8 @@ const Permissions: React.FC<PermissionsProps></PermissionsProps> = ({ /* _tenant
     setError(null);
 
     try {
-      const response = await getPermissions(/* tenantId */);
+      const response = await getPermissions(tenantId);
       setPermissions(response.items);
-      setTotalUsers(response.total);
 
       // Select first user if nothing is selected
       if (response.items.length > 0 && !selected) {
@@ -56,6 +54,7 @@ const Permissions: React.FC<PermissionsProps></PermissionsProps> = ({ /* _tenant
   // Load permissions on initial render
   useEffect(() => {
     loadPermissions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tenantId]);
 
   // Handle user selection
@@ -90,18 +89,18 @@ const Permissions: React.FC<PermissionsProps></PermissionsProps> = ({ /* _tenant
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">Permissions Management</h2>
         <div className="flex space-x-2">
-          <button;
+          <button
             onClick={loadPermissions}
             className="flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
           >
-            <ArrowPathIcon className="w-4 h-4 mr-2" /></ArrowPathIcon>
+            <ArrowPathIcon className="w-4 h-4 mr-2" />
             Refresh
           </button>
-          <button;
+          <button
             onClick={() => setIsAddingUser(true)}
             className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
-            <PlusIcon className="w-5 h-5 mr-2" /></PlusIcon>
+            <PlusIcon className="w-5 h-5 mr-2" />
             Add User
           </button>
         </div>
@@ -116,7 +115,7 @@ const Permissions: React.FC<PermissionsProps></PermissionsProps> = ({ /* _tenant
       <div className="flex-1 flex gap-6">
         {/* User List */}
         <div className="w-1/3 bg-white rounded-lg border shadow-sm overflow-hidden">
-          <PermissionList;
+          <PermissionList
             users={filteredUsers}
             loading={loading}
             selectedUserId={selected?.user_id}
@@ -125,7 +124,7 @@ const Permissions: React.FC<PermissionsProps></PermissionsProps> = ({ /* _tenant
             searchQuery={searchQuery}
             onRoleFilterChange={setRoleFilter}
             onSearchQueryChange={setSearchQuery}
-          /></PermissionList>
+          />
         </div>
 
         {/* User Permission Detail */}
@@ -133,9 +132,9 @@ const Permissions: React.FC<PermissionsProps></PermissionsProps> = ({ /* _tenant
           {selected ? (
             <PermissionDetail
               user={selected}
-              tenantId={/* tenantId */}
+              tenantId={tenantId}
               onUpdate={handlePermissionUpdate}
-            /></PermissionDetail>
+            />
           ) : (
             <div className="bg-white rounded-lg border shadow-sm p-8 flex flex-col items-center justify-center h-full">
               <svg
@@ -146,7 +145,7 @@ const Permissions: React.FC<PermissionsProps></PermissionsProps> = ({ /* _tenant
               >
                 <path
                   strokeLinecap="round"
-                  strokeLinejoin="round";
+                  strokeLinejoin="round"
                   strokeWidth={2}
                   d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
                 />
@@ -156,11 +155,11 @@ const Permissions: React.FC<PermissionsProps></PermissionsProps> = ({ /* _tenant
                 Select a user to view and manage their permissions.
               </p>
               {permissions.length === 0 && !loading && (
-                <button;
+                <button
                   onClick={() => setIsAddingUser(true)}
                   className="mt-4 flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
-                  <PlusIcon className="w-5 h-5 mr-2" /></PlusIcon>
+                  <PlusIcon className="w-5 h-5 mr-2" />
                   Add User
                 </button>
               )}
@@ -172,8 +171,8 @@ const Permissions: React.FC<PermissionsProps></PermissionsProps> = ({ /* _tenant
       {/* Add User Modal */}
       {isAddingUser && (
         <AddUserPermission
-          /* tenantId */={tenantId}
-          onClose={() =></AddUserPermission> setIsAddingUser(false)}
+          tenantId={tenantId}
+          onClose={() => setIsAddingUser(false)}
           onSuccess={handlePermissionUpdate}
         />
       )}

@@ -8,12 +8,13 @@ import {
   MusicalNoteIcon,
   ArrowUpTrayIcon,
 } from '@heroicons/react/24/outline';
-import type { UUID } from '@/modules/core/types';
+
+import type { InputChangeEvent } from '@core/models/events';
+import type { UUID } from "@/modules/core/models/base";
 import { uploadAsset } from '@/lib/api/storefrontEditor';
-import type { InputChangeEvent } from '@/modules/core';
 
 interface AssetUploaderProps {
-  tenantId: UUID;
+  _tenantId: UUID;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -160,10 +161,13 @@ const AssetUploader: React.FC<AssetUploaderProps> = ({ _tenantId, onClose, onSuc
         }
 
         // Upload the file
-        const response = await uploadAsset(tenantId, formData);
-
-        // Mark as successfully uploaded
-        successfulUploads.push(fileName);
+        const response = await uploadAsset(_tenantId, formData);
+        
+        // Use the response to verify success
+        if (response && response.success) {
+          // Mark as successfully uploaded
+          successfulUploads.push(fileName);
+        }
         setUploadSuccess((prev) => [...prev, fileName]);
         setUploadProgress((prev) => ({ ...prev, [fileName]: 100 }));
       } catch (err) {

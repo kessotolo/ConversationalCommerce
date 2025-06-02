@@ -1,7 +1,8 @@
 import React from 'react';
-import type { Draft } from '@/lib/api/storefrontEditor.types';
+
 import type { UUID } from '@/modules/core';
 
+import type { Draft } from '@/modules/storefront/models/draft';
 interface DraftListProps {
   drafts: Draft[];
   loading: boolean;

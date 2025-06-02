@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import {
+import type { Logo } from '@/modules/storefront/models/logo';
+import type { Asset } from '@/modules/storefront/models/asset';
   ClockIcon,
   TrashIcon,
   PencilIcon,
@@ -10,8 +12,8 @@ import {
   XMarkIcon,
   PhotoIcon,
 } from '@heroicons/react/24/outline';
-import type { Logo, Asset } from '@/lib/api/storefrontEditor.types';
-import type { UUID } from '@/modules/core/types';
+
+import type { UUID } from "@/modules/core/models/base";
 import { updateLogo, getAssets } from '@/lib/api/storefrontEditor';
 import type { InputChangeEvent } from '@/modules/core';
 

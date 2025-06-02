@@ -1,12 +1,7 @@
-// Completely rewritten ESLint config for the frontend (Next.js/TypeScript) without unsupported properties
-// This configuration aligns with the modular monolith architecture and enforces best practices
-
-// ESLint config for modular monolith architecture
-// Enforces direct module imports and prohibits bridge files
-// See docs/architecture/decisions/0001-direct-module-imports.md for rationale
-
+// Minimal ESLint config to fix the import/order rule issue
+// Extremely minimal ESLint configuration to get past validation errors
 module.exports = {
-  root: true,
+  root: true, // This prevents ESLint from looking for configs in parent directories
   env: {
     browser: true,
     es2021: true,
@@ -21,7 +16,12 @@ module.exports = {
     'plugin:react-hooks/recommended',
   ],
   parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint', 'react', 'prettier', 'import'],
+  plugins: [
+    '@typescript-eslint',
+    'react',
+    'prettier',
+    'import',
+  ],
   parserOptions: {
     ecmaVersion: 2022,
     sourceType: 'module',
@@ -49,13 +49,13 @@ module.exports = {
     'no-unused-vars': 'warn',
     '@typescript-eslint/no-explicit-any': 'error',
     'import/no-deprecated': 'warn',
+    
+    // Clean import/order rule without any unsupported properties
     'import/order': [
       'warn',
       {
         groups: [
           'builtin',
-
-          // Clean import/order rule with ONLY supported properties
           'external',
           'internal',
           ['parent', 'sibling'],
@@ -80,35 +80,60 @@ module.exports = {
         alphabetize: {
           order: 'asc',
           caseInsensitive: true,
-        },
+        }
       },
     ],
+    
     '@typescript-eslint/consistent-type-imports': [
       'warn',
       {
         prefer: 'type-imports',
         disallowTypeAnnotations: false,
-
       },
     ],
+    
+    // Enforce modular monolith architecture boundaries
     'no-restricted-imports': [
       'error',
       {
         patterns: [
+          '*models*',
           '*types*',
-          '*bridge*',
+          '*services*',
+          '*components*',
+          '*contexts*',
+          '*lib*',
+          '*api*',
           {
             group: ['**/types/*'],
-            message: 'Do not import from bridge files. Use direct module imports instead. See ADR-0001.'
+            message:
+              'Do not import from bridge files. Use direct module imports instead. Example: import { Status } from @/modules/core/models/base instead of import { DraftStatus } from ../types/storefrontEditor',
           },
           {
             group: ['**/src/types'],
-            message: 'Creating new bridge files is not allowed. Create types in their proper module directory.'
+            message:
+              'Creating new bridge files is not allowed. Create types in their proper module directory.',
           },
           {
             group: ['@storefront/models/*'],
             importNames: ['default'],
-            message: 'Do not use default exports for models. Use named exports instead.'
+            message:
+              'Do not use default exports for models. Use named exports instead.',
+          },
+          {
+            group: ['@/modules/storefront/models/asset'],
+            message:
+              'Do not import Asset or AssetType from legacy models. Use DTOs from /lib/api/storefrontEditor.types instead.',
+          },
+          {
+            group: ['@/modules/storefront/models/banner'],
+            message:
+              'Do not import Banner or BannerType from legacy models. Use DTOs from /lib/api/storefrontEditor.types instead.',
+          },
+          {
+            group: ['@/modules/storefront/models/logo'],
+            message:
+              'Do not import Logo or LogoType from legacy models. Use DTOs from /lib/api/storefrontEditor.types instead.',
           },
           '../*',
           './*',
@@ -116,11 +141,11 @@ module.exports = {
         paths: [
           {
             name: '../',
-            message: 'Use @/ alias for internal modules instead of relative imports.'
+            message: 'Use @/ alias for internal modules instead of relative imports.',
           },
           {
             name: './',
-            message: 'Use @/ alias for internal modules instead of relative imports.'
+            message: 'Use @/ alias for internal modules instead of relative imports.',
           },
         ],
       },

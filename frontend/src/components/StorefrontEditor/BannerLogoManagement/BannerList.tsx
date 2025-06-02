@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import type { Banner } from '@/lib/api/storefrontEditor.types';
+
 import { useDrag, useDrop } from 'react-dnd';
 import {
+import type { Banner } from '@/modules/storefront/models/banner';
   Menu as Bars3Icon,
   Search as MagnifyingGlassIcon,
   Filter as FunnelIcon,

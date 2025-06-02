@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import type { Logo } from '@/lib/api/storefrontEditor.types';
-import type { UUID } from '@/modules/core/types';
+
+import type { UUID } from "@/modules/core/models/base";
 import { Search as MagnifyingGlassIcon, Filter as FunnelIcon } from 'lucide-react';
 import type { FormSubmitEvent } from '@/modules/core';
 
+import type { Logo } from '@/modules/storefront/models/logo';
 interface LogoListProps {
   logos: Logo[];
   loading: boolean;

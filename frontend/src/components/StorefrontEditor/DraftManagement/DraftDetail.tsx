@@ -1,8 +1,10 @@
 import Reactimport React, { useState } from 'react';
-import type { Draft, UpdateDraftRequest } from '@/lib/api/storefrontEditor.types';
+
 import type { UUID } from '@/modules/core';
 import { updateDraft } from '@/lib/api/storefrontEditor';
 import {
+import type { Draft } from '@/modules/storefront/models/draft';
+import type { UpdateDraftRequest } from '@/modules/storefront/models';
   ClockIcon,
   TrashIcon,
   PencilIcon,

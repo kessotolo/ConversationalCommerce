@@ -1,17 +1,16 @@
-import Reactimport React, { useState } from 'react';
-import {XMarkIcon, ExclamationTriangleIcon} from '@heroicons/react/24/outline';
-import type { UUID } from '@/modules/core/types';
-import { StorefrontRole } from '@/modules/storefront/types';
+import React, { useState } from 'react';
+import { XMarkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import type { UUID } from "@/modules/core/models/base";
+import { StorefrontRole } from "@/modules/storefront/models/permission";
 import { assignRole } from '@/lib/api/storefrontEditor';
 
 interface AddUserPermissionProps {
-  /* tenantId */: UUID;
+  tenantId: UUID;
   onClose: () => void;
-};
   onSuccess: () => void;
 }
 
-const AddUserPermission: React.FC<AddUserPermissionProps></AddUserPermissionProps> = ({ /* _tenantId */, onClose, onSuccess }) => {
+const AddUserPermission: React.FC<AddUserPermissionProps> = ({ tenantId, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     userId: '',
     username: '',
@@ -21,7 +20,7 @@ const AddUserPermission: React.FC<AddUserPermissionProps></AddUserPermissionProp
   const [error, setError] = useState<string | null>(null);
 
   // Handle input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement></HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
@@ -74,7 +73,7 @@ const AddUserPermission: React.FC<AddUserPermissionProps></AddUserPermissionProp
         <div className="flex justify-between items-center p-4 border-b">
           <h3 className="text-lg font-medium">Add User Permission</h3>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            <XMarkIcon className="h-5 w-5" /></XMarkIcon>
+            <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
 
@@ -82,7 +81,7 @@ const AddUserPermission: React.FC<AddUserPermissionProps></AddUserPermissionProp
         <div className="p-4">
           {error && (
             <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md flex items-center">
-              <ExclamationTriangleIcon className="h-5 w-5 mr-2" /></ExclamationTriangleIcon>
+              <ExclamationTriangleIcon className="h-5 w-5 mr-2" />
               {error}
             </div>
           )}
@@ -96,7 +95,7 @@ const AddUserPermission: React.FC<AddUserPermissionProps></AddUserPermissionProp
                 <input
                   type="text"
                   id="userId"
-                  name="userId";
+                  name="userId"
                   value={formData.userId}
                   onChange={handleInputChange}
                   placeholder="e.g., 123e4567-e89b-12d3-a456-426614174000"
@@ -113,7 +112,7 @@ const AddUserPermission: React.FC<AddUserPermissionProps></AddUserPermissionProp
                 <input
                   type="text"
                   id="username"
-                  name="username";
+                  name="username"
                   value={formData.username}
                   onChange={handleInputChange}
                   placeholder="e.g., john.doe"
@@ -130,7 +129,7 @@ const AddUserPermission: React.FC<AddUserPermissionProps></AddUserPermissionProp
                 </label>
                 <select
                   id="role"
-                  name="role";
+                  name="role"
                   value={formData.role}
                   onChange={handleInputChange}
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -150,7 +149,7 @@ const AddUserPermission: React.FC<AddUserPermissionProps></AddUserPermissionProp
 
             <div className="mt-5 flex justify-end">
               <button
-                type="button";
+                type="button"
                 onClick={onClose}
                 disabled={loading}
                 className="mr-3 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -158,7 +157,7 @@ const AddUserPermission: React.FC<AddUserPermissionProps></AddUserPermissionProp
                 Cancel
               </button>
               <button
-                type="submit";
+                type="submit"
                 disabled={loading || !formData.userId}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
