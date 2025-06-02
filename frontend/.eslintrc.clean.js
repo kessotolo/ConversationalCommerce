@@ -1,4 +1,6 @@
-// Temporary ESLint config for pre-commit hook
+// Clean ESLint config for the frontend (Next.js/TypeScript)
+// This configuration removes all problematic properties while maintaining
+// the modular monolith architecture boundaries
 module.exports = {
   root: true,
   env: {
@@ -43,6 +45,8 @@ module.exports = {
     'no-unused-vars': 'warn',
     '@typescript-eslint/no-explicit-any': 'error',
     'import/no-deprecated': 'warn',
+
+    // Clean import/order rule without problematic properties
     'import/order': [
       'warn',
       {
@@ -67,7 +71,6 @@ module.exports = {
             position: 'after',
           },
         ],
-        pathGroupsExcludedImportTypes: [],
         newlinesBetween: 'always',
         alphabetize: {
           order: 'asc',
@@ -75,6 +78,7 @@ module.exports = {
         },
       },
     ],
+
     '@typescript-eslint/consistent-type-imports': [
       'warn',
       {
@@ -82,6 +86,8 @@ module.exports = {
         disallowTypeAnnotations: false,
       },
     ],
+
+    // Enforce modular monolith architecture boundaries
     'no-restricted-imports': [
       'error',
       {

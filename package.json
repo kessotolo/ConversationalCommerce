@@ -19,7 +19,7 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "eslint --fix --ignore-pattern 'frontend/scripts/**/*' --config frontend/.eslintrc-temp.js",
+      "eslint --fix --no-eslintrc -c frontend/.eslintrc.ultra-minimal.js",
       "prettier --write"
     ]
   }

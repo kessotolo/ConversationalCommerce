@@ -1,4 +1,4 @@
-// Temporary ESLint config for pre-commit hook
+// This is the main ESLint config for the frontend (Next.js/TypeScript). All overrides and strict rules go here.
 module.exports = {
   root: true,
   env: {
@@ -43,6 +43,7 @@ module.exports = {
     'no-unused-vars': 'warn',
     '@typescript-eslint/no-explicit-any': 'error',
     'import/no-deprecated': 'warn',
+    // Fixed import/order rule without unsupported properties
     'import/order': [
       'warn',
       {
@@ -67,7 +68,6 @@ module.exports = {
             position: 'after',
           },
         ],
-        pathGroupsExcludedImportTypes: [],
         newlinesBetween: 'always',
         alphabetize: {
           order: 'asc',

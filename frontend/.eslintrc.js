@@ -15,12 +15,7 @@ module.exports = {
     'plugin:react-hooks/recommended',
   ],
   parser: '@typescript-eslint/parser',
-  plugins: [
-    '@typescript-eslint',
-    'react',
-    'prettier',
-    'import',
-  ],
+  plugins: ['@typescript-eslint', 'react', 'prettier', 'import'],
   parserOptions: {
     ecmaVersion: 2022,
     sourceType: 'module',
@@ -72,11 +67,16 @@ module.exports = {
             position: 'after',
           },
         ],
+        pathGroupsExcludedImportTypes: [],
         newlinesBetween: 'always',
         alphabetize: {
           order: 'asc',
           caseInsensitive: true,
         },
+        // The following properties are not supported in eslint-plugin-import@2.31.0:
+        // distinctGroup: false,
+        // named: false,
+        // warnOnUnassignedImports: false
       },
     ],
     '@typescript-eslint/consistent-type-imports': [
@@ -110,8 +110,7 @@ module.exports = {
           {
             group: ['@storefront/models/*'],
             importNames: ['default'],
-            message:
-              'Do not use default exports for models. Use named exports instead.',
+            message: 'Do not use default exports for models. Use named exports instead.',
           },
           {
             group: ['@/modules/storefront/models/asset'],
