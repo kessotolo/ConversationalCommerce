@@ -536,9 +536,99 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/b
 - Supported event types: `message_sent`, `message_read`, `product_clicked`, `order_placed`, `conversation_started`, `user_joined`, `user_left`, `conversation_closed`.
 - New event types can be added in a type-safe manner on both backend and frontend.
 
+## 🔐 Authentication Architecture
+
+The application implements a clean, build-safe authentication architecture using Clerk that follows modular monolith principles:
+
+### Build-Safe Authentication
+
+The authentication system is designed to work seamlessly during both development and build time without hacky scripts or file modifications:
+
+- **SafeClerkProvider**: A wrapper around Clerk's `ClerkProvider` that safely handles build-time scenarios
+  - Located in `src/utils/auth/clerkProvider.tsx`
+  - Detects build-time environment via environment variables
+  - Renders children without Clerk during build to avoid errors
+  - Used in both App Router (`src/app/providers.tsx`) and Pages Router (`pages/_app.tsx`)
+
+- **Core Authentication Service**:
+  - Located in `src/modules/core/services/auth/buildSafeAuth.ts`
+  - Follows the Result pattern from core domain models
+  - Provides safe default values during build time
+  - Implements proper error handling and type safety
+
+- **Domain-Driven Authentication Hooks**:
+  - Located in `src/modules/core/hooks/useAuth.ts`
+  - Provides a clean domain interface for authentication
+  - Returns properly typed user information
+  - Abstracts away Clerk implementation details
+  - Consistent API across Pages and App Router
+
+### Authentication Middleware
+
+The middleware (`middleware.ts`) handles tenant identification and authentication:
+
+- Extracts tenant identifiers from subdomains or custom domains
+- Sets tenant info in request headers and cookies
+- Defines public routes that bypass authentication
+- Skips authentication checks during build time by detecting environment variables
+- Does not modify source files during build
+
+### Deployment Configuration
+
+Deployment configuration is simplified through environment variables:
+
+```toml
+# In netlify.toml
+[build.environment]
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = ""
+CLERK_SECRET_KEY = ""
+```
+
+This approach disables Clerk during builds without modifying source files.
+
+### How to Add New Auth-Protected Routes
+
+1. Use the `useAuth` hook from core domain:
+   ```typescript
+   import { useAuth } from '@/modules/core/hooks/useAuth';
+
+   export default function ProtectedPage() {
+     const { user, isAuthenticated, isLoading } = useAuth();
+
+     if (isLoading) return <LoadingIndicator />;
+     if (!isAuthenticated) return <Redirect to="/sign-in" />;
+
+     return <YourProtectedContent user={user} />;
+   }
+   ```
+
+2. For server-side authentication checks, use the `checkAuth` function:
+   ```typescript
+   import { checkAuth } from '@/modules/core/hooks/useAuth';
+
+   export async function getServerSideProps(context) {
+     const authResult = await checkAuth(context.req);
+
+     if (!authResult.success) {
+       return {
+         redirect: {
+           destination: '/sign-in',
+           permanent: false,
+         },
+       };
+     }
+
+     return {
+       props: { user: authResult.data },
+     };
+   }
+   ```
+
 ## Best Practices
 - Always use the ConversationEventLogger for logging events in the frontend.
 - Ensure user and tenant IDs are sourced from Clerk context/hooks.
+- Use the core domain's `useAuth` hook instead of direct Clerk hooks for better architectural consistency.
+- Never disable authentication during build time by modifying source files; use environment variables instead.
 - Extend analytics and monitoring by adding new event types and updating the dashboard as needed.
 
 ### TypeScript, Type Safety, and Module Boundaries
@@ -574,3 +664,41 @@ try {
 
 - All bridge files and legacy type/model aggregators have been removed.
 - Types/interfaces must be imported directly from their module's public API.
+
+## Monitoring, Audit Log, and Alerts
+
+### Audit Log Table
+- The `AuditLogTable` component displays all conversation-related audit log entries for the current tenant.
+- Integrate it into any dashboard or monitoring page by passing the `tenantId` prop.
+- Example usage:
+
+```tsx
+import AuditLogTable from 'src/components/monitoring/AuditLogTable';
+
+const tenantId = localStorage.getItem('tenant_id') || '';
+
+<AuditLogTable tenantId={tenantId} />
+```
+
+### Alerts & Notifications
+- The `NotificationCenter` component displays real-time or recent alerts for the tenant.
+- Integrate it into your dashboard to show event-based alerts (e.g., high-priority events, errors, or custom triggers).
+- Example usage:
+
+```tsx
+import NotificationCenter from 'src/components/monitoring/NotificationCenter';
+
+<NotificationCenter />
+```
+
+### Event-Based Monitoring
+- Conversation events are now automatically logged to the audit log and can trigger alerts based on tenant configuration.
+- See the backend documentation for configuring alert rules and audit log integration.
+
+## WhatsApp Alerting & Seller WhatsApp Number Management
+
+- Sellers can set or update their WhatsApp number in the dashboard (Settings > General tab).
+- Alerts for critical events (e.g., new orders, complaints) are sent to the seller's WhatsApp via Twilio.
+- The WhatsApp number is stored in the tenant profile and can be updated at any time.
+- API endpoints: `GET /tenants/me` (fetch profile), `PATCH /tenants/me` (update WhatsApp number).
+- Test by updating the number and triggering an alert event.

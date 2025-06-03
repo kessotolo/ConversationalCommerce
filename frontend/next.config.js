@@ -15,6 +15,9 @@ const nextConfig = {
     // We still need to disable ESLint during builds as we restore architectural rules
     ignoreDuringBuilds: true,
   },
+  images: {
+    domains: ['res.cloudinary.com'],
+  },
 };
 
 module.exports = nextConfig;

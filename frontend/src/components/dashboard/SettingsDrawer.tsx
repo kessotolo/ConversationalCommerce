@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, CreditCard, Bell, Globe, Store, User } from 'lucide-react';
 
 const categories = [
@@ -9,8 +9,40 @@ const categories = [
   { key: 'domains', label: 'Domains', icon: Globe },
 ];
 
-const mockContent = {
-  general: (
+export default function SettingsDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [selected, setSelected] = useState('general');
+  const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [savingWhatsapp, setSavingWhatsapp] = useState(false);
+  const [whatsappSuccess, setWhatsappSuccess] = useState(false);
+  const [whatsappError, setWhatsappError] = useState('');
+
+  useEffect(() => {
+    // Fetch current tenant WhatsApp number (replace with real API call)
+    fetch('/api/tenants/me')
+      .then((res) => res.json())
+      .then((data) => setWhatsappNumber(data.whatsapp_number || ''));
+  }, []);
+
+  const handleSaveWhatsapp = async () => {
+    setSavingWhatsapp(true);
+    setWhatsappError('');
+    setWhatsappSuccess(false);
+    try {
+      const res = await fetch('/api/tenants/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ whatsapp_number: whatsappNumber }),
+      });
+      if (!res.ok) throw new Error('Failed to update');
+      setWhatsappSuccess(true);
+    } catch (err) {
+      setWhatsappError('Could not update WhatsApp number');
+    } finally {
+      setSavingWhatsapp(false);
+    }
+  };
+
+  const generalContent = (
     <div>
       <h2 className="text-lg font-bold mb-2">General Settings</h2>
       <div className="bg-white rounded-xl shadow p-4 mb-4 border border-[#e6f0eb]">
@@ -24,44 +56,64 @@ const mockContent = {
           defaultValue="contact@fashionhaven.com"
         />
       </div>
-    </div>
-  ),
-  billing: (
-    <div>
-      <h2 className="text-lg font-bold mb-2">Billing</h2>
-      <div className="bg-white rounded-xl shadow p-4 border border-[#e6f0eb]">
-        Billing info and payment methods go here.
+      <div className="bg-white rounded-xl shadow p-4 border border-[#e6f0eb] mt-4">
+        <p className="text-sm text-gray-700 mb-2">WhatsApp Number for Alerts</p>
+        <input
+          className="w-full border rounded-lg px-3 py-2"
+          value={whatsappNumber}
+          onChange={(e) => setWhatsappNumber(e.target.value)}
+          placeholder="+2348012345678"
+          disabled={savingWhatsapp}
+        />
+        <button
+          className="mt-2 px-4 py-2 bg-green-600 text-white rounded"
+          onClick={handleSaveWhatsapp}
+          disabled={savingWhatsapp}
+        >
+          {savingWhatsapp ? 'Saving...' : 'Save'}
+        </button>
+        {whatsappSuccess && <div className="text-green-600 mt-2">WhatsApp number updated!</div>}
+        {whatsappError && <div className="text-red-600 mt-2">{whatsappError}</div>}
       </div>
     </div>
-  ),
-  users: (
-    <div>
-      <h2 className="text-lg font-bold mb-2">Users</h2>
-      <div className="bg-white rounded-xl shadow p-4 border border-[#e6f0eb]">
-        Manage team members and permissions here.
-      </div>
-    </div>
-  ),
-  notifications: (
-    <div>
-      <h2 className="text-lg font-bold mb-2">Notifications</h2>
-      <div className="bg-white rounded-xl shadow p-4 border border-[#e6f0eb]">
-        Notification preferences and templates.
-      </div>
-    </div>
-  ),
-  domains: (
-    <div>
-      <h2 className="text-lg font-bold mb-2">Domains</h2>
-      <div className="bg-white rounded-xl shadow p-4 border border-[#e6f0eb]">
-        Manage your store domains here.
-      </div>
-    </div>
-  ),
-};
+  );
 
-export default function SettingsDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [selected, setSelected] = useState('general');
+  const mockContent = {
+    general: generalContent,
+    billing: (
+      <div>
+        <h2 className="text-lg font-bold mb-2">Billing</h2>
+        <div className="bg-white rounded-xl shadow p-4 border border-[#e6f0eb]">
+          Billing info and payment methods go here.
+        </div>
+      </div>
+    ),
+    users: (
+      <div>
+        <h2 className="text-lg font-bold mb-2">Users</h2>
+        <div className="bg-white rounded-xl shadow p-4 border border-[#e6f0eb]">
+          Manage team members and permissions here.
+        </div>
+      </div>
+    ),
+    notifications: (
+      <div>
+        <h2 className="text-lg font-bold mb-2">Notifications</h2>
+        <div className="bg-white rounded-xl shadow p-4 border border-[#e6f0eb]">
+          Notification preferences and templates.
+        </div>
+      </div>
+    ),
+    domains: (
+      <div>
+        <h2 className="text-lg font-bold mb-2">Domains</h2>
+        <div className="bg-white rounded-xl shadow p-4 border border-[#e6f0eb]">
+          Manage your store domains here.
+        </div>
+      </div>
+    ),
+  };
+
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex">

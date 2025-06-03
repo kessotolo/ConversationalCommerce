@@ -14,6 +14,8 @@ import TableCell from '@mui/material/TableCell';
 import TableBody from '@mui/material/TableBody';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import type { ChipProps } from '@mui/material/Chip';
+import AuditLogTable from './AuditLogTable';
+import NotificationCenter from './NotificationCenter';
 import { useWebSocket } from '@/hooks/useWebSocket';
 
 interface Activity {
@@ -71,9 +73,10 @@ const ActivityDashboard: React.FC = () => {
   });
 
   const [tenantId, setTenantId] = useState<string>('');
+  const [mounted, setMounted] = useState(false);
 
-  // Get tenant ID from localStorage (client-side only)
   useEffect(() => {
+    setMounted(true);
     if (typeof window !== 'undefined') {
       setTenantId(localStorage.getItem('tenant_id') || '');
     }
@@ -158,6 +161,9 @@ const ActivityDashboard: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
+      <h1 className="text-2xl font-bold mb-4">Activity Dashboard</h1>
+      <div className="mb-8">{mounted && <NotificationCenter />}</div>
+      <div>{mounted && tenantId && <AuditLogTable tenantId={tenantId} />}</div>
       {/* Stats Cards */}
       <Grid container spacing={3}>
         <Grid component="div" sx={{ gridColumn: { xs: 'span 12', md: 'span 4' } }}>

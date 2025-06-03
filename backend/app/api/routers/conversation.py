@@ -17,6 +17,8 @@ from fastapi.responses import StreamingResponse
 import csv
 from io import StringIO
 from app.services.audit_service import create_audit_log
+from app.services.conversation_audit_bridge import log_event_to_audit
+from app.services.alert_service import maybe_trigger_alert
 
 router = APIRouter()
 
@@ -92,25 +94,11 @@ def log_conversation_event(event: ConversationEventCreate, db: Session = Depends
         db.commit()
         db.refresh(db_event)
 
-        # --- AuditLog integration for non-message events ---
-        audit_event_types = {"conversation_started",
-                             "user_joined", "user_left", "conversation_closed"}
-        if db_event.event_type in audit_event_types:
-            try:
-                create_audit_log(
-                    db=db,
-                    user_id=db_event.user_id,
-                    action=db_event.event_type,
-                    resource_type="conversation",
-                    resource_id=db_event.conversation_id or "unknown",
-                    details=db_event.payload,
-                    request=None  # Optionally pass request if available
-                )
-            except Exception as audit_exc:
-                # Log but do not disrupt normal operation
-                import logging
-                logging.getLogger(__name__).warning(
-                    f"Failed to create audit log for conversation event: {audit_exc}")
+        # Clean, extensible audit logging for conversation events
+        log_event_to_audit(db, db_event)
+
+        # Event-based alerting for configured events
+        maybe_trigger_alert(db, db_event)
 
         # Broadcast key events to tenant admins in real time
         key_types = {"message_sent", "message_read",
