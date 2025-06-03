@@ -1,0 +1,179 @@
+import { TenantScoped } from '@/modules/core/models/base/entity';
+import { Money } from '@/modules/core/models/base/money';
+import { Address } from '@/modules/core/models/base/address';
+
+/**
+ * Order status enum representing the order lifecycle
+ */
+export enum OrderStatus {
+  PENDING = 'PENDING',
+  PAID = 'PAID',
+  PROCESSING = 'PROCESSING',
+  SHIPPED = 'SHIPPED',
+  DELIVERED = 'DELIVERED',
+  CANCELLED = 'CANCELLED',
+  REFUNDED = 'REFUNDED',
+  FAILED = 'FAILED',
+}
+
+/**
+ * Order source enum representing different channels
+ */
+export enum OrderSource {
+  WHATSAPP = 'WHATSAPP',
+  WEBSITE = 'WEBSITE',
+  INSTAGRAM = 'INSTAGRAM',
+}
+
+/**
+ * Payment method enum for different payment options
+ */
+export enum PaymentMethod {
+  CARD = 'CARD',
+  MOBILE_MONEY = 'MOBILE_MONEY',
+  CASH_ON_DELIVERY = 'CASH_ON_DELIVERY',
+  BANK_TRANSFER = 'BANK_TRANSFER',
+  USSD = 'USSD',
+}
+
+/**
+ * Payment status enum for tracking payment state
+ */
+export enum PaymentStatus {
+  PENDING = 'PENDING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  REFUNDED = 'REFUNDED',
+  PARTIALLY_REFUNDED = 'PARTIALLY_REFUNDED',
+}
+
+/**
+ * Order item representing a product in an order
+ */
+export interface OrderItem {
+  id: string;
+  product_id: string;
+  product_name: string;
+  quantity: number;
+  unit_price: Money;
+  total_price: Money;
+  variant_id?: string;
+  variant_name?: string;
+  image_url?: string;
+}
+
+/**
+ * Shipping details for an order
+ */
+export interface ShippingDetails {
+  address: Address;
+  method: string;
+  tracking_number?: string;
+  estimated_delivery?: string;
+  shipping_cost: Money;
+  notes?: string;
+}
+
+/**
+ * Payment details for an order
+ */
+export interface PaymentDetails {
+  method: PaymentMethod;
+  status: PaymentStatus;
+  transaction_id?: string;
+  provider?: string;
+  amount_paid: Money;
+  payment_date?: string;
+  receipt_url?: string;
+  last_four?: string; // For card payments
+  phone_number?: string; // For mobile money
+}
+
+/**
+ * Customer information for an order
+ */
+export interface CustomerInfo {
+  id?: string; // Optional for guest checkout
+  name: string;
+  email: string;
+  phone: string;
+  is_guest: boolean;
+}
+
+/**
+ * Order timeline entry for tracking order history
+ */
+export interface OrderTimeline {
+  id: string;
+  status: OrderStatus;
+  timestamp: string;
+  note?: string;
+  created_by?: string;
+}
+
+/**
+ * Complete Order domain model with all details
+ */
+export interface Order extends TenantScoped {
+  order_number: string;
+  customer: CustomerInfo;
+  items: OrderItem[];
+  total_amount: Money;
+  subtotal: Money;
+  tax: Money;
+  status: OrderStatus;
+  source: OrderSource;
+  shipping: ShippingDetails;
+  payment: PaymentDetails;
+  notes?: string;
+  metadata?: Record<string, any>;
+  timeline: OrderTimeline[];
+  idempotency_key: string; // Used to prevent duplicate orders
+}
+
+/**
+ * Domain methods for the Order model
+ */
+export const OrderDomainMethods = {
+  /**
+   * Check if an order can be cancelled
+   */
+  canBeCancelled(order: Order): boolean {
+    return [OrderStatus.PENDING, OrderStatus.PAID].includes(order.status);
+  },
+
+  /**
+   * Check if an order can be refunded
+   */
+  canBeRefunded(order: Order): boolean {
+    return (
+      [OrderStatus.PAID, OrderStatus.PROCESSING, OrderStatus.SHIPPED].includes(order.status) &&
+      order.payment.status === PaymentStatus.COMPLETED
+    );
+  },
+
+  /**
+   * Check if an order has been completed
+   */
+  isComplete(order: Order): boolean {
+    return order.status === OrderStatus.DELIVERED;
+  },
+
+  /**
+   * Calculate the total items in an order
+   */
+  getTotalItems(order: Order): number {
+    return order.items.reduce((total, item) => total + item.quantity, 0);
+  },
+
+  /**
+   * Get the latest timeline event
+   */
+  getLatestTimelineEvent(order: Order): OrderTimeline | undefined {
+    if (!order.timeline.length) return undefined;
+
+    return [...order.timeline].sort((a, b) => {
+      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    })[0];
+  },
+};

@@ -15,6 +15,9 @@ from app.schemas.conversation_history import ConversationHistoryCreate
 from app.schemas.conversation_event import ConversationEventCreate
 from app.models.tenant import Tenant
 from app.api.routers.conversation import log_conversation_event
+from app.conversation.handlers.order_handler import OrderIntentHandler
+from app.conversation.nlp.intent_parser import IntentType, ParsedIntent, parse_intent
+from app.conversation.nlp.cart_intent_processor import process_cart_intent
 
 # WhatsApp Business API settings
 WHATSAPP_API_VERSION = os.getenv("WHATSAPP_API_VERSION", "v16.0")
@@ -207,6 +210,15 @@ class WhatsAppMessageManager:
 # Initialize the WhatsApp message manager
 whatsapp_manager = WhatsAppMessageManager()
 
+# Order-related intent types
+ORDER_INTENT_TYPES = [
+    IntentType.CHECKOUT,
+    IntentType.ORDER_STATUS,
+    IntentType.CANCEL_ORDER,
+    IntentType.TRACK_ORDER,
+    IntentType.PAYMENT_CONFIRMATION
+]
+
 
 @router.get("/webhook")
 async def verify_webhook(
@@ -301,20 +313,74 @@ async def webhook(request: Request, background_tasks: BackgroundTasks, db: Sessi
                 db.commit()
                 db.refresh(conversation)
 
-                # Process with NLP by creating a conversation event
-                # This leverages your existing NLP cart management code
-                event = ConversationEventCreate(
+                # Process with NLP and get response
+                # Import here to avoid circular dependencies
+                from app.conversation.nlp.intent_parser import parse_intent
+                from app.conversation.nlp.cart_intent_processor import process_cart_intent
+
+                # Parse the intent from the message
+                parsed_intent = await parse_intent(message_body, tenant.id)
+
+                # Create conversation context
+                context = {
+                    'phone_number': customer_number,
+                    'tenant_id': tenant.id,
+                    'conversation_id': conversation.id,
+                    'platform': 'whatsapp',
+                    'timestamp': datetime.utcnow().isoformat()
+                }
+
+                # Route to the appropriate handler based on intent type
+                if parsed_intent and parsed_intent.intent_type in ORDER_INTENT_TYPES:
+                    # Use our order intent handler for order-related intents
+                    order_handler = OrderIntentHandler(tenant.id, user_id=None)
+                    response = await order_handler.handle_intent(parsed_intent, context)
+                else:
+                    # Use existing cart intent processor for cart-related intents
+                    response = await process_cart_intent(message_body, tenant.id, customer_number, context)
+
+                # Get the response messages from the intent handler
+                response_messages = response.get('messages', [])
+
+                # Update context with any changes
+                context.update(response.get('context', {}))
+
+                # Send all response messages via WhatsApp
+                for message in response_messages:
+                    # Extract message content based on message type
+                    if isinstance(message, dict):
+                        if message.get('type') == 'text':
+                            message_content = message.get('text', '')
+                        elif message.get('type') == 'location':
+                            # Format location message specially
+                            lat = message.get('latitude')
+                            lng = message.get('longitude')
+                            name = message.get('name', 'Location')
+                            message_content = f"📍 {name}\nLatitude: {lat}\nLongitude: {lng}"
+                        else:
+                            # Default to text content
+                            message_content = message.get('text', '')
+                    else:
+                        # If message is a string
+                        message_content = str(message)
+
+                    # Send the message
+                    whatsapp_manager.send_whatsapp_reply(tenant.id, customer_number, message_content, db)
+
+                # Log conversation event with AI response(s)
+                # Join multiple messages if needed
+                response_content = "\n".join([m.get('text', str(m)) if isinstance(m, dict) else str(m)
+                                              for m in response_messages])
+
+                log_event = ConversationEventCreate(
                     conversation_id=conversation.id,
-                    event_type="message_sent",
-                    tenant_id=tenant.id,
-                    payload={
-                        "content": message_body,
-                        "phone_number": customer_number,
-                    },
-                    event_metadata={
+                    event_type="ai_response",
+                    content=response_content,
+                    timestamp=datetime.utcnow(),
+                    metadata={
                         "channel": "whatsapp",
-                        "phone_number": customer_number,
-                        "business_number": to_number
+                        "intent": parsed_intent.intent_type if parsed_intent else "unknown",
+                        "context": {k: v for k, v in context.items() if k not in ['timestamp']}
                     }
                 )
 
