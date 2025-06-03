@@ -15,7 +15,6 @@ from app.schemas.conversation_history import ConversationHistoryCreate
 from app.schemas.conversation_event import ConversationEventCreate
 from app.models.tenant import Tenant
 from app.api.routers.conversation import log_conversation_event
-from app.services.tenant_service import get_tenant_by_id
 
 # WhatsApp Business API settings
 WHATSAPP_API_VERSION = os.getenv("WHATSAPP_API_VERSION", "v16.0")
@@ -64,6 +63,11 @@ def find_tenant_by_whatsapp(phone_number: str, db: Session) -> Optional[Tenant]:
     ).first()
 
     return tenant
+
+
+def get_tenant_by_id(db, tenant_id):
+    from app.models.tenant import Tenant
+    return db.query(Tenant).filter(Tenant.id == tenant_id).first()
 
 
 class WhatsAppCredential:
