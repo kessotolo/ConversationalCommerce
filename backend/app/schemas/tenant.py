@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from pydantic import ConfigDict
 
 
 class TenantOut(BaseModel):
@@ -10,8 +11,7 @@ class TenantOut(BaseModel):
     whatsapp_number: Optional[str]
     is_active: bool
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TenantUpdate(BaseModel):

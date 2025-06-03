@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 from uuid import UUID
 from datetime import datetime
+from pydantic import ConfigDict
 
 
 class CartItemBase(BaseModel):
@@ -25,8 +26,7 @@ class CartItemResponse(CartItemBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CartBase(BaseModel):
@@ -50,5 +50,4 @@ class CartResponse(CartBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
