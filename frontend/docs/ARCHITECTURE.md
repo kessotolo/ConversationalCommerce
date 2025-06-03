@@ -61,6 +61,15 @@ Our application is organized into these primary modules:
 - **Theme**: Theming and styling configuration (`@/modules/theme/models`, etc.)
 - **Monitoring**: System monitoring and alerts (`@/modules/monitoring/models`, etc.)
 
+### Next.js App Router: 'use client' Directive
+
+- Any file in `src/app/` that uses React hooks (e.g., `useState`, `useEffect`, `useParams`) **must** start with `'use client';` as the very first line.
+- This marks the file as a Client Component, allowing use of browser APIs and hooks.
+- Omitting this will cause build failures in CI and on Vercel ("hooks only work in client components").
+- **Best Practice:** Always add `'use client';` to the top of any App Router page/component using hooks or browser APIs.
+- Applies to both `.tsx` and `.jsx` files.
+- See: [Next.js docs](https://nextjs.org/docs/app/building-your-application/rendering/composition-patterns#client-components)
+
 ## Module Boundaries
 
 The following defines which modules can import from which others:

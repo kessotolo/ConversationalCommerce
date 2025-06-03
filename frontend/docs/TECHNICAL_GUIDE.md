@@ -98,6 +98,20 @@ ConversationalCommerce Platform
 - **Module Structure**: Core, Tenant, Conversation, Product, Order, Storefront, Theme, Monitoring
 - **Type Safety**: TypeScript with strict mode and ESLint rules for architectural compliance
 
+### Next.js App Router: 'use client' Directive
+
+If you use React hooks (like `useState`, `useEffect`, `useParams`, etc.) in a file under `src/app/`, you **must** add the following as the very first line of the file:
+
+```tsx
+'use client';
+```
+
+- This tells Next.js that the file is a Client Component and can use browser-only APIs and React hooks.
+- If you forget this, your build will fail with errors about hooks only being allowed in client components.
+- **Best Practice:** Always add `'use client';` to the top of any file in `src/app/` that uses React hooks or browser APIs.
+- Applies to both `.tsx` and `.jsx` files.
+- See: [Next.js docs on Client Components](https://nextjs.org/docs/app/building-your-application/rendering/composition-patterns#client-components)
+
 ### Key Features and Components
 
 #### Multi-tenant Storefront
@@ -137,7 +151,7 @@ The frontend follows a modular monolith architecture with clear module boundarie
 - **Tenant Module**: Merchant configuration and management
 - **Conversation Module**: Messaging system for customer engagement
   - **WhatsApp Integration**: ✅ VERIFIED - Multi-tenant WhatsApp NLP cart management
-  - **Intent Classification**: Natural language processing for chat commands 
+  - **Intent Classification**: Natural language processing for chat commands
   - **Event Logging**: Structured logging of all conversation events
 - **Product Module**: Product catalog management
 - **Order Module**: Order processing and transactions

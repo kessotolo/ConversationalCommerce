@@ -170,6 +170,23 @@ Welcome aboard! We're excited to have you contribute to ConversationalCommerce.
 - **Unused Variable/Import**: Remove or use the variable/import as needed.
 - **Type Error**: Add or refine type annotations, avoid `any`, and use generics or type guards as appropriate.
 
+### Next.js App Router: 'use client' Directive
+
+If you use React hooks (like `useState`, `useEffect`, `useParams`, etc.) in a file under `src/app/`, you **must** add the following as the very first line of the file:
+
+```tsx
+'use client';
+```
+
+- This tells Next.js that the file is a Client Component and can use browser-only APIs and React hooks.
+- If you forget this, your build will fail with errors about hooks only being allowed in client components.
+- **Best Practice:** Always add `'use client';` to the top of any file in `src/app/` that uses React hooks or browser APIs.
+- This applies to both `.tsx` and `.jsx` files.
+- See: [Next.js docs on Client Components](https://nextjs.org/docs/app/building-your-application/rendering/composition-patterns#client-components)
+
+**CI/Build Tip:**
+- Our build scripts and linting will check for this, but you should always double-check when creating or editing App Router pages/components.
+
 # Conversation Event Logging, Analytics, and Clerk Integration
 
 ## Event Logging
