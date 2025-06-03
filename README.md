@@ -798,3 +798,24 @@ Please contact the repository owner for contribution guidelines.
 - **Restricted Import**: Change your import to use the module's public API or DTO file.
 - **Unused Variable/Import**: Remove or use the variable/import as needed.
 - **Type Error**: Add or refine type annotations, avoid `any`, and use generics or type guards as appropriate.
+
+## WhatsApp Alerting & Seller WhatsApp Number Management
+
+### Overview
+- Sellers can now receive real-time alerts for critical events (e.g., new orders, complaints) directly on WhatsApp.
+- Each seller/tenant can set or update their WhatsApp number in the dashboard settings.
+- Alerts are sent using Twilio WhatsApp API when configured events occur.
+
+### How it Works
+1. Seller sets their WhatsApp number in the dashboard (Settings > General).
+2. The backend stores this number in the tenant profile.
+3. When a critical event occurs, the backend sends a WhatsApp message to the seller using Twilio.
+
+### API Endpoints
+- `GET /tenants/me`: Fetch current tenant profile (including WhatsApp number)
+- `PATCH /tenants/me`: Update WhatsApp number for the current tenant
+
+### What to Test
+- Add/update WhatsApp number in the dashboard and verify it saves.
+- Trigger a critical event and confirm WhatsApp alert delivery.
+- Ensure only authenticated sellers can update their WhatsApp number.

@@ -844,3 +844,11 @@ The platform implements a comprehensive content moderation system to ensure cont
   - User management
   - Settings
   - Reports
+
+## WhatsApp Alerting & Seller WhatsApp Number Management
+
+- Sellers/tenants can now receive WhatsApp alerts for critical events (e.g., new orders, complaints).
+- Each tenant profile includes a `whatsapp_number` field (E.164 format).
+- Twilio WhatsApp API is used for sending alerts.
+- New API endpoints: `GET /tenants/me` and `PATCH /tenants/me` for profile management.
+- Test: Update WhatsApp number, trigger an alert, and confirm WhatsApp delivery.
