@@ -48,10 +48,25 @@ This project uses a multi-README approach to organize documentation:
 
 - **Seller Authentication**: Secure JWT-based authentication through Clerk with role-based access control
 - **Product Management**: Full CRUD operations with rich media support and mobile camera integration
-- **WhatsApp Integration**: Direct customer engagement through conversational commerce
-- **Multi-Platform Social Sharing**: Product sharing across WhatsApp, Instagram, TikTok, Facebook, Twitter, and Telegram with branded QR codes
-- **Mobile-First Design**: Optimized interface with bottom navigation for primary devices used in African markets
-- **Multi-Media Support**: Images, video, and WhatsApp status content handling with direct camera capture
+- **WhatsApp Integration**: 
+  - **WhatsApp Number Management**: Sellers can register their WhatsApp numbers through the platform
+  - **WhatsApp Alerting**: Automated notifications sent to sellers' WhatsApp numbers
+  - **NLP Cart Management**: Process cart-related commands directly through WhatsApp messages
+  - **Multi-Tenant Routing**: Messages route to appropriate seller based on WhatsApp number
+- **Multi-Platform Social Sharing**: 
+  - Product sharing across WhatsApp, Instagram, TikTok, Facebook, Twitter, and Telegram
+  - Branded QR codes for in-person and print marketing
+  - UTM tracking for conversion analytics
+- **Mobile-First Storefront**: 
+  - Optimized interface for African mobile market
+  - Bottom navigation for key features
+  - Responsive product grid and details
+  - Fast loading for low-bandwidth conditions
+- **Cart Management**:
+  - Web UI cart with full item management
+  - Session-based cart persistence
+  - Quantity editing and removal
+  - WhatsApp-based cart interaction via NLP
 - **Advanced Security**: Comprehensive audit logging, request monitoring, optimistic locking, and PostgreSQL Row-Level Security (RLS) for tenant isolation
 - **High Performance**: Efficient keyset pagination, database indexing, and batch operations
 - **Robust Error Handling**: Standardized error responses and centralized exception management
@@ -101,6 +116,29 @@ The platform is designed with a mobile-first approach, recognizing that most use
 - **WhatsApp-Centric**: Deep integration with the most popular messaging platform in target markets
 
 ## 🔄 Recent Updates
+
+### June 2025: WhatsApp NLP Cart Management
+
+- **Multi-Tenant WhatsApp Integration**:
+  - Sellers use their own WhatsApp numbers for customer interactions
+  - Platform routes messages to correct seller based on receiving WhatsApp number
+  - Responses sent from seller's WhatsApp number for brand consistency
+
+- **NLP-Based Cart Management**:
+  - Process natural language commands for cart operations directly through WhatsApp
+  - Supported commands include: add to cart, remove from cart, update quantity, view cart, clear cart
+  - Intent recognition using NLP models to understand customer requests
+  - Product name extraction from conversational messages
+
+- **Integration Options**:
+  - Platform-managed Twilio integration (default) - sellers just register their number
+  - Direct WhatsApp Business API support for advanced sellers
+  - Comprehensive webhook system to receive and process WhatsApp messages
+
+- **Analytics & Monitoring**:
+  - Conversation tracking in seller dashboard
+  - NLP intent recognition success metrics
+  - Cart conversion analytics through WhatsApp channel
 
 ### May 2025: Database UUID Standardization & Authentication Improvements
 

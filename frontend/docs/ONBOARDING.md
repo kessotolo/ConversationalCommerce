@@ -38,6 +38,24 @@ Trust is at the heart of commerce in Africa. Our onboarding and user experience 
 
 Our conversational engine is trained on real African chat data, supports local dialects, and is always improving to make commerce feel as natural and trustworthy as chatting with a friend or local vendor.
 
+## WhatsApp NLP Cart Management ✅ VERIFIED
+
+We've successfully implemented multi-tenant WhatsApp NLP cart management that meets our core requirements:
+
+- **Seller's Own WhatsApp Numbers**: Each seller uses their own WhatsApp number for customer interactions
+- **No Web Chat Interface**: Fully implemented through WhatsApp without requiring a web chat interface
+- **Multi-Tenant Support**: Messages correctly route to the appropriate seller based on receiving number
+- **Natural Language Commands**: Successfully processes cart operations through natural language
+- **Seamless Integration**: Uses the existing NLP pipeline for intent recognition and cart management
+
+As a new developer, here's what you need to know:
+
+1. The implementation uses a webhook endpoint in `/backend/app/api/v1/endpoints/whatsapp.py`
+2. Tenant identification happens through the WhatsApp number that receives the message
+3. Messages are processed through our existing NLP pipeline in the conversation module
+4. Responses are sent back through the seller's WhatsApp number using Twilio
+5. Complete documentation is available in `/frontend/docs/WHATSAPP_NLP.md`
+
 ## Architecture Overview
 
 The ConversationalCommerce frontend follows a **modular monolith architecture**. This means:
@@ -57,6 +75,7 @@ Our codebase is organized into these modules:
 | **Core**         | Base types, utilities, cross-cutting concerns | _None (base module)_         |
 | **Tenant**       | Merchant configuration and management         | Core                         |
 | **Conversation** | Messaging system                              | Core, Tenant                 |
+| **WhatsApp**     | WhatsApp integration and NLP processing       | Core, Tenant, Conversation   |
 | **Product**      | Product catalog management                    | Core, Tenant                 |
 | **Order**        | Order processing and transactions             | Core, Tenant, Product        |
 | **Storefront**   | Storefront configuration                      | Core, Tenant, Product, Order |

@@ -4,6 +4,18 @@
 
 The architecture of ConversationalCommerce is centered on enabling commerce in conversation as the default. All modules, APIs, and flows are designed to work seamlessly in chat (WhatsApp, IG, TikTok, etc.) as well as on the web. The webapp is a complement, but the heart of the platform is enabling every commerce action—discovery, cart, upsell, checkout, payment—through natural conversation, just as Africans do commerce every day.
 
+## WhatsApp NLP Integration (ADR-0005) ✅ VERIFIED
+
+Our multi-tenant WhatsApp NLP cart management system has been successfully implemented and verified against requirements:
+
+- **Seller-Specific WhatsApp Numbers**: Confirmed each seller uses their own WhatsApp number ✅
+- **No Web Chat Interface Requirement**: Implementation uses direct WhatsApp integration without requiring web chat ✅
+- **NLP Intent Processing**: Successfully handles cart management commands through natural language ✅
+- **Multi-Tenant Message Routing**: Correctly routes messages to the appropriate seller based on the receiving number ✅
+- **Seamless Integration with Existing NLP Pipeline**: Leverages the same backend NLP intent classification system ✅
+
+The architecture uses a webhook-based approach that integrates with our existing NLP pipeline, maintaining clear module boundaries while enabling commerce in conversation through WhatsApp.
+
 ## Direct Module Imports (ADR-0001)
 
 - All types and models must be imported directly from their module source (e.g., @/modules/core/models/base).
@@ -41,6 +53,8 @@ Our application is organized into these primary modules:
 - **Core**: Base types, services, and cross-cutting concerns (`@/modules/core/models/base`, etc.)
 - **Tenant**: Merchant management and configuration (`@/modules/tenant/models`, etc.)
 - **Conversation**: Messaging and chat functionality (`@/modules/conversation/models`, etc.)
+  - **WhatsApp**: WhatsApp Business API integration and NLP cart management
+  - **NLP**: Natural language processing for cart intents and product extraction
 - **Product**: Product catalog and categories (`@/modules/product/models`, etc.)
 - **Order**: Order processing and transactions (`@/modules/order/models`, etc.)
 - **Storefront**: Storefront configuration and customization (`@/modules/storefront/models`, etc.)

@@ -47,6 +47,7 @@ ConversationalCommerce Platform
 │   │   ├── Core
 │   │   ├── Tenant
 │   │   ├── Conversation
+│   │   │   └── WhatsApp NLP Integration ✅
 │   │   ├── Product
 │   │   ├── Order
 │   │   ├── Storefront
@@ -62,6 +63,7 @@ ConversationalCommerce Platform
 │   ├── Product Catalog
 │   ├── Order Processing
 │   ├── Storefront Services
+│   ├── WhatsApp Webhook ✅
 │   └── Analytics Engine
 ├── Database (PostgreSQL)
 │   ├── UUID-based Identifiers
@@ -134,6 +136,9 @@ The frontend follows a modular monolith architecture with clear module boundarie
 - **Core Module**: Base types (Entity, UUID, etc.), utilities, and cross-cutting concerns
 - **Tenant Module**: Merchant configuration and management
 - **Conversation Module**: Messaging system for customer engagement
+  - **WhatsApp Integration**: ✅ VERIFIED - Multi-tenant WhatsApp NLP cart management
+  - **Intent Classification**: Natural language processing for chat commands 
+  - **Event Logging**: Structured logging of all conversation events
 - **Product Module**: Product catalog management
 - **Order Module**: Order processing and transactions
 - **Storefront Module**: Storefront configuration and customization
@@ -190,6 +195,121 @@ import { ProductService } from '@/modules/product/services/ProductService';
 - Always use the ConversationEventLogger for logging events in the frontend.
 - Ensure user and tenant IDs are sourced from Clerk context/hooks.
 - Extend analytics and monitoring by adding new event types and updating the dashboard as needed.
+
+# WhatsApp NLP Cart Management ✅ VERIFIED
+
+## System Overview
+
+The WhatsApp NLP Cart Management system enables customers to interact with their shopping carts directly through the seller's WhatsApp number. The system has been successfully verified against all requirements:
+
+- **Seller-Specific WhatsApp Numbers**: Each seller uses their own WhatsApp number ✅
+- **No Web Chat Interface**: Implementation operates entirely through WhatsApp without requiring a web chat UI ✅
+- **NLP Cart Management**: Successfully processes natural language cart commands ✅
+- **Multi-Tenant Message Routing**: Correctly routes messages to the appropriate seller ✅
+- **Integration with Existing NLP Pipeline**: Leverages the existing backend NLP cart management ✅
+
+## Technical Implementation
+
+### Webhook Architecture
+
+```
+WhatsApp NLP Cart Management
+├── Frontend
+│   └── Seller Settings (WhatsApp Number Configuration)
+├── Backend
+│   ├── API Endpoints
+│   │   └── /api/v1/whatsapp/webhook
+│   ├── Services
+│   │   ├── WhatsAppMessageManager
+│   │   └── NLP Processing Pipeline
+│   └── Models
+│       └── Tenant (with WhatsApp Number)
+└── External Services
+    ├── WhatsApp Business API
+    └── Twilio (Fallback)
+```
+
+### Key Components
+
+1. **WhatsApp Webhook Endpoint**:
+   - Path: `/api/v1/whatsapp/webhook`
+   - Handles both verification requests and incoming messages
+   - Verifies webhook signatures for security
+   - Located in `/backend/app/api/v1/endpoints/whatsapp.py`
+
+2. **Message Processing Flow**:
+   - Receives incoming WhatsApp messages
+   - Identifies tenant by the receiving WhatsApp number
+   - Converts WhatsApp messages to conversation events
+   - Processes through existing NLP pipeline
+   - Sends responses back to customer via seller's WhatsApp number
+
+3. **WhatsAppMessageManager**:
+   - Manages sending messages on behalf of multiple tenants
+   - Handles credential caching for performance
+   - Supports fallback to platform-wide Twilio credentials
+   - Uses background tasks for async message sending
+
+4. **Multi-Tenant Support**:
+   - Each seller registers their WhatsApp number through settings
+   - Tenant identification through WhatsApp number receiving the message
+   - Isolated message processing per tenant
+   - Tenant-specific product catalog for NLP processing
+
+5. **NLP Integration**:
+   - Reuses existing NLP pipeline for intent classification
+   - Handles intents: add_to_cart, remove_from_cart, update_cart, view_cart, clear_cart
+   - Extracts product names and quantities from natural language messages
+   - Generates appropriate responses based on cart actions
+
+## Environment Configuration
+
+```
+# WhatsApp webhook verification
+WHATSAPP_API_VERSION=v16.0
+WHATSAPP_APP_SECRET=your_app_secret_from_meta
+WHATSAPP_VERIFY_TOKEN=create_a_random_string_for_webhook_verification
+
+# Twilio credentials (for platform-managed integration)
+TWILIO_ACCOUNT_SID=your_twilio_account_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_WHATSAPP_NUMBER=your_platform_whatsapp_number (optional fallback)
+```
+
+## Integration Methods
+
+Two approaches are supported for WhatsApp integration:
+
+1. **Platform-Managed Twilio Integration (Default)**:
+   - Sellers simply register their WhatsApp number in settings
+   - Platform manages all message routing through Twilio
+   - Simplest approach for sellers with minimal technical requirements
+
+2. **Direct WhatsApp Business API Integration (Advanced)**:
+   - For sellers with their own WhatsApp Business API credentials
+   - Requires additional configuration in the tenant settings
+   - Provides more control and potentially lower costs at scale
+
+## Security Considerations
+
+- All webhook requests are verified using signature validation
+- Tenant isolation ensures messages are processed by the correct seller
+- WhatsApp numbers are protected by tenant permissions
+- Background tasks prevent webhook timeouts during processing
+
+## Monitoring and Analytics
+
+- All WhatsApp interactions are logged as conversation events
+- NLP intent recognition success rate is tracked
+- Cart conversion analytics show effectiveness of WhatsApp cart management
+- Failed message deliveries are logged for troubleshooting
+
+## Future Enhancements
+
+- Rich media support for product images in cart responses
+- Interactive buttons for cart management (using WhatsApp Interactive Messages)
+- Advanced analytics dashboard for WhatsApp cart conversion metrics
+- A/B testing for NLP response templates
 
 ## Backend Architecture
 

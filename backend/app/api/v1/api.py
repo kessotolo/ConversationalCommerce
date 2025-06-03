@@ -6,6 +6,7 @@ from app.api.v1.endpoints import activities
 from app.api.v1.endpoints import websocket
 from app.api.v1.endpoints import storefront as storefront_content
 from app.api.v1.endpoints import storefront_catalog
+from app.api.v1.endpoints.whatsapp import router as whatsapp_router
 from app.api.v1.endpoints.violation import router as violation_router
 from app.api.v1.endpoints.behavior import router as behavior_router
 from app.api.v1.endpoints.content_moderation import router as content_moderation_router
@@ -33,3 +34,4 @@ api_router.include_router(complaint_router, tags=["complaints"])
 api_router.include_router(storefront_router, tags=["storefront"], prefix="/storefront")
 api_router.include_router(storefront_content.router, tags=["storefront-content"], prefix="/storefront-content")
 api_router.include_router(storefront_catalog.router, tags=["storefront-catalog"], prefix="/storefront-catalog")
+api_router.include_router(whatsapp_router, tags=["whatsapp"], prefix="/whatsapp")

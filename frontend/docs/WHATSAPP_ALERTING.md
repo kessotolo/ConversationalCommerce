@@ -4,6 +4,15 @@
 
 WhatsApp alerting in the Conversational Commerce platform enables real-time notifications directly to sellers through Africa's most popular messaging platform. This feature aligns with our core vision of making commerce in conversation the default by enabling seamless, contextual alerts that match how African businesses naturally communicate.
 
+## Integration with WhatsApp NLP Cart Management ✅ VERIFIED
+
+WhatsApp alerting now works in harmony with our multi-tenant WhatsApp NLP cart management system. Both systems have been successfully verified against requirements:
+
+- **Seller's Own WhatsApp Numbers**: Confirmed both alerting and cart management use the seller's WhatsApp number ✅
+- **Multi-Tenant Message Routing**: Both systems correctly identify tenants based on WhatsApp numbers ✅
+- **Complementary Functionality**: Alerting and cart management use the same tenant WhatsApp number configuration ✅
+- **Shared Infrastructure**: Both leverage the Twilio integration for sending and receiving messages ✅
+
 ## Overview
 
 The WhatsApp alerting system allows sellers to receive immediate notifications about important events in their business, such as:
@@ -14,8 +23,9 @@ The WhatsApp alerting system allows sellers to receive immediate notifications a
 - Inventory alerts
 - Security events
 - System notifications
+- NLP cart operations (new)
 
-These alerts are delivered directly to the seller's WhatsApp number, allowing them to stay informed even when they're away from the dashboard.
+These alerts are delivered directly to the seller's WhatsApp number, allowing them to stay informed even when they're away from the dashboard. The system now includes notifications about NLP-processed cart operations, providing sellers with real-time visibility into customer actions performed via WhatsApp.
 
 ## Architecture
 
@@ -97,6 +107,9 @@ Planned improvements to the WhatsApp alerting system:
 4. **Alert Templates**: Pre-approved WhatsApp Business templates for different alert types
 5. **Analytics**: Track alert delivery, open rates, and response times
 6. **Multi-Channel Routing**: Intelligently route alerts across WhatsApp, SMS, and email based on urgency and delivery success
+7. **NLP Response Management**: Allow sellers to configure automated responses to common customer queries
+8. **Cart Management Insights**: Provide summary reports of cart actions taken through WhatsApp
+9. **Conversion Tracking**: Track which WhatsApp cart interactions lead to completed orders
 
 ## Troubleshooting
 
