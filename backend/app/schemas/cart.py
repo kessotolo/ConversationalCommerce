@@ -1,0 +1,54 @@
+from pydantic import BaseModel, Field
+from typing import Optional, List
+from uuid import UUID
+from datetime import datetime
+
+
+class CartItemBase(BaseModel):
+    product_id: UUID
+    quantity: int = 1
+    price_at_add: float
+    variant_id: Optional[UUID] = None
+
+
+class CartItemCreate(CartItemBase):
+    pass
+
+
+class CartItemUpdate(BaseModel):
+    quantity: Optional[int]
+    variant_id: Optional[UUID]
+
+
+class CartItemResponse(CartItemBase):
+    id: UUID
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class CartBase(BaseModel):
+    user_id: Optional[UUID]
+    phone_number: Optional[str]
+    session_id: Optional[str]
+    tenant_id: UUID
+
+
+class CartCreate(CartBase):
+    items: Optional[List[CartItemCreate]] = []
+
+
+class CartUpdate(BaseModel):
+    items: Optional[List[CartItemUpdate]]
+
+
+class CartResponse(CartBase):
+    id: UUID
+    items: List[CartItemResponse]
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        orm_mode = True

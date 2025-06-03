@@ -3,17 +3,25 @@ import { Eye, BarChart3, ShoppingBag, TrendingUp } from 'lucide-react';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { useTheme } from '@/contexts/ThemeContext';
 import StorefrontLinks from '@/components/dashboard/StorefrontLinks';
+import { useTenant } from '@/contexts/TenantContext';
 
 // Layout component to use theme context
 function StorefrontPageContent() {
   const { theme, isLoading } = useTheme();
+  const { tenant, isLoading: isTenantLoading } = useTenant();
 
-  if (isLoading) {
+  if (isLoading || isTenantLoading) {
     return <div className="p-6">Loading theme information...</div>;
   }
 
   const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'yourplatform.com';
-  const storeUrl = `https://${theme.subdomain || 'default'}.${baseDomain}`;
+  const isDefaultDomain = baseDomain === 'yourplatform.com';
+  const isDefaultSubdomain = (tenant?.subdomain || 'default') === 'default';
+  const usingPlaceholders = isDefaultDomain || isDefaultSubdomain;
+  const internalStorefrontUrl = tenant ? `/store/${tenant.id}` : '#';
+  const storeUrl = usingPlaceholders
+    ? internalStorefrontUrl
+    : `https://${theme.subdomain || 'default'}.${baseDomain}`;
 
   return (
     <div className="min-h-screen bg-[#fdfcf7] pb-10">

@@ -29,6 +29,9 @@ export default function StorefrontLinks({ className }: StorefrontLinksProps) {
   // Check if we're using default/placeholder values
   const usingPlaceholders = isDefaultDomain || isDefaultSubdomain;
 
+  // New: fallback to internal route if using placeholders
+  const internalStorefrontUrl = `/store/${tenant.id}`;
+
   return (
     <div className={className}>
       <div className="space-y-4">
@@ -56,12 +59,11 @@ export default function StorefrontLinks({ className }: StorefrontLinksProps) {
             <div className="flex space-x-2">
               {/* View actual storefront (eye icon) */}
               <a
-                href={usingPlaceholders ? '#' : subdomainUrl}
+                href={usingPlaceholders ? internalStorefrontUrl : subdomainUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`p-1 rounded-full flex items-center justify-center w-8 h-8 ${usingPlaceholders ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:bg-blue-50'}`}
-                title={usingPlaceholders ? 'Setup your store first' : 'View live storefront'}
-                onClick={usingPlaceholders ? (e) => e.preventDefault() : undefined}
+                className={`p-1 rounded-full flex items-center justify-center w-8 h-8 ${usingPlaceholders ? 'text-blue-600 hover:bg-blue-50' : 'text-blue-600 hover:bg-blue-50'}`}
+                title={usingPlaceholders ? 'View internal storefront' : 'View live storefront'}
               >
                 <Eye size={18} />
               </a>
@@ -92,9 +94,14 @@ export default function StorefrontLinks({ className }: StorefrontLinksProps) {
           </div>
           <div className="flex items-center">
             {usingPlaceholders ? (
-              <span className="text-gray-500 italic">
-                {subdomainUrl} <small>(placeholder)</small>
-              </span>
+              <a
+                href={internalStorefrontUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline truncate"
+              >
+                {internalStorefrontUrl}
+              </a>
             ) : (
               <a
                 href={subdomainUrl}

@@ -19,6 +19,10 @@ from io import StringIO
 from app.services.audit_service import create_audit_log
 from app.services.conversation_audit_bridge import log_event_to_audit
 from app.services.alert_service import maybe_trigger_alert
+from app.models.cart import Cart, CartItem
+from app.models.product import Product
+from app.schemas.cart import CartItemCreate
+from sqlalchemy.orm.exc import NoResultFound
 
 router = APIRouter()
 
@@ -57,6 +61,7 @@ def log_conversation_event(event: ConversationEventCreate, db: Session = Depends
     try:
         # Sentiment and intent analysis for message_sent events
         payload = event.payload.copy() if event.payload else {}
+        chat_response = None
         if event.event_type == "message_sent" and payload.get("content"):
             text = payload["content"]
             # Sentiment analysis
@@ -69,8 +74,16 @@ def log_conversation_event(event: ConversationEventCreate, db: Session = Depends
             payload["sentiment"] = sentiment
             # Simple intent classification (rule-based)
             lower = text.lower()
-            if any(word in lower for word in ["buy", "order", "purchase"]):
-                intent = "order"
+            if any(word in lower for word in ["buy", "order", "purchase", "add to cart"]):
+                intent = "add_to_cart"
+            elif any(word in lower for word in ["remove from cart", "delete from cart", "remove item"]):
+                intent = "remove_from_cart"
+            elif any(word in lower for word in ["update cart", "change quantity", "set quantity"]):
+                intent = "update_cart"
+            elif any(word in lower for word in ["clear cart", "empty cart"]):
+                intent = "clear_cart"
+            elif any(word in lower for word in ["what's in my cart", "show cart", "view cart", "my cart"]):
+                intent = "view_cart"
             elif any(word in lower for word in ["price", "cost", "how much"]):
                 intent = "inquiry"
             elif any(word in lower for word in ["problem", "issue", "complaint", "not working"]):
@@ -80,6 +93,134 @@ def log_conversation_event(event: ConversationEventCreate, db: Session = Depends
             else:
                 intent = "other"
             payload["intent"] = intent
+
+            # --- NLP Cart Flows ---
+            # Identify user/session/phone for cart
+            user_id = event.user_id
+            phone_number = payload.get("phone_number") or (
+                event.metadata or {}).get("phone_number")
+            session_id = payload.get("session_id") or (
+                event.metadata or {}).get("session_id")
+            tenant_id = event.tenant_id
+
+            def get_or_create_cart():
+                cart = db.query(Cart).filter(
+                    Cart.tenant_id == tenant_id,
+                    (Cart.user_id == user_id) | (Cart.phone_number ==
+                                                 phone_number) | (Cart.session_id == session_id)
+                ).first()
+                if not cart:
+                    cart = Cart(
+                        tenant_id=tenant_id,
+                        user_id=user_id,
+                        phone_number=phone_number,
+                        session_id=session_id,
+                        created_at=datetime.utcnow(),
+                        updated_at=datetime.utcnow(),
+                    )
+                    db.add(cart)
+                    db.commit()
+                    db.refresh(cart)
+                return cart
+
+            if intent in ["add_to_cart", "remove_from_cart", "update_cart"]:
+                # Try to extract product name and quantity from text (simple rule-based)
+                import re
+                # e.g. "add 2 Widget to cart" or "buy Widget"
+                qty_match = re.search(
+                    r"(add|buy|order|purchase) (\d+) ([\w\s-]+)", lower)
+                if qty_match:
+                    quantity = int(qty_match.group(2))
+                    product_name = qty_match.group(3).strip()
+                else:
+                    # fallback: look for "add Widget" or "buy Widget"
+                    prod_match = re.search(
+                        r"(add|buy|order|purchase) ([\w\s-]+)", lower)
+                    if prod_match:
+                        quantity = 1
+                        product_name = prod_match.group(2).strip()
+                    else:
+                        quantity = 1
+                        product_name = None
+                if not product_name:
+                    chat_response = "Please specify the product you want to add to your cart."
+                else:
+                    # Try to find product by name (case-insensitive, partial match)
+                    product = db.query(Product).filter(
+                        Product.name.ilike(f"%{product_name}%")).first()
+                    if not product:
+                        chat_response = f"Sorry, I couldn't find a product matching '{product_name}'."
+                    else:
+                        cart = get_or_create_cart()
+                        if intent == "add_to_cart":
+                            # Add to cart
+                            cart_item = next(
+                                (ci for ci in cart.items if ci.product_id == product.id), None)
+                            if cart_item:
+                                cart_item.quantity += quantity
+                                cart_item.updated_at = datetime.utcnow()
+                            else:
+                                cart_item = CartItem(
+                                    cart_id=cart.id,
+                                    product_id=product.id,
+                                    quantity=quantity,
+                                    price_at_add=product.price,
+                                    created_at=datetime.utcnow(),
+                                    updated_at=datetime.utcnow(),
+                                )
+                                db.add(cart_item)
+                                cart.items.append(cart_item)
+                            cart.updated_at = datetime.utcnow()
+                            db.commit()
+                            db.refresh(cart)
+                            chat_response = f"Added {quantity}x {product.name} to your cart!"
+                        elif intent == "remove_from_cart":
+                            cart_item = next(
+                                (ci for ci in cart.items if ci.product_id == product.id), None)
+                            if cart_item:
+                                db.delete(cart_item)
+                                cart.updated_at = datetime.utcnow()
+                                db.commit()
+                                db.refresh(cart)
+                                chat_response = f"Removed {product.name} from your cart."
+                            else:
+                                chat_response = f"{product.name} is not in your cart."
+                        elif intent == "update_cart":
+                            cart_item = next(
+                                (ci for ci in cart.items if ci.product_id == product.id), None)
+                            if cart_item:
+                                cart_item.quantity = quantity
+                                cart_item.updated_at = datetime.utcnow()
+                                cart.updated_at = datetime.utcnow()
+                                db.commit()
+                                db.refresh(cart)
+                                chat_response = f"Updated {product.name} quantity to {quantity}."
+                            else:
+                                chat_response = f"{product.name} is not in your cart."
+            elif intent == "clear_cart":
+                cart = get_or_create_cart()
+                for item in list(cart.items):
+                    db.delete(item)
+                cart.updated_at = datetime.utcnow()
+                db.commit()
+                db.refresh(cart)
+                chat_response = "Your cart has been cleared."
+            elif intent == "view_cart":
+                cart = get_or_create_cart()
+                if not cart.items:
+                    chat_response = "Your cart is empty."
+                else:
+                    lines = [f"Your cart:"]
+                    for item in cart.items:
+                        product = db.query(Product).filter(
+                            Product.id == item.product_id).first()
+                        if product:
+                            lines.append(
+                                f"- {item.quantity}x {product.name} @ {item.price_at_add:.2f}")
+                    chat_response = "\n".join(lines)
+
+            if chat_response:
+                payload["chat_response"] = chat_response
 
         db_event = ConversationEvent(
             conversation_id=event.conversation_id,
