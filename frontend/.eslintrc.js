@@ -1,9 +1,6 @@
-// Completely rewritten ESLint config for the frontend (Next.js/TypeScript) without unsupported properties
+// Simplified ESLint config for the frontend (Next.js/TypeScript) for Netlify compatibility
 // This configuration aligns with the modular monolith architecture and enforces best practices
-
-// ESLint config for modular monolith architecture
-// Enforces direct module imports and prohibits bridge files
-// See docs/architecture/decisions/0001-direct-module-imports.md for rationale
+// While ensuring compatibility with Netlify's build environment
 
 module.exports = {
   root: true,
@@ -49,37 +46,8 @@ module.exports = {
     'no-unused-vars': 'warn',
     '@typescript-eslint/no-explicit-any': 'error',
     'import/no-deprecated': 'warn',
-    'import/order': [
-      'warn',
-      {
-        groups: [
-          'builtin',
-          'external',
-          'internal',
-          ['parent', 'sibling'],
-          'index',
-          'object',
-          'type',
-        ],
-        pathGroups: [
-          {
-            pattern: '@/modules/core/**',
-            group: 'internal',
-            position: 'before',
-          },
-          {
-            pattern: '@/**',
-            group: 'internal',
-            position: 'after',
-          },
-        ],
-        newlinesBetween: 'always',
-        alphabetize: {
-          order: 'asc',
-          caseInsensitive: true,
-        },
-      },
-    ],
+    // Bare minimum import/order rule for maximum compatibility
+    'import/order': 'warn',
     '@typescript-eslint/consistent-type-imports': [
       'warn',
       {
