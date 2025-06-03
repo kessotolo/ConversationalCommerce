@@ -83,7 +83,7 @@ const ActivityDashboard: React.FC = () => {
   }, []);
 
   // WebSocket connection - only establish when tenantId is available
-  const { lastMessage, sendMessage } = useWebSocket(
+  const { lastMessage, sendMessage: _sendMessage } = useWebSocket(
     tenantId
       ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/ws/monitoring/${tenantId}`
       : '',

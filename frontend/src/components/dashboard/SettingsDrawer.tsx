@@ -36,6 +36,7 @@ export default function SettingsDrawer({ open, onClose }: { open: boolean; onClo
       if (!res.ok) throw new Error('Failed to update');
       setWhatsappSuccess(true);
     } catch (err) {
+      console.error('WhatsApp update failed:', err);
       setWhatsappError('Could not update WhatsApp number');
     } finally {
       setSavingWhatsapp(false);
