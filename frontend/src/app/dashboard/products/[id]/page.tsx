@@ -346,5 +346,3 @@ export default function ProductPage() {
     </div>
   );
 }
-
-// No empty export needed, the default export is sufficient
