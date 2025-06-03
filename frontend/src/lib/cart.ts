@@ -3,8 +3,8 @@
  * Please import from '@cart/services' in new code.
  */
 
-import { useCartStore } from '@/modules/cart/services';
-import type { CartItem } from '@/modules/cart';
+import { useCartStore } from '@/modules/cart/services/useCartStore';
+import type { CartItem } from '@/modules/cart/models/cart';
 
 // Re-export the cart store and types for backward compatibility
 export type { CartItem };

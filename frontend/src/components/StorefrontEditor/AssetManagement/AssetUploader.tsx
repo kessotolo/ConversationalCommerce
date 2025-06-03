@@ -10,7 +10,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 import type { InputChangeEvent } from '@core/models/events';
-import type { UUID } from "@/modules/core/models/base";
+import type { UUID } from '@/modules/core/models/base';
 import { uploadAsset } from '@/lib/api/storefrontEditor';
 
 interface AssetUploaderProps {
@@ -162,9 +162,9 @@ const AssetUploader: React.FC<AssetUploaderProps> = ({ _tenantId, onClose, onSuc
 
         // Upload the file
         const response = await uploadAsset(_tenantId, formData);
-        
+
         // Use the response to verify success
-        if (response && response.success) {
+        if (response && response.data && response.data.asset) {
           // Mark as successfully uploaded
           successfulUploads.push(fileName);
         }

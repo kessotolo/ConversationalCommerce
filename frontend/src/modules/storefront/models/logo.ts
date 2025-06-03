@@ -43,3 +43,12 @@ export interface CreateLogoRequest {
   end_date?: string;
   // Add other fields as needed for creation
 }
+
+export interface LogoResponse {
+  logo: Logo;
+}
+
+export interface LogosResponse {
+  logos: Logo[];
+  total: number;
+}

@@ -1,4 +1,4 @@
-import type { ConversationEvent, ConversationEventType } from '@/modules/conversation';
+import type { ConversationEvent, ConversationEventType } from '@/modules/conversation/models/event';
 
 const API_BASE = '/api/conversation-events';
 

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import type { UUID } from '@/modules/core';
+import type { UUID } from '@/modules/core/models/base';
 
 import type { Draft } from '@/modules/storefront/models/draft';
 interface DraftListProps {
@@ -81,7 +81,7 @@ const DraftList: React.FC<DraftListProps> = ({
             {draft.description || ''}
           </p>
           <div className="flex justify-between text-xs text-gray-500">
-            <span>Last updated: {formatDate(draft.updatedAt)}</span>
+            <span>Last updated: {draft.updated_at ? formatDate(draft.updated_at) : 'N/A'}</span>
           </div>
         </div>
       ))}

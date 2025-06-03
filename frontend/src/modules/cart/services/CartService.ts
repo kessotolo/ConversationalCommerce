@@ -1,5 +1,5 @@
-import { UUID } from '@/modules/core';
-import { CartItem } from '@/modules/cart';
+import type { UUID } from '@/modules/core/models/base';
+import type { CartItem } from '@/modules/cart/models/cart';
 
 /**
  * Interface for the cart service

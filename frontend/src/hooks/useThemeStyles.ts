@@ -1,3 +1,4 @@
+import React from 'react';
 import { useMemo } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -65,6 +66,38 @@ interface FormStyle {
 }
 
 /**
+ * Product card style properties
+ */
+interface ProductCardStyle {
+  className: string;
+  style: React.CSSProperties;
+  hoverStyle: React.CSSProperties;
+  imageContainer: {
+    className: string;
+    style: React.CSSProperties;
+  };
+  content: {
+    className: string;
+  };
+  title: {
+    className: string;
+    style: React.CSSProperties;
+  };
+  price: {
+    className: string;
+    style: React.CSSProperties;
+  };
+  description: {
+    className: string;
+    style: React.CSSProperties;
+  };
+  badge: {
+    className: string;
+    style: React.CSSProperties;
+  };
+}
+
+/**
  * Theme styles hook return type
  */
 interface ThemeStyles {
@@ -88,6 +121,19 @@ interface ThemeStyles {
       borderBottom: string;
     };
     hoverLinkStyle: {
+      color: string;
+    };
+  };
+  product: ProductCardStyle;
+  // Global styles
+  global: {
+    body: {
+      backgroundColor: string;
+      color: string;
+      fontFamily: string;
+    };
+    heading: {
+      fontFamily: string;
       color: string;
     };
   };

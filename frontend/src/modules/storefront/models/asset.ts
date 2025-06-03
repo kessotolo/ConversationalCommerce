@@ -32,3 +32,18 @@ export interface Asset extends TenantScoped {
 }
 
 export type AssetList = PaginatedResult<Asset>;
+
+export interface UploadAssetRequest {
+  file: File;
+  name?: string;
+  description?: string;
+}
+
+export interface AssetResponse {
+  asset: Asset;
+}
+
+export interface AssetsResponse {
+  assets: Asset[];
+  total: number;
+}

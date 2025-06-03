@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { useWebSocket } from '@/hooks/useWebSocket';
-import type { isNotification } from '@/modules/core';
-import type { NotificationPayload } from '@/modules/core';
 import IconButton from '@mui/material/IconButton';
 import Badge from '@mui/material/Badge';
 import Drawer from '@mui/material/Drawer';
@@ -20,6 +17,26 @@ import InfoIcon from '@mui/icons-material/Info';
 import SuccessIcon from '@mui/icons-material/CheckCircle';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import CloseIcon from '@mui/icons-material/Close';
+import { useWebSocket } from '@/hooks/useWebSocket';
+
+type NotificationPayload = {
+  id: string;
+  message: string;
+  severity: string;
+  timestamp: string;
+  [key: string]: unknown;
+};
+
+function isNotification(payload: unknown): payload is NotificationPayload {
+  return (
+    typeof payload === 'object' &&
+    payload !== null &&
+    'id' in payload &&
+    'message' in payload &&
+    'severity' in payload &&
+    'timestamp' in payload
+  );
+}
 
 interface Notification {
   id: string;
@@ -42,7 +59,7 @@ const NotificationCenter: React.FC = () => {
   // Get tenant ID from localStorage (client-side only)
   useEffect(() => {
     setTenantId(localStorage.getItem('tenant_id') || '');
-  }, [getItem]);
+  }, []);
 
   // WebSocket connection - only establish when tenantId is available
   const { lastMessage } = useWebSocket(
@@ -52,19 +69,18 @@ const NotificationCenter: React.FC = () => {
   );
 
   useEffect(() => {
-    if (lastMessage && isNotification(lastMessage)) {
-      // Use type-safe payload with proper properties
+    if (lastMessage && isNotification(lastMessage.payload)) {
+      const payload = lastMessage.payload as NotificationPayload;
       const newNotification: Notification = {
-        id: lastMessage.payload.id,
-        title: `New alert: ${lastMessage.payload.message}`,
-        message: lastMessage.payload.message,
-        priority: mapSeverityToPriority(lastMessage.payload.severity),
-        created_at: lastMessage.payload.timestamp,
-        timestamp: lastMessage.payload.timestamp,
+        id: payload.id,
+        title: `New alert: ${payload.message}`,
+        message: payload.message,
+        priority: mapSeverityToPriority(payload.severity),
+        created_at: payload.timestamp,
+        timestamp: payload.timestamp,
         read: false,
         metadata: { source: 'websocket' },
       };
-
       setNotifications((prev) => [newNotification, ...prev]);
       setUnreadCount((prev) => prev + 1);
     }

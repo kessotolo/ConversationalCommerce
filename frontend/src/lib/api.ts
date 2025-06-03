@@ -35,16 +35,20 @@ apiClient.interceptors.response.use(null, async (error: unknown) => {
     throw parseApiError(error);
   }
   const err = error as { config: unknown };
-  if (!err.config.retry) {
-    err.config.retry = 0;
+  if (typeof err.config === 'object' && err.config !== null) {
+    const config = err.config as Record<string, any>;
+    if (!config.retry) {
+      config.retry = 0;
+    }
+    if (config.retry >= RETRY_ATTEMPTS) {
+      throw parseApiError(error);
+    }
+    config.retry += 1;
+    const delay = 1000 * Math.pow(2, config.retry);
+    await new Promise((resolve) => setTimeout(resolve, delay));
+    return apiClient(config);
   }
-  if (err.config.retry >= RETRY_ATTEMPTS) {
-    throw parseApiError(error);
-  }
-  err.config.retry += 1;
-  const delay = 1000 * Math.pow(2, err.config.retry);
-  await new Promise((resolve) => setTimeout(resolve, delay));
-  return apiClient(err.config);
+  throw parseApiError(error);
 });
 
 // Add offline detection and queueing if enabled
@@ -101,14 +105,14 @@ import type {
   UpdateProductRequest,
   ProductResponse,
   ProductsResponse,
+} from '@/modules/core/models/product';
+import type {
   Order,
   CreateOrderRequest,
   OrderResponse,
   OrdersResponse,
-  DashboardStatsResponse,
-} from '@/modules/core';
-
-import type { Product as CoreProduct, Order as CoreOrder } from '@/modules/core';
+} from '@/modules/core/models/order';
+import type { DashboardStatsResponse } from '@/modules/core/models/dashboard';
 
 // Product endpoints
 export const productService = {

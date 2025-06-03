@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ImageUploader from '@/components/ImageUploader';
 import { apiClient } from '@/lib/api';
-import type { Product } from '@/lib/api/types';
+import type { Product } from '@/modules/core/models/product';
 
 interface ProductFormProps {
   onSubmit: (data: Product) => void;

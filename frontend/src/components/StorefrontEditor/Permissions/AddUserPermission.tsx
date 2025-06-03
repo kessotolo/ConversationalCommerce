@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { XMarkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import type { UUID } from "@/modules/core/models/base";
-import { StorefrontRole } from "@/modules/storefront/models/permission";
+import type { UUID } from '@/modules/core/models/base';
+import { StorefrontRole } from '@/modules/storefront/models/permission';
 import { assignRole } from '@/lib/api/storefrontEditor';
 
 interface AddUserPermissionProps {
@@ -45,7 +45,6 @@ const AddUserPermission: React.FC<AddUserPermissionProps> = ({ tenantId, onClose
 
       await assignRole(tenantId, formData.userId, {
         role: formData.role,
-        username: formData.username, // Not required but helpful for display
       });
 
       onSuccess();

@@ -320,14 +320,16 @@ const ViolationDashboard: React.FC = () => {
                   End: {new Date(selectedViolation.end_at).toLocaleString()}
                 </Typography>
               )}
-              {selectedViolation.details && (
+              {selectedViolation.details !== undefined && (
                 <>
                   <Typography variant="subtitle1" sx={{ mt: 2 }}>
                     Details:
                   </Typography>
                   <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
                     <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-                      {JSON.stringify(selectedViolation.details, null, 2)}
+                      {typeof selectedViolation.details === 'string'
+                        ? selectedViolation.details
+                        : JSON.stringify(selectedViolation.details, null, 2)}
                     </pre>
                   </Paper>
                 </>

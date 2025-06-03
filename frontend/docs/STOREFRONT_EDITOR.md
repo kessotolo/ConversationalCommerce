@@ -279,3 +279,25 @@ This ensures user-friendly, consistent error messages across the app.
 - **Restricted Import**: Change your import to use the module's public API or DTO file.
 - **Unused Variable/Import**: Remove or use the variable/import as needed.
 - **Type Error**: Add or refine type annotations, avoid `any`, and use generics or type guards as appropriate.
+
+## Type Safety, Enums, and Module Boundaries
+
+- All Storefront Editor components use strict TypeScript with strong typing enforced via interfaces and enums (e.g., BannerStatus, LogoType).
+- Direct module imports are required; bridge files and relative imports across module boundaries are not allowed (see ESLint rules).
+- All domain models (Banner, Logo, Asset, Permission, etc.) are defined in their module directories and exported via public APIs.
+- Type guards are used for all unknown/any API responses and event payloads.
+
+## Error Handling
+
+- All API/service errors are handled using the `parseApiError` utility from `/lib/utils.ts` for consistent, user-friendly error messages.
+
+## Event Logging & Analytics
+
+- All major actions (asset changes, banner/logo updates, permission changes, etc.) are logged as structured events using a type-safe event logger.
+- Events include user and tenant IDs for accurate attribution and analytics.
+- Event logging is extensible; new event types can be added as needed.
+
+## Removal of Bridge Files
+
+- All bridge files and legacy type/model aggregators have been removed.
+- Types/interfaces must be imported directly from their module's public API.

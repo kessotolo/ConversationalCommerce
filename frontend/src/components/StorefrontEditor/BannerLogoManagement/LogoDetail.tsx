@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
 import {
   TrashIcon,
   PencilIcon,
-  CalendarIcon,
   ExclamationTriangleIcon,
   CheckIcon,
-  XMarkIcon,
   PhotoIcon,
 } from '@heroicons/react/24/outline';
 import type { Logo } from '@/modules/storefront/models/logo';
@@ -101,7 +98,10 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
     setError(null);
 
     try {
-      await updateLogo(tenantId, logo.id, formData);
+      await updateLogo(tenantId, logo.id, {
+        ...formData,
+        logo_type: formData.logo_type as import('@/modules/storefront/models/logo').LogoType,
+      });
       setSuccessMessage('Logo updated successfully');
       setIsEditing(false);
       onUpdate();

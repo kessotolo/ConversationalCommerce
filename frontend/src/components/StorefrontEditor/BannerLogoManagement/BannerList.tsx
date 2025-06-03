@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import type { Banner } from '@/modules/storefront/models/banner';
 import type { FormSubmitEvent } from '@/modules/core/models';
+import { BannerStatus } from '@/modules/storefront/models/banner';
 
 // Item type for drag and drop
 const BANNER_ITEM = 'banner';
@@ -26,7 +27,6 @@ interface BannerItemProps {
   onBannerReorder: (sourceIndex: number, destinationIndex: number) => Promise<boolean>;
 }
 
-type BannerStatus = Banner['status'];
 type BannerType = string; // DTO does not define banner_type, so this is a TODO for backend alignment
 
 // Draggable Banner Item Component
@@ -122,11 +122,11 @@ const BannerItem: React.FC<BannerItemProps> = ({
   // Get status badge class
   const getStatusBadgeClass = (status: BannerStatus): string => {
     switch (status) {
-      case 'draft':
+      case BannerStatus.DRAFT:
         return 'bg-gray-100 text-gray-800';
-      case 'active':
+      case BannerStatus.PUBLISHED:
         return 'bg-green-100 text-green-800';
-      case 'inactive':
+      case BannerStatus.INACTIVE:
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -141,7 +141,7 @@ const BannerItem: React.FC<BannerItemProps> = ({
 
     if (startDate && now < startDate) return false;
     if (endDate && now > endDate) return false;
-    return true;
+    return banner.status === BannerStatus.PUBLISHED;
   };
 
   return (
@@ -179,7 +179,7 @@ const BannerItem: React.FC<BannerItemProps> = ({
             </div>
 
             {/* Active indicator */}
-            {isActive() && banner.status === 'active' && (
+            {isActive() && banner.status === BannerStatus.PUBLISHED && (
               <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
                 Active
               </span>
@@ -292,7 +292,13 @@ const BannerList: React.FC<BannerListProps> = ({
                 >
                   All
                 </button>
-                {(['draft', 'active', 'inactive'] as BannerStatus[]).map((status) => (
+                {(
+                  [
+                    BannerStatus.DRAFT,
+                    BannerStatus.PUBLISHED,
+                    BannerStatus.INACTIVE,
+                  ] as BannerStatus[]
+                ).map((status) => (
                   <button
                     key={status}
                     onClick={() => onFilterChange(status, typeFilter, localSearchQuery)}

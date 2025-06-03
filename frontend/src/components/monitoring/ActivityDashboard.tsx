@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { useWebSocket } from '@/hooks/useWebSocket';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
@@ -15,6 +14,7 @@ import TableCell from '@mui/material/TableCell';
 import TableBody from '@mui/material/TableBody';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import type { ChipProps } from '@mui/material/Chip';
+import { useWebSocket } from '@/hooks/useWebSocket';
 
 interface Activity {
   id: string;
@@ -61,8 +61,10 @@ const ActivityDashboard: React.FC = () => {
     byStatus: {},
     byUser: {},
   });
-  const [/* filter */,
-    /* setFilter */] = useState<{ resourceType: string; statusCode: string; user: string }>({
+  const [
+    ,/* filter */
+    /* setFilter */
+  ] = useState<{ resourceType: string; statusCode: string; user: string }>({
     resourceType: '',
     statusCode: '',
     user: '',
@@ -85,9 +87,9 @@ const ActivityDashboard: React.FC = () => {
   );
 
   useEffect(() => {
-    if (lastMessage) {
+    if (lastMessage && typeof (lastMessage as any).data === 'string') {
       try {
-        const data = JSON.parse(lastMessage.data);
+        const data = JSON.parse((lastMessage as any).data);
         if (data.type === 'activity') {
           setActivities((prev) => [data.data, ...prev].slice(0, 100));
           updateStats(data.data);

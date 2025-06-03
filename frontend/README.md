@@ -540,3 +540,37 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/b
 - Always use the ConversationEventLogger for logging events in the frontend.
 - Ensure user and tenant IDs are sourced from Clerk context/hooks.
 - Extend analytics and monitoring by adding new event types and updating the dashboard as needed.
+
+### TypeScript, Type Safety, and Module Boundaries
+
+- All modules use strict TypeScript with strong typing enforced via interfaces, enums, and type guards.
+- Direct module imports are required; bridge files and relative imports across module boundaries are prohibited (see ESLint rules).
+- All domain models (e.g., Product, Banner, Logo, Asset, Permission) are defined in their respective module directories and exported via public APIs.
+- Enum values (e.g., BannerStatus, LogoType) are aligned with backend DTOs for consistency.
+- Type guards are used for all unknown/any API responses and event payloads.
+
+### Error Handling
+
+- All API/service errors are handled using the `parseApiError` utility from `/lib/utils.ts` for consistent, user-friendly error messages.
+- Example:
+
+```typescript
+import { parseApiError } from '@/lib/utils';
+
+try {
+  await someApiCall();
+} catch (error) {
+  setError(parseApiError(error));
+}
+```
+
+### Event Logging & Analytics
+
+- All major actions (asset changes, banner/logo updates, permission changes, etc.) are logged as structured events using a type-safe event logger.
+- Events include user and tenant IDs for accurate attribution and analytics.
+- Event logging is extensible; new event types can be added as needed.
+
+### Removal of Bridge Files
+
+- All bridge files and legacy type/model aggregators have been removed.
+- Types/interfaces must be imported directly from their module's public API.

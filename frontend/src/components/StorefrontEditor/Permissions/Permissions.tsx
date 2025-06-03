@@ -1,18 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import type { UUID } from "@/modules/core/models/base";
-import type { UserPermission } from "@/modules/storefront/models/permission";
-import { StorefrontRole } from "@/modules/storefront/models/permission";
-import {
-  getPermissions,
-  assignRole,
-  setSectionPermission,
-  setComponentPermission,
-  removePermission,
-} from '@/lib/api/storefrontEditor';
+import { RefreshCw as ArrowPathIcon, Plus as PlusIcon } from 'lucide-react';
+import type { UUID } from '@/modules/core/models/base';
+import type { UserPermission } from '@/modules/storefront/models/permission';
+import { StorefrontRole } from '@/modules/storefront/models/permission';
+import { getPermissions } from '@/lib/api/storefrontEditor';
 import PermissionList from '@/components/StorefrontEditor/Permissions/PermissionList';
 import PermissionDetail from '@/components/StorefrontEditor/Permissions/PermissionDetail';
 import AddUserPermission from '@/components/StorefrontEditor/Permissions/AddUserPermission';
-import { RefreshCw as ArrowPathIcon, Plus as PlusIcon } from 'lucide-react';
 
 interface PermissionsProps {
   tenantId: UUID;
@@ -37,11 +31,20 @@ const Permissions: React.FC<PermissionsProps> = ({ tenantId }) => {
 
     try {
       const response = await getPermissions(tenantId);
-      setPermissions(response.items);
+      // Convert Permission[] to UserPermission[]
+      const perms: UserPermission[] = response.data.permissions.map((perm) => ({
+        user_id: perm.user_id,
+        username: '', // Username not available in Permission, set as empty
+        role: perm.role,
+        global_permissions: [], // Not available, set as empty
+        section_permissions: perm.section_permissions || {},
+        component_permissions: perm.component_permissions || {},
+      }));
+      setPermissions(perms);
 
       // Select first user if nothing is selected
-      if (response.items.length > 0 && !selected) {
-        setSelectedUser(response.items[0]);
+      if (perms.length > 0 && !selected) {
+        setSelectedUser(perms[0]);
       }
     } catch (err) {
       setError('Failed to load permissions. Please try again later.');
@@ -54,7 +57,8 @@ const Permissions: React.FC<PermissionsProps> = ({ tenantId }) => {
   // Load permissions on initial render
   useEffect(() => {
     loadPermissions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // If you want to avoid exhaustive-deps warning, add 'selected' to the dependency array if needed
+    // eslint-disable-next-line
   }, [tenantId]);
 
   // Handle user selection

@@ -18,7 +18,7 @@ import { useUser, useOrganization } from '@clerk/nextjs';
 import { Button } from '@/components/ui/Button';
 import { formatDate } from '@/lib/utils';
 import { ConversationEventLogger } from '@/modules/conversation/utils/eventLogger';
-import { ConversationEventType } from '@/modules/conversation';
+import { ConversationEventType } from '@/modules/conversation/models/event';
 
 // Mock conversations
 const mockConversations = [

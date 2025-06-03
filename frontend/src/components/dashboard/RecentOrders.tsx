@@ -1,11 +1,10 @@
 import React from 'react';
 import { ExternalLink, MessageSquare } from 'lucide-react';
+import { Badge } from '../ui/Badge';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import type { BadgeProps } from '@/components/ui/Badge';
 
 interface Order {
   id: string;
@@ -19,12 +18,6 @@ interface Order {
 interface RecentOrdersProps {
   orders: Order[];
   isLoading?: boolean;
-}
-
-type BadgeVariant = BadgeProps['variant'];
-function toBadgeVariant(val: string): BadgeVariant {
-  const allowed: BadgeVariant[] = ['pending', 'processing', 'shipped', 'success', 'destructive'];
-  return allowed.includes(val as BadgeVariant) ? (val as BadgeVariant) : 'pending';
 }
 
 export function RecentOrders({ orders, isLoading = false }: RecentOrdersProps) {
@@ -110,4 +103,9 @@ export function RecentOrders({ orders, isLoading = false }: RecentOrdersProps) {
       </CardContent>
     </Card>
   );
+}
+
+function toBadgeVariant(val: string): string {
+  const allowed = ['pending', 'processing', 'shipped', 'success', 'destructive'];
+  return allowed.includes(val) ? val : 'pending';
 }

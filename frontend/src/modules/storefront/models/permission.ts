@@ -37,3 +37,26 @@ export interface UserPermission {
 }
 
 export type UserPermissionsList = PaginatedResult<UserPermission>;
+
+export interface AssignRoleRequest {
+  role: StorefrontRole;
+}
+
+export interface SetSectionPermissionRequest {
+  section: string;
+  permission: string;
+}
+
+export interface SetComponentPermissionRequest {
+  componentId: string;
+  permission: string;
+}
+
+export interface PermissionResponse {
+  permission: Permission;
+}
+
+export interface PermissionsResponse {
+  permissions: Permission[];
+  total: number;
+}

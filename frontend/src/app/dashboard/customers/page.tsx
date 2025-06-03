@@ -31,8 +31,16 @@ const mockOrders = [
   },
 ];
 
-// Deduplicate customers
-const customers = Object.values(
+type Customer = {
+  name: string;
+  email: string;
+  phone: string;
+  orders: typeof mockOrders;
+  totalSpent: number;
+  lastOrder: string;
+};
+
+const customers: Customer[] = Object.values(
   mockOrders.reduce(
     (acc, order) => {
       if (!acc[order.email]) {
@@ -45,14 +53,14 @@ const customers = Object.values(
           lastOrder: order.date,
         };
       }
-      acc[order.email].orders.push(order);
-      acc[order.email].totalSpent += order.amount;
-      if (new Date(order.date) > new Date(acc[order.email].lastOrder)) {
-        acc[order.email].lastOrder = order.date;
+      (acc[order.email] as Customer).orders.push(order);
+      (acc[order.email] as Customer).totalSpent += order.amount;
+      if (new Date(order.date) > new Date((acc[order.email] as Customer).lastOrder)) {
+        (acc[order.email] as Customer).lastOrder = order.date;
       }
       return acc;
     },
-    {} as Record<string, unknown>,
+    {} as Record<string, Customer>,
   ),
 );
 

@@ -4,7 +4,8 @@
  */
 
 // Standard clean imports
-import { LocalStorageCartService, useCartStore } from '@/modules/cart';
+import { LocalStorageCartService } from '@/modules/cart/services/CartService';
+import { useCartStore } from '@/modules/cart/services/useCartStore';
 
 /**
  * Test the CartService implementation

@@ -43,3 +43,27 @@ export interface ComponentUsage {
   location_name: string;
   section?: string;
 }
+
+export interface StorefrontComponent {
+  id: string;
+  name: string;
+  type: string;
+  config: Record<string, unknown>;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface CreateComponentRequest {
+  name: string;
+  type: string;
+  config: Record<string, unknown>;
+}
+
+export interface ComponentResponse {
+  component: StorefrontComponent;
+}
+
+export interface ComponentsResponse {
+  components: StorefrontComponent[];
+  total: number;
+}

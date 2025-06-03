@@ -21,3 +21,12 @@ export interface UpdateDraftRequest {
   description?: string;
   changes?: Record<string, unknown>;
 }
+
+export interface DraftResponse {
+  draft: Draft;
+}
+
+export interface DraftsResponse {
+  drafts: Draft[];
+  total: number;
+}

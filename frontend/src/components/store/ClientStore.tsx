@@ -42,8 +42,8 @@ export default function ClientStore({ merchantId }: ClientStoreProps) {
           name: p.name,
           description: p.description || '',
           price: p.price,
-          image_url: p.imageUrl || null,
-          created_at: p.createdAt,
+          image_url: p.image_url || null,
+          created_at: p.created_at || '',
           is_available: true, // or set based on your logic
         })),
       );

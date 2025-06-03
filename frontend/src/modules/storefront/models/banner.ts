@@ -52,3 +52,12 @@ export interface CreateBannerRequest {
   end_date?: string;
   // Add other fields as needed for creation
 }
+
+export interface BannerResponse {
+  banner: Banner;
+}
+
+export interface BannersResponse {
+  banners: Banner[];
+  total: number;
+}

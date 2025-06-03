@@ -8,32 +8,41 @@ import type {
   UpdateDraftRequest,
   DraftResponse,
   DraftsResponse,
+} from '@/modules/storefront/models/draft';
+import type {
   Asset,
   UploadAssetRequest,
   AssetResponse,
   AssetsResponse,
+} from '@/modules/storefront/models/asset';
+import type {
   Banner,
   CreateBannerRequest,
   BannerResponse,
   BannersResponse,
+} from '@/modules/storefront/models/banner';
+import type {
   Logo,
   CreateLogoRequest,
   LogoResponse,
   LogosResponse,
+} from '@/modules/storefront/models/logo';
+import type {
   StorefrontComponent,
   CreateComponentRequest,
   ComponentResponse,
   ComponentsResponse,
+} from '@/modules/storefront/models/component';
+import type {
   Permission,
   AssignRoleRequest,
   SetSectionPermissionRequest,
   SetComponentPermissionRequest,
   PermissionResponse,
   PermissionsResponse,
-  ApiResponse,
-} from '@/modules/storefront';
+} from '@/modules/storefront/models/permission';
+import type { ApiResponse } from '@/lib/api';
 import { parseApiError } from '@/lib/utils';
-import type { Asset, Banner, Logo } from '@/modules/storefront';
 
 // Create optimized axios instance for storefront editor
 // Using separate instance with specific timeout for editor operations
