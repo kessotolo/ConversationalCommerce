@@ -347,4 +347,4 @@ export default function ProductPage() {
   );
 }
 
-export {};
+// No empty export needed, the default export is sufficient

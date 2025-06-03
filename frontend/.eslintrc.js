@@ -54,8 +54,6 @@ module.exports = {
       {
         groups: [
           'builtin',
-
-          // Clean import/order rule with ONLY supported properties
           'external',
           'internal',
           ['parent', 'sibling'],
@@ -75,7 +73,6 @@ module.exports = {
             position: 'after',
           },
         ],
-        pathGroupsExcludedImportTypes: [],
         newlinesBetween: 'always',
         alphabetize: {
           order: 'asc',
@@ -88,7 +85,6 @@ module.exports = {
       {
         prefer: 'type-imports',
         disallowTypeAnnotations: false,
-
       },
     ],
     'no-restricted-imports': [
@@ -99,16 +95,18 @@ module.exports = {
           '*bridge*',
           {
             group: ['**/types/*'],
-            message: 'Do not import from bridge files. Use direct module imports instead. See ADR-0001.'
+            message:
+              'Do not import from bridge files. Use direct module imports instead. See ADR-0001.',
           },
           {
             group: ['**/src/types'],
-            message: 'Creating new bridge files is not allowed. Create types in their proper module directory.'
+            message:
+              'Creating new bridge files is not allowed. Create types in their proper module directory.',
           },
           {
             group: ['@storefront/models/*'],
             importNames: ['default'],
-            message: 'Do not use default exports for models. Use named exports instead.'
+            message: 'Do not use default exports for models. Use named exports instead.',
           },
           '../*',
           './*',
@@ -116,11 +114,11 @@ module.exports = {
         paths: [
           {
             name: '../',
-            message: 'Use @/ alias for internal modules instead of relative imports.'
+            message: 'Use @/ alias for internal modules instead of relative imports.',
           },
           {
             name: './',
-            message: 'Use @/ alias for internal modules instead of relative imports.'
+            message: 'Use @/ alias for internal modules instead of relative imports.',
           },
         ],
       },

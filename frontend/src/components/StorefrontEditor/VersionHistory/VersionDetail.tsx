@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
-// import type { Version } from '@/modules/storefront';
 import {
-  CheckIcon,
-  ExclamationTriangleIcon,
-  ClockIcon,
-  UserIcon,
-  TagIcon,
-  ClipboardDocumentIcon,
-  ArrowUturnLeftIcon,
-} from '@heroicons/react/24/outline';
-import type { UUID } from '@/modules/core/models';
+  Check as CheckIcon,
+  AlertTriangle as ExclamationTriangleIcon,
+  Clock as ClockIcon,
+  User as UserIcon,
+  Tag as TagIcon,
+  ClipboardCopy as ClipboardDocumentIcon,
+  Undo as ArrowUturnLeftIcon,
+} from 'lucide-react';
+import type { UUID } from '@/modules/core/models/base';
 import type { Version } from '@/modules/storefront/models/version';
 
 interface VersionDetailProps {
