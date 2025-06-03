@@ -58,17 +58,34 @@ const handleClerkPages = (pages) => {
     // Modify the file to avoid Clerk authentication issues
     let content = fs.readFileSync(page, 'utf8');
 
-    // Add getStaticProps to pages to avoid static generation
+    // Check if this is a Pages Router file or App Router file
+    const isAppRouter = page.includes('/app/');
+
     if (content.includes('export default function') && !content.includes('getStaticProps')) {
-      const newContent = `${content.replace(
-        'export default function',
-        `// Added by build script to prevent Clerk auth errors during build
+      let newContent;
+
+      if (isAppRouter) {
+        // For App Router, use a dynamic export config to avoid static generation
+        newContent = `${content.replace(
+          'export default function',
+          `// Added by build script to prevent Clerk auth errors during build
+export const dynamic = 'force-dynamic';
+
+export default function`,
+        )}`;
+      } else {
+        // For Pages Router, use getStaticProps as before
+        newContent = `${content.replace(
+          'export default function',
+          `// Added by build script to prevent Clerk auth errors during build
 export function getStaticProps() {
   return { props: {} };
 }
 
 export default function`,
-      )}`;
+        )}`;
+      }
+
       fs.writeFileSync(page, newContent);
     }
   });
