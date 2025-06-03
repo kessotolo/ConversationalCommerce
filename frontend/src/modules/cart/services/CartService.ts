@@ -1,5 +1,6 @@
-import type { UUID } from '@/modules/core/models/base';
 import type { CartItem } from '@/modules/cart/models/cart';
+
+type UUID = string;
 
 /**
  * Interface for the cart service

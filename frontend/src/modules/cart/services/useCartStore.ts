@@ -1,8 +1,10 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { LocalStorageCartService } from '@/modules/cart/services/CartService';
-import type { UUID } from '@/modules/core/models/base';
 import type { CartItem } from '@/modules/cart/models/cart';
+
+// Define 'type UUID = string;' locally at the top of the file
+type UUID = string;
 
 /**
  * A Zustand store that wraps our CartService
