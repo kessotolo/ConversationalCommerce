@@ -4,11 +4,9 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { ArrowLeft } from 'lucide-react';
 import { productService } from '@/lib/api';
 import ProductCard from '@/components/storefront/ProductCard';
 import { useCart } from '@/lib/cart';
-import { ArrowLeft } from 'lucide-react';
 
 // Component that uses searchParams (must be wrapped in Suspense)
 function StoreContent() {
