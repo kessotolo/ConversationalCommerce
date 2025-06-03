@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 /**
  * Type definition for auth session with UUID tenant data
@@ -11,11 +11,28 @@ interface AuthSessionWithTenant {
   getToken?: () => Promise<string>;
 }
 
+// Define public routes that don't require authentication
+const publicPaths = [
+  '/',
+  '/about',
+  '/contact',
+  '/sign-in',
+  '/sign-up',
+  '/api/public',
+  '/api/webhook',
+  '/store',
+];
+
+// Check if we're in a build environment
+const isBuildEnv =
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY === '' ||
+  !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
 /**
- * Middleware function that extracts tenant information from subdomains or custom domains
- * This handles the UUID-based tenant resolution and connects with authentication
+ * Custom middleware implementation that combines tenant handling with auth
+ * While respecting clean architecture principles
  */
-export function middleware(request: NextRequest) {
+async function middlewareImplementation(request: NextRequest) {
   // Get hostname from request (e.g. tenant1.myapp.com or customdomain.com)
   const hostname = request.headers.get('host') || '';
   const url = request.nextUrl.clone();
@@ -44,30 +61,24 @@ export function middleware(request: NextRequest) {
     tenantIdentifier = hostnameArray[0];
     identifierType = 'subdomain';
   }
-  // If not a subdomain of our primary domain, check if it's a custom domain
-  else if (!hostname.endsWith(primaryDomain) && hostnameArray.length >= 2) {
-    // This might be a custom domain - we'll need to look it up
-    identifierType = 'custom_domain';
-    tenantIdentifier = hostname;
-  }
-  // Default case - main domain without subdomain
+  // Otherwise treat as a custom domain
   else {
-    tenantIdentifier = 'default';
-    identifierType = 'subdomain';
+    // Here you would typically lookup the custom domain in your database
+    // to find the associated tenant. For simplicity, we're just using the domain itself.
+    tenantIdentifier = hostname;
+    identifierType = 'custom_domain';
   }
 
-  // Handle authentication paths directly
-  // These paths should bypass tenant resolution
-  const authPaths = ['/sign-in', '/sign-up', '/api/auth'];
-  if (authPaths.some((path) => url.pathname.startsWith(path))) {
-    return NextResponse.next();
-  }
+  // Check if the current path is public
+  const isPublicPath = publicPaths.some(
+    (publicPath) =>
+      url.pathname === publicPath ||
+      url.pathname.startsWith(`${publicPath}/`) ||
+      url.pathname.startsWith('/api/public/') ||
+      url.pathname.startsWith('/api/webhook/'),
+  );
 
-  // Handle public paths that don't need auth
-  const publicPaths = ['/', '/api/public', '/api/tenants/by-subdomain'];
-  const isPublicPath = publicPaths.some((path) => url.pathname.startsWith(path));
-
-  // Add tenant info to headers for use in getServerSideProps and API routes
+  // Add tenant identifier to request headers for server components to access
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-tenant-identifier', tenantIdentifier);
   requestHeaders.set('x-tenant-identifier-type', identifierType);
@@ -97,24 +108,17 @@ export function middleware(request: NextRequest) {
     path: '/',
   });
 
-  // Protected routes check
-  if (!isPublicPath) {
-    // This is a protected path - check auth status
-    // When Clerk is properly configured, you'll use:
-    // const { userId } = auth();
-    // if (!userId) {
-    //   return NextResponse.redirect(new URL('/sign-in', request.url));
-    // }
-    // For now, we'll allow access without auth checks
-    // This can be replaced with proper auth once Clerk is configured
-  }
-
   return response;
 }
 
+// Export the middleware function directly
+export default middlewareImplementation;
+
 export const config = {
   matcher: [
-    // Match all paths except for static files and certain Next.js internals
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:jpg|jpeg|gif|png|svg)).*)',
+    // Match all routes except static files and _next
+    '/((?!.*\\..*|_next).*)',
+    '/',
+    '/(api|trpc)(.*)',
   ],
 };

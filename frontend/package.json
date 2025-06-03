@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node build-override.js",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "lint:strict": "next lint --max-warnings=0",

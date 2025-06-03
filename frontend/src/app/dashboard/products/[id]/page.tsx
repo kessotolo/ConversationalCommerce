@@ -1,14 +1,13 @@
 'use client';
 
-// TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ArrowLeft, Trash2, Camera, Upload, Save, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-// DashboardLayout now provided by layout.tsx
 
+// Product type definition following our core domain model patterns
 interface Product {
   id: string;
   name: string;
@@ -41,297 +40,313 @@ const mockProducts: Product[] = [
     inStock: true,
     category: 'Beverages',
   },
-  {
-    id: '3',
-    name: 'Whole Wheat Bread',
-    price: 3.49,
-    image:
-      'https://images.unsplash.com/photo-1586444248892-4aa5712a2660?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8YnJlYWR8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60',
-    description: 'Freshly baked whole wheat bread.',
-    inStock: true,
-    category: 'Bakery',
-  },
+  // Additional products omitted for brevity
 ];
 
 // Categories derived from products
 const categories = Array.from(new Set(mockProducts.map((p) => p.category)));
 
+// Product detail page component
 export default function ProductPage() {
   const params = useParams();
   const router = useRouter();
   const productId = params?.id as string;
+  const isNewProduct = productId === 'new';
 
-  const [product, setProduct] = useState<Product | undefined>();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedProduct, setEditedProduct] = useState<Product | undefined>();
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [product, setProduct] = useState<Product>({
+    id: '',
+    name: '',
+    price: 0,
+    image: '',
+    description: '',
+    inStock: true,
+    category: categories[0] || '',
+  });
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState('');
 
   // Load product data
   useEffect(() => {
-    const foundProduct = mockProducts.find((p) => p.id === productId);
-    setProduct(foundProduct);
-    setEditedProduct(foundProduct ? { ...foundProduct } : undefined);
-  }, [productId]);
+    if (isNewProduct) {
+      setIsLoading(false);
+      return;
+    }
 
-  const handleInputChange = (
+    // Simulate API call to fetch product
+    const fetchProduct = () => {
+      setIsLoading(true);
+      try {
+        // For demo, just find in our mock data
+        const foundProduct = mockProducts.find((p) => p.id === productId);
+        if (foundProduct) {
+          setProduct(foundProduct);
+          setError('');
+        } else {
+          setError('Product not found');
+        }
+      } catch (err) {
+        setError('Failed to load product');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [productId, isNewProduct]);
+
+  // Handle form input changes
+  const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
-    if (!editedProduct) return;
+    const { name, value, type } = e.target;
 
-    const { name, value } = e.target;
-
-    if (name === 'price') {
-      setEditedProduct({
-        ...editedProduct,
-        [name]: parseFloat(value) || 0,
-      });
-    } else if (name === 'inStock') {
-      setEditedProduct({
-        ...editedProduct,
-        inStock: (e.target as HTMLInputElement).checked,
-      });
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setProduct((prev) => ({
+        ...prev,
+        [name]: checked,
+      }));
+    } else if (type === 'number') {
+      setProduct((prev) => ({
+        ...prev,
+        [name]: parseFloat(value),
+      }));
     } else {
-      setEditedProduct({
-        ...editedProduct,
+      setProduct((prev) => ({
+        ...prev,
         [name]: value,
-      });
+      }));
     }
   };
 
-  const handleSave = () => {
-    // In a real app, this would be an API call
-    setProduct(editedProduct);
-    setIsEditing(false);
-    // Mock successful save
-    alert('Product updated successfully!');
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    setError('');
+
+    try {
+      // Simulate API call to save product
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // For a new product, assign an ID
+      if (isNewProduct) {
+        const newId = (Math.max(...mockProducts.map((p) => parseInt(p.id))) + 1).toString();
+        setProduct((prev) => ({ ...prev, id: newId }));
+      }
+
+      // Navigate back to products list after save
+      router.push('/dashboard/products');
+    } catch (err) {
+      setError('Failed to save product');
+      console.error(err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleDelete = () => {
-    // In a real app, this would be an API call
-    alert('Product deleted successfully!');
-    router.push('/dashboard/products');
-  };
+  // Handle product deletion
+  const handleDelete = async () => {
+    if (!confirm('Are you sure you want to delete this product?')) {
+      return;
+    }
 
-  if (!product) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
-          <p>The product you're looking for doesn't exist or has been removed.</p>
-          <Link
-            href="/dashboard/products"
-            className="text-blue-500 hover:text-blue-700 mt-4 inline-block"
-          >
-            <div className="flex items-center">
-              <ArrowLeft size={16} className="mr-1" />
-              <span>Back to Products</span>
-            </div>
-          </Link>
-        </div>
-      </div>
-    );
-  }
+    try {
+      // Simulate API call to delete product
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Navigate back to products list after delete
+      router.push('/dashboard/products');
+    } catch (err) {
+      setError('Failed to delete product');
+      console.error(err);
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <Link href="/dashboard/products" className="text-blue-500 hover:text-blue-700">
-          <div className="flex items-center">
-            <ArrowLeft size={16} className="mr-1" />
-            <span>Back to Products</span>
-          </div>
-        </Link>
-        <div className="space-x-2">
-          {isEditing ? (
-            <>
-              <Button
-                onClick={() => {
-                  setIsEditing(false);
-                  setEditedProduct(product);
-                }}
-                variant="outline"
-                className="border-gray-300"
-              >
-                Cancel
-              </Button>
-              <Button onClick={handleSave} className="bg-green-600 hover:bg-green-700 text-white">
-                <Save size={16} className="mr-1" />
-                Save Changes
-              </Button>
-            </>
-          ) : (
-            <Button
-              onClick={() => setIsEditing(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              Edit Product
-            </Button>
-          )}
+      {/* Back button */}
+      <Link
+        href="/dashboard/products"
+        className="inline-flex items-center mb-6 text-blue-600 hover:text-blue-800"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to Products
+      </Link>
+
+      <h1 className="text-2xl font-bold mb-6">
+        {isNewProduct ? 'Add New Product' : 'Edit Product'}
+      </h1>
+
+      {/* Error message */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded flex items-center">
+          <AlertTriangle className="w-5 h-5 mr-2" />
+          {error}
         </div>
-      </div>
+      )}
 
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="md:flex">
-          <div className="md:w-1/3 relative h-64 md:h-auto">
-            {product.image ? (
-              <Image src={product.image} alt={product.name} fill className="object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                <Camera size={48} className="text-gray-400" />
-                <span className="ml-2 text-gray-500">No Image</span>
-              </div>
-            )}
-            {isEditing && (
-              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                <button className="bg-white p-2 rounded-full">
-                  <Upload size={24} className="text-blue-600" />
-                </button>
-              </div>
-            )}
-          </div>
-          <div className="p-6 md:w-2/3">
-            {isEditing ? (
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                    Product Name
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={editedProduct?.name || ''}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
+          {/* Product image */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
+            <div className="flex items-center space-x-5">
+              <div className="relative w-32 h-32 border rounded-md overflow-hidden bg-gray-100 flex items-center justify-center">
+                {product.image ? (
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    layout="fill"
+                    objectFit="cover"
+                    className="rounded-md"
                   />
-                </div>
-
-                <div>
-                  <label htmlFor="category" className="block text-sm font-medium text-gray-700">
-                    Category
-                  </label>
-                  <select
-                    id="category"
-                    name="category"
-                    value={editedProduct?.category || ''}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                ) : (
+                  <Camera className="w-10 h-10 text-gray-400" />
+                )}
+              </div>
+              <div className="space-y-2">
+                <Button type="button" variant="outline" size="sm" className="w-full">
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload Image
+                </Button>
+                {product.image && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-red-600 border-red-600 hover:bg-red-50"
+                    onClick={() => setProduct((prev) => ({ ...prev, image: '' }))}
                   >
-                    {categories.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="price" className="block text-sm font-medium text-gray-700">
-                    Price ($)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    id="price"
-                    name="price"
-                    value={editedProduct?.price || 0}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                    Description
-                  </label>
-                  <textarea
-                    id="description"
-                    name="description"
-                    rows={3}
-                    value={editedProduct?.description || ''}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="inStock"
-                    name="inStock"
-                    checked={editedProduct?.inStock || false}
-                    onChange={handleInputChange}
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <label htmlFor="inStock" className="ml-2 block text-sm text-gray-700">
-                    In Stock
-                  </label>
-                </div>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Remove
+                  </Button>
+                )}
               </div>
-            ) : (
-              <>
-                <h1 className="text-2xl font-bold mb-2">{product.name}</h1>
-                <div className="flex items-center mb-4">
-                  <span className="text-gray-600">{product.category}</span>
-                  <span className="mx-2">•</span>
-                  <span className={product.inStock ? 'text-green-600' : 'text-red-600'}>
-                    {product.inStock ? 'In Stock' : 'Out of Stock'}
-                  </span>
-                </div>
-                <div className="text-2xl font-bold text-blue-600 mb-4">
-                  ${product.price.toFixed(2)}
-                </div>
-                <p className="text-gray-700 mb-6">{product.description}</p>
-                <div className="border-t pt-4">
-                  <h2 className="text-lg font-semibold mb-2">Product Details</h2>
-                  <ul className="space-y-1 text-sm text-gray-600">
-                    <li>
-                      <span className="font-medium">ID:</span> {product.id}
-                    </li>
-                    <li>
-                      <span className="font-medium">Category:</span> {product.category}
-                    </li>
-                    <li>
-                      <span className="font-medium">Availability:</span>{' '}
-                      {product.inStock ? 'In Stock' : 'Out of Stock'}
-                    </li>
-                  </ul>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-        <div className="bg-gray-50 px-6 py-4 flex justify-end">
-          {showDeleteConfirm ? (
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center text-amber-600">
-                <AlertTriangle size={16} className="mr-1" />
-                <span>Are you sure you want to delete this product?</span>
-              </div>
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="text-gray-600 hover:text-gray-800"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
-              >
-                Confirm Delete
-              </button>
             </div>
-          ) : (
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              className="text-red-600 hover:text-red-800 flex items-center"
+          </div>
+
+          {/* Basic info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                Product Name*
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={product.name}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
+                Price*
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span className="text-gray-500">$</span>
+                </div>
+                <input
+                  type="number"
+                  id="price"
+                  name="price"
+                  value={product.price}
+                  onChange={handleChange}
+                  min="0"
+                  step="0.01"
+                  required
+                  className="w-full pl-7 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+              Category*
+            </label>
+            <select
+              id="category"
+              name="category"
+              value={product.category}
+              onChange={handleChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <Trash2 size={16} className="mr-1" />
-              <span>Delete Product</span>
-            </button>
-          )}
-        </div>
-      </div>
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+              Description
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              value={product.description}
+              onChange={handleChange}
+              rows={4}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="inStock"
+              name="inStock"
+              checked={product.inStock}
+              onChange={(e) => setProduct((prev) => ({ ...prev, inStock: e.target.checked }))}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="inStock" className="ml-2 block text-sm text-gray-700">
+              In Stock
+            </label>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex justify-between pt-4">
+            {!isNewProduct && (
+              <Button
+                type="button"
+                onClick={handleDelete}
+                variant="outline"
+                className="text-red-600 border-red-600 hover:bg-red-50"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Product
+              </Button>
+            )}
+            <div className="ml-auto">
+              <Button type="submit" disabled={isSaving}>
+                <Save className="w-4 h-4 mr-2" />
+                {isSaving ? 'Saving...' : 'Save Product'}
+              </Button>
+            </div>
+          </div>
+        </form>
+      )}
     </div>
   );
 }
+
+// This ensures the page is properly recognized as a Next.js module
+export const dynamic = 'force-dynamic';

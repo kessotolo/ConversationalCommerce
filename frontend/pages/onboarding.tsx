@@ -1,9 +1,9 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { useAuth, useUser } from '@clerk/nextjs';
 import { GetStaticProps } from 'next';
 import OnboardingForm from '@/components/onboarding/OnboardingForm';
+import { useAuth } from '@/modules/core/hooks/useAuth';
 
 // Force page to be server-side rendered to avoid Clerk authentication issues during build
 export const getStaticProps: GetStaticProps = async () => {
@@ -15,20 +15,19 @@ export const getStaticProps: GetStaticProps = async () => {
 // Add unstable_skipSomeInitialRenders to prevent client-side errors
 export default function OnboardingPage() {
   const router = useRouter();
-  const { isLoaded: isAuthLoaded, userId } = useAuth();
-  const { user, isLoaded: isUserLoaded } = useUser();
+  const { user, isLoading, isAuthenticated } = useAuth();
   const [hasStore, setHasStore] = useState<boolean | null>(null);
   const [isChecking, setIsChecking] = useState(true);
 
   // Check if user already has a store
   useEffect(() => {
     const checkUserStore = async () => {
-      if (!isAuthLoaded || !isUserLoaded || !userId) {
+      if (isLoading || !isAuthenticated || !user?.id) {
         return;
       }
 
       try {
-        const response = await fetch(`/api/users/has-tenant?userId=${userId}`);
+        const response = await fetch(`/api/users/has-tenant?userId=${user.id}`);
         if (response.ok) {
           const { hasTenant } = await response.json();
           setHasStore(hasTenant);
@@ -48,18 +47,18 @@ export default function OnboardingPage() {
     };
 
     checkUserStore();
-  }, [isAuthLoaded, isUserLoaded, userId, router]);
+  }, [isLoading, isAuthenticated, user, router]);
 
   // Redirect to sign-in if not authenticated
   useEffect(() => {
-    if (isAuthLoaded && !userId) {
+    if (!isLoading && !isAuthenticated) {
       // Redirect to sign-in page or show sign-in UI
       router.push('/sign-in');
     }
-  }, [isAuthLoaded, userId, router]);
+  }, [isLoading, isAuthenticated, router]);
 
   // Show loading state
-  if (isChecking || !isAuthLoaded || !isUserLoaded) {
+  if (isChecking || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -71,7 +70,7 @@ export default function OnboardingPage() {
   }
 
   // If not authenticated, don't render anything (redirect handled above)
-  if (!userId) {
+  if (!isAuthenticated || !user) {
     return null;
   }
 

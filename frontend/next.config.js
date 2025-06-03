@@ -1,54 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Completely disable TypeScript type checking and ESLint
+  // Strict mode will be re-enabled once the architecture is fully cleaned up
+  reactStrictMode: false,
+  env: {
+    // Set build time flag for conditional auth components
+    IS_BUILD_TIME: process.env.NODE_ENV === 'production' ? 'true' : 'false',
+  },
+  // Temporarily disable TypeScript checking to get a successful build
+  // We'll incrementally re-enable checks as we fix module issues
   typescript: {
-    ignoreBuildErrors: true,
-    tsconfigPath: 'tsconfig.json',
+    ignoreBuildErrors: true, // Temporarily disabled
   },
   eslint: {
+    // We still need to disable ESLint during builds as we restore architectural rules
     ignoreDuringBuilds: true,
-  },
-  reactStrictMode: false,
-  // Remove invalid swcMinify option
-
-  experimental: {
-    // Remove invalid experimental options
-    // Only include valid Next.js 15 options
-  },
-  // Disable source maps in production to reduce build size
-  productionBrowserSourceMaps: false,
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'res.cloudinary.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'via.placeholder.com',
-        pathname: '/**',
-      },
-    ],
-  },
-  async redirects() {
-    return [
-      {
-        source: '/auth/sign-in',
-        destination: '/',
-        permanent: false,
-      },
-      {
-        source: '/auth/sign-up',
-        destination: '/',
-        permanent: false,
-      },
-    ];
   },
 };
 
