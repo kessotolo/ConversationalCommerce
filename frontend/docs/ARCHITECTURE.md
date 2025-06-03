@@ -1,5 +1,9 @@
 # Architecture Overview
 
+## 🚀 Our Core: Commerce in Conversation
+
+The architecture of ConversationalCommerce is centered on enabling commerce in conversation as the default. All modules, APIs, and flows are designed to work seamlessly in chat (WhatsApp, IG, TikTok, etc.) as well as on the web. The webapp is a complement, but the heart of the platform is enabling every commerce action—discovery, cart, upsell, checkout, payment—through natural conversation, just as Africans do commerce every day.
+
 ## Direct Module Imports (ADR-0001)
 
 - All types and models must be imported directly from their module source (e.g., @/modules/core/models/base).
@@ -478,3 +482,16 @@ ESLint is configured with selective overrides to flag these issues appropriately
 - Always use the ConversationEventLogger for logging events in the frontend.
 - Ensure user and tenant IDs are sourced from Clerk context/hooks.
 - Extend analytics and monitoring by adding new event types and updating the dashboard as needed.
+
+## 🤝 Trust & Naturalness in Conversational Commerce
+
+Trust is at the heart of commerce in Africa. Our architecture is designed so that buyers and sellers always feel like they're talking to real people, not bots. We prioritize:
+
+- **Authentic, Human-Like Chat:** No "bot speak"—conversations use local language, slang, and context-aware replies.
+- **Clear Identity:** Always show who is speaking (buyer, seller, or assistant), but keep automation subtle and helpful.
+- **Personalization:** Use names, local expressions, and context to make every chat feel personal.
+- **Trust Signals:** Verified badges, clear receipts, and confirmations that look and feel like real commerce.
+- **Privacy & Security:** Respect for phone numbers and personal info, with clear opt-in/out for notifications.
+- **Seamless Human Escalation:** If a conversation gets stuck, it's easy to talk to a real person—no dead ends.
+
+Our conversational engine is trained on real African chat data, supports local dialects, and is always improving to make commerce feel as natural and trustworthy as chatting with a friend or local vendor.

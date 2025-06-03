@@ -1,5 +1,9 @@
 # AI Agent Configuration for ConversationalCommerce
 
+## 🚀 Core Product Philosophy: Commerce in Conversation
+
+The heart of ConversationalCommerce is enabling true commerce in conversation. All AI agents must prioritize conversational flows as the primary channel for commerce—reflecting how Africans buy and sell. The webapp is a complement, not the main channel. Every feature, suggestion, and code generation must reinforce this philosophy: every commerce action (discovery, cart, upsell, checkout, payment) should be possible and natural in chat.
+
 This document serves as a comprehensive guide for AI assistants working on the ConversationalCommerce platform. Follow these principles and rules for all code generation, assistance, and suggestions.
 
 ## 🌍 Project Vision and Context
@@ -123,16 +127,17 @@ import { TenantService } from '@/modules/tenant/services/TenantService'; // WRON
 
 ## 🔍 Non-Negotiable Rules for AI Agents
 
-1. **NEVER create bridge files or centralized type directories**
-2. **ALWAYS follow module boundaries for imports**
-3. **ALWAYS use direct module imports**
-4. **ALWAYS use `import type` for type-only imports**
-5. **ALWAYS write mobile-first, conversational UI**
-6. **NEVER add code without proper error handling and tests**
-7. **ALWAYS optimize for low-bandwidth African markets**
-8. **NEVER violate multi-tenant data isolation**
-9. **ALWAYS follow TypeScript strict mode requirements**
-10. **NEVER create complex interfaces without proper documentation**
+1. **Commerce in Conversation First:** All AI agents must prioritize conversational flows as the default for commerce. The webapp is a fallback or complement.
+2. **NEVER create bridge files or centralized type directories**
+3. **ALWAYS follow module boundaries for imports**
+4. **ALWAYS use direct module imports**
+5. **ALWAYS use `import type` for type-only imports**
+6. **ALWAYS write mobile-first, conversational UI**
+7. **NEVER add code without proper error handling and tests**
+8. **ALWAYS optimize for low-bandwidth African markets**
+9. **NEVER violate multi-tenant data isolation**
+10. **ALWAYS follow TypeScript strict mode requirements**
+11. **NEVER create complex interfaces without proper documentation**
 
 ## 🔄 Verification Methods
 
@@ -147,6 +152,38 @@ import { TenantService } from '@/modules/tenant/services/TenantService'; // WRON
 - All analytics and monitoring should use the extensible ConversationEvent pattern
 - When adding new event types, update both backend (enum, schema) and frontend (enum, interface)
 - See ARCHITECTURE.md for details
+
+## 🌐 Frictionless Entry Points for Conversational Commerce
+
+To make commerce as seamless as chatting with a friend, the platform supports and plans to support a wide range of modern entry points:
+
+- **QR Codes**: Scan to start a chat, buy a product, or join a group. Used on packaging, posters, receipts, and more.
+- **NFC Tags & Smart Posters**: Tap your phone on a market stall, product, or poster to instantly start a conversation.
+- **Deep Links & App Clips/Instant Apps**: One-tap links that launch WhatsApp, IG, or your app with pre-filled context—no install required.
+- **SMS Short Codes & Keywords**: Text a memorable code or keyword to start shopping, even on feature phones.
+- **Voice Activation & Audio Triggers**: Use voice commands or audio watermarks in ads to launch a shopping chat.
+- **Social Referral Links**: Shareable links and receipts that let friends buy what you bought, with full context.
+- **Visual Search & Image Recognition**: Snap a photo of a product or friend's item to start a shopping conversation.
+- **Location-Based Triggers**: Geofenced notifications or Bluetooth beacons that prompt a chat when near a store or market.
+- **Offline-to-Online Bridges**: USSD codes, SMS fallbacks, and scratch-off cards for users with limited connectivity.
+- **Phone Numbers**: Phone numbers are a first-class identifier for users and sellers, enabling SMS, WhatsApp, and voice flows.
+
+**African Context:** The platform is designed to combine these approaches, adapting to urban and rural realities. QR codes and phone numbers are first-class, but the system is extensible to all modern entry points, ensuring everyone can join the conversation—no matter their device or connectivity.
+
+**AI Agent Guidance:** When generating code, documentation, or suggestions, always consider these entry points as part of the core conversational commerce experience.
+
+## 🤝 Trust & Naturalness in Conversational Commerce
+
+Trust is at the heart of commerce in Africa. AI agents must always prioritize trust, naturalness, and local context in all conversational flows. The platform is designed so that buyers and sellers always feel like they're talking to real people, not bots. AI agents must:
+
+- **Generate Authentic, Human-Like Chat:** No "bot speak"—use local language, slang, and context-aware replies.
+- **Maintain Clear Identity:** Always show who is speaking (buyer, seller, or assistant), but keep automation subtle and helpful.
+- **Personalize Interactions:** Use names, local expressions, and context to make every chat feel personal.
+- **Reinforce Trust Signals:** Use verified badges, clear receipts, and confirmations that look and feel like real commerce.
+- **Respect Privacy & Security:** Never expose phone numbers or personal info unnecessarily, always provide opt-in/out for notifications.
+- **Enable Seamless Human Escalation:** Always provide a way to talk to a real person if needed—no dead ends.
+
+AI agents must never generate code or suggestions that break these principles. The goal is to make commerce feel as natural and trustworthy as chatting with a friend or local vendor.
 
 ---
 

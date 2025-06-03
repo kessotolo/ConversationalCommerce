@@ -1,6 +1,40 @@
 # Conversational Commerce Platform
 
+## 🚀 Our Core: Commerce in Conversation
+
+ConversationalCommerce is built from the ground up to enable true commerce in conversation—reflecting how Africans (and similar markets) actually buy and sell. Every step of the journey—product discovery, adding to cart, upselling, checkout, and even payment—can happen naturally in chat, just like real commerce in WhatsApp, Instagram, or TikTok DMs. The webapp is always available for those who want it, but the heart of the experience is the conversation. All APIs, analytics, and features are designed to work seamlessly in chat as well as on the web.
+
+## 🌐 Frictionless Entry Points for Conversational Commerce
+
+To make commerce as seamless as chatting with a friend, the platform supports and plans to support a wide range of modern entry points:
+
+- **QR Codes**: Scan to start a chat, buy a product, or join a group. Used on packaging, posters, receipts, and more.
+- **NFC Tags & Smart Posters**: Tap your phone on a market stall, product, or poster to instantly start a conversation.
+- **Deep Links & App Clips/Instant Apps**: One-tap links that launch WhatsApp, IG, or your app with pre-filled context—no install required.
+- **SMS Short Codes & Keywords**: Text a memorable code or keyword to start shopping, even on feature phones.
+- **Voice Activation & Audio Triggers**: Use voice commands or audio watermarks in ads to launch a shopping chat.
+- **Social Referral Links**: Shareable links and receipts that let friends buy what you bought, with full context.
+- **Visual Search & Image Recognition**: Snap a photo of a product or friend's item to start a shopping conversation.
+- **Location-Based Triggers**: Geofenced notifications or Bluetooth beacons that prompt a chat when near a store or market.
+- **Offline-to-Online Bridges**: USSD codes, SMS fallbacks, and scratch-off cards for users with limited connectivity.
+- **Phone Numbers**: Phone numbers are a first-class identifier for users and sellers, enabling SMS, WhatsApp, and voice flows.
+
+**African Context:** The platform is designed to combine these approaches, adapting to urban and rural realities. QR codes and phone numbers are first-class, but the system is extensible to all modern entry points, ensuring everyone can join the conversation—no matter their device or connectivity.
+
 A high-growth commerce platform for African markets that seamlessly integrates mobile-first storefronts with WhatsApp messaging capabilities. Built for scale with security and performance in mind.
+
+## 🤝 Trust & Naturalness in Conversational Commerce
+
+Trust is at the heart of commerce in Africa. Our platform is designed so that buyers and sellers always feel like they're talking to real people, not bots. We prioritize:
+
+- **Authentic, Human-Like Chat:** No "bot speak"—conversations use local language, slang, and context-aware replies.
+- **Clear Identity:** Always show who is speaking (buyer, seller, or assistant), but keep automation subtle and helpful.
+- **Personalization:** Use names, local expressions, and context to make every chat feel personal.
+- **Trust Signals:** Verified badges, clear receipts, and confirmations that look and feel like real commerce.
+- **Privacy & Security:** Respect for phone numbers and personal info, with clear opt-in/out for notifications.
+- **Seamless Human Escalation:** If a conversation gets stuck, it's easy to talk to a real person—no dead ends.
+
+Our conversational engine is trained on real African chat data, supports local dialects, and is always improving to make commerce feel as natural and trustworthy as chatting with a friend or local vendor.
 
 ## 📑 Documentation Structure
 
@@ -802,20 +836,49 @@ Please contact the repository owner for contribution guidelines.
 ## WhatsApp Alerting & Seller WhatsApp Number Management
 
 ### Overview
-- Sellers can now receive real-time alerts for critical events (e.g., new orders, complaints) directly on WhatsApp.
-- Each seller/tenant can set or update their WhatsApp number in the dashboard settings.
-- Alerts are sent using Twilio WhatsApp API when configured events occur.
+- Sellers receive real-time alerts for critical events (new orders, customer inquiries, payments) directly on WhatsApp.
+- Each seller/tenant manages their WhatsApp number through an intuitive UI in dashboard settings.
+- The system uses Twilio WhatsApp Business API for reliable, high-deliverability messaging.
+- Alert content is formatted specifically for the constraints and opportunities of the WhatsApp platform.
+- This feature aligns with our core vision of enabling commerce in conversation across African markets.
+
+### Architecture
+
+The WhatsApp alerting system follows our modular monolith architecture:
+
+- **Backend Services**:
+  - `alert_service.py`: Core alerting logic with WhatsApp channel integration
+  - `whatsapp_alert_service.py`: Dedicated Twilio integration service
+- **Frontend Components**:
+  - Settings drawer with WhatsApp number configuration
+  - Validation and user feedback for number format
+- **Data Model**:
+  - Extended `Tenant` model with `whatsapp_number` field
+  - Proper migrations for database schema updates
 
 ### How it Works
-1. Seller sets their WhatsApp number in the dashboard (Settings > General).
-2. The backend stores this number in the tenant profile.
-3. When a critical event occurs, the backend sends a WhatsApp message to the seller using Twilio.
+1. Seller configures their WhatsApp number in the dashboard (Settings > General).
+2. The backend securely stores this number in the tenant profile.
+3. When alert-worthy events occur, the system determines appropriate channel(s).
+4. For WhatsApp-eligible alerts, a properly formatted message is sent via Twilio.
+5. Delivery status is tracked and fallback channels are used if needed.
 
 ### API Endpoints
 - `GET /tenants/me`: Fetch current tenant profile (including WhatsApp number)
 - `PATCH /tenants/me`: Update WhatsApp number for the current tenant
 
-### What to Test
-- Add/update WhatsApp number in the dashboard and verify it saves.
-- Trigger a critical event and confirm WhatsApp alert delivery.
+### Environment Variables
+```
+TWILIO_ACCOUNT_SID=your_twilio_sid
+TWILIO_AUTH_TOKEN=your_twilio_token
+TWILIO_WHATSAPP_NUMBER=your_whatsapp_number
+```
+
+### Testing & Validation
+- Add/update WhatsApp number in the dashboard and verify it saves correctly.
+- Trigger test events to confirm WhatsApp alert delivery.
+- Verify tenant isolation (alerts only go to the correct seller).
+
+### Detailed Documentation
+For comprehensive implementation details, configuration options, and troubleshooting, see the [WhatsApp Alerting documentation](./frontend/docs/WHATSAPP_ALERTING.md).
 - Ensure only authenticated sellers can update their WhatsApp number.

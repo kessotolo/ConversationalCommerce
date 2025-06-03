@@ -1,6 +1,42 @@
 # Developer Onboarding Guide: ConversationalCommerce Frontend
 
+## 🚀 Our Core: Commerce in Conversation
+
+Onboarding for ConversationalCommerce is designed to make commerce in conversation the default experience. All onboarding flows, features, and APIs are built to work seamlessly in chat (WhatsApp, IG, TikTok, etc.) as well as on the web. The webapp is a complement, but the heart of the platform is enabling every commerce action—discovery, cart, upsell, checkout, payment—through natural conversation, just as Africans do commerce every day.
+
+## 🌐 Frictionless Entry Points for Conversational Commerce
+
+To make commerce as seamless as chatting with a friend, the platform supports and plans to support a wide range of modern entry points:
+
+- **QR Codes**: Scan to start a chat, buy a product, or join a group. Used on packaging, posters, receipts, and more.
+- **NFC Tags & Smart Posters**: Tap your phone on a market stall, product, or poster to instantly start a conversation.
+- **Deep Links & App Clips/Instant Apps**: One-tap links that launch WhatsApp, IG, or your app with pre-filled context—no install required.
+- **SMS Short Codes & Keywords**: Text a memorable code or keyword to start shopping, even on feature phones.
+- **Voice Activation & Audio Triggers**: Use voice commands or audio watermarks in ads to launch a shopping chat.
+- **Social Referral Links**: Shareable links and receipts that let friends buy what you bought, with full context.
+- **Visual Search & Image Recognition**: Snap a photo of a product or friend's item to start a shopping conversation.
+- **Location-Based Triggers**: Geofenced notifications or Bluetooth beacons that prompt a chat when near a store or market.
+- **Offline-to-Online Bridges**: USSD codes, SMS fallbacks, and scratch-off cards for users with limited connectivity.
+- **Phone Numbers**: Phone numbers are a first-class identifier for users and sellers, enabling SMS, WhatsApp, and voice flows.
+
+**African Context:** The platform is designed to combine these approaches, adapting to urban and rural realities. QR codes and phone numbers are first-class, but the system is extensible to all modern entry points, ensuring everyone can join the conversation—no matter their device or connectivity.
+
+**Onboarding Vision:** New team members should understand that enabling these entry points is at the heart of our onboarding and user experience vision.
+
 Welcome to the ConversationalCommerce platform! This guide will help you understand our architecture, development practices, and codebase organization so you can quickly become productive.
+
+## 🤝 Trust & Naturalness in Conversational Commerce
+
+Trust is at the heart of commerce in Africa. Our onboarding and user experience are designed so that buyers and sellers always feel like they're talking to real people, not bots. We prioritize:
+
+- **Authentic, Human-Like Chat:** No "bot speak"—conversations use local language, slang, and context-aware replies.
+- **Clear Identity:** Always show who is speaking (buyer, seller, or assistant), but keep automation subtle and helpful.
+- **Personalization:** Use names, local expressions, and context to make every chat feel personal.
+- **Trust Signals:** Verified badges, clear receipts, and confirmations that look and feel like real commerce.
+- **Privacy & Security:** Respect for phone numbers and personal info, with clear opt-in/out for notifications.
+- **Seamless Human Escalation:** If a conversation gets stuck, it's easy to talk to a real person—no dead ends.
+
+Our conversational engine is trained on real African chat data, supports local dialects, and is always improving to make commerce feel as natural and trustworthy as chatting with a friend or local vendor.
 
 ## Architecture Overview
 
