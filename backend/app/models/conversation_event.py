@@ -34,4 +34,4 @@ class ConversationEvent(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey(
         "tenants.id"), nullable=False)
-    metadata = Column(JSONB, nullable=True)  # Optional extra context
+    event_metadata = Column(JSONB, nullable=True)  # Optional extra context

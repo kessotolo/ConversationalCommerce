@@ -23,7 +23,7 @@ class ConversationEventBase(BaseModel):
     payload: Optional[Dict[str, Any]] = Field(
         None, description="Arbitrary event data for extensibility")
     tenant_id: UUID = Field(..., description="Tenant ID for multi-tenancy")
-    metadata: Optional[Dict[str, Any]] = Field(
+    event_metadata: Optional[Dict[str, Any]] = Field(
         None, description="Optional extra context (device info, etc.)")
 
 

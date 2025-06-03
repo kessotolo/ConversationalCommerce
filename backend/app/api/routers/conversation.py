@@ -98,9 +98,9 @@ def log_conversation_event(event: ConversationEventCreate, db: Session = Depends
             # Identify user/session/phone for cart
             user_id = event.user_id
             phone_number = payload.get("phone_number") or (
-                event.metadata or {}).get("phone_number")
+                event.event_metadata or {}).get("phone_number")
             session_id = payload.get("session_id") or (
-                event.metadata or {}).get("session_id")
+                event.event_metadata or {}).get("session_id")
             tenant_id = event.tenant_id
 
             def get_or_create_cart():
@@ -228,7 +228,7 @@ def log_conversation_event(event: ConversationEventCreate, db: Session = Depends
             event_type=event.event_type,
             payload=payload,
             tenant_id=event.tenant_id,
-            metadata=event.metadata,
+            event_metadata=event.event_metadata,
             created_at=None  # Let default apply
         )
         db.add(db_event)
@@ -256,7 +256,7 @@ def log_conversation_event(event: ConversationEventCreate, db: Session = Depends
                         "event_type": db_event.event_type,
                         "payload": db_event.payload,
                         "created_at": db_event.created_at.isoformat(),
-                        "metadata": db_event.metadata,
+                        "event_metadata": db_event.event_metadata,
                     }
                 }
             ))
@@ -401,7 +401,7 @@ def get_conversation_quality(db: Session = Depends(get_db)):
             avg_sentiment = sum(sentiments) / \
                 len(sentiments) if sentiments else None
             resolved = any((e.payload or {}).get('intent') == 'resolved' or (
-                e.metadata or {}).get('resolved') for e in events)
+                e.event_metadata or {}).get('resolved') for e in events)
             # Compute quality score
             score = 0
             if avg_response_time is not None:
@@ -536,7 +536,7 @@ def export_conversation_quality_csv(db: Session = Depends(get_db)):
             avg_sentiment = sum(sentiments) / \
                 len(sentiments) if sentiments else None
             resolved = any((e.payload or {}).get('intent') == 'resolved' or (
-                e.metadata or {}).get('resolved') for e in events)
+                e.event_metadata or {}).get('resolved') for e in events)
             score = 0
             if avg_response_time is not None:
                 score += max(0, 1 - min(avg_response_time / 60, 1)) * 0.4

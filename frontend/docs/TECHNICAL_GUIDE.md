@@ -188,7 +188,7 @@ import { ProductService } from '@/modules/product/services/ProductService';
 ## Event Logging
 - All significant conversation actions (messages, joins, leaves, closes, etc.) are logged as structured events.
 - Use the `ConversationEventLogger` utility to send events to the backend `/conversation-events` endpoint.
-- Events include `conversation_id`, `user_id`, `tenant_id`, `event_type`, `payload`, and `metadata`.
+- Events include `conversation_id`, `user_id`, `tenant_id`, `event_type`, `payload`, and `event_metadata`.
 
 ## Clerk Integration
 - The frontend uses Clerk's `useUser` and `useOrganization` hooks to get the real user and tenant (organization) IDs.

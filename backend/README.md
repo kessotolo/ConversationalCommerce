@@ -603,7 +603,7 @@ The platform implements a comprehensive real-time monitoring system to track act
 
   - Tracks all API requests and responses
   - Records user actions, resource access, and system events
-  - Captures detailed metadata for each activity
+  - Captures detailed event_metadata for each activity
   - Stores activities in the audit log
 
 - **Activity Types**
@@ -697,7 +697,7 @@ The platform provides a multi-channel notification system to keep users informed
   - Real-time updates
   - Unread count badge
   - Priority indicators
-  - Detailed view with metadata
+  - Detailed view with event_metadata
 
 #### 3. Integration with Rules Engine
 

@@ -34,7 +34,7 @@ def upgrade() -> None:
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('tenant_id', postgresql.UUID(as_uuid=True),
                   sa.ForeignKey('tenants.id'), nullable=False),
-        sa.Column('metadata', postgresql.JSONB(
+        sa.Column('event_metadata', postgresql.JSONB(
             astext_type=sa.Text()), nullable=True),
     )
 

@@ -484,7 +484,7 @@ ESLint is configured with selective overrides to flag these issues appropriately
 - All significant conversation actions (messages, joins, leaves, closes, etc.) are logged as structured events.
 - Event types are defined in both backend (Pydantic/SQLAlchemy) and frontend (TypeScript enums) for strict type safety.
 - Events are sent from the frontend using the `ConversationEventLogger` utility, which posts to the `/conversation-events` API.
-- Events include `conversation_id`, `user_id`, `tenant_id`, `event_type`, `payload`, and `metadata`.
+- Events include `conversation_id`, `user_id`, `tenant_id`, `event_type`, `payload`, and `event_metadata`.
 
 ## Clerk Integration for User & Tenant IDs
 - The frontend uses Clerk's `useUser` and `useOrganization` hooks to obtain the real user and tenant (organization) IDs.
