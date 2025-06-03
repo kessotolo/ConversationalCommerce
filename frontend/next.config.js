@@ -3,11 +3,20 @@ const nextConfig = {
   // Completely disable TypeScript type checking and ESLint
   typescript: {
     ignoreBuildErrors: true,
+    tsconfigPath: 'tsconfig.json',
   },
   eslint: {
     ignoreDuringBuilds: true,
   },
-  reactStrictMode: true,
+  reactStrictMode: false,
+  // Remove invalid swcMinify option
+
+  experimental: {
+    // Remove invalid experimental options
+    // Only include valid Next.js 15 options
+  },
+  // Disable source maps in production to reduce build size
+  productionBrowserSourceMaps: false,
   images: {
     remotePatterns: [
       {

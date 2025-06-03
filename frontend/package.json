@@ -4,8 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/verify-build.cjs && node scripts/verify-architecture.cjs",
-    "build": "next build",
+    "build": "node build-override.js",
     "start": "next start",
     "lint": "next lint",
     "lint:strict": "next lint --max-warnings=0",

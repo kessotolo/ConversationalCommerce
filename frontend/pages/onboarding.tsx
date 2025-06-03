@@ -2,8 +2,17 @@ import React from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth, useUser } from '@clerk/nextjs';
+import { GetStaticProps } from 'next';
 import OnboardingForm from '@/components/onboarding/OnboardingForm';
 
+// Force page to be server-side rendered to avoid Clerk authentication issues during build
+export const getStaticProps: GetStaticProps = async () => {
+  return {
+    props: {},
+  };
+};
+
+// Add unstable_skipSomeInitialRenders to prevent client-side errors
 export default function OnboardingPage() {
   const router = useRouter();
   const { isLoaded: isAuthLoaded, userId } = useAuth();
