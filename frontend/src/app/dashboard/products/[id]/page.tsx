@@ -61,286 +61,275 @@ export default function ProductPage() {
   const router = useRouter();
   const productId = params?.id as string;
 
-  const [product, setProduct] = useState<Product | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [newImage, setNewImage] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
+  const [product, setProduct] = useState<Product | undefined>();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedProduct, setEditedProduct] = useState<Product | undefined>();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Fetch product data
+  // Load product data
   useEffect(() => {
-    // In a real app, this would be an API call
     const foundProduct = mockProducts.find((p) => p.id === productId);
-
-    if (foundProduct) {
-      setProduct(foundProduct);
-    }
-
-    setIsLoading(false);
+    setProduct(foundProduct);
+    setEditedProduct(foundProduct ? { ...foundProduct } : undefined);
   }, [productId]);
 
-  // Handle camera capture
-  const handleCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) => {
+    if (!editedProduct) return;
 
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setNewImage(reader.result);
-        }
-      };
+    const { name, value } = e.target;
 
-      reader.readAsDataURL(file);
+    if (name === 'price') {
+      setEditedProduct({
+        ...editedProduct,
+        [name]: parseFloat(value) || 0,
+      });
+    } else if (name === 'inStock') {
+      setEditedProduct({
+        ...editedProduct,
+        inStock: (e.target as HTMLInputElement).checked,
+      });
+    } else {
+      setEditedProduct({
+        ...editedProduct,
+        [name]: value,
+      });
     }
   };
 
-  // Handle file upload
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setNewImage(reader.result);
-        }
-      };
-
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // Handle save
   const handleSave = () => {
-    if (!product) return;
-
-    setIsSaving(true);
-
     // In a real app, this would be an API call
-    setTimeout(() => {
-      // Update product with new image if available
-      if (newImage) {
-        setProduct({
-          ...product,
-          image: newImage,
-        });
-      }
-
-      setIsSaving(false);
-
-      // Show success message or redirect
-      router.push('/dashboard/products');
-    }, 1000);
+    setProduct(editedProduct);
+    setIsEditing(false);
+    // Mock successful save
+    alert('Product updated successfully!');
   };
 
-  // Handle field change
-  const handleChange = (field: keyof Product, value: any) => {
-    if (!product) return;
-
-    setProduct({
-      ...product,
-      [field]: value,
-    });
+  const handleDelete = () => {
+    // In a real app, this would be an API call
+    alert('Product deleted successfully!');
+    router.push('/dashboard/products');
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <h3 className="mt-4 text-lg font-medium">Loading product details...</h3>
-        </div>
-      </div>
-    );
-  }
 
   if (!product) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <AlertTriangle className="mx-auto h-10 w-10 text-destructive" />
-          <h3 className="mt-4 text-lg font-medium">Error loading product</h3>
-          <p className="mt-2 text-sm text-muted-foreground"></p>
-          <Button onClick={() => router.push('/dashboard/products')} className="mt-4">
-            Back to Products
-          </Button>
+      <div className="container mx-auto px-4 py-8">
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
+          <p>The product you're looking for doesn't exist or has been removed.</p>
+          <Link
+            href="/dashboard/products"
+            className="text-blue-500 hover:text-blue-700 mt-4 inline-block"
+          >
+            <div className="flex items-center">
+              <ArrowLeft size={16} className="mr-1" />
+              <span>Back to Products</span>
+            </div>
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header with back button */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center">
-          <Link href="/dashboard/products" className="mr-2">
-            <ArrowLeft size={20} />
-          </Link>
-          <h1 className="text-2xl font-bold">Edit Product</h1>
-        </div>
-        <div className="flex space-x-2">
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="bg-primary text-white px-4 py-2 rounded-md flex items-center"
-          >
-            {isSaving ? (
-              <span className="flex items-center">
-                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
-                Saving...
-              </span>
-            ) : (
-              <span className="flex items-center">
-                <Save className="mr-2 h-4 w-4" />
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-6">
+        <Link href="/dashboard/products" className="text-blue-500 hover:text-blue-700">
+          <div className="flex items-center">
+            <ArrowLeft size={16} className="mr-1" />
+            <span>Back to Products</span>
+          </div>
+        </Link>
+        <div className="space-x-2">
+          {isEditing ? (
+            <>
+              <Button
+                onClick={() => {
+                  setIsEditing(false);
+                  setEditedProduct(product);
+                }}
+                variant="outline"
+                className="border-gray-300"
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleSave} className="bg-green-600 hover:bg-green-700 text-white">
+                <Save size={16} className="mr-1" />
                 Save Changes
-              </span>
-            )}
-          </button>
+              </Button>
+            </>
+          ) : (
+            <Button
+              onClick={() => setIsEditing(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Edit Product
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Product form */}
-      <div className="bg-white rounded-lg shadow p-4 space-y-6">
-        {/* Product image */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Product Image</label>
-          <div className="flex flex-col items-center sm:flex-row sm:items-start gap-4">
-            <div className="w-32 h-32 rounded-md overflow-hidden bg-gray-100">
-              <img
-                src={newImage || product?.image}
-                alt={product?.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2 justify-center">
-              {/* Camera capture - mobile only */}
-              <label className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50">
-                <Camera className="h-5 w-5 text-gray-400 mr-2" />
-                <span className="text-sm">Take Photo</span>
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={handleCapture}
-                />
-              </label>
-
-              {/* File upload */}
-              <label className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50">
-                <Upload className="h-5 w-5 text-gray-400 mr-2" />
-                <span className="text-sm">Upload Image</span>
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleFileUpload}
-                />
-              </label>
-            </div>
-          </div>
-        </div>
-
-        {/* Product details */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-              Product Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              value={product?.name}
-              onChange={(e) => handleChange('name', e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="price" className="block text-sm font-medium text-gray-700">
-              Price
-            </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="text-gray-500 sm:text-sm">$</span>
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="md:flex">
+          <div className="md:w-1/3 relative h-64 md:h-auto">
+            {product.image ? (
+              <Image src={product.image} alt={product.name} fill className="object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                <Camera size={48} className="text-gray-400" />
+                <span className="ml-2 text-gray-500">No Image</span>
               </div>
-              <input
-                type="number"
-                id="price"
-                value={product?.price}
-                onChange={(e) => handleChange('price', parseFloat(e.target.value))}
-                className="block w-full pl-7 pr-12 rounded-md border-gray-300 focus:border-primary focus:ring-primary"
-                placeholder="0.00"
-                step="0.01"
-                min="0"
-              />
-            </div>
+            )}
+            {isEditing && (
+              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                <button className="bg-white p-2 rounded-full">
+                  <Upload size={24} className="text-blue-600" />
+                </button>
+              </div>
+            )}
           </div>
+          <div className="p-6 md:w-2/3">
+            {isEditing ? (
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                    Product Name
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={editedProduct?.name || ''}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
 
-          <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700">
-              Category
-            </label>
-            <input
-              type="text"
-              id="category"
-              value={product?.category}
-              onChange={(e) => handleChange('category', e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-              list="categories"
-            />
-            <datalist id="categories">
-              {categories.map((category) => (
-                <option key={category} value={category} />
-              ))}
-            </datalist>
-          </div>
+                <div>
+                  <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+                    Category
+                  </label>
+                  <select
+                    id="category"
+                    name="category"
+                    value={editedProduct?.category || ''}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  >
+                    {categories.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Stock Status</label>
-            <div className="mt-1 flex items-center">
-              <input
-                type="checkbox"
-                id="inStock"
-                checked={product?.inStock}
-                onChange={(e) => handleChange('inStock', e.target.checked)}
-                className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-              />
-              <label htmlFor="inStock" className="ml-2 block text-sm text-gray-700">
-                In Stock
-              </label>
-            </div>
-          </div>
+                <div>
+                  <label htmlFor="price" className="block text-sm font-medium text-gray-700">
+                    Price ($)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    id="price"
+                    name="price"
+                    value={editedProduct?.price || 0}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
 
-          <div className="md:col-span-2">
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-              Description
-            </label>
-            <textarea
-              id="description"
-              value={product?.description}
-              onChange={(e) => handleChange('description', e.target.value)}
-              rows={4}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-            />
+                <div>
+                  <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                    Description
+                  </label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    rows={3}
+                    value={editedProduct?.description || ''}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="inStock"
+                    name="inStock"
+                    checked={editedProduct?.inStock || false}
+                    onChange={handleInputChange}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <label htmlFor="inStock" className="ml-2 block text-sm text-gray-700">
+                    In Stock
+                  </label>
+                </div>
+              </div>
+            ) : (
+              <>
+                <h1 className="text-2xl font-bold mb-2">{product.name}</h1>
+                <div className="flex items-center mb-4">
+                  <span className="text-gray-600">{product.category}</span>
+                  <span className="mx-2">•</span>
+                  <span className={product.inStock ? 'text-green-600' : 'text-red-600'}>
+                    {product.inStock ? 'In Stock' : 'Out of Stock'}
+                  </span>
+                </div>
+                <div className="text-2xl font-bold text-blue-600 mb-4">
+                  ${product.price.toFixed(2)}
+                </div>
+                <p className="text-gray-700 mb-6">{product.description}</p>
+                <div className="border-t pt-4">
+                  <h2 className="text-lg font-semibold mb-2">Product Details</h2>
+                  <ul className="space-y-1 text-sm text-gray-600">
+                    <li>
+                      <span className="font-medium">ID:</span> {product.id}
+                    </li>
+                    <li>
+                      <span className="font-medium">Category:</span> {product.category}
+                    </li>
+                    <li>
+                      <span className="font-medium">Availability:</span>{' '}
+                      {product.inStock ? 'In Stock' : 'Out of Stock'}
+                    </li>
+                  </ul>
+                </div>
+              </>
+            )}
           </div>
         </div>
-
-        {/* Delete button */}
-        <div className="pt-4 border-t">
-          <button
-            className="flex items-center text-red-600 hover:text-red-800"
-            onClick={() => {
-              if (confirm('Are you sure you want to delete this product?')) {
-                router.push('/dashboard/products');
-              }
-            }}
-          >
-            <Trash2 size={16} className="mr-1" />
-            <span>Delete Product</span>
-          </button>
+        <div className="bg-gray-50 px-6 py-4 flex justify-end">
+          {showDeleteConfirm ? (
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center text-amber-600">
+                <AlertTriangle size={16} className="mr-1" />
+                <span>Are you sure you want to delete this product?</span>
+              </div>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="text-gray-600 hover:text-gray-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="text-red-600 hover:text-red-800 flex items-center"
+            >
+              <Trash2 size={16} className="mr-1" />
+              <span>Delete Product</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

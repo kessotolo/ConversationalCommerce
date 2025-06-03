@@ -9,7 +9,5 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# Remove the redirect rule that conflicts with Next.js routing
+# Next.js routing is handled by the @netlify/plugin-nextjs plugin
