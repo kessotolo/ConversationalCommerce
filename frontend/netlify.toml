@@ -1,10 +1,11 @@
 [build]
-  command = "cp .eslintrc-netlify.js .eslintrc.js && NEXT_DISABLE_ESLINT_DURING_BUILD=true npm run build"
+  command = "NODE_OPTIONS=--max_old_space_size=4096 npm run build"
   publish = ".next"
 
 [build.environment]
   NODE_VERSION = "18"
   NPM_FLAGS = "--legacy-peer-deps"
+  NEXT_TELEMETRY_DISABLED = "1"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
