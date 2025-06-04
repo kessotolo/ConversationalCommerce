@@ -19,6 +19,7 @@ from app.services.payment.payment_provider import get_payment_provider
 from app.schemas.payment.payment_validation import EnhancedPaymentInitializeRequest, EnhancedManualPaymentProof
 from app.services.audit_service import create_audit_log, AuditActionType, AuditResourceType
 from app.core.security.payment_security import mask_sensitive_data
+from app.api.deps.security_deps import payment_security_checks
 
 router = APIRouter()
 
@@ -28,7 +29,8 @@ async def initialize_payment(
     request: EnhancedPaymentInitializeRequest,
     db: Session = Depends(deps.get_db),
     current_user: Any = Depends(get_current_active_user),
-    fastapi_request: Request = None
+    fastapi_request: Request = None,
+    _: bool = Depends(payment_security_checks("payment:initialize"))
 ) -> Any:
     """
     Initialize a payment transaction with the selected provider
@@ -56,7 +58,8 @@ async def verify_payment(
     reference: str,
     provider: PaymentProvider,
     db: Session = Depends(deps.get_db),
-    current_user: Any = Depends(get_current_active_user)
+    current_user: Any = Depends(get_current_active_user),
+    _: bool = Depends(payment_security_checks("payment:verify"))
 ) -> Any:
     """
     Verify the status of a payment using its reference
@@ -73,7 +76,8 @@ async def submit_manual_payment_proof(
     proof: EnhancedManualPaymentProof,
     db: Session = Depends(deps.get_db),
     current_user: Any = Depends(get_current_active_user),
-    fastapi_request: Request = None
+    fastapi_request: Request = None,
+    _: bool = Depends(payment_security_checks("payment:manual_proof"))
 ) -> Any:
     """
     Submit proof of manual bank transfer payment for an order
@@ -101,7 +105,8 @@ async def confirm_manual_payment(
     payment_id: int,
     confirmed: bool = Body(..., embed=True),
     db: Session = Depends(deps.get_db),
-    current_user: Any = Depends(deps.get_current_active_superuser)
+    current_user: Any = Depends(deps.get_current_active_superuser),
+    _: bool = Depends(payment_security_checks("payment:manual_confirm"))
 ) -> Any:
     """
     Confirm or reject a manual payment after reviewing proof (admin/seller only)
@@ -116,7 +121,8 @@ async def confirm_manual_payment(
 async def get_payment_settings(
     store_id: int,
     db: Session = Depends(deps.get_db),
-    current_user: Any = Depends(get_current_active_user)
+    current_user: Any = Depends(get_current_active_user),
+    _: bool = Depends(payment_security_checks("payment:settings"))
 ) -> Any:
     """
     Get payment settings for a store
@@ -133,7 +139,8 @@ async def update_payment_settings(
     store_id: int,
     settings_data: PaymentSettings,
     db: Session = Depends(deps.get_db),
-    current_user: Any = Depends(get_current_active_user)
+    current_user: Any = Depends(get_current_active_user),
+    _: bool = Depends(payment_security_checks("payment:settings"))
 ) -> Any:
     """
     Update payment settings for a store
@@ -149,7 +156,8 @@ async def update_payment_settings(
 async def paystack_webhook(
     request: Request,
     x_paystack_signature: str = Header(None),
-    db: Session = Depends(deps.get_db)
+    db: Session = Depends(deps.get_db),
+    _: bool = Depends(payment_security_checks("payment:webhook"))
 ) -> Any:
     """
     Handle Paystack webhook events
@@ -199,7 +207,8 @@ async def paystack_webhook(
 async def flutterwave_webhook(
     request: Request,
     verify_hash: str = Header(None),
-    db: Session = Depends(deps.get_db)
+    db: Session = Depends(deps.get_db),
+    _: bool = Depends(payment_security_checks("payment:webhook"))
 ) -> Any:
     """
     Handle Flutterwave webhook events
