@@ -1,0 +1,505 @@
+from typing import Dict, Any, List, Optional
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
+from datetime import datetime, timedelta
+
+from app.db.models.store import Store
+from app.db.models.order import Order
+from app.db.models.payment import Payment, PaymentSettings, ManualPaymentProof
+from app.schemas.payment.payment import (
+    PaymentProvider,
+    PaymentInitializeRequest,
+    PaymentInitializeResponse,
+    PaymentVerificationResponse,
+    ManualPaymentProof as ManualPaymentProofSchema,
+    PaymentSettings as PaymentSettingsSchema,
+    BankAccountDetails,
+    PaymentProviderConfig,
+    PaymentStatus
+)
+from app.services.payment.payment_provider import get_payment_provider
+from app.core.logging import logger
+from app.core.security.payment_security import (
+    generate_payment_reference, verify_payment_reference, get_tls12_session, calculate_payment_risk
+)
+
+
+class PaymentService:
+    """Service for handling payment operations"""
+
+    def __init__(self, db: Session):
+        self.db = db
+
+    async def initialize_payment(self, request: PaymentInitializeRequest) -> PaymentInitializeResponse:
+        """Initialize a payment transaction with the selected provider"""
+        try:
+            # Validate order exists
+            order = self.db.query(Order).filter(
+                Order.order_number == request.order_id).first()
+            if not order:
+                raise HTTPException(
+                    status_code=404, detail=f"Order {request.order_id} not found")
+
+            # Get store payment settings
+            store = self.db.query(Store).filter(
+                Store.id == order.store_id).first()
+            if not store:
+                raise HTTPException(status_code=404, detail="Store not found")
+
+            payment_settings = self.db.query(PaymentSettings).filter(
+                PaymentSettings.store_id == store.id).first()
+            if not payment_settings:
+                raise HTTPException(
+                    status_code=400, detail="Store payment settings not configured")
+
+            # Check if online payments are enabled
+            if not payment_settings.online_payments_enabled:
+                raise HTTPException(
+                    status_code=400, detail="Online payments are not enabled for this store")
+
+            # Find the requested provider configuration
+            provider_config = None
+            provider_credentials = {}
+
+            for config in payment_settings.providers:
+                if config.provider == request.provider.value:
+                    provider_config = config
+                    provider_credentials = {
+                        "public_key": config.public_key,
+                        "secret_key": config.secret_key,
+                        "encryption_key": config.encryption_key
+                    }
+                    break
+
+            if not provider_config or not provider_config.enabled:
+                raise HTTPException(
+                    status_code=400, detail=f"Payment provider {request.provider.value} is not enabled")
+
+            # Get the payment provider implementation
+            provider_instance = get_payment_provider(
+                request.provider, provider_credentials)
+
+            # Generate a secure, signed payment reference
+            tenant_id = str(order.tenant_id) if hasattr(
+                order, 'tenant_id') else "default"
+            payment_reference = generate_payment_reference(
+                order_id=request.order_id, tenant_id=tenant_id)
+
+            # Use TLS 1.2+ session for outbound requests
+            session = get_tls12_session()
+
+            # Risk scoring
+            ip_address = getattr(request, 'ip_address', None)
+            user_agent = getattr(request, 'user_agent', None)
+            # Velocity: count recent attempts by user/IP
+            recent_attempts = self.db.query(Payment).filter(
+                Payment.customer_email == request.customer_email,
+                Payment.created_at >= datetime.utcnow() - timedelta(minutes=10)
+            ).count()
+            risk_score = calculate_payment_risk(
+                amount=request.amount.value,
+                user_id=getattr(order, 'user_id', None),
+                ip_address=ip_address,
+                user_agent=user_agent,
+                recent_attempts=recent_attempts
+            )
+
+            # Initialize the payment
+            response = provider_instance.initialize_payment(request)
+
+            # Record the payment initialization in the database
+            payment = Payment(
+                order_id=order.id,
+                reference=payment_reference,
+                amount=request.amount.value,
+                currency=request.amount.currency,
+                provider=request.provider.value,
+                status=PaymentStatus.PENDING.value,
+                customer_email=request.customer_email,
+                metadata=request.metadata,
+                risk_score=risk_score,
+                ip_address=ip_address,
+                user_agent=user_agent
+            )
+
+            self.db.add(payment)
+            self.db.commit()
+
+            # Optionally log high-risk attempts
+            if risk_score > 0.7:
+                logger.warning(
+                    f"High-risk payment attempt: {payment_reference} (score={risk_score})")
+
+            # Return response with secure reference
+            # (If provider needs a specific format, pass payment_reference as meta or tx_ref)
+            return PaymentInitializeResponse(
+                checkout_url="",  # Set as needed
+                reference=payment_reference,
+                payment_link=""  # Set as needed
+            )
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            self.db.rollback()
+            logger.error(f"Error initializing payment: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Payment initialization failed: {str(e)}")
+
+    async def verify_payment(self, reference: str, provider: PaymentProvider) -> PaymentVerificationResponse:
+        """Verify payment status with the provider"""
+        try:
+            # Verify the reference integrity
+            ref_payload = verify_payment_reference(reference)
+            if not ref_payload:
+                raise HTTPException(
+                    status_code=400, detail="Invalid or tampered payment reference")
+
+            # Find the payment record
+            payment = self.db.query(Payment).filter(
+                Payment.reference == reference).first()
+            if not payment:
+                raise HTTPException(
+                    status_code=404, detail=f"Payment reference {reference} not found")
+
+            # Get the store for this payment's order
+            order = self.db.query(Order).filter(
+                Order.id == payment.order_id).first()
+            if not order:
+                raise HTTPException(status_code=404, detail="Order not found")
+
+            store = self.db.query(Store).filter(
+                Store.id == order.store_id).first()
+            if not store:
+                raise HTTPException(status_code=404, detail="Store not found")
+
+            # Get payment settings with provider credentials
+            payment_settings = self.db.query(PaymentSettings).filter(
+                PaymentSettings.store_id == store.id).first()
+            if not payment_settings:
+                raise HTTPException(
+                    status_code=400, detail="Store payment settings not configured")
+
+            # Find the provider configuration
+            provider_config = None
+            provider_credentials = {}
+
+            for config in payment_settings.providers:
+                if config.provider == provider.value:
+                    provider_config = config
+                    provider_credentials = {
+                        "public_key": config.public_key,
+                        "secret_key": config.secret_key,
+                        "encryption_key": config.encryption_key
+                    }
+                    break
+
+            if not provider_config:
+                raise HTTPException(
+                    status_code=400, detail=f"Payment provider {provider.value} configuration not found")
+
+            # Get the payment provider implementation
+            provider_instance = get_payment_provider(
+                provider, provider_credentials)
+
+            # Verify the payment
+            verification_response = provider_instance.verify_payment(reference)
+
+            # Update payment status in the database
+            if verification_response.success:
+                payment.status = PaymentStatus.COMPLETED.value
+                payment.verified_at = datetime.now()
+                payment.provider_reference = verification_response.provider_reference
+                payment.payment_method = verification_response.payment_method.value if verification_response.payment_method else None
+                payment.transaction_date = verification_response.transaction_date
+
+                # Update order status if payment successful
+                order.payment_status = "PAID"
+                order.status = "PROCESSING"
+
+                self.db.commit()
+
+            # Risk scoring (update if new info is available)
+            if payment:
+                # Optionally update risk score if new info is available
+                pass
+
+            return verification_response
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error verifying payment: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Payment verification failed: {str(e)}")
+
+    async def submit_manual_payment_proof(
+        self,
+        order_id: str,
+        proof: ManualPaymentProofSchema
+    ) -> bool:
+        """Submit proof of manual payment for an order"""
+        try:
+            # Find the order
+            order = self.db.query(Order).filter(
+                Order.order_number == order_id).first()
+            if not order:
+                raise HTTPException(
+                    status_code=404, detail=f"Order {order_id} not found")
+
+            # Check if there's an existing payment record
+            existing_payment = self.db.query(Payment).filter(
+                Payment.order_id == order.id,
+                Payment.provider == PaymentProvider.MANUAL.value
+            ).first()
+
+            if existing_payment:
+                # Update the existing payment record
+                existing_proof = self.db.query(ManualPaymentProof).filter(
+                    ManualPaymentProof.payment_id == existing_payment.id
+                ).first()
+
+                if existing_proof:
+                    existing_proof.reference = proof.reference
+                    existing_proof.transfer_date = proof.transfer_date
+                    existing_proof.bank_name = proof.bank_name
+                    existing_proof.account_name = proof.account_name
+                    existing_proof.screenshot_url = proof.screenshot_url
+                    existing_proof.notes = proof.notes
+                    existing_proof.updated_at = datetime.now()
+                else:
+                    # Create a new proof record
+                    new_proof = ManualPaymentProof(
+                        payment_id=existing_payment.id,
+                        reference=proof.reference,
+                        transfer_date=proof.transfer_date,
+                        bank_name=proof.bank_name,
+                        account_name=proof.account_name,
+                        screenshot_url=proof.screenshot_url,
+                        notes=proof.notes
+                    )
+                    self.db.add(new_proof)
+            else:
+                # Create a new payment record
+                new_payment = Payment(
+                    order_id=order.id,
+                    reference=proof.reference,
+                    amount=order.total_amount,
+                    currency=order.currency,
+                    provider=PaymentProvider.MANUAL.value,
+                    status=PaymentStatus.PENDING.value,
+                    customer_email=order.customer_email
+                )
+                self.db.add(new_payment)
+                self.db.flush()  # To get the payment ID
+
+                # Create a new proof record
+                new_proof = ManualPaymentProof(
+                    payment_id=new_payment.id,
+                    reference=proof.reference,
+                    transfer_date=proof.transfer_date,
+                    bank_name=proof.bank_name,
+                    account_name=proof.account_name,
+                    screenshot_url=proof.screenshot_url,
+                    notes=proof.notes
+                )
+                self.db.add(new_proof)
+
+            # Update order status to indicate manual payment proof was submitted
+            order.payment_status = "PENDING_VERIFICATION"
+
+            self.db.commit()
+            return True
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            self.db.rollback()
+            logger.error(f"Error submitting manual payment proof: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Failed to submit payment proof: {str(e)}")
+
+    async def confirm_manual_payment(self, payment_id: int, confirmed: bool) -> bool:
+        """Confirm or reject a manual payment after reviewing proof"""
+        try:
+            payment = self.db.query(Payment).filter(
+                Payment.id == payment_id,
+                Payment.provider == PaymentProvider.MANUAL.value
+            ).first()
+
+            if not payment:
+                raise HTTPException(
+                    status_code=404, detail="Manual payment record not found")
+
+            order = self.db.query(Order).filter(
+                Order.id == payment.order_id).first()
+            if not order:
+                raise HTTPException(status_code=404, detail="Order not found")
+
+            if confirmed:
+                payment.status = PaymentStatus.COMPLETED.value
+                payment.verified_at = datetime.now()
+
+                # Update order status
+                order.payment_status = "PAID"
+                order.status = "PROCESSING"
+            else:
+                payment.status = PaymentStatus.FAILED.value
+
+                # Update order status
+                order.payment_status = "FAILED"
+
+            self.db.commit()
+            return True
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            self.db.rollback()
+            logger.error(f"Error confirming manual payment: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Failed to confirm payment: {str(e)}")
+
+    async def get_payment_settings(self, store_id: int) -> PaymentSettingsSchema:
+        """Get payment settings for a store"""
+        try:
+            settings = self.db.query(PaymentSettings).filter(
+                PaymentSettings.store_id == store_id).first()
+
+            if not settings:
+                # Return default settings
+                return PaymentSettingsSchema(
+                    online_payments_enabled=False,
+                    providers=[],
+                    platform_fee_percentage=5.0,
+                    auto_calculate_payout=True
+                )
+
+            # Map to schema
+            provider_configs = []
+            for provider in settings.providers:
+                provider_configs.append(
+                    PaymentProviderConfig(
+                        provider=PaymentProvider(provider.provider),
+                        enabled=provider.enabled,
+                        is_default=provider.is_default,
+                        credentials={
+                            "public_key": provider.public_key,
+                            "secret_key": "********",  # Never return the full secret key
+                            "encryption_key": "********" if provider.encryption_key else None
+                        }
+                    )
+                )
+
+            bank_details = None
+            if settings.bank_name and settings.account_name and settings.account_number:
+                bank_details = BankAccountDetails(
+                    bank_name=settings.bank_name,
+                    account_name=settings.account_name,
+                    account_number=settings.account_number,
+                    instructions=settings.bank_instructions
+                )
+
+            return PaymentSettingsSchema(
+                online_payments_enabled=settings.online_payments_enabled,
+                providers=provider_configs,
+                bank_transfer_details=bank_details,
+                platform_fee_percentage=settings.platform_fee_percentage,
+                auto_calculate_payout=settings.auto_calculate_payout
+            )
+
+        except Exception as e:
+            logger.error(f"Error getting payment settings: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Failed to get payment settings: {str(e)}")
+
+    async def update_payment_settings(self, store_id: int, settings_data: PaymentSettingsSchema) -> bool:
+        """Update payment settings for a store"""
+        try:
+            settings = self.db.query(PaymentSettings).filter(
+                PaymentSettings.store_id == store_id).first()
+
+            if not settings:
+                # Create new settings
+                settings = PaymentSettings(
+                    store_id=store_id,
+                    online_payments_enabled=settings_data.online_payments_enabled,
+                    platform_fee_percentage=settings_data.platform_fee_percentage,
+                    auto_calculate_payout=settings_data.auto_calculate_payout,
+                    providers=[]
+                )
+                self.db.add(settings)
+                self.db.flush()  # To get the settings ID
+            else:
+                # Update existing settings
+                settings.online_payments_enabled = settings_data.online_payments_enabled
+                settings.platform_fee_percentage = settings_data.platform_fee_percentage
+                settings.auto_calculate_payout = settings_data.auto_calculate_payout
+
+            # Update bank details if provided
+            if settings_data.bank_transfer_details:
+                settings.bank_name = settings_data.bank_transfer_details.bank_name
+                settings.account_name = settings_data.bank_transfer_details.account_name
+                settings.account_number = settings_data.bank_transfer_details.account_number
+                settings.bank_instructions = settings_data.bank_transfer_details.instructions
+            else:
+                settings.bank_name = None
+                settings.account_name = None
+                settings.account_number = None
+                settings.bank_instructions = None
+
+            # Update provider configurations
+            # This is a simplified approach; in a real application you would handle
+            # adding/updating/removing providers more carefully
+            settings.providers = []  # Clear existing providers
+
+            for provider_config in settings_data.providers:
+                # Don't save dummy secret values (e.g., ********)
+                secret_key = provider_config.credentials.secret_key
+                encryption_key = provider_config.credentials.encryption_key
+
+                if secret_key == "********":
+                    # Look up existing secret
+                    existing_provider = self.db.query(PaymentSettings).filter(
+                        PaymentSettings.store_id == store_id,
+                        PaymentSettings.providers.any(
+                            provider=provider_config.provider.value)
+                    ).first()
+
+                    if existing_provider:
+                        for provider in existing_provider.providers:
+                            if provider.provider == provider_config.provider.value:
+                                secret_key = provider.secret_key
+                                break
+
+                if encryption_key == "********":
+                    # Look up existing encryption key
+                    existing_provider = self.db.query(PaymentSettings).filter(
+                        PaymentSettings.store_id == store_id,
+                        PaymentSettings.providers.any(
+                            provider=provider_config.provider.value)
+                    ).first()
+
+                    if existing_provider:
+                        for provider in existing_provider.providers:
+                            if provider.provider == provider_config.provider.value:
+                                encryption_key = provider.encryption_key
+                                break
+
+                settings.providers.append({
+                    "provider": provider_config.provider.value,
+                    "enabled": provider_config.enabled,
+                    "public_key": provider_config.credentials.public_key,
+                    "secret_key": secret_key,
+                    "encryption_key": encryption_key,
+                    "is_default": provider_config.is_default
+                })
+
+            self.db.commit()
+            return True
+
+        except Exception as e:
+            self.db.rollback()
+            logger.error(f"Error updating payment settings: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Failed to update payment settings: {str(e)}")
