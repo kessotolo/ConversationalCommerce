@@ -73,3 +73,5 @@ pycparser>=2.22
 # consider installing these separately or using cloud-based APIs
 # transformers>=4.36.0 # For more advanced NLP features
 # sentence-transformers>=2.2.2 # For semantic similarity
+
+pydantic[email]

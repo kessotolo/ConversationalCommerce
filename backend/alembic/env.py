@@ -1,15 +1,13 @@
-from app.models import user, product, order, seller_profile
-from app.db import Base
-from logging.config import fileConfig
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
 from alembic import context
+from sqlalchemy import pool
+from sqlalchemy import engine_from_config
+from logging.config import fileConfig
+from app.db import Base
+from app.models import user, product, order, seller_profile
 import sys
 import os
 sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..')))
-sys.path.insert(0, os.path.abspath(os.path.join(
-    os.path.dirname(__file__), '../..', 'backend')))
+    os.path.join(os.path.dirname(__file__), '../..')))
 
 
 # this is the Alembic Config object, which provides
