@@ -436,7 +436,12 @@ The backend uses an event-driven architecture for order-related actions. This en
 
 #### Main Events:
 - **OrderCreatedEvent** (`ORDER_CREATED`):
-  - `order_id`, `order_number`, `order` (full order object), `tenant_id`, `timestamp`, `event_id`, `event_metadata`
+  - `order_id`, `order_number`, `order`, `tenant_id`, `timestamp`, `event_id`, `event_metadata`
+  - Emitted after a new order is created.
+  - **Handlers:**
+    - Sends order confirmation notification (email/SMS/WhatsApp)
+    - Logs analytics event for order creation
+    - Triggers fulfillment workflow (e.g., warehouse notification)
 - **OrderStatusChangedEvent** (`ORDER_STATUS_CHANGED`):
   - `order_id`, `order_number`, `previous_status`, `new_status`, `changed_by`, `notes`, `tenant_id`, `timestamp`, `event_id`, `event_metadata`
 - **PaymentProcessedEvent** (`PAYMENT_PROCESSED`):
