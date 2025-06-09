@@ -736,3 +736,7 @@ import NotificationCenter from 'src/components/monitoring/NotificationCenter';
 - The WhatsApp number is stored in the tenant profile and can be updated at any time.
 - API endpoints: `GET /tenants/me` (fetch profile), `PATCH /tenants/me` (update WhatsApp number).
 - Test by updating the number and triggering an alert event.
+
+## Backend Migrations
+
+- All backend database migrations are managed using Alembic in the backend directory. See `backend/README.md` for workflow and troubleshooting.

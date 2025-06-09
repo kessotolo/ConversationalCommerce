@@ -1,5 +1,7 @@
 # Order API Documentation
 
+> **Note:** All database migrations are managed using Alembic in the backend directory. For migration workflow and troubleshooting, see `backend/README.md`.
+
 ## Overview
 
 The Order API enables managing the full lifecycle of orders across multiple channels (website, WhatsApp, Instagram) in the Conversational Commerce platform. These endpoints support creating, retrieving, updating, and deleting orders with appropriate validation, error handling, and security controls.

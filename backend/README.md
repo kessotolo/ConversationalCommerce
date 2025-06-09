@@ -896,3 +896,33 @@ The platform implements a comprehensive content moderation system to ensure cont
 - Twilio WhatsApp API is used for sending alerts.
 - New API endpoints: `GET /tenants/me` and `PATCH /tenants/me` for profile management.
 - Test: Update WhatsApp number, trigger an alert, and confirm WhatsApp delivery.
+
+# Alembic Migration Workflow & Best Practices
+
+All database migrations are managed using Alembic in the backend directory. To ensure smooth migrations and avoid import errors:
+
+- Always run Alembic commands from the `backend` directory.
+- Always activate the backend virtual environment first:
+  ```bash
+  cd backend
+  source venv/bin/activate
+  alembic <command>
+  ```
+- Do NOT use or create a root-level Alembic directory. All migrations and env.py config are in `backend/alembic`.
+- If you see `ModuleNotFoundError: No module named 'app'`, you are likely running Alembic from the wrong directory or without the venv activated.
+- To upgrade Alembic:
+  ```bash
+  pip install --upgrade alembic
+  ```
+- To check migration status:
+  ```bash
+  alembic current
+  alembic upgrade head
+  ```
+- If you have migration issues, check your virtual environment and working directory first.
+
+**Recent Fixes:**
+- Removed duplicate/root-level Alembic config.
+- Created and activated a backend virtual environment.
+- Upgraded Alembic to the latest version.
+- Confirmed all migrations are up to date and working.

@@ -48,16 +48,16 @@ This project uses a multi-README approach to organize documentation:
 
 - **Seller Authentication**: Secure JWT-based authentication through Clerk with role-based access control
 - **Product Management**: Full CRUD operations with rich media support and mobile camera integration
-- **WhatsApp Integration**: 
+- **WhatsApp Integration**:
   - **WhatsApp Number Management**: Sellers can register their WhatsApp numbers through the platform
   - **WhatsApp Alerting**: Automated notifications sent to sellers' WhatsApp numbers
   - **NLP Cart Management**: Process cart-related commands directly through WhatsApp messages
   - **Multi-Tenant Routing**: Messages route to appropriate seller based on WhatsApp number
-- **Multi-Platform Social Sharing**: 
+- **Multi-Platform Social Sharing**:
   - Product sharing across WhatsApp, Instagram, TikTok, Facebook, Twitter, and Telegram
   - Branded QR codes for in-person and print marketing
   - UTM tracking for conversion analytics
-- **Mobile-First Storefront**: 
+- **Mobile-First Storefront**:
   - Optimized interface for African mobile market
   - Bottom navigation for key features
   - Responsive product grid and details
@@ -920,3 +920,16 @@ TWILIO_WHATSAPP_NUMBER=your_whatsapp_number
 ### Detailed Documentation
 For comprehensive implementation details, configuration options, and troubleshooting, see the [WhatsApp Alerting documentation](./frontend/docs/WHATSAPP_ALERTING.md).
 - Ensure only authenticated sellers can update their WhatsApp number.
+
+## 🗂️ Alembic Migration Workflow (Backend)
+
+- All database migrations are managed using Alembic in the `backend` directory.
+- Always activate the backend virtual environment before running Alembic commands:
+  ```bash
+  cd backend
+  source venv/bin/activate
+  alembic <command>
+  ```
+- Do NOT use or create a root-level Alembic directory. All migrations and env.py config are in `backend/alembic`.
+- If you see `ModuleNotFoundError: No module named 'app'`, you are likely running Alembic from the wrong directory or without the venv activated.
+- For more details, see `backend/README.md`.

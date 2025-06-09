@@ -7,3 +7,4 @@
 - A custom exception hierarchy (`OrderError`, `OrderNotFoundError`, `OrderValidationError`) is used for robust, expressive error handling in the service layer.
 - Error-to-HTTP mapping is now centralized and consistent, improving maintainability and client experience.
 - All tests and documentation have been updated to reflect these changes, and the codebase is now easier to extend and maintain for future contributors.
+- All database migrations are managed using Alembic in the backend directory. See `backend/README.md` for workflow, troubleshooting, and best practices.
