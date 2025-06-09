@@ -935,3 +935,4 @@ For comprehensive implementation details, configuration options, and troubleshoo
 - For more details, see `backend/README.md`.
 
 - The backend uses an event-driven architecture for order actions. See backend/docs/api/orders.md for event types, payloads, and usage.
+- Payment events (e.g., PaymentProcessedEvent) are now part of the backend event system. See backend/docs/api/orders.md for details.

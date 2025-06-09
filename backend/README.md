@@ -938,3 +938,4 @@ All database migrations are managed using Alembic in the backend directory. To e
 - The backend uses an event-driven architecture for order actions (creation, status change, fulfillment, etc.).
 - Events are defined in `app/domain/events/order_events.py` and handled via the async event bus in `app/domain/events/event_bus.py`.
 - See backend/docs/api/orders.md for event types, payloads, and usage.
+- Payment events (e.g., PaymentProcessedEvent) are now emitted and handled for notifications, analytics, and fulfillment.

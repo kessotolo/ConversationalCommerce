@@ -742,3 +742,5 @@ import NotificationCenter from 'src/components/monitoring/NotificationCenter';
 - All backend database migrations are managed using Alembic in the backend directory. See `backend/README.md` for workflow and troubleshooting.
 
 - The backend order system uses an event-driven architecture for notifications, analytics, and fulfillment. See backend/docs/api/orders.md for event types and details.
+
+- Payment events (e.g., PaymentProcessedEvent) are now part of the backend event system. See backend/docs/api/orders.md for details.

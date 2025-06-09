@@ -219,6 +219,14 @@ class PaymentService:
 
                 self.db.commit()
 
+                # Emit PaymentProcessedEvent
+                from app.domain.events.order_events import OrderEventFactory
+                from app.domain.events.event_bus import get_event_bus
+                import asyncio
+                event = OrderEventFactory.create_payment_processed_event(
+                    order, payment)
+                asyncio.create_task(get_event_bus().publish(event))
+
             # Risk scoring (update if new info is available)
             if payment:
                 # Optionally update risk score if new info is available
