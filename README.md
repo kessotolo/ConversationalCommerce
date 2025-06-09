@@ -933,3 +933,5 @@ For comprehensive implementation details, configuration options, and troubleshoo
 - Do NOT use or create a root-level Alembic directory. All migrations and env.py config are in `backend/alembic`.
 - If you see `ModuleNotFoundError: No module named 'app'`, you are likely running Alembic from the wrong directory or without the venv activated.
 - For more details, see `backend/README.md`.
+
+- The backend uses an event-driven architecture for order actions. See backend/docs/api/orders.md for event types, payloads, and usage.

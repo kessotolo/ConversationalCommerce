@@ -213,3 +213,9 @@ If you use React hooks (like `useState`, `useEffect`, `useParams`, etc.) in a fi
 - Always use the ConversationEventLogger for logging events in the frontend.
 - Ensure user and tenant IDs are sourced from Clerk context/hooks.
 - Extend analytics and monitoring by adding new event types and updating the dashboard as needed.
+
+## Order Event System
+
+- The backend uses an event-driven architecture for order actions (creation, status change, fulfillment, etc.).
+- This enables decoupled notifications, analytics, and fulfillment logic.
+- See backend/docs/api/orders.md for event types, payloads, and usage.

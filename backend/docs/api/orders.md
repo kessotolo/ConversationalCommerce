@@ -420,3 +420,44 @@ To support clean separation of conversational metadata and extensibility for fut
 - **Data Integrity:** Foreign key relationships ensure referential integrity and efficient queries.
 
 For more details, see the Order and WhatsAppOrderDetails models in the backend codebase.
+
+## Order Event System
+
+The backend uses an event-driven architecture for order-related actions. This enables decoupled notifications, analytics, and fulfillment logic.
+
+### Event Bus
+- Located at `app/domain/events/event_bus.py`.
+- Implements async publish/subscribe for domain events.
+- Handlers can be registered for each event type.
+
+### Order Event Types
+- Defined in `app/domain/events/order_events.py`.
+- Naming convention: `OrderActionEvent` (e.g., `OrderCreatedEvent`), with event type strings like `ORDER_CREATED`.
+
+#### Main Events:
+- **OrderCreatedEvent** (`ORDER_CREATED`):
+  - `order_id`, `order_number`, `order` (full order object), `tenant_id`, `timestamp`, `event_id`, `event_metadata`
+- **OrderStatusChangedEvent** (`ORDER_STATUS_CHANGED`):
+  - `order_id`, `order_number`, `previous_status`, `new_status`, `changed_by`, `notes`, `tenant_id`, `timestamp`, `event_id`, `event_metadata`
+- **PaymentProcessedEvent** (`PAYMENT_PROCESSED`):
+  - `order_id`, `order_number`, `payment_status`, `amount`, `transaction_id`, `payment_method`, `payment_provider`, `tenant_id`, `timestamp`, `event_id`, `event_metadata`
+- **OrderShippedEvent** (`ORDER_SHIPPED`):
+  - `order_id`, `order_number`, `tracking_number`, `shipping_provider`, `estimated_delivery_date`, `tenant_id`, `timestamp`, `event_id`, `event_metadata`
+- **OrderDeliveredEvent** (`ORDER_DELIVERED`):
+  - `order_id`, `order_number`, `delivery_date`, `received_by`, `delivery_notes`, `tenant_id`, `timestamp`, `event_id`, `event_metadata`
+- **OrderCancelledEvent** (`ORDER_CANCELLED`):
+  - `order_id`, `order_number`, `cancellation_reason`, `cancelled_by`, `refund_initiated`, `tenant_id`, `timestamp`, `event_id`, `event_metadata`
+- **OrderRefundedEvent** (`ORDER_REFUNDED`):
+  - `order_id`, `order_number`, `refund_amount`, `refund_reason`, `refund_transaction_id`, `is_partial_refund`, `tenant_id`, `timestamp`, `event_id`, `event_metadata`
+
+### How Events Work
+- Events are emitted in the order service and other business logic.
+- Handlers for notifications, analytics, and fulfillment are registered with the event bus.
+- Events are processed asynchronously for scalability.
+
+### Benefits
+- **Decoupling:** Add new behaviors (e.g., notifications, analytics) without changing core logic.
+- **Scalability:** Add more handlers as the platform grows.
+- **Observability:** Events can be logged or sent to monitoring systems for insight.
+
+See the event bus and order_events modules for implementation details and how to add new events.
