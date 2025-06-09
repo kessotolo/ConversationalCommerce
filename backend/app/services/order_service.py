@@ -11,6 +11,7 @@ from app.models.product import Product
 from app.models.user import User
 from app.services.audit_service import create_audit_log, AuditActionType
 from fastapi import HTTPException, status
+from app.models.whatsapp_order_details import WhatsAppOrderDetails
 
 
 """
@@ -54,6 +55,7 @@ def transactional(func):
             raise
     return wrapper
 
+@transactional
 def create_order(
     db: Session,
     product_id: UUID,
@@ -124,28 +126,30 @@ def create_order(
         quantity=quantity,
         total_amount=total_amount,
         order_source=order_source,
-        notes=notes,
-        whatsapp_number=whatsapp_number,
-        message_id=message_id,
-        conversation_id=conversation_id
+        notes=notes
     )
-
-    try:
-        db.add(order)
-        db.flush()
-        create_audit_log(
-            db=db,
-            user_id=seller_id,
-            action=AuditActionType.CREATE,
-            resource_type="Order",
-            resource_id=str(order.id),
-            details=f"Created order for product {product_id}"
+    db.add(order)
+    db.flush()
+    # If WhatsApp fields are present, create WhatsAppOrderDetails
+    if whatsapp_number or message_id or conversation_id:
+        whatsapp_details = WhatsAppOrderDetails(
+            order_id=order.id,
+            whatsapp_number=whatsapp_number,
+            message_id=message_id,
+            conversation_id=conversation_id
         )
-        return order
-    except IntegrityError as e:
-        raise OrderValidationError(f"Failed to create order due to database constraint: {str(e)}")
-    except Exception as e:
-        raise OrderError(f"An error occurred while creating the order: {str(e)}")
+        db.add(whatsapp_details)
+        db.flush()
+        order.whatsapp_details = whatsapp_details
+    create_audit_log(
+        db=db,
+        user_id=seller_id,
+        action=AuditActionType.CREATE,
+        resource_type="Order",
+        resource_id=str(order.id),
+        details=f"Created order for product {product_id}"
+    )
+    return order
 
 def get_order(
     db: Session,

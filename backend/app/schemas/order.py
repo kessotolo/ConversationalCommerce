@@ -30,6 +30,15 @@ class WhatsAppOrderCreate(OrderBase):
         return v
 
 
+class WhatsAppOrderDetailsSchema(BaseModel):
+    whatsapp_number: Optional[str] = None
+    message_id: Optional[str] = None
+    conversation_id: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+
+
 class OrderCreate(OrderBase):
     order_source: OrderSource = Field(
         default=OrderSource.whatsapp,
@@ -67,14 +76,7 @@ class OrderResponse(OrderBase):
     status: OrderStatus
     created_at: datetime
     updated_at: Optional[datetime] = None
-    whatsapp_number: Optional[str] = None
-    message_id: Optional[str] = None
-    conversation_id: Optional[str] = None
-    is_deleted: bool = False
-    notification_sent: bool = False
-    payment_status: str = "pending"
-    tracking_number: Optional[str] = None
-    shipping_carrier: Optional[str] = None
+    whatsapp_details: Optional[WhatsAppOrderDetailsSchema] = None
     version: int
 
     model_config = ConfigDict(from_attributes=True)
@@ -88,7 +90,7 @@ class OrderStatusUpdate(BaseModel):
 
 class OrderSearchParams(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    
+
     status: Optional[OrderStatus] = None
     order_source: Optional[OrderSource] = None
     search: Optional[str] = None
@@ -109,7 +111,7 @@ class OrderStats(BaseModel):
 
 class PaginatedOrdersResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    
+
     items: List[OrderResponse]
     total: int
     limit: int

@@ -28,12 +28,6 @@ class Order(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"))
 
-    # WhatsApp-specific fields
-    message_id = Column(String, nullable=True)  # WhatsApp message ID
-    conversation_id = Column(String, nullable=True)  # WhatsApp conversation ID
-    # Customer's WhatsApp number
-    whatsapp_number = Column(String, nullable=True)
-
     # Buyer Information
     buyer_name = Column(String, nullable=False)
     # Primary identifier for WhatsApp orders
@@ -51,13 +45,15 @@ class Order(Base):
 
     # Relationships
     complaints = relationship("Complaint", back_populates="order")
-    
+    # WhatsApp/conversational metadata (one-to-one)
+    whatsapp_details = relationship(
+        "WhatsAppOrderDetails",
+        uselist=False,
+        back_populates="order",
+        lazy="joined",
+        doc="WhatsApp/conversational metadata for this order."
+    )
+
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-
-    # Indexes for WhatsApp-based queries
-    __table_args__ = (
-        Index('idx_whatsapp_order', 'whatsapp_number', 'message_id'),
-        Index('idx_conversation_order', 'conversation_id'),
-    )
