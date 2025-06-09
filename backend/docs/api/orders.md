@@ -444,7 +444,36 @@ The backend uses an event-driven architecture for order-related actions. This en
     - Triggers fulfillment workflow (e.g., warehouse notification)
 - **OrderStatusChangedEvent** (`ORDER_STATUS_CHANGED`):
   - `order_id`, `order_number`, `previous_status`, `new_status`, `changed_by`, `notes`, `tenant_id`, `timestamp`, `event_id`, `event_metadata`
+  - Emitted after an order status changes.
+  - **Handlers:**
+    - Sends status update notification (email/SMS/WhatsApp)
+    - Logs analytics event for status change
+    - Handles fulfillment workflow for new status
+- **OrderShippedEvent** (`ORDER_SHIPPED`):
+  - `order_id`, `order_number`, `tracking_number`, `shipping_provider`, `estimated_delivery_date`, `tenant_id`, `timestamp`, `event_id`, `event_metadata`
+  - Emitted when an order is shipped.
+  - **Handlers:**
+    - Sends shipping notification (email/SMS/WhatsApp)
+    - Logs analytics event for shipping
+    - Notifies warehouse/shipping provider
+- **OrderDeliveredEvent** (`ORDER_DELIVERED`):
+  - `order_id`, `order_number`, `delivery_date`, `received_by`, `delivery_notes`, `tenant_id`, `timestamp`, `event_id`, `event_metadata`
+  - Emitted when an order is delivered.
+  - **Handlers:**
+    - Sends delivery notification (email/SMS/WhatsApp)
+    - Logs analytics event for delivery
+    - Completes fulfillment workflow
+- **OrderCancelledEvent** (`ORDER_CANCELLED`):
+  - `order_id`, `order_number`, `cancellation_reason`, `cancelled_by`, `refund_initiated`, `tenant_id`, `timestamp`, `event_id`, `event_metadata`
+  - Emitted when an order is cancelled.
+  - **Handlers:**
+    - Sends cancellation notification (email/SMS/WhatsApp)
+    - Logs analytics event for cancellation
+    - Cancels fulfillment/refund process
 - **PaymentProcessedEvent** (`PAYMENT_PROCESSED`):
   - `order_id`, `payment_id`, `amount`, `currency`, `payment_status`, `processed_by`, `timestamp`
   - Emitted after a successful payment verification or processing.
-- **OrderShippedEvent** (`ORDER_SHIPPED`
+  - **Handlers:**
+    - Sends payment confirmation notification (email/SMS/WhatsApp)
+    - Logs analytics event for payment
+    - Releases order for fulfillment
