@@ -889,7 +889,7 @@ The platform implements a comprehensive content moderation system to ensure cont
   - Settings
   - Reports
 
-## WhatsApp Alerting & Seller WhatsApp Number Management
+## WhatsAppAlerting & Seller WhatsApp Number Management
 
 - Sellers/tenants can now receive WhatsApp alerts for critical events (e.g., new orders, complaints).
 - Each tenant profile includes a `whatsapp_number` field (E.164 format).
@@ -926,3 +926,9 @@ All database migrations are managed using Alembic in the backend directory. To e
 - Created and activated a backend virtual environment.
 - Upgraded Alembic to the latest version.
 - Confirmed all migrations are up to date and working.
+
+## WhatsAppOrderDetails Model Refactor
+
+- WhatsApp-specific order metadata (whatsapp_number, message_id, conversation_id) is now stored in a dedicated WhatsAppOrderDetails model, linked one-to-one with Order.
+- This refactor improves single responsibility, data integrity, and makes it easy to add support for other conversational channels in the future.
+- See backend/docs/api/orders.md for API details and example responses.

@@ -8,3 +8,4 @@
 - Error-to-HTTP mapping is now centralized and consistent, improving maintainability and client experience.
 - All tests and documentation have been updated to reflect these changes, and the codebase is now easier to extend and maintain for future contributors.
 - All database migrations are managed using Alembic in the backend directory. See `backend/README.md` for workflow, troubleshooting, and best practices.
+- WhatsApp-specific order metadata is now stored in a dedicated WhatsAppOrderDetails model, linked one-to-one with Order. This enables clean separation of concerns and makes it easy to add support for other conversational channels in the future. See backend/docs/api/orders.md for details.

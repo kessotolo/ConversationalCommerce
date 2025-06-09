@@ -111,9 +111,11 @@ POST /api/v1/orders/whatsapp
   "total_amount": "29.99",
   "order_source": "whatsapp",
   "status": "pending",
-  "whatsapp_number": "+2547XXXXXXXX",
-  "message_id": "wamid.abcd1234",
-  "conversation_id": "conv_abcd1234",
+  "whatsapp_details": {
+    "whatsapp_number": "+2547XXXXXXXX",
+    "message_id": "wamid.abcd1234",
+    "conversation_id": "conv_abcd1234"
+  },
   "created_at": "2025-06-08T22:12:05",
   "updated_at": "2025-06-08T22:12:05",
   "version": 1
@@ -197,8 +199,11 @@ GET /api/v1/orders/whatsapp/{whatsapp_number}
       "total_amount": "29.99",
       "order_source": "whatsapp",
       "status": "pending",
-      "whatsapp_number": "+2547XXXXXXXX",
-      "message_id": "wamid.abcd1234",
+      "whatsapp_details": {
+        "whatsapp_number": "+2547XXXXXXXX",
+        "message_id": "wamid.abcd1234",
+        "conversation_id": "conv_abcd1234"
+      },
       "created_at": "2025-06-08T22:12:05",
       "updated_at": "2025-06-08T22:12:05"
     },
@@ -376,3 +381,42 @@ See the comprehensive test suite in `tests/api/test_create_order.py`, `tests/api
 - A custom exception hierarchy (`OrderError`, `OrderNotFoundError`, `OrderValidationError`) is used for robust, expressive error handling in the service layer.
 - Error-to-HTTP mapping is now centralized and consistent, improving maintainability and client experience.
 - All tests and documentation have been updated to reflect these changes, and the codebase is now easier to extend and maintain for future contributors.
+
+## WhatsAppOrderDetails Model & Order Structure Refactor
+
+To support clean separation of conversational metadata and extensibility for future channels, WhatsApp-specific order details are now stored in a dedicated model:
+
+### WhatsAppOrderDetails
+- Stores WhatsApp/conversational metadata for an order (whatsapp_number, message_id, conversation_id)
+- One-to-one relationship with the core Order model via order_id
+- Ensures single responsibility and data integrity
+
+### Example API Response (WhatsApp Order)
+```json
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "product_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "seller_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "buyer_name": "John Doe",
+  "buyer_phone": "+2547XXXXXXXX",
+  "quantity": 1,
+  "total_amount": "29.99",
+  "order_source": "whatsapp",
+  "status": "pending",
+  "whatsapp_details": {
+    "whatsapp_number": "+2547XXXXXXXX",
+    "message_id": "wamid.abcd1234",
+    "conversation_id": "conv_abcd1234"
+  },
+  "created_at": "2025-06-08T22:12:05",
+  "updated_at": "2025-06-08T22:12:05",
+  "version": 1
+}
+```
+
+### Rationale & Extensibility
+- **Single Responsibility:** Core order data and channel-specific metadata are separated for clarity and maintainability.
+- **Extensibility:** Easy to add support for other channels (e.g., Telegram, SMS) by creating similar models and relationships.
+- **Data Integrity:** Foreign key relationships ensure referential integrity and efficient queries.
+
+For more details, see the Order and WhatsAppOrderDetails models in the backend codebase.
