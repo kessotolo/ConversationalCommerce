@@ -35,8 +35,7 @@ class WhatsAppOrderDetailsSchema(BaseModel):
     message_id: Optional[str] = None
     conversation_id: Optional[str] = None
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OrderCreate(OrderBase):

@@ -5,8 +5,9 @@ from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field, EmailStr, validator
 
 # ============================================================
-# Domain enums 
+# Domain enums
 # ============================================================
+
 
 class OrderStatus(str, enum.Enum):
     PENDING = "PENDING"
@@ -44,6 +45,7 @@ class PaymentStatus(str, enum.Enum):
 # Domain value objects
 # ============================================================
 
+
 class Money(BaseModel):
     amount: float
     currency: str = "KES"  # Default to Kenyan Shilling
@@ -68,7 +70,8 @@ class Address(BaseModel):
 class CustomerInfo(BaseModel):
     id: Optional[str] = None  # Optional for guest checkout
     name: str
-    email: Optional[EmailStr] = None  # Email can be optional for WhatsApp orders
+    # Email can be optional for WhatsApp orders
+    email: Optional[EmailStr] = None
     phone: str
     is_guest: bool = True
 
@@ -124,6 +127,7 @@ class OrderTimeline(BaseModel):
 # Domain model
 # ============================================================
 
+
 class Order(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     tenant_id: str
@@ -143,32 +147,32 @@ class Order(BaseModel):
     idempotency_key: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    
+
     # Domain methods
     def can_be_cancelled(self) -> bool:
         """Check if an order can be cancelled"""
         return self.status in [OrderStatus.PENDING, OrderStatus.PAID]
-    
+
     def can_be_refunded(self) -> bool:
         """Check if an order can be refunded"""
-        return (self.status in [OrderStatus.PAID, OrderStatus.PROCESSING, OrderStatus.SHIPPED] and 
+        return (self.status in [OrderStatus.PAID, OrderStatus.PROCESSING, OrderStatus.SHIPPED] and
                 self.payment.status == PaymentStatus.COMPLETED)
-    
+
     def is_complete(self) -> bool:
         """Check if an order has been completed"""
         return self.status == OrderStatus.DELIVERED
-    
+
     def get_total_items(self) -> int:
         """Calculate the total items in an order"""
         return sum(item.quantity for item in self.items)
-    
+
     def get_latest_timeline_event(self) -> Optional[OrderTimeline]:
         """Get the latest timeline event"""
         if not self.timeline:
             return None
-        
+
         return sorted(self.timeline, key=lambda x: x.timestamp, reverse=True)[0]
-    
+
     def add_timeline_event(self, status: OrderStatus, note: Optional[str] = None, created_by: Optional[str] = None) -> None:
         """Add a new timeline event to the order"""
         timeline_event = OrderTimeline(
@@ -184,6 +188,7 @@ class Order(BaseModel):
 # Request/Response models
 # ============================================================
 
+
 class CreateOrderRequest(BaseModel):
     customer: CustomerInfo
     items: List[OrderItem]
@@ -196,7 +201,7 @@ class CreateOrderRequest(BaseModel):
     tenant_id: str
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "customer": {
                     "name": "John Doe",
