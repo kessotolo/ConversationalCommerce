@@ -57,6 +57,13 @@ class RedisCache:
             # Get Redis settings from environment
             redis_url = settings.REDIS_URL if hasattr(settings, "REDIS_URL") else "redis://localhost:6379/0"
             
+            # Check if we're in a Docker/container environment
+            is_container = getattr(settings, "IS_CONTAINER", False)
+            if is_container:
+                # In container environments, use the service name instead of localhost
+                redis_url = redis_url.replace("localhost", "redis")
+                logger.info(f"Container environment detected, using Redis URL: {redis_url}")
+            
             # Create Redis client with timeout
             self._redis_client = redis.from_url(
                 redis_url, 

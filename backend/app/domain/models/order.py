@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field, EmailStr, validator
+from pydantic import BaseModel, Field, EmailStr, field_validator, ConfigDict
 
 # ============================================================
 # Domain enums
@@ -75,7 +75,8 @@ class CustomerInfo(BaseModel):
     phone: str
     is_guest: bool = True
 
-    @validator('phone')
+    @field_validator('phone')
+    @classmethod
     def validate_phone(cls, v):
         import re
         if not re.match(r'^\+?[0-9]{10,15}$', v):
@@ -200,8 +201,8 @@ class CreateOrderRequest(BaseModel):
     idempotency_key: str = Field(default_factory=lambda: str(uuid.uuid4()))
     tenant_id: str
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "customer": {
                     "name": "John Doe",
@@ -238,6 +239,7 @@ class CreateOrderRequest(BaseModel):
                 "tenant_id": "550e8400-e29b-41d4-a716-446655440000"
             }
         }
+    )
 
 
 class OrderResponse(BaseModel):

@@ -43,8 +43,11 @@ class Settings(BaseSettings):
     # IMPORTANT: Set REDIS_URL in your environment for production deployments.
     REDIS_URL: str = "redis://localhost:6379/0"
     ENABLE_CACHE: bool = True
-    # Set to True to disable Redis in production
-    DISABLE_REDIS_IN_PRODUCTION: bool = False
+    # Redis configuration flags
+    REDIS_DISABLED: bool = False  # Set to True to completely disable Redis
+    DISABLE_REDIS_IN_PRODUCTION: bool = False  # Set to True to disable Redis in production only
+    # Flag to indicate if running in container environment (for service discovery)
+    IS_CONTAINER: bool = False
     CACHE_EXPIRATION: int = 300  # Default cache expiration in seconds
     TWILIO_WHATSAPP_FROM: str = ""  # WhatsApp number with country code (no +)
 
