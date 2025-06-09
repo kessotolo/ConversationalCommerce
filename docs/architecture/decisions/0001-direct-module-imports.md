@@ -75,3 +75,8 @@ import { UUID, Status as DraftStatus } from '../types/storefrontEditor';
 3. Update developer documentation and onboarding materials (**Complete**)
 4. Monitor for any accidental recreation of bridge patterns (**Ongoing**)
 5. **Regularly clean up backup/test files and enforce no `.bak`/bridge files in the codebase.**
+
+## 2024-06 Update: Order API & Service Refactor
+
+- All order business logic is now in the service layer (`order_service.py`), with DRY error handling and transaction management.
+- This refactor further reduces direct module imports and centralizes business logic, error handling, and transaction boundaries.

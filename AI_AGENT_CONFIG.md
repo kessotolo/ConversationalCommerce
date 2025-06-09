@@ -185,6 +185,10 @@ Trust is at the heart of commerce in Africa. AI agents must always prioritize tr
 
 AI agents must never generate code or suggestions that break these principles. The goal is to make commerce feel as natural and trustworthy as chatting with a friend or local vendor.
 
+## 📅 2024-06 Update
+
+- **Order business logic is now in the service layer (`order_service.py`), with DRY error handling, transaction management, and a custom exception hierarchy. API endpoints are thin and use a decorator for error-to-HTTP mapping.**
+
 ---
 
 By following these guidelines, AI agents will help maintain the architectural integrity, code quality, and product vision of the ConversationalCommerce platform.
