@@ -18,6 +18,7 @@ import logging
 from app.db.session import set_tenant_id, SessionLocal
 from app.models.tenant import Tenant
 from app.api.v1.endpoints.websocket import router as websocket_router
+import app.domain.events  # Ensure event handlers are registered
 
 # Configure logging
 logging.basicConfig(
@@ -63,10 +64,11 @@ class TenantMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         tenant_id = request.headers.get('X-Tenant-ID')
-        
+
         # For tests, we allow missing X-Tenant-ID header in specific environments
-        is_test = os.getenv('TESTING', '').lower() in ('true', '1', 't', 'yes', 'y')
-        
+        is_test = os.getenv('TESTING', '').lower() in (
+            'true', '1', 't', 'yes', 'y')
+
         if not tenant_id:
             if is_test:
                 # When in test mode, allow the request to proceed
@@ -132,9 +134,11 @@ async def initialize_cache():
         if redis_cache.is_available:
             logger.info(f"Redis cache successfully initialized and connected")
         else:
-            logger.warning("Redis cache initialization completed, but cache is not available")
+            logger.warning(
+                "Redis cache initialization completed, but cache is not available")
     except Exception as e:
-        logger.warning(f"Redis cache initialization failed, continuing without cache: {str(e)}")
+        logger.warning(
+            f"Redis cache initialization failed, continuing without cache: {str(e)}")
         # Still mark as initialized to prevent repeated attempts
         redis_cache._initialized = True
         redis_cache._is_available = False
@@ -168,7 +172,7 @@ def create_app() -> FastAPI:
 
     # Register exception handlers
     register_exception_handlers(app)
-    
+
     # Register storefront error handler
     app.add_exception_handler(StorefrontError, handle_storefront_error)
 
@@ -193,18 +197,21 @@ def create_app() -> FastAPI:
 
     # Add tenant middleware
     app.add_middleware(TenantMiddleware)
-    
+
     # Add domain verification middleware
     app.add_middleware(
         DomainVerificationMiddleware,
-        exclude_paths=["/api/", "/admin/", "/_next/", "/static/", "/docs/", "/redoc/"]
+        exclude_paths=["/api/", "/admin/", "/_next/",
+                       "/static/", "/docs/", "/redoc/"]
     )
-    
+
     # Add subdomain resolution middleware for multi-tenant storefronts
     app.add_middleware(
         SubdomainMiddleware,
-        base_domain=settings.BASE_DOMAIN if hasattr(settings, 'BASE_DOMAIN') else "example.com",
-        exclude_paths=["/api/", "/admin/", "/_next/", "/static/", "/docs/", "/redoc/"]
+        base_domain=settings.BASE_DOMAIN if hasattr(
+            settings, 'BASE_DOMAIN') else "example.com",
+        exclude_paths=["/api/", "/admin/", "/_next/",
+                       "/static/", "/docs/", "/redoc/"]
     )
 
     # Set up CORS

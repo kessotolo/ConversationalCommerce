@@ -21,7 +21,7 @@ async def handle_order_created(event: OrderCreatedEvent):
         user_id=event.order.customer.id or "",
         title="Order Confirmation",
         message=f"Your order #{event.order.order_number} has been created!",
-        priority="normal",
+        priority="medium",
         channels=[NotificationChannel.EMAIL, NotificationChannel.SMS],
         metadata={"order_id": event.order_id}
     )
@@ -30,7 +30,7 @@ async def handle_order_created(event: OrderCreatedEvent):
 
     # 2. Log analytics (placeholder: log to logger)
     logger.info(
-        f"[Analytics] Order created: {event.order_id} value={event.order.total_amount.value} currency={event.order.total_amount.currency}")
+        f"[Analytics] Order created: {event.order_id} value={event.order.total_amount.amount} currency={event.order.total_amount.currency}")
 
     # 3. Trigger fulfillment workflow (placeholder)
     logger.info(
@@ -45,7 +45,7 @@ async def handle_order_status_changed(event: OrderStatusChangedEvent):
         user_id=event.changed_by or "",
         title="Order Status Updated",
         message=f"Your order #{event.order_number} status changed: {event.previous_status} → {event.new_status}",
-        priority="normal",
+        priority="medium",
         channels=[NotificationChannel.EMAIL, NotificationChannel.SMS],
         metadata={"order_id": event.order_id, "new_status": event.new_status}
     )
@@ -69,7 +69,7 @@ async def handle_order_shipped(event: OrderShippedEvent):
         user_id="",
         title="Order Shipped",
         message=f"Your order #{event.order_number} has shipped! Tracking: {event.tracking_number}",
-        priority="normal",
+        priority="medium",
         channels=[NotificationChannel.EMAIL, NotificationChannel.SMS],
         metadata={"order_id": event.order_id,
                   "tracking_number": event.tracking_number}
@@ -94,7 +94,7 @@ async def handle_order_delivered(event: OrderDeliveredEvent):
         user_id="",
         title="Order Delivered",
         message=f"Your order #{event.order_number} was delivered on {event.delivery_date}",
-        priority="normal",
+        priority="medium",
         channels=[NotificationChannel.EMAIL, NotificationChannel.SMS],
         metadata={"order_id": event.order_id,
                   "delivery_date": str(event.delivery_date)}
@@ -119,7 +119,7 @@ async def handle_order_cancelled(event: OrderCancelledEvent):
         user_id=event.cancelled_by or "",
         title="Order Cancelled",
         message=f"Your order #{event.order_number} was cancelled. Reason: {event.cancellation_reason}",
-        priority="normal",
+        priority="medium",
         channels=[NotificationChannel.EMAIL, NotificationChannel.SMS],
         metadata={"order_id": event.order_id,
                   "reason": event.cancellation_reason}
@@ -141,19 +141,20 @@ async def handle_payment_processed(event: PaymentProcessedEvent):
     notification = Notification(
         id=event.event_id,
         tenant_id=event.tenant_id,
-        user_id=event.processed_by or "",
+        user_id="",
         title="Payment Processed",
         message=f"Payment for order #{event.order_number} was processed. Amount: {event.amount}",
-        priority="normal",
+        priority="medium",
         channels=[NotificationChannel.EMAIL, NotificationChannel.SMS],
-        metadata={"order_id": event.order_id, "payment_id": event.payment_id}
+        metadata={"order_id": event.order_id,
+                  "transaction_id": event.transaction_id}
     )
     service = NotificationService()
     await service.send_notification(notification)
 
     # 2. Log analytics
     logger.info(
-        f"[Analytics] Payment processed: {event.order_id} payment_id={event.payment_id} amount={event.amount}")
+        f"[Analytics] Payment processed: {event.order_id} transaction_id={event.transaction_id} amount={event.amount}")
 
     # 3. Fulfillment/side effects
     logger.info(

@@ -39,9 +39,17 @@ for compliance and traceability of all significant order events.
 
 
 # Custom exceptions
-class OrderError(Exception): pass
-class OrderNotFoundError(OrderError): pass
-class OrderValidationError(OrderError): pass
+class OrderError(Exception):
+    pass
+
+
+class OrderNotFoundError(OrderError):
+    pass
+
+
+class OrderValidationError(OrderError):
+    pass
+
 
 def transactional(func):
     @wraps(func)
@@ -54,6 +62,7 @@ def transactional(func):
             db.rollback()
             raise
     return wrapper
+
 
 @transactional
 def create_order(
@@ -114,7 +123,8 @@ def create_order(
     ).first()
 
     if not product:
-        raise OrderNotFoundError("Product not found or does not belong to the seller")
+        raise OrderNotFoundError(
+            "Product not found or does not belong to the seller")
 
     order = Order(
         product_id=product_id,
@@ -151,6 +161,7 @@ def create_order(
     )
     return order
 
+
 def get_order(
     db: Session,
     order_id: UUID,
@@ -181,6 +192,7 @@ def get_order(
             Order.is_deleted.is_(False)
         )
     ).first()
+
 
 def get_orders(
     db: Session,
@@ -259,6 +271,7 @@ def get_orders(
 
     return query.all(), total_count
 
+
 def update_order_status(
     db: Session,
     order_id: UUID,
@@ -333,7 +346,8 @@ def update_order_status(
 
     if result.rowcount == 0:
         db.rollback()
-        raise OrderValidationError("Order was modified by another process. Please refresh and try again.")
+        raise OrderValidationError(
+            "Order was modified by another process. Please refresh and try again.")
 
     db.commit()
 
@@ -347,8 +361,42 @@ def update_order_status(
         details=f"Updated order status to {status.value}"
     )
 
+    # Emit OrderStatusChangedEvent
+    from app.domain.events.order_events import OrderEventFactory
+    from app.domain.events.event_bus import get_event_bus
+    prev_status = order.status
+    updated_order = get_order(db, order_id, seller_id)
+    if updated_order:
+        event = OrderEventFactory.create_order_status_changed_event(
+            updated_order,
+            previous_status=prev_status,
+            new_status=status,
+            changed_by=str(seller_id)
+        )
+        import asyncio
+        asyncio.create_task(get_event_bus().publish(event))
+
+        # Emit OrderShippedEvent if status changed to SHIPPED
+        if status == OrderStatus.SHIPPED:
+            shipped_event = OrderEventFactory.create_order_shipped_event(
+                updated_order,
+                tracking_number=updated_order.tracking_number,
+                shipping_provider=getattr(
+                    updated_order, 'shipping_carrier', None),
+                estimated_delivery_date=getattr(
+                    updated_order, 'estimated_delivery', None)
+            )
+            asyncio.create_task(get_event_bus().publish(shipped_event))
+        # Emit OrderDeliveredEvent if status changed to DELIVERED
+        if status == OrderStatus.DELIVERED:
+            delivered_event = OrderEventFactory.create_order_delivered_event(
+                updated_order
+            )
+            asyncio.create_task(get_event_bus().publish(delivered_event))
+
     # Refresh order from database
-    return get_order(db, order_id, seller_id)
+    return updated_order
+
 
 def delete_order(
     db: Session,
@@ -417,7 +465,20 @@ def delete_order(
         details="Soft deleted order"
     )
 
+    # Emit OrderCancelledEvent
+    from app.domain.events.order_events import OrderEventFactory
+    from app.domain.events.event_bus import get_event_bus
+    if order:
+        event = OrderEventFactory.create_order_cancelled_event(
+            order,
+            cancellation_reason="Soft deleted",
+            cancelled_by=str(seller_id)
+        )
+        import asyncio
+        asyncio.create_task(get_event_bus().publish(event))
+
     return True
+
 
 def get_seller_dashboard_stats(
     db: Session,
@@ -533,6 +594,7 @@ def get_seller_dashboard_stats(
     }
 
     return stats
+
 
 def mark_notification_sent(
     db: Session,

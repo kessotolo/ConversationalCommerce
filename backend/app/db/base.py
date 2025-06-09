@@ -1,7 +1,5 @@
 from app.db.base_class import Base
-from app.models.product import Product
-from app.models.seller_profile import SellerProfile
-from app.models.order import Order
+from app.models import *
 
 # Import all models here for Alembic to detect them
-__all__ = ["Base", "Product", "SellerProfile", "Order"]
+__all__ = ["Base"]

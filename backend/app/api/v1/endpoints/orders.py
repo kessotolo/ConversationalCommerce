@@ -38,6 +38,8 @@ require_seller = RoleChecker([RoleType.SELLER, RoleType.ADMIN])
 require_admin = RoleChecker([RoleType.ADMIN])
 
 # DRY error handler decorator
+
+
 def handle_order_errors(func):
     @wraps(func)
     async def wrapper(*args, **kwargs):
@@ -51,11 +53,12 @@ def handle_order_errors(func):
             raise HTTPException(status_code=500, detail=str(e))
     return wrapper
 
+
 @router.post("/orders",
-         response_model=OrderResponse,
-         status_code=201,
-         summary="Create a new order",
-         description="Create a new order for a product. Requires seller or admin role.")
+             response_model=OrderResponse,
+             status_code=201,
+             summary="Create a new order",
+             description="Create a new order for a product. Requires seller or admin role.")
 @handle_order_errors
 async def create_new_order(
     order_in: OrderCreate,
@@ -80,10 +83,10 @@ async def create_new_order(
 
 
 @router.post("/orders/whatsapp",
-         response_model=OrderResponse,
-         status_code=201,
-         summary="Create a new WhatsApp order",
-         description="Create a new order from WhatsApp conversation. Requires seller or admin role.")
+             response_model=OrderResponse,
+             status_code=201,
+             summary="Create a new WhatsApp order",
+             description="Create a new order from WhatsApp conversation. Requires seller or admin role.")
 @handle_order_errors
 async def create_whatsapp_order(
     order_in: WhatsAppOrderCreate,
@@ -111,9 +114,9 @@ async def create_whatsapp_order(
 
 
 @router.get("/orders",
-        response_model=PaginatedOrdersResponse,
-        summary="List orders",
-        description="List orders with various filter options. Requires seller or admin role.")
+            response_model=PaginatedOrdersResponse,
+            summary="List orders",
+            description="List orders with various filter options. Requires seller or admin role.")
 @handle_order_errors
 async def list_orders(
     search_params: OrderSearchParams = Depends(),
@@ -142,9 +145,9 @@ async def list_orders(
 
 
 @router.get("/orders/{order_id}",
-        response_model=OrderResponse,
-        summary="Get order details",
-        description="Get detailed information about a specific order. Requires seller or admin role.")
+            response_model=OrderResponse,
+            summary="Get order details",
+            description="Get detailed information about a specific order. Requires seller or admin role.")
 @handle_order_errors
 async def get_order_by_id(
     order_id: UUID = Path(..., description="The ID of the order to retrieve"),
@@ -160,13 +163,14 @@ async def get_order_by_id(
 
 
 @router.patch("/orders/{order_id}/status",
-          response_model=OrderResponse,
-          summary="Update order status",
-          description="Update an order's status. Requires seller or admin role.")
+              response_model=OrderResponse,
+              summary="Update order status",
+              description="Update an order's status. Requires seller or admin role.")
 @handle_order_errors
 async def update_order_status_endpoint(
     order_id: UUID = Path(..., description="The ID of the order to update"),
-    status_update: OrderStatusUpdate = Body(..., description="The new status details"),
+    status_update: OrderStatusUpdate = Body(...,
+                                            description="The new status details"),
     db: Session = Depends(get_db),
     user: ClerkTokenData = Depends(require_auth),
     _: bool = Depends(require_seller)
@@ -182,13 +186,13 @@ async def update_order_status_endpoint(
     )
     if not order:
         raise OrderNotFoundError("Order not found")
-    return order
+        return order
 
 
 @router.delete("/orders/{order_id}",
-           status_code=204,
-           summary="Delete order",
-           description="Soft delete an order. Requires seller or admin role.")
+               status_code=204,
+               summary="Delete order",
+               description="Soft delete an order. Requires seller or admin role.")
 @handle_order_errors
 async def delete_order_endpoint(
     order_id: UUID = Path(..., description="The ID of the order to delete"),
@@ -208,12 +212,13 @@ async def delete_order_endpoint(
 
 
 @router.get("/dashboard/orders/stats",
-        response_model=OrderStats,
-        summary="Get order statistics",
-        description="Get statistics about orders for the seller dashboard. Requires seller or admin role.")
+            response_model=OrderStats,
+            summary="Get order statistics",
+            description="Get statistics about orders for the seller dashboard. Requires seller or admin role.")
 @handle_order_errors
 async def get_order_stats(
-    days: int = Query(30, description="Number of days to include in the statistics"),
+    days: int = Query(
+        30, description="Number of days to include in the statistics"),
     db: Session = Depends(get_db),
     user: ClerkTokenData = Depends(require_auth),
     _: bool = Depends(require_seller)
@@ -228,9 +233,9 @@ async def get_order_stats(
 
 
 @router.post("/orders/{order_id}/notification",
-         status_code=200,
-         summary="Mark notification sent",
-         description="Mark that a notification has been sent for an order. Requires seller or admin role.")
+             status_code=200,
+             summary="Mark notification sent",
+             description="Mark that a notification has been sent for an order. Requires seller or admin role.")
 @handle_order_errors
 async def mark_notification_sent_endpoint(
     order_id: UUID = Path(..., description="The ID of the order to mark"),

@@ -2,17 +2,25 @@ from enum import Enum
 from typing import Optional
 from pydantic import BaseModel
 
+
 class IntentType(str, Enum):
     ORDER = "order"
     CANCEL = "cancel"
     HELP = "help"
     UNKNOWN = "unknown"
+    CHECKOUT = "checkout"
+    ORDER_STATUS = "order_status"
+    CANCEL_ORDER = "cancel_order"
+    TRACK_ORDER = "track_order"
+    PAYMENT_CONFIRMATION = "payment_confirmation"
+
 
 class ParsedIntent(BaseModel):
     intent: IntentType
     confidence: float
     message: str
     entity: Optional[str] = None
+
 
 def parse_intent(message: str) -> ParsedIntent:
     """A simple rule-based intent parser. Replace with ML model as needed."""

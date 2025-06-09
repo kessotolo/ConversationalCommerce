@@ -6,6 +6,8 @@ from app.api.v1.endpoints.cart import get_or_create_cart
 from datetime import datetime
 
 # Service to get cart by phone number (for conversational flows)
+
+
 def get_cart_by_phone(phone_number: str, tenant_id: str, db: Session) -> Optional[Dict[str, Any]]:
     cart = get_or_create_cart(db, tenant_id, None, phone_number, None)
     if not cart:
@@ -28,6 +30,8 @@ def get_cart_by_phone(phone_number: str, tenant_id: str, db: Session) -> Optiona
     }
 
 # Service to clear cart by phone number and tenant
+
+
 async def clear_cart(phone_number: str, tenant_id: str, db: Session):
     cart = get_or_create_cart(db, tenant_id, None, phone_number, None)
     if not cart:
@@ -37,3 +41,27 @@ async def clear_cart(phone_number: str, tenant_id: str, db: Session):
     cart.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(cart)
+
+
+def get_cart_service():
+    class CartService:
+        @staticmethod
+        async def get_cart_by_phone(phone_number: str, tenant_id: str):
+            # Use a dummy DB session for compatibility; in real use, pass db as needed
+            from app.db.session import SessionLocal
+            db = SessionLocal()
+            try:
+                return get_cart_by_phone(phone_number, tenant_id, db)
+            finally:
+                db.close()
+
+        @staticmethod
+        async def clear_cart(phone_number: str, tenant_id: str):
+            from app.db.session import SessionLocal
+            db = SessionLocal()
+            try:
+                return await clear_cart(phone_number, tenant_id, db)
+            finally:
+                db.close()
+
+    return CartService

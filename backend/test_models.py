@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Simple script to test model relationships directly with the local database
 
+from app.db.base import *  # This imports all models registered in the app
+from app.db.base_class import Base
 import os
 import sys
 from sqlalchemy import create_engine
@@ -16,21 +18,21 @@ os.environ["POSTGRES_PASSWORD"] = "postgres"
 os.environ["POSTGRES_DB"] = "conversational_commerce"
 
 # Import models after environment variables are set
-from app.db.base_class import Base
 
 # Import all models to ensure proper dependencies are resolved
-from app.db.base import *  # This imports all models registered in the app
 
 # Create engine and session
 DATABASE_URL = "postgresql://postgres:postgres@localhost/conversational_commerce"
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 def test_create_tables():
     """Test creating database tables."""
     print("Creating database tables...")
     Base.metadata.create_all(bind=engine)
     print("Database tables created successfully.")
+
 
 def test_create_tenant():
     """Test creating a tenant."""
@@ -41,8 +43,7 @@ def test_create_tenant():
         tenant = Tenant(
             id=uuid.uuid4(),
             name="Test Tenant",
-            subdomain="test",
-            status="active"
+            subdomain="test"
         )
         db.add(tenant)
         db.commit()
@@ -55,7 +56,8 @@ def test_create_tenant():
     finally:
         db.close()
 
-def test_relationships(tenant_id):
+
+def _test_relationships(tenant_id):
     """Test model relationships."""
     db = SessionLocal()
     try:
@@ -63,7 +65,7 @@ def test_relationships(tenant_id):
         from app.models.tenant import Tenant
         from app.models.behavior_analysis import BehaviorPattern, PatternDetection, Evidence
         from app.models.violation import Violation
-        
+
         # Get the tenant
         tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
         if not tenant:
@@ -81,7 +83,7 @@ def test_relationships(tenant_id):
             enabled=True
         )
         db.add(pattern)
-        
+
         # Create a pattern detection
         detection = PatternDetection(
             id=uuid.uuid4(),
@@ -93,7 +95,7 @@ def test_relationships(tenant_id):
             status="active"
         )
         db.add(detection)
-        
+
         # Create evidence
         evidence = Evidence(
             id=uuid.uuid4(),
@@ -105,7 +107,7 @@ def test_relationships(tenant_id):
             collected_at=datetime.utcnow()
         )
         db.add(evidence)
-        
+
         # Create a violation
         violation = Violation(
             id=uuid.uuid4(),
@@ -119,17 +121,19 @@ def test_relationships(tenant_id):
             details={"test": "data"}
         )
         db.add(violation)
-        
+
         db.commit()
         print("All relationships created successfully")
-        
+
         # Verify relationships
         tenant_fresh = db.query(Tenant).filter(Tenant.id == tenant_id).first()
-        print(f"Tenant has {len(tenant_fresh.behavior_patterns)} behavior patterns")
-        print(f"Tenant has {len(tenant_fresh.pattern_detections)} pattern detections")
+        print(
+            f"Tenant has {len(tenant_fresh.behavior_patterns)} behavior patterns")
+        print(
+            f"Tenant has {len(tenant_fresh.pattern_detections)} pattern detections")
         print(f"Tenant has {len(tenant_fresh.evidence)} evidence items")
         print(f"Tenant has {len(tenant_fresh.violations)} violations")
-        
+
     except Exception as e:
         db.rollback()
         print(f"Error testing relationships: {e}")
@@ -137,9 +141,10 @@ def test_relationships(tenant_id):
     finally:
         db.close()
 
+
 if __name__ == "__main__":
     print("Testing model relationships...")
     test_create_tables()
     tenant_id = test_create_tenant()
-    test_relationships(tenant_id)
+    _test_relationships(tenant_id)
     print("Tests completed successfully.")

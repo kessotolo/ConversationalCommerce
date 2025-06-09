@@ -23,6 +23,7 @@ class Tenant(Base):
 
     # Settings and configuration
     is_active = Column(Boolean, default=True)
+    storefront_enabled = Column(Boolean, default=True)
     # JSON settings would be better
     settings = Column(UUID(as_uuid=True), nullable=True)
 
