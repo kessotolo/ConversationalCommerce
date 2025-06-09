@@ -11,3 +11,4 @@
 - WhatsApp-specific order metadata is now stored in a dedicated WhatsAppOrderDetails model, linked one-to-one with Order. This enables clean separation of concerns and makes it easy to add support for other conversational channels in the future. See backend/docs/api/orders.md for details.
 - The order system uses an event-driven architecture. Events like OrderCreated, OrderStatusChanged, and OrderDelivered are emitted and handled asynchronously for notifications, analytics, and fulfillment. See backend/docs/api/orders.md for event types and details.
 - Payment events (e.g., PaymentProcessedEvent) are now part of the event-driven order system. See backend/docs/api/orders.md for details.
+- The event-driven order system is fully tested and observable. All event handlers are covered by a test suite, and observability (logging, metrics, alerting) is built in. See backend/docs/api/orders.md for details.

@@ -939,3 +939,11 @@ All database migrations are managed using Alembic in the backend directory. To e
 - Events are defined in `app/domain/events/order_events.py` and handled via the async event bus in `app/domain/events/event_bus.py`.
 - See backend/docs/api/orders.md for event types, payloads, and usage.
 - Payment events (e.g., PaymentProcessedEvent) are now emitted and handled for notifications, analytics, and fulfillment.
+
+## Event-Driven Order System, Testing, and Observability
+
+- The backend emits and handles all major order lifecycle events (creation, status change, shipping, delivery, cancellation, payment, etc.).
+- Each event triggers notifications, analytics logging, and fulfillment workflows via dedicated async handlers.
+- A full test suite covers all event handlers, using mocks for notifications and analytics, and validates all side effects.
+- Observability: all handlers log actions, and the system is ready for metrics and alerting integration (Prometheus, OpenTelemetry, etc.).
+- See `backend/docs/api/orders.md` for event types, handler details, and API documentation.

@@ -477,3 +477,9 @@ The backend uses an event-driven architecture for order-related actions. This en
     - Sends payment confirmation notification (email/SMS/WhatsApp)
     - Logs analytics event for payment
     - Releases order for fulfillment
+
+## Testing & Observability
+
+- All event handlers are covered by a comprehensive test suite using pytest and mocks for notifications and analytics.
+- Observability: all handlers log actions, and the system is ready for metrics and alerting integration (Prometheus, OpenTelemetry, etc.).
+- See the test file `app/domain/events/test_order_event_handlers.py` for examples.

@@ -936,3 +936,11 @@ For comprehensive implementation details, configuration options, and troubleshoo
 
 - The backend uses an event-driven architecture for order actions. See backend/docs/api/orders.md for event types, payloads, and usage.
 - Payment events (e.g., PaymentProcessedEvent) are now part of the backend event system. See backend/docs/api/orders.md for details.
+
+## Event-Driven Order System, Testing, and Observability
+
+- The backend uses an event-driven architecture for all order lifecycle events (creation, status change, shipping, delivery, cancellation, payment, etc.).
+- Each event triggers notifications, analytics logging, and fulfillment workflows via dedicated handlers.
+- A comprehensive test suite covers all event handlers, using mocks for notifications and analytics, and validates all side effects.
+- Observability is built-in: all handlers log actions, and the system is ready for metrics and alerting integration (e.g., Prometheus, OpenTelemetry).
+- See `backend/docs/api/orders.md` for event types, handler details, and API documentation.
