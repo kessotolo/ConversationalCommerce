@@ -11,6 +11,8 @@ from app.schemas.complaint import (
 )
 from app.services.complaint_service import complaint_service
 from uuid import UUID
+from app.services.exceptions import ComplaintNotFoundError, ComplaintPermissionError, ComplaintValidationError, DatabaseError
+from app.api.auth import ClerkTokenData, require_auth
 
 router = APIRouter()
 
@@ -56,18 +58,26 @@ def get_complaint(
 
 
 @router.patch("/complaints/{complaint_id}", response_model=ComplaintResponse)
-def update_complaint(
-    *,
+async def update_complaint(
+    complaint_id: UUID,
+    complaint_update: ComplaintUpdate,
     db: Session = Depends(deps.get_db),
-    complaint_id: str,
-    complaint_in: ComplaintUpdate,
-    current_user=Depends(deps.get_current_user)
+    user: ClerkTokenData = Depends(require_auth),
 ):
-    complaint = complaint_service.update_complaint(
-        db, current_user.tenant_id, complaint_id, complaint_in)
-    if not complaint:
-        raise HTTPException(status_code=404, detail="Complaint not found")
-    return complaint
+    """
+    Update a complaint by its ID. Only the owner or admin can update.
+    """
+    try:
+        complaint = await complaint_service.update_complaint(db, complaint_id, complaint_update)
+        return complaint
+    except ComplaintNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ComplaintPermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except ComplaintValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except DatabaseError as e:
+        raise HTTPException(status_code=500, detail="Error updating complaint")
 
 
 @router.post("/complaints/{complaint_id}/escalate", response_model=ComplaintResponse)

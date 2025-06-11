@@ -534,64 +534,17 @@ assert len(products) == 1
 assert products[0].tenant_id == tenant2_id
 ```
 
-## 🛠️ Order API & Service Refactor (2024-06)
+## 🚀 Backend Modernization & Order Service Consolidation (2024-06)
 
-- All business logic and validation for order operations is now centralized in the service layer (`order_service.py`).
-- API endpoints are thin and focused on HTTP concerns, delegating all business logic to the service.
-- A DRY error handler decorator is used on all order endpoints to map custom service exceptions to standardized HTTP responses.
-- Transaction boundaries are managed by a `@transactional` decorator in the service layer, ensuring atomicity and rollback on error.
-- A custom exception hierarchy (`OrderError`, `OrderNotFoundError`, `OrderValidationError`) is used for robust, expressive error handling in the service layer.
-- Error-to-HTTP mapping is now centralized and consistent, improving maintainability and client experience.
-- All tests and documentation have been updated to reflect these changes, and the codebase is now easier to extend and maintain for future contributors.
-
-### OrderService: Centralized Order Logic
-
-- **OrderService** is a class-based service in `app/services/order_service.py` that encapsulates all business logic for order creation, validation, status updates, and more.
-- All order-related API endpoints and conversational handlers now use an instance of `OrderService`, passing the current DB session.
-- **No order business logic or validation should be implemented in endpoints or handlers.** All such logic must go in `OrderService`.
-
-#### Key Methods
-- `create_order(...)`: Create a new order with full validation and business rules.
-- `get_order(order_id, seller_id)`: Retrieve an order by its UUID and tenant.
-- `get_order_by_number(order_number, seller_id)`: Retrieve an order by its order number and tenant (supports conversational flows).
-- `update_order_status(...)`: Update the status of an order, with optimistic locking and audit logging.
-- `delete_order(...)`: Soft-delete an order.
-- `get_orders(...)`: List/filter orders for a seller.
-- `mark_notification_sent(...)`: Mark an order as having had notifications sent.
-
-#### Example Usage (API Endpoint)
-```python
-@router.get("/orders/{order_id}")
-def get_order_by_id(order_id: UUID, db: Session = Depends(get_db), user: ClerkTokenData = Depends(require_auth)):
-    service = OrderService(db)
-    order = service.get_order(order_id=order_id, seller_id=UUID(user.sub))
-    if not order:
-        raise OrderNotFoundError("Order not found")
-    return order
-```
-
-#### Example Usage (Conversational Handler)
-```python
-service = OrderService(self.db)
-order = None
-if order_id:
-    order = service.get_order(order_id=uuid.UUID(order_id), seller_id=uuid.UUID(self.tenant_id))
-if not order and order_number:
-    order = service.get_order_by_number(order_number=order_number, seller_id=uuid.UUID(self.tenant_id))
-if not order:
-    # Handle not found
-```
-
-#### Guidance for Contributors
-- **Add all new order-related business logic to `OrderService`.**
-- Handlers and endpoints should only handle HTTP or conversational context, not business rules.
-- Use `get_order_by_number` for any flows (e.g., WhatsApp, chat) where users may reference orders by number instead of UUID.
-- If you need to extend order logic (e.g., new status transitions, validation, or events), add methods to `OrderService` and call them from handlers/endpoints.
-
-#### Benefits
-- Eliminates duplicate business logic across API and conversational flows.
-- Ensures all order operations are consistent, secure, and auditable.
-- Makes the codebase easier to test, maintain, and extend.
+- All order logic is now centralized in a class-based `OrderService`.
+- API handlers are thin: they pass DTOs/business objects directly to service methods, not raw primitives.
+- All business logic, validation, and DB access is in service classes, not endpoints.
+- All database access is fully async, using `AsyncSession` and `async with db.begin()` for transactions.
+- Optimistic locking (version checks) is enforced for all update/delete flows to prevent lost updates.
+- Tenant isolation is enforced at the DB level using PostgreSQL Row-Level Security (RLS) and session variables.
+- All legacy/duplicate order endpoints have been removed; `/api/v1/orders/` is the single source of truth.
+- Request/response schemas remain backward compatible for clients.
+- This architecture reduces boilerplate, improves maintainability, and ensures robust multi-tenant security.
 
 ## 🛠️ Development Setup
 

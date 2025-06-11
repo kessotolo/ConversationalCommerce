@@ -372,29 +372,15 @@ All API endpoints follow consistent error response formats:
 
 See the comprehensive test suite in `tests/api/test_create_order.py`, `tests/api/test_whatsapp_orders.py`, `tests/api/test_order_operations.py`, and `tests/api/test_order_error_handling.py` for examples of how to interact with these endpoints.
 
-## 🛠️ Order API & Service Refactor (2024-06)
+## 🚀 Order API Modernization (2024-06)
 
-- All business logic and validation for order operations is now centralized in the service layer (`order_service.py`).
-- API endpoints are thin and focused on HTTP concerns, delegating all business logic to the service.
-- A DRY error handler decorator is used on all order endpoints to map custom service exceptions to standardized HTTP responses.
-- Transaction boundaries are managed by a `@transactional` decorator in the service layer, ensuring atomicity and rollback on error.
-- A custom exception hierarchy (`OrderError`, `OrderNotFoundError`, `OrderValidationError`) is used for robust, expressive error handling in the service layer.
-- Error-to-HTTP mapping is now centralized and consistent, improving maintainability and client experience.
-- All tests and documentation have been updated to reflect these changes, and the codebase is now easier to extend and maintain for future contributors.
-
-> **Note for Contributors:**
-> - All order business logic (creation, validation, status, etc.) is now in the class-based `OrderService` (`app/services/order_service.py`).
-> - Both API endpoints and conversational handlers use `OrderService` for all order operations.
-> - Use `get_order_by_number` for conversational flows where users reference orders by number.
-> - Do not add business logic to endpoints or handlers—extend `OrderService` instead.
->
-> **Example:**
-> ```python
-> service = OrderService(db)
-> order = service.get_order_by_number(order_number, seller_id)
-> if not order:
->     # Handle not found
-> ```
+- All order logic is now centralized in `OrderService`.
+- API handlers pass DTOs/business objects directly to service methods.
+- All DB access is async and uses transactional patterns.
+- Optimistic locking (version checks) is enforced for all update/delete flows.
+- Tenant isolation is enforced at the DB level using PostgreSQL RLS and session variables.
+- No legacy/duplicate order endpoints remain; `/api/v1/orders/` is the single source of truth.
+- Handlers are thin and maintain backward compatibility for clients.
 
 ## WhatsAppOrderDetails Model & Order Structure Refactor
 

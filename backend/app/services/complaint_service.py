@@ -3,6 +3,8 @@ from app.models.complaint import Complaint
 from app.schemas.complaint import ComplaintCreate, ComplaintUpdate, ComplaintEscalate
 from typing import List, Optional
 from sqlalchemy import and_
+from sqlalchemy.ext.asyncio import AsyncSession
+from uuid import UUID
 
 
 class ComplaintService:
@@ -33,15 +35,16 @@ class ComplaintService:
     def get_complaint(self, db: Session, tenant_id: str, complaint_id: str) -> Complaint:
         return db.query(Complaint).filter(and_(Complaint.tenant_id == tenant_id, Complaint.id == complaint_id)).first()
 
-    def update_complaint(self, db: Session, tenant_id: str, complaint_id: str, complaint_in: ComplaintUpdate) -> Complaint:
-        complaint = self.get_complaint(db, tenant_id, complaint_id)
+    async def update_complaint(self, db: AsyncSession, complaint_id: UUID, complaint_update: ComplaintUpdate) -> Complaint:
+        complaint = await db.get(Complaint, complaint_id)
         if not complaint:
-            return None
-        for key, value in complaint_in.dict(exclude_unset=True).items():
+            raise ComplaintNotFoundError("Complaint not found")
+        # Permission and validation logic here as needed
+        update_data = complaint_update.dict(exclude_unset=True)
+        for key, value in update_data.items():
             setattr(complaint, key, value)
-        db.add(complaint)
-        db.commit()
-        db.refresh(complaint)
+        await db.commit()
+        await db.refresh(complaint)
         return complaint
 
     def escalate_complaint(self, db: Session, tenant_id: str, complaint_id: str, escalation: ComplaintEscalate) -> Complaint:

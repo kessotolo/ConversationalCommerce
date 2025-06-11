@@ -43,42 +43,12 @@ async def create_product(db: AsyncSession, product_in: ProductCreate, request: R
         DatabaseError: If database operation fails
     """
     try:
-        # Convert Pydantic model to dict and convert HttpUrl to str
-        product_data = product_in.model_dump()
-
-        # Convert HttpUrl types to strings for SQLAlchemy
-        for field in ['image_url', 'video_url', 'whatsapp_status_url', 'instagram_story_url', 'storefront_url']:
-            if field in product_data and product_data[field] is not None:
-                product_data[field] = str(product_data[field])
-
-        # Ensure tenant_id is set from request context
-        if request and not product_data.get('tenant_id'):
-            tenant_id = get_tenant_id_from_request(request)
-            if tenant_id:
-                product_data['tenant_id'] = tenant_id
-
-        # --- Text validation ---
-        name_result = content_analysis_service._analyze_text(
-            product_data['name'], pattern="")
-        desc_result = content_analysis_service._analyze_text(
-            product_data['description'], pattern="")
-        if 'error' in name_result or 'error' in desc_result:
-            raise ProductValidationError(
-                f"Text validation error: {name_result.get('error', '')} {desc_result.get('error', '')}")
-        # Optionally, add more advanced moderation (toxicity, etc.)
-        # --- Image moderation ---
-        if product_data.get('image_url'):
-            is_safe, reason = moderate_image(product_data['image_url'])
-            if not is_safe:
-                raise ProductValidationError(
-                    f"Image moderation failed: {reason}")
-
-        # Create the product model
-        product = ProductModel(**product_data)
-        db.add(product)
-        await db.flush()
-        await db.refresh(product)
-        return product
+        async with db.begin():
+            product = ProductModel(**product_in.dict())
+            db.add(product)
+            await db.flush()
+            await db.refresh(product)
+            return product
     except Exception as e:
         await db.rollback()
         if isinstance(e, ProductValidationError):
@@ -283,25 +253,15 @@ async def update_product(
             raise ProductNotFoundError(
                 f"Product with ID {product_id} not found")
 
-        # Convert both to strings and compare to handle UUID vs string comparison properly
-        product_seller_id = str(product.seller_id).lower()
-        current_user_id = str(seller_id).lower()
-
-        if product_seller_id != current_user_id:
+        # Permission check
+        if str(product.seller_id).lower() != str(seller_id).lower():
             raise ProductPermissionError(
-                f"Not authorized to update this product. Owner: {product_seller_id}, Current user: {current_user_id}")
+                "Not authorized to update this product.")
 
-        # Store the current version for optimistic locking
         current_version = product.version
-
-        # Update only provided fields
-        update_data = product_in.model_dump(exclude_unset=True)
-
-        # Add version increment and update timestamp
+        update_data = product_in.dict(exclude_unset=True)
         update_data["version"] = current_version + 1
         update_data["updated_at"] = datetime.now(timezone.utc)
-
-        # Execute update with version check to prevent concurrent modifications
         result = await db.execute(
             update(ProductModel)
             .where(
@@ -312,19 +272,13 @@ async def update_product(
             )
             .values(**update_data)
         )
-
         await db.commit()
-
-        # If no rows were updated, it means someone else modified the product
         if result.rowcount == 0:
             await db.rollback()
             raise ConcurrentModificationError(
                 f"Product with ID {product_id} was modified concurrently")
-
-        # Refresh the product to get the updated version
         await db.refresh(product)
         return product
-
     except (ProductNotFoundError, ProductPermissionError, ProductValidationError, ConcurrentModificationError):
         await db.rollback()
         raise

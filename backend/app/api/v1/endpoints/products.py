@@ -54,37 +54,17 @@ async def create_product_endpoint(
     - Returns the created product
     """
     try:
-        # Convert string UUID from auth token to proper UUID object
-        # The ClerkTokenData.sub is a string, but ProductCreate expects a UUID
-        from uuid import UUID
-        
-        # Assign the user ID from the token to the product
-        product_in.seller_id = UUID(user.sub)
-        
-        # Create the product and pass request for tenant context
-        product = create_product(db, product_in, request)
+        product = await create_product(db, product_in, request)
         return product
-    except ValueError as e:
-        # This could happen if the UUID conversion fails
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid seller ID format: {str(e)}"
-        )
     except ProductValidationError as e:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
     except DatabaseError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error creating product: {str(e)}"
-        )
-    except Exception as e:
-        # Catch any unexpected errors and log them
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Unexpected error: {str(e)}"
+            detail="Error creating product"
         )
 
 
@@ -192,7 +172,7 @@ async def update_product_endpoint(
     - Returns the updated product
     """
     try:
-        product = update_product(db, product_id, product_in, user.sub)
+        product = await update_product(db, product_id, product_in, user.sub)
         return product
     except ProductNotFoundError as e:
         raise HTTPException(

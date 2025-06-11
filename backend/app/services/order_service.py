@@ -18,6 +18,9 @@ from app.models.user import User
 from app.services.audit_service import create_audit_log, AuditActionType
 from fastapi import HTTPException, status
 from app.models.whatsapp_order_details import WhatsAppOrderDetails
+from app.models.order_create import OrderCreate
+from app.models.whatsapp_order_create import WhatsAppOrderCreate
+from app.models.order_status_update import OrderStatusUpdate
 
 
 """
@@ -268,41 +271,47 @@ def transactional(func):
         """
         await self.db.execute(text("SET my.tenant_id = :tenant_id"), {"tenant_id": str(tenant_id)})
 
-    async def create_order(self, product_id: UUID, seller_id: UUID, buyer_name: str, buyer_phone: str, items: list, order_source: OrderSource = OrderSource.whatsapp, buyer_email: Optional[str] = None, buyer_address: Optional[str] = None, notes: Optional[str] = None, channel_data: Optional[dict] = None) -> Order:
-        """
-        Create a new order with full validation, total calculation, and channel metadata assignment.
-        """
-        quantity = sum(item.get('quantity', 1) for item in items)
-        await self.validate_order(product_id, seller_id, quantity, items)
-        totals = self.calculate_totals(items)
-        async for attempt in AsyncRetrying(stop=stop_after_attempt(3), wait=wait_fixed(0.5)):
-            with attempt:
-                async with self.db.begin():
-                    order = Order(
-                        product_id=product_id,
-                        seller_id=seller_id,
-                        buyer_name=buyer_name,
-                        buyer_phone=buyer_phone,
-                        buyer_email=buyer_email,
-                        buyer_address=buyer_address,
-                        quantity=quantity,
-                        total_amount=totals['total_amount'],
-                        order_source=order_source,
-                        notes=notes
-                    )
-                    self.db.add(order)
-                    await self.db.flush()
-                    if channel_data:
-                        await self.assign_channel_metadata(order, channel_data)
-                    await create_audit_log(
-                        db=self.db,
-                        user_id=seller_id,
-                        action=AuditActionType.CREATE,
-                        resource_type="Order",
-                        resource_id=str(order.id),
-                        details=f"Created order for product {product_id}"
-                    )
-        return order
+    async def create_order(self, order_in: OrderCreate, seller_id: UUID) -> Order:
+        items = [{
+            'product_id': order_in.product_id,
+            'price': order_in.total_amount / order_in.quantity,
+            'quantity': order_in.quantity
+        }]
+        return await self._create_order(
+            product_id=order_in.product_id,
+            seller_id=seller_id,
+            buyer_name=order_in.buyer_name,
+            buyer_phone=order_in.buyer_phone,
+            items=items,
+            order_source=order_in.order_source,
+            buyer_email=order_in.buyer_email,
+            buyer_address=order_in.buyer_address,
+            notes=order_in.notes,
+            channel_data={}
+        )
+
+    async def create_whatsapp_order(self, order_in: WhatsAppOrderCreate, seller_id: UUID) -> Order:
+        items = [{
+            'product_id': order_in.product_id,
+            'price': order_in.total_amount / order_in.quantity,
+            'quantity': order_in.quantity
+        }]
+        return await self._create_order(
+            product_id=order_in.product_id,
+            seller_id=seller_id,
+            buyer_name=order_in.buyer_name,
+            buyer_phone=order_in.buyer_phone,
+            items=items,
+            order_source=OrderSource.whatsapp,
+            buyer_email=order_in.buyer_email,
+            buyer_address=order_in.buyer_address,
+            notes=order_in.notes,
+            channel_data={
+                'whatsapp_number': order_in.whatsapp_number,
+                'message_id': order_in.message_id,
+                'conversation_id': order_in.conversation_id
+            }
+        )
 
     async def get_order(self, order_id: UUID, seller_id: UUID = None) -> Optional[Order]:
         result = await self.db.execute(
@@ -349,84 +358,14 @@ def transactional(func):
         total_count = len(orders)  # For async, count separately if needed
         return orders, total_count
 
-    async def update_order_status(
-        self,
-        order_id: UUID,
-        seller_id: UUID,
-        status: OrderStatus,
-        tracking_number: Optional[str] = None,
-        shipping_carrier: Optional[str] = None
-    ) -> Optional[Order]:
-        """
-        Update an order's status with optimistic locking to prevent concurrent modifications.
-
-        This function implements several advanced features:
-        1. Optimistic locking: Prevents race conditions when multiple users update the same order
-        2. Tenant isolation: Ensures sellers can only update their own orders
-        3. Status transition validation: Validates that the status change follows the allowed flow
-        4. Conditional field updates: Only adds tracking/shipping info when provided
-        5. Audit logging: Records who changed the status and when
-
-        The optimistic locking works by checking if the order has been modified since it was
-        last retrieved. If it has, the update is rejected to prevent data loss.
-
-        Args:
-            db (Session): Database session
-            order_id (UUID): ID of the order to update
-            seller_id (UUID): ID of the seller performing the update
-            status (OrderStatus): New status to set for the order
-            tracking_number (Optional[str]): Shipping tracking number (for shipped status)
-            shipping_carrier (Optional[str]): Shipping carrier name (for shipped status)
-
-        Returns:
-            Order: The updated order object
-
-        Raises:
-            OrderNotFoundError: If order doesn't exist or doesn't belong to the seller
-            OrderValidationError: If the order has been modified concurrently
-            OrderValidationError: If the status transition is invalid
-        """
-        async for attempt in AsyncRetrying(stop=stop_after_attempt(3), wait=wait_fixed(0.5)):
-            with attempt:
-                async with self.db.begin():
-                    order = await self.get_order(order_id)
-                    if not order:
-                        return None
-                    current_version = order.version
-                    update_data = {
-                        "status": status,
-                        "updated_at": datetime.utcnow(),
-                        "version": current_version + 1
-                    }
-                    if status == OrderStatus.shipped:
-                        if tracking_number:
-                            update_data["tracking_number"] = tracking_number
-                        if shipping_carrier:
-                            update_data["shipping_carrier"] = shipping_carrier
-                    result = await self.db.execute(
-                        update(Order)
-                        .where(
-                            Order.id == order_id,
-                            Order.version == current_version
-                        )
-                        .values(**update_data)
-                    )
-                    if result.rowcount == 0:
-                        await self.db.rollback()
-                        raise OrderValidationError(
-                            "Order was modified by another process. Please refresh and try again.")
-                    await self.db.commit()
-                    await create_audit_log(
-                        db=self.db,
-                        user_id=seller_id,
-                        action=AuditActionType.UPDATE,
-                        resource_type="Order",
-                        resource_id=str(order_id),
-                        details=f"Updated order status to {status.value}"
-                    )
-                    # Emit events as before (use await if needed)
-        updated_order = await self.get_order(order_id)
-        return updated_order
+    async def update_order_status(self, order_id: UUID, status_update: OrderStatusUpdate, seller_id: UUID) -> Optional[Order]:
+        return await self._update_order_status(
+            order_id=order_id,
+            seller_id=seller_id,
+            status=status_update.status,
+            tracking_number=status_update.tracking_number,
+            shipping_carrier=status_update.shipping_carrier
+        )
 
     async def delete_order(
         self,

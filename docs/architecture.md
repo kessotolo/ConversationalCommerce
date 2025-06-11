@@ -1,3 +1,15 @@
+## 🚀 Backend Modernization & Order Service Consolidation (2024-06)
+
+- All order logic is now centralized in a class-based `OrderService`.
+- API handlers are thin: they pass DTOs/business objects directly to service methods, not raw primitives.
+- All business logic, validation, and DB access is in service classes, not endpoints.
+- All database access is fully async, using `AsyncSession` and `async with db.begin()` for transactions.
+- Optimistic locking (version checks) is enforced for all update/delete flows to prevent lost updates.
+- Tenant isolation is enforced at the DB level using PostgreSQL Row-Level Security (RLS) and session variables.
+- All legacy/duplicate order endpoints have been removed; `/api/v1/orders/` is the single source of truth.
+- Request/response schemas remain backward compatible for clients.
+- This architecture reduces boilerplate, improves maintainability, and ensures robust multi-tenant security.
+
 ## 🛠️ Order API & Service Refactor (2024-06)
 
 - All business logic and validation for order operations is now centralized in the service layer (`order_service.py`).

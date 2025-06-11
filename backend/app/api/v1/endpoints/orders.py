@@ -61,23 +61,7 @@ async def create_new_order(
 ):
     service = OrderService(db)
     await service.set_tenant_session(UUID(user.sub))
-    items = [{
-        'product_id': order_in.product_id,
-        'price': order_in.total_amount / order_in.quantity,
-        'quantity': order_in.quantity
-    }]
-    order = await service.create_order(
-        product_id=order_in.product_id,
-        seller_id=UUID(user.sub),
-        buyer_name=order_in.buyer_name,
-        buyer_phone=order_in.buyer_phone,
-        items=items,
-        order_source=order_in.order_source,
-        buyer_email=order_in.buyer_email,
-        buyer_address=order_in.buyer_address,
-        notes=order_in.notes,
-        channel_data={}
-    )
+    order = await service.create_order(order_in, seller_id=UUID(user.sub))
     return order
 
 
@@ -95,27 +79,7 @@ async def create_whatsapp_order(
 ):
     service = OrderService(db)
     await service.set_tenant_session(UUID(user.sub))
-    items = [{
-        'product_id': order_in.product_id,
-        'price': order_in.total_amount / order_in.quantity,
-        'quantity': order_in.quantity
-    }]
-    order = await service.create_order(
-        product_id=order_in.product_id,
-        seller_id=UUID(user.sub),
-        buyer_name=order_in.buyer_name,
-        buyer_phone=order_in.buyer_phone,
-        items=items,
-        order_source=OrderSource.whatsapp,
-        buyer_email=order_in.buyer_email,
-        buyer_address=order_in.buyer_address,
-        notes=order_in.notes,
-        channel_data={
-            'whatsapp_number': order_in.whatsapp_number,
-            'message_id': order_in.message_id,
-            'conversation_id': order_in.conversation_id
-        }
-    )
+    order = await service.create_whatsapp_order(order_in, seller_id=UUID(user.sub))
     return order
 
 
@@ -184,13 +148,7 @@ async def update_order_status_endpoint(
 ):
     service = OrderService(db)
     await service.set_tenant_session(UUID(user.sub))
-    order = await service.update_order_status(
-        order_id=order_id,
-        seller_id=UUID(user.sub),
-        status=status_update.status,
-        tracking_number=status_update.tracking_number,
-        shipping_carrier=status_update.shipping_carrier
-    )
+    order = await service.update_order_status(order_id, status_update, seller_id=UUID(user.sub))
     if not order:
         raise OrderNotFoundError("Order not found")
     return order
