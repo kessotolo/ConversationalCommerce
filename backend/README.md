@@ -959,3 +959,9 @@ All database migrations are managed using Alembic in the backend directory. To e
   - Extend optimistic locking to all update and patch flows, including order changes, refund requests, and any other critical state transitions.
   - For new models or flows, add a version field and implement version checks in service methods.
 - See `OrderService.update_order_status` and related methods for reference implementation.
+
+## Database & Migrations
+
+- Alembic expects a synchronous SQLAlchemy engine for migrations. The async engine is only created by the app, not during migrations.
+- If you add new models or fields, run Alembic migrations from the `backend` directory.
+- Do not import or create the async engine at the top level in modules that Alembic will import (see `app/db/session.py`).

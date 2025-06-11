@@ -6,7 +6,7 @@ from starlette.types import ASGIApp
 from sqlalchemy.orm import Session
 import uuid
 
-from app.db.session import AsyncSessionLocal
+from app.db.session import get_async_session_local
 from app.models.tenant import Tenant
 from app.models.storefront import StorefrontConfig
 from app.utils.domain_validator import validate_subdomain
@@ -151,7 +151,7 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
                 return cached_context
 
         # Not in cache, query database
-        db = AsyncSessionLocal()
+        db = get_async_session_local()
         try:
             # Query for StorefrontConfig and related Tenant
             config = (
@@ -211,7 +211,7 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
                 return cached_context
 
         # Not in cache, query database
-        db = AsyncSessionLocal()
+        db = get_async_session_local()
         try:
             # Query for StorefrontConfig and related Tenant
             config = (
@@ -272,7 +272,7 @@ def get_tenant_context(request: Request) -> Dict[str, Any]:
 
 
 async def get_tenant_by_subdomain_async(subdomain, db=None):
-    db = db or AsyncSessionLocal()
+    db = db or get_async_session_local()
     try:
         # await db.execute(...)
         # await db.commit()

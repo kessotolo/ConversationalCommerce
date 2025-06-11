@@ -8,16 +8,31 @@ settings = Settings()
 # Get the proper database URL from settings using the getter method
 SQLALCHEMY_DATABASE_URL = settings.get_database_url
 
-# Create async engine
-async_engine = create_async_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"connect_timeout": 15})
-AsyncSessionLocal = async_sessionmaker(
-    async_engine, expire_on_commit=False, class_=AsyncSession)
+# Only create async engine/session when explicitly requested (not at import time)
 
-# (Legacy sync version for reference)
-# engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"connect_timeout": 15})
-# SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-# (Do not use SessionLocal; use AsyncSessionLocal instead)
+
+def get_async_engine():
+    return create_async_engine(
+        SQLALCHEMY_DATABASE_URL, connect_args={"timeout": 15}
+    )
+
+
+def get_async_session_local():
+    async_engine = get_async_engine()
+    return async_sessionmaker(
+        async_engine, expire_on_commit=False, class_=AsyncSession
+    )
+
+# Usage in app: AsyncSessionLocal = get_async_session_local()
+# Do not create AsyncSessionLocal at import time
+
+# Legacy sync version for test compatibility
+# This is kept for backwards compatibility with tests
+# New code should use AsyncSession directly
+from sqlalchemy import create_engine
+engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"connect_timeout": 15})
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# End legacy sync support
 
 
 async def set_tenant_id(session: AsyncSession, tenant_id):
@@ -26,6 +41,7 @@ async def set_tenant_id(session: AsyncSession, tenant_id):
 
 async def get_db(request: Request = None):
     """Async DB dependency that sets tenant context from request state"""
+    AsyncSessionLocal = get_async_session_local()
     async with AsyncSessionLocal() as db:
         if request and hasattr(request.state, 'tenant_id'):
             await set_tenant_id(db, request.state.tenant_id)

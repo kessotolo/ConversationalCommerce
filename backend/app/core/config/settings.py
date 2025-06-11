@@ -45,7 +45,8 @@ class Settings(BaseSettings):
     ENABLE_CACHE: bool = True
     # Redis configuration flags
     REDIS_DISABLED: bool = False  # Set to True to completely disable Redis
-    DISABLE_REDIS_IN_PRODUCTION: bool = False  # Set to True to disable Redis in production only
+    # Set to True to disable Redis in production only
+    DISABLE_REDIS_IN_PRODUCTION: bool = False
     # Flag to indicate if running in container environment (for service discovery)
     IS_CONTAINER: bool = False
     CACHE_EXPIRATION: int = 300  # Default cache expiration in seconds
@@ -71,12 +72,12 @@ class Settings(BaseSettings):
         # If we're in a test environment, use the test database URL
         if is_test:
             test_db_url = os.environ.get(
-                "TEST_DATABASE_URL", "postgresql://postgres:postgres@localhost/conversational_commerce")
+                "TEST_DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost/conversational_commerce")
             self.DATABASE_URL = test_db_url
 
         # For production deployment, ensure we have a valid DATABASE_URL
         if self.ENVIRONMENT == "production" and not self.DATABASE_URL:
-            self.DATABASE_URL = f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
+            self.DATABASE_URL = f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
 
     @property
     def get_database_url(self) -> str:
@@ -86,10 +87,10 @@ class Settings(BaseSettings):
 
         # For deployment, construct URL with credentials for Railway or other remote DB
         if self.ENVIRONMENT == "production":
-            return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
+            return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
 
         # For local development and testing, use local PostgreSQL
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@localhost/{self.POSTGRES_DB}"
+        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@localhost/{self.POSTGRES_DB}"
 
 
 def is_test_environment() -> bool:

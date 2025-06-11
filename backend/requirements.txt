@@ -75,3 +75,5 @@ pycparser>=2.22
 # sentence-transformers>=2.2.2 # For semantic similarity
 
 pydantic[email]
+
+asyncpg>=0.29.0

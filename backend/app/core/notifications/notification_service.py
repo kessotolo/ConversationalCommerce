@@ -4,7 +4,7 @@ from enum import Enum
 import logging
 from pydantic import BaseModel, Field
 from app.core.config.settings import get_settings
-from app.db.session import AsyncSessionLocal
+from app.db.session import get_async_session_local
 from app.models.tenant import Tenant
 import smtplib
 from email.mime.text import MIMEText
@@ -78,7 +78,7 @@ class NotificationService:
             raise ValueError("SMTP settings not configured")
 
         # Get tenant email settings
-        db = AsyncSessionLocal()
+        db = get_async_session_local()
         try:
             tenant = await db.get(Tenant, notification.tenant_id)
             if not tenant or not tenant.notification_email:
@@ -117,7 +117,7 @@ class NotificationService:
             raise ValueError("Twilio client not configured")
 
         # Get tenant phone settings
-        db = AsyncSessionLocal()
+        db = get_async_session_local()
         try:
             tenant = await db.get(Tenant, notification.tenant_id)
             if not tenant or not tenant.notification_phone:

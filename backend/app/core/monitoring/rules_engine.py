@@ -4,7 +4,7 @@ from enum import Enum
 import json
 import logging
 from pydantic import BaseModel, Field
-from app.db.session import AsyncSessionLocal
+from app.db.session import get_async_session_local
 from app.models.audit_log import AuditLog
 from app.core.notifications.notification_service import (
     Notification,
@@ -137,7 +137,7 @@ class RulesEngine:
     def _evaluate_time_condition(self, condition: RuleCondition, activity: Dict[str, Any]) -> bool:
         """Evaluate a time-based condition by checking historical data"""
         try:
-            db = AsyncSessionLocal()
+            db = get_async_session_local()
             try:
                 # Get activities within the time window
                 start_time = datetime.now(
@@ -271,11 +271,5 @@ rules_engine = RulesEngine()
 # Example async DB access in monitoring
 
 
-async def update_rule_async(..., db=None):
-    db = db or AsyncSessionLocal()
-    try:
-        # await db.execute(...)
-        # await db.commit()
-        pass
-    finally:
-        await db.close()
+async def update_rule_async(*args, db=None):
+    pass  # TODO: implement or restore logic

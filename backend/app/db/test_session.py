@@ -1,5 +1,4 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from app.core.config.test_settings import get_test_settings
 
 # Get the test settings that include PostgreSQL database URL
@@ -9,19 +8,17 @@ settings = get_test_settings()
 TEST_SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
 
 # Create test engine with PostgreSQL
-test_engine = create_engine(
+test_async_engine = create_async_engine(
     TEST_SQLALCHEMY_DATABASE_URL,
     pool_size=5,
     max_overflow=10
 )
 
-TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+TestAsyncSessionLocal = async_sessionmaker(
+    autocommit=False, autoflush=False, bind=test_async_engine, class_=AsyncSession)
 
 
-def get_test_db():
+async def get_test_db():
     """Dependency for getting test database session"""
-    db = TestSessionLocal()
-    try:
+    async with TestAsyncSessionLocal() as db:
         yield db
-    finally:
-        db.close()

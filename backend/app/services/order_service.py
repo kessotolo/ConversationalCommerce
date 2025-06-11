@@ -17,10 +17,10 @@ from app.models.product import Product
 from app.models.user import User
 from app.services.audit_service import create_audit_log, AuditActionType
 from fastapi import HTTPException, status
-from app.models.whatsapp_order_details import WhatsAppOrderDetails
-from app.models.order_create import OrderCreate
-from app.models.whatsapp_order_create import WhatsAppOrderCreate
-from app.models.order_status_update import OrderStatusUpdate
+from app.models.order_channel_meta import OrderChannelMeta
+from app.models.conversation_history import ChannelType
+# WhatsAppOrderDetails has been replaced by OrderChannelMeta
+from app.schemas.order import OrderCreate, WhatsAppOrderCreate, OrderStatusUpdate
 
 
 """
@@ -77,6 +77,13 @@ def transactional(func):
             db.rollback()
             raise
     return wrapper
+
+
+class OrderService:
+    """Service for managing orders across multiple channels"""
+    
+    def __init__(self, db: Session):
+        self.db = db
 
     def _transactional(self, func, *args, **kwargs):
         try:
@@ -165,17 +172,18 @@ def transactional(func):
         )
         self.db.add(order)
         self.db.flush()
-        # If WhatsApp fields are present, create WhatsAppOrderDetails
-        if whatsapp_number or message_id or conversation_id:
-            whatsapp_details = WhatsAppOrderDetails(
+        # Add channel metadata if available
+        if order_source == OrderSource.whatsapp and (whatsapp_number or message_id or conversation_id):
+            channel_meta = OrderChannelMeta(
                 order_id=order.id,
-                whatsapp_number=whatsapp_number,
+                channel=ChannelType.whatsapp,
                 message_id=message_id,
-                conversation_id=conversation_id
+                chat_session_id=conversation_id,
+                user_response_log=whatsapp_number  # Store phone number in user_response_log for now
             )
-            self.db.add(whatsapp_details)
+            self.db.add(channel_meta)
             self.db.flush()
-            order.whatsapp_details = whatsapp_details
+            order.channel_metadata = [channel_meta]
         create_audit_log(
             db=self.db,
             user_id=seller_id,
@@ -240,15 +248,15 @@ def transactional(func):
         Assign channel-specific metadata (WhatsApp, Instagram, SMS, etc.) to the order.
         """
         if channel_data.get('whatsapp_number') or channel_data.get('message_id') or channel_data.get('conversation_id'):
-            whatsapp_details = WhatsAppOrderDetails(
+            channel_meta = OrderChannelMeta(
                 order_id=order.id,
-                whatsapp_number=channel_data.get('whatsapp_number'),
+                channel=ChannelType.whatsapp,
                 message_id=channel_data.get('message_id'),
-                conversation_id=channel_data.get('conversation_id')
+                chat_session_id=channel_data.get('conversation_id'),
+                user_response_log=channel_data.get('whatsapp_number')  # Store phone number
             )
-            self.db.add(whatsapp_details)
+            self.db.add(channel_meta)
             await self.db.flush()
-            order.whatsapp_details = whatsapp_details
         # Extend for other channels (e.g., Instagram, SMS) as needed
 
     async def process_transaction(self, order: Order, payment_data: dict) -> None:

@@ -13,7 +13,7 @@ import uuid
 import dns.resolver
 import dns.exception
 
-from app.db.session import AsyncSessionLocal
+from app.db.session import get_async_session_local
 from app.models.storefront import StorefrontConfig
 from app.models.tenant import Tenant
 from app.utils.domain_validator import verify_domain_dns, generate_verification_token
@@ -127,7 +127,7 @@ class DomainVerificationMiddleware(BaseHTTPMiddleware):
             ssl_status, ssl_error = await self._verify_ssl(domain)
 
             # Get domain info from database
-            db = AsyncSessionLocal()
+            db = get_async_session_local()
             try:
                 config = await db.get(StorefrontConfig, uuid.UUID(tenant_id), StorefrontConfig.custom_domain == domain)
 
@@ -294,7 +294,7 @@ class DomainVerificationService:
 
     async def _verify_all_domains(self):
         """Verify all domains in the system."""
-        db = AsyncSessionLocal()
+        db = get_async_session_local()
         try:
             # Get all domains with custom domains
             configs = await db.execute(
@@ -410,7 +410,7 @@ verification_service = DomainVerificationService()
 
 
 async def verify_domain_async(domain, db=None):
-    db = db or AsyncSessionLocal()
+    db = db or get_async_session_local()
     try:
         # await db.execute(...)
         # await db.commit()

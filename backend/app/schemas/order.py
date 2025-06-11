@@ -3,6 +3,7 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime, date
 from uuid import UUID
 from app.models.order import OrderStatus, OrderSource
+from app.schemas.order_channel_meta import OrderChannelMetaResponse
 
 
 class OrderBase(BaseModel):
@@ -16,10 +17,16 @@ class OrderBase(BaseModel):
     notes: Optional[str] = Field(None, max_length=1000)
 
 
+# Compatibility layer for WhatsApp order creation
+# This will eventually be deprecated in favor of using OrderChannelMetaCreate
 class WhatsAppOrderCreate(OrderBase):
     whatsapp_number: str = Field(..., min_length=10, max_length=15)
     message_id: str
     conversation_id: str
+    order_source: OrderSource = Field(
+        default=OrderSource.whatsapp,
+        description="Always whatsapp for this legacy schema."
+    )
 
     @field_validator('whatsapp_number', 'buyer_phone')
     @classmethod
@@ -30,6 +37,8 @@ class WhatsAppOrderCreate(OrderBase):
         return v
 
 
+# Legacy schema for backward compatibility
+# This will eventually be removed in favor of OrderChannelMetaResponse
 class WhatsAppOrderDetailsSchema(BaseModel):
     whatsapp_number: Optional[str] = None
     message_id: Optional[str] = None
@@ -75,7 +84,7 @@ class OrderResponse(OrderBase):
     status: OrderStatus
     created_at: datetime
     updated_at: Optional[datetime] = None
-    whatsapp_details: Optional[WhatsAppOrderDetailsSchema] = None
+    channel_metadata: Optional[list[OrderChannelMetaResponse]] = None
     version: int
 
     model_config = ConfigDict(from_attributes=True)

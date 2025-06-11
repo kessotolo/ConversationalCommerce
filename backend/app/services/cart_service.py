@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.models.cart import Cart
 from app.api.v1.endpoints.cart import get_or_create_cart
 from datetime import datetime
-from app.db.session import AsyncSessionLocal
+from app.db.session import get_async_session_local
 from sqlalchemy.sql import select
 
 # Service to get cart by phone number (for conversational flows)
@@ -48,7 +48,7 @@ async def clear_cart(phone_number: str, tenant_id: str, db: Session):
 class CartService:
     @staticmethod
     async def get_cart_by_phone(phone_number: str, tenant_id: str, db=None):
-        db = db or AsyncSessionLocal()
+        db = db or get_async_session_local()()
         try:
             # Replace with actual async DB query
             result = await db.execute(
@@ -62,7 +62,7 @@ class CartService:
 
     @staticmethod
     async def clear_cart(phone_number: str, tenant_id: str, db=None):
-        db = db or AsyncSessionLocal()
+        db = db or get_async_session_local()()
         try:
             # Replace with actual async DB query
             result = await db.execute(

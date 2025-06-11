@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Float, ForeignKey, DateTime
+from sqlalchemy import Column, String, Float, ForeignKey, DateTime, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -20,6 +20,10 @@ class Product(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow,
                         onupdate=datetime.utcnow)
+    # Add fields expected by tests
+    is_featured = Column(Boolean, default=False)
+    show_on_storefront = Column(Boolean, default=True)
+    show_on_whatsapp = Column(Boolean, default=True)
     
     # Relationships
     complaints = relationship("Complaint", back_populates="product")

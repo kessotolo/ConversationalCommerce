@@ -8,7 +8,7 @@ import logging
 from app.core.security.dependencies import require_auth
 from app.core.security.clerk import ClerkTokenData
 from app.models.audit_log import AuditLog
-from app.db.session import AsyncSessionLocal
+from app.db.session import get_async_session_local
 from app.core.config.settings import get_settings
 
 settings = get_settings()
@@ -109,7 +109,7 @@ class ActivityMonitor:
         """Process a new activity and determine if alerts are needed"""
         try:
             # Store activity in database
-            db = AsyncSessionLocal()
+            db = get_async_session_local()
             try:
                 audit_log = AuditLog(
                     user_id=activity["user_id"],
@@ -164,7 +164,7 @@ class ActivityMonitor:
                 )
 
             # 2. Check for API rate limits (per user)
-            db = AsyncSessionLocal()
+            db = get_async_session_local()
             try:
                 # Count recent activities by this user
                 for severity, window in self.activity_windows.items():
@@ -258,7 +258,7 @@ class ActivityMonitor:
 
         # Store in database for future reference
         try:
-            db = AsyncSessionLocal()
+            db = get_async_session_local()
             # If you have an alerts table, you could store it here
             # alert_record = Alert(**alert)
             # db.add(alert_record)
@@ -312,11 +312,5 @@ async def get_websocket_endpoint(
 # Example async DB access in websocket monitoring
 
 
-async def update_monitoring_async(..., db=None):
-    db = db or AsyncSessionLocal()
-    try:
-        # await db.execute(...)
-        # await db.commit()
-        pass
-    finally:
-        await db.close()
+async def update_monitoring_async(*args, db=None):
+    pass  # TODO: implement or restore logic

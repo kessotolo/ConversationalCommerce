@@ -7,7 +7,7 @@ import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 import spacy
-from app.db.session import AsyncSessionLocal
+from app.db.session import get_async_session_local
 from app.models.content_filter import ContentFilterRule, ContentAnalysisResult
 from app.core.notifications.notification_service import (
     Notification,
@@ -118,7 +118,7 @@ class ContentAnalysisService:
 
     async def _get_rules(self, tenant_id: str, content_type: str) -> List[ContentFilterRule]:
         """Get applicable filter rules for the tenant and content type"""
-        db = AsyncSessionLocal()
+        db = get_async_session_local()
         try:
             return await db.execute(
                 ContentFilterRule.filter(
@@ -364,11 +364,5 @@ content_analysis_service = ContentAnalysisService()
 # Example async DB access in content analysis
 
 
-async def analyze_content_async(..., db=None):
-    db = db or AsyncSessionLocal()
-    try:
-        # await db.execute(...)
-        # await db.commit()
-        pass
-    finally:
-        await db.close()
+async def analyze_content_async(*args, db=None):
+    pass  # TODO: implement or restore logic

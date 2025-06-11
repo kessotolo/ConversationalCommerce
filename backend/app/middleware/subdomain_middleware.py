@@ -9,7 +9,7 @@ import time
 from urllib.parse import urlparse
 from functools import lru_cache
 
-from app.db.session import AsyncSessionLocal
+from app.db.session import get_async_session_local
 from app.models.storefront import StorefrontConfig
 from app.models.tenant import Tenant
 from app.middleware.storefront_errors import (
@@ -63,7 +63,7 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
             # If not in cache, query the database
             if not tenant_context:
                 # Initialize DB session
-                db = AsyncSessionLocal()
+                db = get_async_session_local()
                 try:
                     # Check if this is a custom domain
                     config = await self._get_storefront_by_domain(db, host)
@@ -220,7 +220,7 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
 
 
 async def get_tenant_by_subdomain_async(subdomain, db=None):
-    db = db or AsyncSessionLocal()
+    db = db or get_async_session_local()
     try:
         # await db.execute(...)
         # await db.commit()

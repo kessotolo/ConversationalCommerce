@@ -27,6 +27,7 @@ class Order(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"))
+    seller_id = Column(UUID(as_uuid=True), nullable=True)
 
     # Buyer Information
     buyer_name = Column(String, nullable=False)
@@ -45,14 +46,18 @@ class Order(Base):
 
     # Relationships
     complaints = relationship("Complaint", back_populates="order")
-    # WhatsApp/conversational metadata (one-to-one)
-    whatsapp_details = relationship(
-        "WhatsAppOrderDetails",
-        uselist=False,
+    channel_metadata = relationship(
+        "OrderChannelMeta",
         back_populates="order",
-        lazy="joined",
-        doc="WhatsApp/conversational metadata for this order."
+        cascade="all, delete-orphan"
     )
+    # whatsapp_details = relationship(
+    #     "WhatsAppOrderDetails",
+    #     uselist=False,
+    #     back_populates="order",
+    #     lazy="joined",
+    #     doc="WhatsApp/conversational metadata for this order."
+    # )
 
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
