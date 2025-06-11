@@ -1005,3 +1005,13 @@ For comprehensive implementation details, configuration options, and troubleshoo
 - A comprehensive test suite covers all event handlers, using mocks for notifications and analytics, and validates all side effects.
 - Observability is built-in: all handlers log actions, and the system is ready for metrics and alerting integration (e.g., Prometheus, OpenTelemetry).
 - See `backend/docs/api/orders.md` for event types, handler details, and API documentation.
+
+## 🛡️ Optimistic Locking for Data Integrity
+
+- Optimistic locking is used for all order status updates and deletes to prevent lost updates and ensure data integrity in concurrent environments.
+- The system uses a version field on models (e.g., Order) to detect concurrent modifications. If the version in the update request does not match the current version in the database, a `409 Conflict` error is returned and the update is rejected.
+- **Contributor Guidance:**
+  - Always include and check the version field in update and delete operations for models that support optimistic locking.
+  - Extend optimistic locking to all update and patch flows, including order changes, refund requests, and any other critical state transitions.
+  - For new models or flows, add a version field and implement version checks in service methods.
+- See `OrderService.update_order_status` and related methods for reference implementation.

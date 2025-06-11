@@ -25,6 +25,7 @@ from app.conversation.message_builder import MessageBuilder, MessageType
 from app.services.cart_service import get_cart_service
 from app.db import get_db
 from app.utils.retry import with_retry
+from app.services.order_service import OrderService
 
 logger = logging.getLogger(__name__)
 
@@ -37,10 +38,10 @@ class OrderIntentHandler:
     Optimized for African market with offline resilience and graceful fallbacks.
     """
 
-    def __init__(self, tenant_id: str, user_id: Optional[str] = None):
+    def __init__(self, tenant_id: str, user_id: Optional[str] = None, db=None):
         self.tenant_id = tenant_id
         self.user_id = user_id
-        self.db = next(get_db())
+        self.db = db  # Should be an AsyncSession
         self.cart_service = get_cart_service()
         self.event_bus = get_event_bus()
         self.message_builder = MessageBuilder()
@@ -89,43 +90,27 @@ class OrderIntentHandler:
     async def handle_checkout_intent(self, intent: ParsedIntent, context: Dict[str, Any]) -> Dict[str, Any]:
         """
         Handle checkout intent from conversational interfaces
-
-        Flow:
-        1. Retrieve cart
-        2. Extract shipping and payment info from intent
-        3. Create order in pending state
-        4. Send payment instructions
-        5. Clear cart
         """
-        # Get user phone from context
         user_phone = context.get('phone_number') or context.get(
             'user', {}).get('phone')
-
         if not user_phone:
             return self.create_invalid_response(
                 context,
                 "I couldn't find your contact information. Please provide your phone number."
             )
-
-        # Get user's cart with retry for resilience
         cart_result = await with_retry(
             self.cart_service.get_cart_by_phone,
             retry_count=3,
             args=(user_phone, self.tenant_id)
         )
-
         if not cart_result or not cart_result.get('items') or len(cart_result.get('items', [])) == 0:
             return self.create_invalid_response(
                 context,
                 "Your cart is empty. Add some products first before checking out."
             )
-
-        # Extract customer info
         customer_name = intent.entities.get(
             'customer_name') or context.get('user', {}).get('name')
-
         if not customer_name:
-            # Ask for customer name if not available
             context['awaiting_customer_name'] = True
             return {
                 'messages': [
@@ -135,12 +120,8 @@ class OrderIntentHandler:
                 ],
                 'context': context
             }
-
-        # Extract shipping address
         shipping_address = self._extract_address_from_intent(intent, context)
-
         if not shipping_address:
-            # Ask for address if not available
             context['awaiting_address'] = True
             return {
                 'messages': [
@@ -150,34 +131,7 @@ class OrderIntentHandler:
                 ],
                 'context': context
             }
-
-        # Calculate totals
         cart_items = cart_result.get('items', [])
-        subtotal = sum(item.get('price', 0) * item.get('quantity', 0)
-                       for item in cart_items)
-        shipping_cost = 500  # Default shipping cost (e.g., 500 KES)
-        tax_amount = subtotal * 0.16  # Example: 16% tax
-        total_amount = subtotal + shipping_cost + tax_amount
-        currency = "KES"  # Default currency
-
-        # Generate order items from cart
-        order_items = [
-            OrderItem(
-                product_id=item.get('product_id'),
-                product_name=item.get('name'),
-                quantity=item.get('quantity', 1),
-                unit_price=Money(amount=item.get(
-                    'price', 0), currency=currency),
-                total_price=Money(amount=item.get('price', 0)
-                                  * item.get('quantity', 1), currency=currency),
-                variant_id=item.get('variant_id'),
-                variant_name=item.get('variant_name'),
-                image_url=item.get('image_url')
-            )
-            for item in cart_items
-        ]
-
-        # Determine payment method (default to mobile money in African markets)
         payment_method = intent.entities.get('payment_method')
         if payment_method:
             try:
@@ -186,94 +140,41 @@ class OrderIntentHandler:
                 payment_method = PaymentMethod.MOBILE_MONEY
         else:
             payment_method = PaymentMethod.MOBILE_MONEY
-
-        # Create unique order request
-        order_request = CreateOrderRequest(
-            customer=CustomerInfo(
-                name=customer_name,
-                phone=user_phone,
-                email=context.get('user', {}).get('email'),
-                is_guest=True
-            ),
-            items=order_items,
-            shipping=ShippingDetails(
-                address=shipping_address,
-                method="Standard Delivery",
-                shipping_cost=Money(amount=shipping_cost, currency=currency)
-            ),
-            payment=PaymentDetails(
-                method=payment_method,
-                status=PaymentStatus.PENDING,
-                amount_paid=Money(amount=total_amount, currency=currency),
-                phone_number=user_phone
-            ),
-            source=OrderSource.WHATSAPP,
+        service = OrderService(self.db)
+        order = await service.create_order(
+            product_id=cart_items[0].get('product_id'),
+            seller_id=uuid.UUID(self.tenant_id),
+            buyer_name=customer_name,
+            buyer_phone=user_phone,
+            items=cart_items,
+            order_source=OrderSource.WHATSAPP,
+            buyer_email=context.get('user', {}).get('email'),
+            buyer_address=str(shipping_address),
             notes=intent.entities.get('notes'),
-            tenant_id=self.tenant_id,
-            idempotency_key=str(uuid.uuid4())
+            channel_data={
+                'whatsapp_number': user_phone
+            }
         )
-
-        # Generate unique order number
-        order_number = f"ORD-{datetime.utcnow().strftime('%Y%m%d')}-{uuid.uuid4().hex[:4].upper()}"
-
-        # Create order domain model
-        order = Order(
-            id=str(uuid.uuid4()),
-            tenant_id=self.tenant_id,
-            order_number=order_number,
-            customer=order_request.customer,
-            items=order_request.items,
-            subtotal=Money(amount=subtotal, currency=currency),
-            tax=Money(amount=tax_amount, currency=currency),
-            total_amount=Money(amount=total_amount, currency=currency),
-            status=OrderStatus.PENDING,
-            source=OrderSource.WHATSAPP,
-            shipping=order_request.shipping,
-            payment=order_request.payment,
-            notes=order_request.notes,
-            idempotency_key=order_request.idempotency_key,
-            timeline=[{
-                "status": OrderStatus.PENDING,
-                "note": "Order created via WhatsApp",
-                "created_by": "system"
-            }]
-        )
-
-        # Save order to database
-        # Note: In a real implementation, this would save to the database
-        # For this example, we'll just simulate success
-
-        # Publish order created event
+        order_number = getattr(order, 'order_number', str(order.id))
         event = OrderEventFactory.create_order_created_event(order)
         await self.event_bus.publish(event)
-
-        # Clear the cart
         await self.cart_service.clear_cart(user_phone, self.tenant_id)
-
-        # Build response with payment instructions
         response_messages = []
-
-        # Order confirmation message
         response_messages.append(
             self.message_builder.text_message(
                 f"🛒 Order #{order_number} created successfully!\n\n"
-                f"Total: {total_amount} {currency}\n"
-                f"Items: {len(order_items)}\n"
+                f"Total: {order.total_amount} KES\n"
+                f"Items: {len(cart_items)}\n"
                 f"Delivery: {shipping_address.city}, {shipping_address.street}"
             )
         )
-
-        # Payment instructions based on payment method
         payment_instructions = self._get_payment_instructions(
-            payment_method, total_amount, currency)
+            payment_method, order.total_amount, "KES")
         response_messages.append(
             self.message_builder.text_message(payment_instructions)
         )
-
-        # Add order to context
-        context['last_order_id'] = order.id
+        context['last_order_id'] = str(order.id)
         context['last_order_number'] = order_number
-
         return {
             'messages': response_messages,
             'context': context
@@ -281,94 +182,41 @@ class OrderIntentHandler:
 
     async def handle_order_status_intent(self, intent: ParsedIntent, context: Dict[str, Any]) -> Dict[str, Any]:
         """Handle order status inquiry"""
-        # Extract order identifier from intent or context
         order_id = intent.entities.get('order_id')
         order_number = intent.entities.get(
             'order_number') or context.get('last_order_number')
-
-        if not order_id and not order_number:
+        service = OrderService(self.db)
+        order = None
+        if order_id:
+            order = await service.get_order(order_id=uuid.UUID(
+                order_id), seller_id=uuid.UUID(self.tenant_id))
+        if not order and order_number:
+            order = await service.get_order_by_number(
+                order_number=order_number, seller_id=uuid.UUID(self.tenant_id))
+        if not order:
             return {
                 'messages': [
                     self.message_builder.text_message(
-                        "Please provide your order number to check the status."
+                        "Order not found. Please provide a valid order number or ID to check the status."
                     )
                 ],
                 'context': context
             }
-
-        # Simulate fetching order (would use order service in production)
-        # In a real implementation, this would query the database
-
-        # Create a simulated order for this example
-        order = Order(
-            id=order_id or str(uuid.uuid4()),
-            tenant_id=self.tenant_id,
-            order_number=order_number or f"ORD-20250603-1234",
-            customer=CustomerInfo(
-                name=context.get('user', {}).get('name', 'Customer'),
-                phone=context.get('phone_number'),
-                is_guest=True
-            ),
-            items=[],  # Would have actual items
-            subtotal=Money(amount=1500, currency="KES"),
-            tax=Money(amount=240, currency="KES"),
-            total_amount=Money(amount=2240, currency="KES"),
-            status=OrderStatus.PROCESSING,  # Sample status
-            source=OrderSource.WHATSAPP,
-            shipping=ShippingDetails(
-                address=Address(
-                    street="123 Main St",
-                    city="Nairobi",
-                    state="Nairobi",
-                    country="Kenya"
-                ),
-                method="Standard Delivery",
-                shipping_cost=Money(amount=500, currency="KES")
-            ),
-            payment=PaymentDetails(
-                method=PaymentMethod.MOBILE_MONEY,
-                status=PaymentStatus.COMPLETED,
-                amount_paid=Money(amount=2240, currency="KES")
-            ),
-            idempotency_key=str(uuid.uuid4()),
-            timeline=[
-                {
-                    "status": OrderStatus.PENDING,
-                    "note": "Order created",
-                    "timestamp": (datetime.utcnow().replace(hour=10, minute=15)).isoformat()
-                },
-                {
-                    "status": OrderStatus.PAID,
-                    "note": "Payment received",
-                    "timestamp": (datetime.utcnow().replace(hour=10, minute=30)).isoformat()
-                },
-                {
-                    "status": OrderStatus.PROCESSING,
-                    "note": "Order is being prepared",
-                    "timestamp": (datetime.utcnow().replace(hour=11, minute=0)).isoformat()
-                }
-            ]
-        )
-
-        # Format timeline for WhatsApp
-        timeline_text = "\n".join([
-            f"• {event.get('status')}: {datetime.fromisoformat(event.get('timestamp')).strftime('%I:%M %p')}"
-            for event in order.timeline
-        ])
-
-        # Build status message
+        timeline_text = ""
+        if hasattr(order, 'timeline') and order.timeline:
+            timeline_text = "\n".join([
+                f"• {event.get('status')}: {datetime.fromisoformat(event.get('timestamp')).strftime('%I:%M %p')}"
+                for event in order.timeline
+            ])
         status_message = (
-            f"📦 *Order #{order.order_number} Status*\n\n"
+            f"📦 *Order #{getattr(order, 'order_number', order.id)} Status*\n\n"
             f"Current Status: *{order.status}*\n\n"
             f"Timeline:\n{timeline_text}\n\n"
-            f"Total: {order.total_amount.amount} {order.total_amount.currency}"
+            f"Total: {getattr(order, 'total_amount', 0)}"
         )
-
-        # Add next steps based on status
         next_steps = self._get_next_steps_for_status(order.status)
         if next_steps:
             status_message += f"\n\nNext Steps:\n{next_steps}"
-
         return {
             'messages': [
                 self.message_builder.text_message(status_message)
@@ -378,75 +226,79 @@ class OrderIntentHandler:
 
     async def handle_cancel_order_intent(self, intent: ParsedIntent, context: Dict[str, Any]) -> Dict[str, Any]:
         """Handle order cancellation request"""
-        # Extract order identifier from intent or context
         order_id = intent.entities.get('order_id')
         order_number = intent.entities.get(
             'order_number') or context.get('last_order_number')
-
-        if not order_id and not order_number:
+        service = OrderService(self.db)
+        order = None
+        if order_id:
+            order = await service.get_order(order_id=uuid.UUID(
+                order_id), seller_id=uuid.UUID(self.tenant_id))
+        if not order and order_number:
+            order = await service.get_order_by_number(
+                order_number=order_number, seller_id=uuid.UUID(self.tenant_id))
+        if not order:
             return {
                 'messages': [
                     self.message_builder.text_message(
-                        "Please provide your order number to cancel."
+                        "Order not found. Please provide a valid order number or ID to cancel."
                     )
                 ],
                 'context': context
             }
-
-        # In a real implementation, this would fetch the order and check if it can be cancelled
-
-        # For this example, just confirm the intent
-        context['cancellation_pending'] = True
-        context['pending_cancellation_order'] = order_number
-
-        return {
-            'messages': [
-                self.message_builder.text_message(
-                    f"Are you sure you want to cancel order #{order_number}? "
-                    f"Please reply with 'yes' to confirm or 'no' to keep your order."
-                )
-            ],
-            'context': context
-        }
+        if hasattr(order, 'status') and order.status in [OrderStatus.PENDING, OrderStatus.PAID]:
+            await service.update_order_status(order_id=order.id, seller_id=uuid.UUID(
+                self.tenant_id), status=OrderStatus.CANCELLED)
+            return {
+                'messages': [
+                    self.message_builder.text_message(
+                        f"Order #{getattr(order, 'order_number', order.id)} has been cancelled."
+                    )
+                ],
+                'context': context
+            }
+        else:
+            return {
+                'messages': [
+                    self.message_builder.text_message(
+                        f"Order #{getattr(order, 'order_number', order.id)} cannot be cancelled at its current status."
+                    )
+                ],
+                'context': context
+            }
 
     async def handle_track_order_intent(self, intent: ParsedIntent, context: Dict[str, Any]) -> Dict[str, Any]:
         """Handle order tracking request"""
-        # Extract order identifier from intent or context
         order_id = intent.entities.get('order_id')
         order_number = intent.entities.get(
             'order_number') or context.get('last_order_number')
-
-        if not order_id and not order_number:
+        service = OrderService(self.db)
+        order = None
+        if order_id:
+            order = await service.get_order(order_id=uuid.UUID(
+                order_id), seller_id=uuid.UUID(self.tenant_id))
+        if not order and order_number:
+            order = await service.get_order_by_number(
+                order_number=order_number, seller_id=uuid.UUID(self.tenant_id))
+        if not order:
             return {
                 'messages': [
                     self.message_builder.text_message(
-                        "Please provide your order number to track your package."
+                        "Order not found. Please provide a valid order number or ID to track."
                     )
                 ],
                 'context': context
             }
-
-        # In a real implementation, this would fetch the order with tracking info
-
-        # For this example, just provide simulated tracking information
         tracking_message = (
-            f"📍 *Tracking for Order #{order_number}*\n\n"
-            f"Tracking Number: TRK123456789\n"
-            f"Status: In Transit\n"
-            f"Estimated Delivery: {(datetime.utcnow().date()).strftime('%d %b %Y')}\n\n"
-            f"Current Location: Nairobi Distribution Center\n\n"
-            f"Updates:\n"
-            f"• Package received - {(datetime.utcnow().replace(hour=8, minute=30)).strftime('%I:%M %p')}\n"
-            f"• Out for delivery - {(datetime.utcnow().replace(hour=10, minute=15)).strftime('%I:%M %p')}\n\n"
-            f"Your package will arrive today between 2-5 PM."
+            f"📍 *Tracking for Order #{getattr(order, 'order_number', order.id)}*\n\n"
+            f"Tracking Number: {getattr(order, 'tracking_number', 'N/A')}\n"
+            f"Status: {getattr(order, 'status', 'N/A')}\n"
+            f"Estimated Delivery: {getattr(order, 'estimated_delivery', 'N/A')}\n\n"
+            f"Current Location: {getattr(order, 'current_location', 'N/A')}\n\n"
         )
-
-        # Send location with tracking info
         return {
             'messages': [
-                self.message_builder.text_message(tracking_message),
-                self.message_builder.location_message(
-                    -1.2921, 36.8219, "Nairobi Distribution Center")
+                self.message_builder.text_message(tracking_message)
             ],
             'context': context
         }

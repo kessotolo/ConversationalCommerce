@@ -16,6 +16,7 @@ from app.core.exceptions import (
 from app.db.session import get_tenant_id_from_request
 from app.core.content.content_analysis import content_analysis_service
 from app.core.content.image_moderation import moderate_image
+from sqlalchemy.ext.asyncio import AsyncSession
 
 # Add a new exception for optimistic locking conflicts
 
@@ -25,7 +26,7 @@ class ConcurrentModificationError(Exception):
     pass
 
 
-def create_product(db: Session, product_in: ProductCreate, request: Request = None) -> ProductModel:
+async def create_product(db: AsyncSession, product_in: ProductCreate, request: Request = None) -> ProductModel:
     """
     Create a new product with text and image validation.
 
@@ -75,11 +76,11 @@ def create_product(db: Session, product_in: ProductCreate, request: Request = No
         # Create the product model
         product = ProductModel(**product_data)
         db.add(product)
-        db.commit()
-        db.refresh(product)
+        await db.flush()
+        await db.refresh(product)
         return product
     except Exception as e:
-        db.rollback()
+        await db.rollback()
         if isinstance(e, ProductValidationError):
             raise
         raise DatabaseError(f"Error creating product: {str(e)}")
@@ -251,8 +252,8 @@ def get_products_keyset(
             f"Error fetching products with keyset pagination: {str(e)}")
 
 
-def update_product(
-    db: Session,
+async def update_product(
+    db: AsyncSession,
     product_id: UUID,
     product_in: ProductUpdate,
     seller_id: UUID
@@ -277,7 +278,7 @@ def update_product(
         DatabaseError: If database operation fails
     """
     try:
-        product = get_product(db, product_id)
+        product = await get_product(db, product_id)
         if not product:
             raise ProductNotFoundError(
                 f"Product with ID {product_id} not found")
@@ -301,7 +302,7 @@ def update_product(
         update_data["updated_at"] = datetime.now(timezone.utc)
 
         # Execute update with version check to prevent concurrent modifications
-        result = db.execute(
+        result = await db.execute(
             update(ProductModel)
             .where(
                 and_(
@@ -312,28 +313,28 @@ def update_product(
             .values(**update_data)
         )
 
-        db.commit()
+        await db.commit()
 
         # If no rows were updated, it means someone else modified the product
         if result.rowcount == 0:
-            db.rollback()
+            await db.rollback()
             raise ConcurrentModificationError(
                 f"Product with ID {product_id} was modified concurrently")
 
         # Refresh the product to get the updated version
-        db.refresh(product)
+        await db.refresh(product)
         return product
 
     except (ProductNotFoundError, ProductPermissionError, ProductValidationError, ConcurrentModificationError):
-        db.rollback()
+        await db.rollback()
         raise
     except Exception as e:
-        db.rollback()
+        await db.rollback()
         raise DatabaseError(f"Error updating product: {str(e)}")
 
 
-def batch_update_products(
-    db: Session,
+async def batch_update_products(
+    db: AsyncSession,
     product_ids: List[UUID],
     update_data: Dict[str, Any],
     seller_id: UUID
@@ -356,13 +357,16 @@ def batch_update_products(
     """
     try:
         # First, verify the seller has permission to update all products
-        authorized_products = db.query(ProductModel.id).filter(
-            ProductModel.id.in_(product_ids),
-            ProductModel.seller_id == seller_id,
-            ProductModel.is_deleted == False
-        ).all()
+        authorized_products = await db.execute(
+            select(ProductModel.id)
+            .filter(
+                ProductModel.id.in_(product_ids),
+                ProductModel.seller_id == seller_id,
+                ProductModel.is_deleted == False
+            )
+        )
 
-        authorized_ids = [str(p.id) for p in authorized_products]
+        authorized_ids = [str(p.id) for p in authorized_products.scalars()]
         unauthorized_ids = [str(pid) for pid in product_ids if str(
             pid) not in authorized_ids]
 
@@ -375,7 +379,7 @@ def batch_update_products(
         update_data["updated_at"] = datetime.now(timezone.utc)
 
         # Perform batch update with version increment
-        result = db.execute(
+        result = await db.execute(
             update(ProductModel)
             .where(
                 and_(
@@ -388,18 +392,18 @@ def batch_update_products(
             .values(version=ProductModel.version + 1)
         )
 
-        db.commit()
+        await db.commit()
         return result.rowcount
 
     except ProductPermissionError:
-        db.rollback()
+        await db.rollback()
         raise
     except Exception as e:
-        db.rollback()
+        await db.rollback()
         raise DatabaseError(f"Error batch updating products: {str(e)}")
 
 
-def delete_product(db: Session, product_id: UUID, seller_id: UUID) -> None:
+async def delete_product(db: AsyncSession, product_id: UUID, seller_id: UUID) -> None:
     """
     Soft delete a product.
 
@@ -414,7 +418,7 @@ def delete_product(db: Session, product_id: UUID, seller_id: UUID) -> None:
         DatabaseError: If database operation fails
     """
     try:
-        product = get_product(db, product_id)
+        product = await get_product(db, product_id)
         if not product:
             raise ProductNotFoundError(
                 f"Product with ID {product_id} not found")
@@ -429,16 +433,16 @@ def delete_product(db: Session, product_id: UUID, seller_id: UUID) -> None:
 
         product.is_deleted = True
         product.updated_at = datetime.now(timezone.utc)
-        db.commit()
+        await db.commit()
     except (ProductNotFoundError, ProductPermissionError):
-        db.rollback()
+        await db.rollback()
         raise
     except Exception as e:
-        db.rollback()
+        await db.rollback()
         raise DatabaseError(f"Error deleting product: {str(e)}")
 
 
-def restore_product(db: Session, product_id: UUID, seller_id: UUID) -> ProductModel:
+async def restore_product(db: AsyncSession, product_id: UUID, seller_id: UUID) -> ProductModel:
     """
     Restore a soft-deleted product.
 
@@ -456,10 +460,15 @@ def restore_product(db: Session, product_id: UUID, seller_id: UUID) -> ProductMo
         DatabaseError: If database operation fails
     """
     try:
-        product = db.query(ProductModel).filter(
-            ProductModel.id == product_id,
-            ProductModel.is_deleted == True
-        ).first()
+        product = await db.execute(
+            select(ProductModel)
+            .filter(
+                ProductModel.id == product_id,
+                ProductModel.is_deleted == True
+            )
+        )
+
+        product = product.scalars().first()
 
         if not product:
             raise ProductNotFoundError(
@@ -471,12 +480,12 @@ def restore_product(db: Session, product_id: UUID, seller_id: UUID) -> ProductMo
 
         product.is_deleted = False
         product.updated_at = datetime.now(timezone.utc)
-        db.commit()
-        db.refresh(product)
+        await db.commit()
+        await db.refresh(product)
         return product
     except (ProductNotFoundError, ProductPermissionError):
-        db.rollback()
+        await db.rollback()
         raise
     except Exception as e:
-        db.rollback()
+        await db.rollback()
         raise DatabaseError(f"Error restoring product: {str(e)}")

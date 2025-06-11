@@ -6,7 +6,7 @@ import time
 from typing import Dict, Tuple
 import asyncio
 from app.core.config.settings import get_settings
-from app.db.session import SessionLocal
+from app.db.session import AsyncSessionLocal
 from app.models.tenant import Tenant
 from datetime import datetime, timezone
 import json
@@ -30,30 +30,33 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         # Get tenant ID from request
         tenant_id = request.headers.get('X-Tenant-ID')
-        
+
         # For tests, we allow missing X-Tenant-ID header in specific environments
-        is_test = os.getenv('TESTING', '').lower() in ('true', '1', 't', 'yes', 'y')
-        
+        is_test = os.getenv('TESTING', '').lower() in (
+            'true', '1', 't', 'yes', 'y')
+
         if not tenant_id:
             if is_test:
                 # When in test mode, use a default test tenant ID
                 # In a real test, auth_headers should provide this
                 import uuid
-                tenant_id = str(uuid.UUID('00000000-0000-0000-0000-000000000010'))  # Test tenant ID
+                # Test tenant ID
+                tenant_id = str(
+                    uuid.UUID('00000000-0000-0000-0000-000000000010'))
             else:
                 return Response("Missing X-Tenant-ID header", status_code=400)
 
         # Get tenant from database
-        db = SessionLocal()
+        db = AsyncSessionLocal()
         try:
-            tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+            tenant = await db.get(Tenant, tenant_id)
             if not tenant:
                 return Response(f"Invalid tenant ID: {tenant_id}", status_code=403)
 
             # Clean up old requests periodically
             current_time = time.time()
             if current_time - self.last_cleanup > 60:  # Clean up every minute
-                self._cleanup_old_requests()
+                await self._cleanup_old_requests(db)
                 self.last_cleanup = current_time
 
             # Initialize tenant tracking if needed
@@ -65,7 +68,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 }
 
             # Check rate limits
-            if not self._check_rate_limits(tenant_id, tenant):
+            if not await self._check_rate_limits(tenant_id, tenant, db):
                 return Response(
                     content="Rate limit exceeded",
                     status_code=429,
@@ -73,18 +76,18 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 )
 
             # Update API usage counters
-            self._update_api_usage(tenant, db)
+            await self._update_api_usage(tenant, db)
 
             # Process request
             response = await call_next(request)
 
             # Add rate limit headers
-            self._add_rate_limit_headers(response, tenant_id, tenant)
+            await self._add_rate_limit_headers(response, tenant_id, tenant)
 
             return response
 
         finally:
-            db.close()
+            await db.close()
 
     def _is_public_path(self, path: str) -> bool:
         """Check if the path is a public endpoint that doesn't require rate limiting"""
@@ -99,7 +102,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         ]
         return any(path == public_path or path.startswith(f"{public_path}/") for public_path in public_paths)
 
-    def _check_rate_limits(self, tenant_id: str, tenant: Tenant) -> bool:
+    async def _check_rate_limits(self, tenant_id: str, tenant: Tenant, db: AsyncSessionLocal) -> bool:
         """Check if the tenant has exceeded any rate limits"""
         current_time = time.time()
         requests = self.tenant_requests[tenant_id]
@@ -127,7 +130,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         return True
 
-    def _update_api_usage(self, tenant: Tenant, db: SessionLocal):
+    async def _update_api_usage(self, tenant: Tenant, db: AsyncSessionLocal):
         """Update API usage counters in the database"""
         current_time = datetime.now(timezone.utc)
         last_reset = datetime.fromisoformat(
@@ -145,9 +148,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         tenant.api_calls_hour += 1
         tenant.api_calls_minute += 1
 
-        db.commit()
+        await db.commit()
 
-    def _add_rate_limit_headers(self, response: Response, tenant_id: str, tenant: Tenant):
+    async def _add_rate_limit_headers(self, response: Response, tenant_id: str, tenant: Tenant):
         """Add rate limit headers to the response"""
         requests = self.tenant_requests[tenant_id]
         current_time = time.time()
@@ -171,7 +174,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             tenant.requests_per_day)
         response.headers["X-RateLimit-Remaining-Day"] = str(day_remaining)
 
-    def _cleanup_old_requests(self):
+    async def _cleanup_old_requests(self, db: AsyncSessionLocal):
         """Clean up old requests from the in-memory cache"""
         current_time = time.time()
         for tenant_id in self.tenant_requests:

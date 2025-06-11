@@ -7,7 +7,7 @@ import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 import spacy
-from app.db.session import SessionLocal
+from app.db.session import AsyncSessionLocal
 from app.models.content_filter import ContentFilterRule, ContentAnalysisResult
 from app.core.notifications.notification_service import (
     Notification,
@@ -22,6 +22,8 @@ nltk.download('stopwords')
 nltk.download('averaged_perceptron_tagger')
 
 # SpaCy model initialization with proper error handling
+
+
 def initialize_spacy():
     """Initialize spaCy model with proper error handling and installation attempt"""
     try:
@@ -30,31 +32,34 @@ def initialize_spacy():
         logging.info("Successfully loaded spaCy model 'en_core_web_sm'")
         return nlp
     except OSError:
-        logging.warning("SpaCy model 'en_core_web_sm' not found. Attempting to download...")
+        logging.warning(
+            "SpaCy model 'en_core_web_sm' not found. Attempting to download...")
         try:
             # Try to download the model - proper way using Python API instead of CLI
             import subprocess
             import sys
-            
+
             logging.info("Downloading spaCy model using subprocess...")
             result = subprocess.run(
                 [sys.executable, "-m", "spacy", "download", "en_core_web_sm"],
                 capture_output=True,
                 text=True
             )
-            
+
             if result.returncode == 0:
                 logging.info("Successfully downloaded spaCy model. Loading...")
                 nlp = spacy.load("en_core_web_sm")
                 logging.info("Successfully loaded spaCy model after download")
                 return nlp
             else:
-                logging.error(f"Failed to download spaCy model: {result.stderr}")
+                logging.error(
+                    f"Failed to download spaCy model: {result.stderr}")
         except Exception as download_error:
-            logging.error(f"Error during spaCy model download: {str(download_error)}")
+            logging.error(
+                f"Error during spaCy model download: {str(download_error)}")
     except Exception as e:
         logging.error(f"Unknown error loading spaCy model: {str(e)}")
-    
+
     logging.warning(
         "\n==========================================================\n"
         "IMPORTANT: NLP capabilities will be limited without spaCy model.\n"
@@ -63,6 +68,7 @@ def initialize_spacy():
         "==========================================================\n"
     )
     return None
+
 
 # Initialize spaCy model
 nlp = initialize_spacy()
@@ -93,7 +99,7 @@ class ContentAnalysisService:
     ) -> List[ContentAnalysisResult]:
         """Analyze content against filter rules and return results"""
         if not rules:
-            rules = self._get_rules(tenant_id, content_type)
+            rules = await self._get_rules(tenant_id, content_type)
 
         results = []
         for rule in rules:
@@ -110,17 +116,19 @@ class ContentAnalysisService:
 
         return results
 
-    def _get_rules(self, tenant_id: str, content_type: str) -> List[ContentFilterRule]:
+    async def _get_rules(self, tenant_id: str, content_type: str) -> List[ContentFilterRule]:
         """Get applicable filter rules for the tenant and content type"""
-        db = SessionLocal()
+        db = AsyncSessionLocal()
         try:
-            return db.query(ContentFilterRule).filter(
-                ContentFilterRule.tenant_id == tenant_id,
-                ContentFilterRule.content_type == content_type,
-                ContentFilterRule.enabled == True
-            ).all()
+            return await db.execute(
+                ContentFilterRule.filter(
+                    ContentFilterRule.tenant_id == tenant_id,
+                    ContentFilterRule.content_type == content_type,
+                    ContentFilterRule.enabled == True
+                )
+            )
         finally:
-            db.close()
+            await db.close()
 
     async def _analyze_rule(
         self,
@@ -179,14 +187,16 @@ class ContentAnalysisService:
                 result = self._analyze_language(content)
                 # If analysis was limited due to missing spaCy, log it
                 if result.get('limited_analysis'):
-                    logger.info(f"Performed limited language analysis due to missing spaCy model")
+                    logger.info(
+                        f"Performed limited language analysis due to missing spaCy model")
                 return result
             elif analysis_type == 'toxicity':
                 return self._analyze_toxicity(content)
             else:
                 return {'error': f'Unknown analysis type: {analysis_type}'}
         except Exception as e:
-            logger.error(f"Error performing {analysis_type} analysis: {str(e)}")
+            logger.error(
+                f"Error performing {analysis_type} analysis: {str(e)}")
             return {'error': f"Analysis failed: {str(e)}", 'analysis_type': analysis_type}
 
     def _analyze_text(self, content: str, pattern: str) -> Dict[str, Any]:
@@ -231,7 +241,8 @@ class ContentAnalysisService:
         """Analyze language and linguistic features"""
         # If spaCy model is not available, use basic analysis instead
         if nlp is None:
-            logger.warning("SpaCy model not available for language analysis, using basic analysis")
+            logger.warning(
+                "SpaCy model not available for language analysis, using basic analysis")
             # Fallback to basic TextBlob analysis
             try:
                 blob = TextBlob(content)
@@ -244,7 +255,7 @@ class ContentAnalysisService:
             except Exception as e:
                 logger.error(f"Error in fallback language analysis: {str(e)}")
                 return {'error': str(e), 'limited_analysis': True}
-        
+
         # If spaCy is available, use full analysis
         try:
             doc = nlp(content)
@@ -349,3 +360,15 @@ Please review this content and take appropriate action.
 
 # Create global instance
 content_analysis_service = ContentAnalysisService()
+
+# Example async DB access in content analysis
+
+
+async def analyze_content_async(..., db=None):
+    db = db or AsyncSessionLocal()
+    try:
+        # await db.execute(...)
+        # await db.commit()
+        pass
+    finally:
+        await db.close()

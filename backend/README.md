@@ -544,6 +544,55 @@ assert products[0].tenant_id == tenant2_id
 - Error-to-HTTP mapping is now centralized and consistent, improving maintainability and client experience.
 - All tests and documentation have been updated to reflect these changes, and the codebase is now easier to extend and maintain for future contributors.
 
+### OrderService: Centralized Order Logic
+
+- **OrderService** is a class-based service in `app/services/order_service.py` that encapsulates all business logic for order creation, validation, status updates, and more.
+- All order-related API endpoints and conversational handlers now use an instance of `OrderService`, passing the current DB session.
+- **No order business logic or validation should be implemented in endpoints or handlers.** All such logic must go in `OrderService`.
+
+#### Key Methods
+- `create_order(...)`: Create a new order with full validation and business rules.
+- `get_order(order_id, seller_id)`: Retrieve an order by its UUID and tenant.
+- `get_order_by_number(order_number, seller_id)`: Retrieve an order by its order number and tenant (supports conversational flows).
+- `update_order_status(...)`: Update the status of an order, with optimistic locking and audit logging.
+- `delete_order(...)`: Soft-delete an order.
+- `get_orders(...)`: List/filter orders for a seller.
+- `mark_notification_sent(...)`: Mark an order as having had notifications sent.
+
+#### Example Usage (API Endpoint)
+```python
+@router.get("/orders/{order_id}")
+def get_order_by_id(order_id: UUID, db: Session = Depends(get_db), user: ClerkTokenData = Depends(require_auth)):
+    service = OrderService(db)
+    order = service.get_order(order_id=order_id, seller_id=UUID(user.sub))
+    if not order:
+        raise OrderNotFoundError("Order not found")
+    return order
+```
+
+#### Example Usage (Conversational Handler)
+```python
+service = OrderService(self.db)
+order = None
+if order_id:
+    order = service.get_order(order_id=uuid.UUID(order_id), seller_id=uuid.UUID(self.tenant_id))
+if not order and order_number:
+    order = service.get_order_by_number(order_number=order_number, seller_id=uuid.UUID(self.tenant_id))
+if not order:
+    # Handle not found
+```
+
+#### Guidance for Contributors
+- **Add all new order-related business logic to `OrderService`.**
+- Handlers and endpoints should only handle HTTP or conversational context, not business rules.
+- Use `get_order_by_number` for any flows (e.g., WhatsApp, chat) where users may reference orders by number instead of UUID.
+- If you need to extend order logic (e.g., new status transitions, validation, or events), add methods to `OrderService` and call them from handlers/endpoints.
+
+#### Benefits
+- Eliminates duplicate business logic across API and conversational flows.
+- Ensures all order operations are consistent, secure, and auditable.
+- Makes the codebase easier to test, maintain, and extend.
+
 ## 🛠️ Development Setup
 
 ### Prerequisites
@@ -947,3 +996,13 @@ All database migrations are managed using Alembic in the backend directory. To e
 - A full test suite covers all event handlers, using mocks for notifications and analytics, and validates all side effects.
 - Observability: all handlers log actions, and the system is ready for metrics and alerting integration (Prometheus, OpenTelemetry, etc.).
 - See `backend/docs/api/orders.md` for event types, handler details, and API documentation.
+
+## 🛡️ Optimistic Locking for Data Integrity
+
+- Optimistic locking is used for all order status updates and deletes to prevent lost updates and ensure data integrity in concurrent environments.
+- The system uses a version field on models (e.g., Order) to detect concurrent modifications. If the version in the update request does not match the current version in the database, a `409 Conflict` error is returned and the update is rejected.
+- **Contributor Guidance:**
+  - Always include and check the version field in update and delete operations for models that support optimistic locking.
+  - Extend optimistic locking to all update and patch flows, including order changes, refund requests, and any other critical state transitions.
+  - For new models or flows, add a version field and implement version checks in service methods.
+- See `OrderService.update_order_status` and related methods for reference implementation.

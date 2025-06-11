@@ -12,3 +12,13 @@
 - The order system uses an event-driven architecture. Events like OrderCreated, OrderStatusChanged, and OrderDelivered are emitted and handled asynchronously for notifications, analytics, and fulfillment. See backend/docs/api/orders.md for event types and details.
 - Payment events (e.g., PaymentProcessedEvent) are now part of the event-driven order system. See backend/docs/api/orders.md for details.
 - The event-driven order system is fully tested and observable. All event handlers are covered by a test suite, and observability (logging, metrics, alerting) is built in. See backend/docs/api/orders.md for details.
+
+## 🛡️ Optimistic Locking for Data Integrity
+
+- Optimistic locking is used for all order status updates and deletes to prevent lost updates and ensure data integrity in concurrent environments.
+- The system uses a version field on models (e.g., Order) to detect concurrent modifications. If the version in the update request does not match the current version in the database, a `409 Conflict` error is returned and the update is rejected.
+- **Contributor Guidance:**
+  - Always include and check the version field in update and delete operations for models that support optimistic locking.
+  - Extend optimistic locking to all update and patch flows, including order changes, refund requests, and any other critical state transitions.
+  - For new models or flows, add a version field and implement version checks in service methods.
+- See `OrderService.update_order_status` and related methods for reference implementation.

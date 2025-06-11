@@ -382,6 +382,20 @@ See the comprehensive test suite in `tests/api/test_create_order.py`, `tests/api
 - Error-to-HTTP mapping is now centralized and consistent, improving maintainability and client experience.
 - All tests and documentation have been updated to reflect these changes, and the codebase is now easier to extend and maintain for future contributors.
 
+> **Note for Contributors:**
+> - All order business logic (creation, validation, status, etc.) is now in the class-based `OrderService` (`app/services/order_service.py`).
+> - Both API endpoints and conversational handlers use `OrderService` for all order operations.
+> - Use `get_order_by_number` for conversational flows where users reference orders by number.
+> - Do not add business logic to endpoints or handlers—extend `OrderService` instead.
+>
+> **Example:**
+> ```python
+> service = OrderService(db)
+> order = service.get_order_by_number(order_number, seller_id)
+> if not order:
+>     # Handle not found
+> ```
+
 ## WhatsAppOrderDetails Model & Order Structure Refactor
 
 To support clean separation of conversational metadata and extensibility for future channels, WhatsApp-specific order details are now stored in a dedicated model:
@@ -483,3 +497,13 @@ The backend uses an event-driven architecture for order-related actions. This en
 - All event handlers are covered by a comprehensive test suite using pytest and mocks for notifications and analytics.
 - Observability: all handlers log actions, and the system is ready for metrics and alerting integration (Prometheus, OpenTelemetry, etc.).
 - See the test file `app/domain/events/test_order_event_handlers.py` for examples.
+
+## 🛡️ Optimistic Locking for Data Integrity
+
+- Optimistic locking is enforced for all order status updates and deletes to prevent lost updates and ensure data integrity.
+- The API requires a `version` field in update and delete requests. If the version does not match the current version in the database, a `409 Conflict` error is returned.
+- **Contributor Guidance:**
+  - Always include and check the version field in update and patch operations for orders and other models that support optimistic locking.
+  - Extend optimistic locking to all update/patch flows, including order changes, refund requests, and any other critical state transitions.
+  - For new models or flows, add a version field and implement version checks in service methods.
+- See `OrderService.update_order_status` and related methods for reference implementation.

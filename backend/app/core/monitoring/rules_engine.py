@@ -4,7 +4,7 @@ from enum import Enum
 import json
 import logging
 from pydantic import BaseModel, Field
-from app.db.session import SessionLocal
+from app.db.session import AsyncSessionLocal
 from app.models.audit_log import AuditLog
 from app.core.notifications.notification_service import (
     Notification,
@@ -137,16 +137,21 @@ class RulesEngine:
     def _evaluate_time_condition(self, condition: RuleCondition, activity: Dict[str, Any]) -> bool:
         """Evaluate a time-based condition by checking historical data"""
         try:
-            db = SessionLocal()
+            db = AsyncSessionLocal()
             try:
                 # Get activities within the time window
                 start_time = datetime.now(
                     timezone.utc) - timedelta(seconds=condition.duration_seconds)
-                activities = db.query(AuditLog).filter(
-                    AuditLog.tenant_id == activity["tenant_id"],
-                    AuditLog.timestamp >= start_time,
-                    AuditLog.timestamp <= datetime.now(timezone.utc)
-                ).all()
+                activities = await db.execute(
+                    f"""
+                    SELECT * FROM audit_log
+                    WHERE tenant_id = :tenant_id
+                    AND timestamp >= :start_time
+                    AND timestamp <= :end_time
+                    """,
+                    {"tenant_id": activity["tenant_id"], "start_time": start_time, "end_time": datetime.now(
+                        timezone.utc)}
+                )
 
                 # Convert to dict for evaluation
                 activity_dicts = [a.__dict__ for a in activities]
@@ -160,7 +165,7 @@ class RulesEngine:
 
                 return matches > 0
             finally:
-                db.close()
+                await db.close()
         except Exception as e:
             logger.error(f"Error evaluating time condition: {str(e)}")
             return False
@@ -262,3 +267,15 @@ Please review this activity and take appropriate action if necessary.
 
 # Create global instance
 rules_engine = RulesEngine()
+
+# Example async DB access in monitoring
+
+
+async def update_rule_async(..., db=None):
+    db = db or AsyncSessionLocal()
+    try:
+        # await db.execute(...)
+        # await db.commit()
+        pass
+    finally:
+        await db.close()

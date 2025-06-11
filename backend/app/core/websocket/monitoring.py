@@ -8,7 +8,7 @@ import logging
 from app.core.security.dependencies import require_auth
 from app.core.security.clerk import ClerkTokenData
 from app.models.audit_log import AuditLog
-from app.db.session import SessionLocal
+from app.db.session import AsyncSessionLocal
 from app.core.config.settings import get_settings
 
 settings = get_settings()
@@ -109,7 +109,7 @@ class ActivityMonitor:
         """Process a new activity and determine if alerts are needed"""
         try:
             # Store activity in database
-            db = SessionLocal()
+            db = AsyncSessionLocal()
             try:
                 audit_log = AuditLog(
                     user_id=activity["user_id"],
@@ -123,9 +123,9 @@ class ActivityMonitor:
                     timestamp=datetime.now(timezone.utc)
                 )
                 db.add(audit_log)
-                db.commit()
+                await db.commit()
             finally:
-                db.close()
+                await db.close()
 
             # Broadcast to tenant
             await self.connection_manager.broadcast_to_tenant(
@@ -149,10 +149,10 @@ class ActivityMonitor:
             user_id = str(activity["user_id"])
             action = activity["action"]
             resource_type = activity["resource_type"]
-            
+
             # Get current time for windowed checks
             current_time = datetime.now(timezone.utc)
-            
+
             # 1. Check for suspicious patterns
             if self._is_suspicious_activity(activity):
                 await self._send_alert(
@@ -162,38 +162,36 @@ class ActivityMonitor:
                     activity,
                     "high"
                 )
-            
+
             # 2. Check for API rate limits (per user)
-            db = SessionLocal()
+            db = AsyncSessionLocal()
             try:
                 # Count recent activities by this user
                 for severity, window in self.activity_windows.items():
                     window_start = current_time - timedelta(seconds=window)
-                    
+
                     # Get count of activities in time window
-                    recent_count = db.query(AuditLog).filter(
-                        AuditLog.tenant_id == UUID(tenant_id),
-                        AuditLog.user_id == UUID(user_id),
-                        AuditLog.timestamp >= window_start
-                    ).count()
-                    
+                    recent_count = await db.execute(
+                        f"SELECT COUNT(*) FROM audit_log WHERE tenant_id = '{UUID(tenant_id)}' AND user_id = '{UUID(user_id)}' AND timestamp >= '{window_start}'"
+                    )
+
                     # Check if count exceeds threshold
-                    if recent_count >= self.alert_thresholds.get(severity, 100):
+                    if recent_count.scalar() >= self.alert_thresholds.get(severity, 100):
                         await self._send_alert(
                             tenant_id,
                             f"rate_limit_{severity}",
-                            f"User has triggered {recent_count} activities in the past {window/60} minutes",
+                            f"User has triggered {recent_count.scalar()} activities in the past {window/60} minutes",
                             {
                                 "user_id": user_id,
-                                "count": recent_count,
+                                "count": recent_count.scalar(),
                                 "window": window,
                                 "activity_type": action
                             },
                             severity
                         )
             finally:
-                db.close()
-                
+                await db.close()
+
             # 3. Check for error rates
             if activity.get("details", {}).get("status_code", 200) >= 500:
                 await self._send_alert(
@@ -203,7 +201,7 @@ class ActivityMonitor:
                     activity,
                     "high"
                 )
-                
+
             # 4. Check for failed authentication/authorization
             if activity.get("details", {}).get("status_code") in [401, 403]:
                 await self._send_alert(
@@ -213,10 +211,10 @@ class ActivityMonitor:
                     activity,
                     "medium"
                 )
-                
+
         except Exception as e:
             logger.error(f"Error checking alerts: {str(e)}")
-    
+
     def _is_suspicious_activity(self, activity: dict) -> bool:
         """Determine if an activity is suspicious based on patterns"""
         # Examples of suspicious activities:
@@ -224,23 +222,23 @@ class ActivityMonitor:
         # 2. Operations on sensitive resources
         # 3. Operations from unusual IP addresses
         # 4. Rapid sequence of failed operations
-        
+
         details = activity.get("details", {})
-        
+
         # Check for DELETE on sensitive resources
         if activity["action"] == "DELETE" and activity["resource_type"] in [
             "users", "seller_profiles", "products", "orders"
         ]:
             return True
-            
+
         # Check for failed operations
         status_code = details.get("status_code", 200)
         if status_code >= 400:
             return True
-            
+
         # More rules can be added here
         return False
-        
+
     async def _send_alert(self, tenant_id: str, alert_type: str, message: str, details: dict, severity: str):
         """Send an alert to connected clients"""
         alert = {
@@ -251,21 +249,21 @@ class ActivityMonitor:
             "severity": severity,
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
-        
+
         # Send to all connected clients for this tenant
         await self.connection_manager.broadcast_to_tenant(tenant_id, alert)
-        
+
         # Log the alert
         logger.warning(f"Alert sent: {message} (Severity: {severity})")
-        
+
         # Store in database for future reference
         try:
-            db = SessionLocal()
+            db = AsyncSessionLocal()
             # If you have an alerts table, you could store it here
             # alert_record = Alert(**alert)
             # db.add(alert_record)
-            # db.commit()
-            db.close()
+            # await db.commit()
+            await db.close()
         except Exception as e:
             logger.error(f"Error storing alert: {str(e)}")
 
@@ -310,3 +308,15 @@ async def get_websocket_endpoint(
         logger.error(f"Error in WebSocket connection: {str(e)}")
         if websocket in connection_manager.active_connections.get(tenant_id, []):
             connection_manager.disconnect(websocket)
+
+# Example async DB access in websocket monitoring
+
+
+async def update_monitoring_async(..., db=None):
+    db = db or AsyncSessionLocal()
+    try:
+        # await db.execute(...)
+        # await db.commit()
+        pass
+    finally:
+        await db.close()

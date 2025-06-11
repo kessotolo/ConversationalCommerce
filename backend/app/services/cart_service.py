@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 from app.models.cart import Cart
 from app.api.v1.endpoints.cart import get_or_create_cart
 from datetime import datetime
+from app.db.session import AsyncSessionLocal
+from sqlalchemy.sql import select
 
 # Service to get cart by phone number (for conversational flows)
 
@@ -43,25 +45,38 @@ async def clear_cart(phone_number: str, tenant_id: str, db: Session):
     db.refresh(cart)
 
 
+class CartService:
+    @staticmethod
+    async def get_cart_by_phone(phone_number: str, tenant_id: str, db=None):
+        db = db or AsyncSessionLocal()
+        try:
+            # Replace with actual async DB query
+            result = await db.execute(
+                select(Cart).where(Cart.phone_number ==
+                                   phone_number, Cart.tenant_id == tenant_id)
+            )
+            cart = result.scalar_one_or_none()
+            return cart
+        finally:
+            await db.close()
+
+    @staticmethod
+    async def clear_cart(phone_number: str, tenant_id: str, db=None):
+        db = db or AsyncSessionLocal()
+        try:
+            # Replace with actual async DB query
+            result = await db.execute(
+                select(Cart).where(Cart.phone_number ==
+                                   phone_number, Cart.tenant_id == tenant_id)
+            )
+            cart = result.scalar_one_or_none()
+            if cart:
+                await db.delete(cart)
+                await db.commit()
+            return True
+        finally:
+            await db.close()
+
+
 def get_cart_service():
-    class CartService:
-        @staticmethod
-        async def get_cart_by_phone(phone_number: str, tenant_id: str):
-            # Use a dummy DB session for compatibility; in real use, pass db as needed
-            from app.db.session import SessionLocal
-            db = SessionLocal()
-            try:
-                return get_cart_by_phone(phone_number, tenant_id, db)
-            finally:
-                db.close()
-
-        @staticmethod
-        async def clear_cart(phone_number: str, tenant_id: str):
-            from app.db.session import SessionLocal
-            db = SessionLocal()
-            try:
-                return await clear_cart(phone_number, tenant_id, db)
-            finally:
-                db.close()
-
     return CartService

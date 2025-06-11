@@ -4,7 +4,7 @@ from enum import Enum
 import logging
 from pydantic import BaseModel, Field
 from app.core.config.settings import get_settings
-from app.db.session import SessionLocal
+from app.db.session import AsyncSessionLocal
 from app.models.tenant import Tenant
 import smtplib
 from email.mime.text import MIMEText
@@ -78,10 +78,9 @@ class NotificationService:
             raise ValueError("SMTP settings not configured")
 
         # Get tenant email settings
-        db = SessionLocal()
+        db = AsyncSessionLocal()
         try:
-            tenant = db.query(Tenant).filter(
-                Tenant.id == notification.tenant_id).first()
+            tenant = await db.get(Tenant, notification.tenant_id)
             if not tenant or not tenant.notification_email:
                 raise ValueError("Tenant email not configured")
 
@@ -110,7 +109,7 @@ class NotificationService:
                 server.send_message(msg)
 
         finally:
-            db.close()
+            await db.close()
 
     async def _send_sms(self, notification: Notification) -> None:
         """Send SMS notification using Twilio"""
@@ -118,10 +117,9 @@ class NotificationService:
             raise ValueError("Twilio client not configured")
 
         # Get tenant phone settings
-        db = SessionLocal()
+        db = AsyncSessionLocal()
         try:
-            tenant = db.query(Tenant).filter(
-                Tenant.id == notification.tenant_id).first()
+            tenant = await db.get(Tenant, notification.tenant_id)
             if not tenant or not tenant.notification_phone:
                 raise ValueError("Tenant phone not configured")
 
@@ -133,7 +131,7 @@ class NotificationService:
             logger.info(f"SMS sent: {message.sid}")
 
         finally:
-            db.close()
+            await db.close()
 
     async def _send_in_app(self, notification: Notification) -> None:
         """Send in-app notification through WebSocket"""

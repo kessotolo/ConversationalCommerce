@@ -333,7 +333,8 @@ async def webhook(request: Request, background_tasks: BackgroundTasks, db: Sessi
                 # Route to the appropriate handler based on intent type
                 if parsed_intent and parsed_intent.intent_type in ORDER_INTENT_TYPES:
                     # Use our order intent handler for order-related intents
-                    order_handler = OrderIntentHandler(tenant.id, user_id=None)
+                    order_handler = OrderIntentHandler(
+                        tenant.id, user_id=None, db=db)
                     response = await order_handler.handle_intent(parsed_intent, context)
                 else:
                     # Use existing cart intent processor for cart-related intents
@@ -365,7 +366,8 @@ async def webhook(request: Request, background_tasks: BackgroundTasks, db: Sessi
                         message_content = str(message)
 
                     # Send the message
-                    whatsapp_manager.send_whatsapp_reply(tenant.id, customer_number, message_content, db)
+                    whatsapp_manager.send_whatsapp_reply(
+                        tenant.id, customer_number, message_content, db)
 
                 # Log conversation event with AI response(s)
                 # Join multiple messages if needed

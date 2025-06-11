@@ -10,14 +10,7 @@ from app.core.security.clerk import ClerkTokenData
 from app.core.security.role_based_auth import RoleChecker, RoleType
 from app.db.session import get_db
 from app.services.order_service import (
-    create_order,
-    get_order,
-    get_orders,
-    update_order_status,
-    delete_order,
-    get_seller_dashboard_stats,
-    mark_notification_sent,
-    OrderError, OrderNotFoundError, OrderValidationError
+    OrderService, OrderError, OrderNotFoundError, OrderValidationError
 )
 from app.schemas.order import (
     OrderCreate,
@@ -62,24 +55,30 @@ def handle_order_errors(func):
 @handle_order_errors
 async def create_new_order(
     order_in: OrderCreate,
-    db: Session = Depends(get_db),
+    db=Depends(get_db),
     user: ClerkTokenData = Depends(require_auth),
     _: bool = Depends(require_seller)
 ):
-    """Create a new order with the provided details"""
-    return create_order(
-        db=db,
+    service = OrderService(db)
+    await service.set_tenant_session(UUID(user.sub))
+    items = [{
+        'product_id': order_in.product_id,
+        'price': order_in.total_amount / order_in.quantity,
+        'quantity': order_in.quantity
+    }]
+    order = await service.create_order(
         product_id=order_in.product_id,
         seller_id=UUID(user.sub),
         buyer_name=order_in.buyer_name,
         buyer_phone=order_in.buyer_phone,
-        quantity=order_in.quantity,
-        total_amount=order_in.total_amount,
+        items=items,
         order_source=order_in.order_source,
         buyer_email=order_in.buyer_email,
         buyer_address=order_in.buyer_address,
-        notes=order_in.notes
+        notes=order_in.notes,
+        channel_data={}
     )
+    return order
 
 
 @router.post("/orders/whatsapp",
@@ -90,27 +89,34 @@ async def create_new_order(
 @handle_order_errors
 async def create_whatsapp_order(
     order_in: WhatsAppOrderCreate,
-    db: Session = Depends(get_db),
+    db=Depends(get_db),
     user: ClerkTokenData = Depends(require_auth),
     _: bool = Depends(require_seller)
 ):
-    """Create a new order from WhatsApp with the provided details"""
-    return create_order(
-        db=db,
+    service = OrderService(db)
+    await service.set_tenant_session(UUID(user.sub))
+    items = [{
+        'product_id': order_in.product_id,
+        'price': order_in.total_amount / order_in.quantity,
+        'quantity': order_in.quantity
+    }]
+    order = await service.create_order(
         product_id=order_in.product_id,
         seller_id=UUID(user.sub),
         buyer_name=order_in.buyer_name,
         buyer_phone=order_in.buyer_phone,
-        quantity=order_in.quantity,
-        total_amount=order_in.total_amount,
+        items=items,
         order_source=OrderSource.whatsapp,
         buyer_email=order_in.buyer_email,
         buyer_address=order_in.buyer_address,
         notes=order_in.notes,
-        whatsapp_number=order_in.whatsapp_number,
-        message_id=order_in.message_id,
-        conversation_id=order_in.conversation_id
+        channel_data={
+            'whatsapp_number': order_in.whatsapp_number,
+            'message_id': order_in.message_id,
+            'conversation_id': order_in.conversation_id
+        }
     )
+    return order
 
 
 @router.get("/orders",
@@ -120,13 +126,13 @@ async def create_whatsapp_order(
 @handle_order_errors
 async def list_orders(
     search_params: OrderSearchParams = Depends(),
-    db: Session = Depends(get_db),
+    db=Depends(get_db),
     user: ClerkTokenData = Depends(require_auth),
     _: bool = Depends(require_seller)
 ):
-    """List orders with filtering options"""
-    orders, total = get_orders(
-        db=db,
+    service = OrderService(db)
+    await service.set_tenant_session(UUID(user.sub))
+    orders, total = await service.get_orders(
         seller_id=UUID(user.sub),
         status=search_params.status,
         order_source=search_params.order_source,
@@ -151,12 +157,13 @@ async def list_orders(
 @handle_order_errors
 async def get_order_by_id(
     order_id: UUID = Path(..., description="The ID of the order to retrieve"),
-    db: Session = Depends(get_db),
+    db=Depends(get_db),
     user: ClerkTokenData = Depends(require_auth),
     _: bool = Depends(require_seller)
 ):
-    """Get a specific order by ID"""
-    order = get_order(db=db, order_id=order_id, seller_id=UUID(user.sub))
+    service = OrderService(db)
+    await service.set_tenant_session(UUID(user.sub))
+    order = await service.get_order(order_id=order_id, seller_id=UUID(user.sub))
     if not order:
         raise OrderNotFoundError("Order not found")
     return order
@@ -171,13 +178,13 @@ async def update_order_status_endpoint(
     order_id: UUID = Path(..., description="The ID of the order to update"),
     status_update: OrderStatusUpdate = Body(...,
                                             description="The new status details"),
-    db: Session = Depends(get_db),
+    db=Depends(get_db),
     user: ClerkTokenData = Depends(require_auth),
     _: bool = Depends(require_seller)
 ):
-    """Update an order's status"""
-    order = update_order_status(
-        db=db,
+    service = OrderService(db)
+    await service.set_tenant_session(UUID(user.sub))
+    order = await service.update_order_status(
         order_id=order_id,
         seller_id=UUID(user.sub),
         status=status_update.status,
@@ -186,7 +193,7 @@ async def update_order_status_endpoint(
     )
     if not order:
         raise OrderNotFoundError("Order not found")
-        return order
+    return order
 
 
 @router.delete("/orders/{order_id}",
@@ -196,17 +203,14 @@ async def update_order_status_endpoint(
 @handle_order_errors
 async def delete_order_endpoint(
     order_id: UUID = Path(..., description="The ID of the order to delete"),
-    db: Session = Depends(get_db),
+    db=Depends(get_db),
     user: ClerkTokenData = Depends(require_auth),
     _: bool = Depends(require_seller)
 ):
-    """Soft delete an order"""
-    success = delete_order(
-        db=db,
-        order_id=order_id,
-        seller_id=UUID(user.sub)
-    )
-    if not success:
+    service = OrderService(db)
+    await service.set_tenant_session(UUID(user.sub))
+    result = await service.delete_order(order_id=order_id, seller_id=UUID(user.sub))
+    if not result:
         raise OrderNotFoundError("Order not found or could not be deleted")
     return None  # 204 No Content
 
@@ -219,17 +223,13 @@ async def delete_order_endpoint(
 async def get_order_stats(
     days: int = Query(
         30, description="Number of days to include in the statistics"),
-    db: Session = Depends(get_db),
+    db=Depends(get_db),
     user: ClerkTokenData = Depends(require_auth),
     _: bool = Depends(require_seller)
 ):
-    """Get order statistics for the seller dashboard"""
-    stats = get_seller_dashboard_stats(
-        db=db,
-        seller_id=UUID(user.sub),
-        days=days
-    )
-    return stats
+    service = OrderService(db)
+    await service.set_tenant_session(UUID(user.sub))
+    return await service.get_seller_dashboard_stats(seller_id=UUID(user.sub), days=days)
 
 
 @router.post("/orders/{order_id}/notification",
@@ -239,16 +239,15 @@ async def get_order_stats(
 @handle_order_errors
 async def mark_notification_sent_endpoint(
     order_id: UUID = Path(..., description="The ID of the order to mark"),
-    db: Session = Depends(get_db),
+    db=Depends(get_db),
     user: ClerkTokenData = Depends(require_auth),
     _: bool = Depends(require_seller)
 ):
-    """Mark that a notification has been sent for an order"""
-    success = mark_notification_sent(
-        db=db,
-        order_id=order_id,
-        seller_id=UUID(user.sub)
-    )
-    if not success:
-        raise OrderNotFoundError("Order not found")
-    return {"message": "Notification marked as sent successfully"}
+    service = OrderService(db)
+    await service.set_tenant_session(UUID(user.sub))
+    result = await service.mark_notification_sent(
+        order_id=order_id, seller_id=UUID(user.sub))
+    if not result:
+        raise OrderNotFoundError(
+            "Order not found or could not mark notification sent")
+    return {"success": True}

@@ -7,7 +7,7 @@ import uuid
 from functools import lru_cache
 from typing import Dict, Any, Optional
 
-from app.db.session import SessionLocal
+from app.db.session import get_db as async_get_db
 from app.core.security.dependencies import require_auth
 from app.core.security.clerk import ClerkTokenData
 from app.models.tenant import Tenant
@@ -15,14 +15,8 @@ from app.models.storefront import StorefrontConfig
 
 
 def get_db():
-    """
-    Get database session.
-    """
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    # Deprecated: use async_get_db instead
+    raise NotImplementedError("Use async_get_db for async DB access.")
 
 
 def get_current_user(request: Request = None) -> ClerkTokenData:
@@ -113,7 +107,8 @@ def get_current_storefront_config(db: Session = Depends(get_db), tenant_id: uuid
     Raises:
         HTTPException: If no storefront config is found
     """
-    config = db.query(StorefrontConfig).filter(StorefrontConfig.tenant_id == tenant_id).first()
+    config = db.query(StorefrontConfig).filter(
+        StorefrontConfig.tenant_id == tenant_id).first()
 
     if not config:
         raise HTTPException(

@@ -5,9 +5,11 @@ from typing import Dict, Any, Optional
 from uuid import UUID
 from datetime import datetime, timezone
 import logging
+from sqlalchemy.ext.asyncio import AsyncSession
 
 # Configure logger
 logger = logging.getLogger(__name__)
+
 
 class AuditActionType:
     """Constants for common audit action types"""
@@ -33,8 +35,8 @@ class AuditResourceType:
     STOREFRONT = "storefront"
 
 
-def create_audit_log(
-    db: Session,
+async def create_audit_log(
+    db: AsyncSession,
     user_id: UUID,
     action: str,
     resource_type: str,
@@ -44,7 +46,7 @@ def create_audit_log(
 ) -> AuditLog:
     """
     Create an audit log entry for security and compliance tracking.
-    
+
     Args:
         db: Database session
         user_id: ID of the user performing the action
@@ -53,7 +55,7 @@ def create_audit_log(
         resource_id: ID of the affected resource
         details: Additional details about the action
         request: FastAPI request object for IP and user agent extraction
-        
+
     Returns:
         Created audit log entry
     """
@@ -61,11 +63,11 @@ def create_audit_log(
         # Extract IP address and user agent from request if available
         ip_address = None
         user_agent = None
-        
+
         if request:
             ip_address = request.client.host if request.client else None
             user_agent = request.headers.get("user-agent")
-        
+
         # Create audit log entry
         audit_log = AuditLog(
             user_id=user_id,
@@ -77,21 +79,21 @@ def create_audit_log(
             details=details,
             timestamp=datetime.now(timezone.utc)
         )
-        
+
         # Add to database
         db.add(audit_log)
-        db.commit()
+        await db.commit()
         db.refresh(audit_log)
-        
+
         logger.info(
             f"Audit log created: {action} {resource_type}/{resource_id} by user {user_id}"
         )
-        
+
         return audit_log
-        
+
     except Exception as e:
         logger.error(f"Failed to create audit log: {str(e)}", exc_info=True)
-        db.rollback()
+        await db.rollback()
         # Don't raise exception - audit logging should not disrupt normal operation
         return None
 
@@ -104,13 +106,13 @@ def get_resource_audit_logs(
 ) -> list[AuditLog]:
     """
     Get audit logs for a specific resource.
-    
+
     Args:
         db: Database session
         resource_type: Type of resource (product, user, etc.)
         resource_id: ID of the resource
         limit: Maximum number of logs to return
-        
+
     Returns:
         List of audit logs
     """
@@ -129,12 +131,12 @@ def get_user_audit_logs(
 ) -> list[AuditLog]:
     """
     Get audit logs for a specific user.
-    
+
     Args:
         db: Database session
         user_id: ID of the user
         limit: Maximum number of logs to return
-        
+
     Returns:
         List of audit logs
     """
