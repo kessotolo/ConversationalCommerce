@@ -92,9 +92,12 @@ POST /api/v1/orders/whatsapp
   "buyer_phone": "+2547XXXXXXXX",
   "quantity": 1,
   "total_amount": 29.99,
-  "whatsapp_number": "+2547XXXXXXXX",
-  "message_id": "wamid.abcd1234",
-  "conversation_id": "conv_abcd1234"
+  "channel_metadata": {
+    "whatsapp_number": "+2547XXXXXXXX",
+    "message_id": "wamid.abcd1234",
+    "chat_session_id": "conv_abcd1234",
+    "user_response_log": "Sample user response data"
+  }
 }
 ```
 
@@ -170,10 +173,10 @@ GET /api/v1/orders
 Retrieves orders associated with a specific WhatsApp number.
 
 ```
-GET /api/v1/orders/whatsapp/{whatsapp_number}
+GET /api/v1/orders/whatsapp?whatsapp_number={whatsapp_number}
 ```
 
-**Path Parameters:**
+**Query Parameters:**
 
 - `whatsapp_number`: WhatsApp phone number (E.164 format, e.g., +2547XXXXXXXX)
 
@@ -199,10 +202,12 @@ GET /api/v1/orders/whatsapp/{whatsapp_number}
       "total_amount": "29.99",
       "order_source": "whatsapp",
       "status": "pending",
-      "whatsapp_details": {
+      "channel_metadata": {
+        "channel": "whatsapp",
         "whatsapp_number": "+2547XXXXXXXX",
         "message_id": "wamid.abcd1234",
-        "conversation_id": "conv_abcd1234"
+        "chat_session_id": "conv_abcd1234",
+        "user_response_log": "Sample user response data"
       },
       "created_at": "2025-06-08T22:12:05",
       "updated_at": "2025-06-08T22:12:05"
@@ -382,14 +387,17 @@ See the comprehensive test suite in `tests/api/test_create_order.py`, `tests/api
 - No legacy/duplicate order endpoints remain; `/api/v1/orders/` is the single source of truth.
 - Handlers are thin and maintain backward compatibility for clients.
 
-## WhatsAppOrderDetails Model & Order Structure Refactor
+## OrderChannelMeta Model & Multi-Channel Architecture
 
-To support clean separation of conversational metadata and extensibility for future channels, WhatsApp-specific order details are now stored in a dedicated model:
+To support clean separation of channel-specific metadata and extensibility for multiple communication channels, order metadata is now stored in a dedicated OrderChannelMeta model:
 
-### WhatsAppOrderDetails
-- Stores WhatsApp/conversational metadata for an order (whatsapp_number, message_id, conversation_id)
+### OrderChannelMeta
+- Stores channel-specific metadata for an order (e.g., WhatsApp: whatsapp_number, message_id, chat_session_id)
 - One-to-one relationship with the core Order model via order_id
+- Includes a channel field to identify the source channel (WhatsApp, Instagram, etc.)
+- Supports user_response_log field for conversational data tracking
 - Ensures single responsibility and data integrity
+- Enables clean extensibility for additional channels without modifying the core Order model
 
 ### Example API Response (WhatsApp Order)
 ```json

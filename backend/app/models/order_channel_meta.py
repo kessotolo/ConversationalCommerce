@@ -1,0 +1,24 @@
+from sqlalchemy import Column, String, Enum, ForeignKey, DateTime
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
+from app.db import Base
+from app.models.conversation_history import ChannelType
+import uuid
+from datetime import datetime
+
+
+class OrderChannelMeta(Base):
+    __tablename__ = "order_channel_meta"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    order_id = Column(UUID(as_uuid=True), ForeignKey(
+        "orders.id"), nullable=False)
+    channel = Column(Enum(ChannelType), nullable=False)
+    message_id = Column(String, nullable=True)
+    chat_session_id = Column(String, nullable=True)
+    # Consider JSON if needed
+    user_response_log = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, onupdate=datetime.utcnow)
+
+    order = relationship("Order", back_populates="channel_metadata")
