@@ -81,7 +81,7 @@ def transactional(func):
 
 class OrderService:
     """Service for managing orders across multiple channels"""
-    
+
     def __init__(self, db: Session):
         self.db = db
 
@@ -179,7 +179,8 @@ class OrderService:
                 channel=ChannelType.whatsapp,
                 message_id=message_id,
                 chat_session_id=conversation_id,
-                user_response_log=whatsapp_number  # Store phone number in user_response_log for now
+                # Store phone number in user_response_log for now
+                user_response_log=whatsapp_number
             )
             self.db.add(channel_meta)
             self.db.flush()
@@ -253,7 +254,8 @@ class OrderService:
                 channel=ChannelType.whatsapp,
                 message_id=channel_data.get('message_id'),
                 chat_session_id=channel_data.get('conversation_id'),
-                user_response_log=channel_data.get('whatsapp_number')  # Store phone number
+                user_response_log=channel_data.get(
+                    'whatsapp_number')  # Store phone number
             )
             self.db.add(channel_meta)
             await self.db.flush()
@@ -277,7 +279,7 @@ class OrderService:
         Args:
             tenant_id (UUID): The tenant's UUID
         """
-        await self.db.execute(text("SET my.tenant_id = :tenant_id"), {"tenant_id": str(tenant_id)})
+        await self.db.execute(text(f"SET my.tenant_id = '{tenant_id}'"))
 
     async def create_order(self, order_in: OrderCreate, seller_id: UUID) -> Order:
         items = [{

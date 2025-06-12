@@ -1,3 +1,4 @@
+from sqlalchemy import create_engine, text
 from fastapi import Depends, Request
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import sessionmaker
@@ -26,17 +27,18 @@ def get_async_session_local():
 # Usage in app: AsyncSessionLocal = get_async_session_local()
 # Do not create AsyncSessionLocal at import time
 
+
 # Legacy sync version for test compatibility
 # This is kept for backwards compatibility with tests
 # New code should use AsyncSession directly
-from sqlalchemy import create_engine
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"connect_timeout": 15})
+engine = create_engine(SQLALCHEMY_DATABASE_URL,
+                       connect_args={"connect_timeout": 15})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # End legacy sync support
 
 
 async def set_tenant_id(session: AsyncSession, tenant_id):
-    await session.execute("SET my.tenant_id = :tenant_id", {"tenant_id": tenant_id})
+    await session.execute(text(f"SET my.tenant_id = '{tenant_id}'"))
 
 
 async def get_db(request: Request = None):

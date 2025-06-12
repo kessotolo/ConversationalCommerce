@@ -24,8 +24,16 @@ class TestSettings(BaseSettings):
 
     model_config = ConfigDict(
         case_sensitive=True,
-        env_file=".env.test"
+        env_file=".env.test",
+        extra="ignore"  # Ignore extra fields like TEST_DATABASE_URL in environment
     )
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # If TEST_DATABASE_URL is explicitly provided in env, use it directly
+        test_db_url = os.environ.get("TEST_DATABASE_URL")
+        if test_db_url:
+            self.DATABASE_URL = test_db_url
 
 
 @lru_cache()

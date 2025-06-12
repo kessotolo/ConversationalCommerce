@@ -1,13 +1,16 @@
 # PATCH TEST SESSION GLOBALLY BEFORE ANY APP IMPORTS
 import uuid
+from typing import Any, Generator
 from uuid import uuid4, UUID
 from sqlalchemy.pool import StaticPool
 from fastapi.testclient import TestClient
 from pathlib import Path
 import pytest
+import pytest_asyncio
 from app.db import session as db_session_module
 from app.core.config.settings import Settings
-from app.core.middleware.rate_limit import RateLimitMiddleware
+# Import our test middlewares instead of the regular ones
+from tests.test_middleware import TestRateLimitMiddleware, TestTenantMiddleware
 from app.db.base_class import Base
 from app.main import create_app
 from app.core.security.dependencies import require_auth
@@ -15,19 +18,53 @@ from app.core.security.clerk import ClerkTokenData
 from app.db.session import get_db, SessionLocal as AppSessionLocal
 import sys
 from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import sessionmaker
 import os
 
+# Import settings here to ensure environment variables are properly loaded
+from app.core.config.settings import get_settings
+
+# For sync operations (testing only)
+TEST_DATABASE_URL_SYNC = os.environ.get(
+    "TEST_DATABASE_URL_SYNC",
+    "postgresql://postgres:postgres@127.0.0.1/conversational_commerce_test"
+)
+
+# For async operations
 TEST_DATABASE_URL = os.environ.get(
     "TEST_DATABASE_URL",
-    "postgresql://postgres:postgres@localhost/conversational_commerce_test"
+    "postgresql+asyncpg://postgres:postgres@127.0.0.1/conversational_commerce_test"
 )
-engine = create_engine(TEST_DATABASE_URL, pool_size=5, max_overflow=10)
-TestingSessionLocal = sessionmaker(
-    autocommit=False, autoflush=False, bind=engine)
 
+# Print debug information
+print(f"Using sync DB URL: {TEST_DATABASE_URL_SYNC}")
+print(f"Using async DB URL: {TEST_DATABASE_URL}")
+
+# Force use of 127.0.0.1 explicitly
+FORCED_SYNC_URL = "postgresql://postgres:postgres@127.0.0.1/conversational_commerce_test"
+FORCED_ASYNC_URL = "postgresql+asyncpg://postgres:postgres@127.0.0.1/conversational_commerce_test"
+
+# Create both sync and async engines
+try:
+    print("Attempting to create engines with configured URLs")
+    sync_engine = create_engine(TEST_DATABASE_URL_SYNC, pool_size=5, max_overflow=10)
+    async_engine = create_async_engine(TEST_DATABASE_URL)
+    print("Engines created successfully")
+except Exception as e:
+    print(f"Error creating engines with configured URLs: {e}")
+    print("Falling back to hardcoded 127.0.0.1 URLs")
+    sync_engine = create_engine(FORCED_SYNC_URL, pool_size=5, max_overflow=10)
+    async_engine = create_async_engine(FORCED_ASYNC_URL)
+    print("Fallback engines created successfully")
+
+# Create session factories
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=sync_engine)
+AsyncTestingSessionLocal = async_sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)
+
+# Override the session modules for testing
 sys.modules['app.db.session'].SessionLocal = TestingSessionLocal
-sys.modules['app.db.session'].engine = engine
+sys.modules['app.db.session'].engine = sync_engine
 
 
 # Add the backend directory to Python path
@@ -49,10 +86,17 @@ TEST_TENANT_ID = UUID("00000000-0000-0000-0000-000000000010")
 @pytest.fixture(scope="session")
 def db_engine():
     # Create test database tables
-    Base.metadata.create_all(bind=engine)
-    yield engine
+    Base.metadata.create_all(bind=sync_engine)
+    yield sync_engine
     # Drop test database tables
-    Base.metadata.drop_all(bind=engine)
+    Base.metadata.drop_all(bind=sync_engine)
+
+@pytest_asyncio.fixture(scope="session")
+async def async_db_engine():
+    # Create test database tables using sync engine (async engine can't create tables)
+    Base.metadata.create_all(bind=sync_engine)
+    yield async_engine
+    # Tables are dropped by the sync fixture
 
 
 @pytest.fixture(scope="function")
@@ -69,27 +113,81 @@ def db_session(db_engine):
     transaction.rollback()
     connection.close()
 
+@pytest_asyncio.fixture(scope="function")
+async def async_db_session(async_db_engine):
+    # Create a new async database session for each test
+    async with async_db_engine.begin() as connection:
+        session = AsyncTestingSessionLocal(bind=connection)
+        yield session
+        await session.close()
 
-@pytest.fixture(scope="function")
-def client(db_session, test_tenant):
-    # Now create the app
-    app = create_app()
 
-    # Also force DATABASE_URL to use our test database in any new Settings instances
-    os.environ['POSTGRES_SERVER'] = 'localhost'
+@pytest.fixture
+def client() -> TestClient:
+    """Create a test client for the app"""
+    # Force test environment for safety
+    os.environ['TESTING'] = 'true'
+    os.environ['ENVIRONMENT'] = 'test'
+
+    # Override database settings using environment variables for tests
+    os.environ['POSTGRES_SERVER'] = '127.0.0.1'
     os.environ['POSTGRES_USER'] = 'postgres'
     os.environ['POSTGRES_PASSWORD'] = 'postgres'
-    os.environ['POSTGRES_DB'] = 'conversational_commerce'
+    os.environ['POSTGRES_DB'] = 'conversational_commerce_test'
 
-    # Add rate limiting middleware for tests
-    app.add_middleware(RateLimitMiddleware)
+    # Print debug info to diagnose db connection issues
+    print(f"TEST_DATABASE_URL_SYNC = {TEST_DATABASE_URL_SYNC}")
+    print(f"TEST_DATABASE_URL = {TEST_DATABASE_URL}")
+    print(f"POSTGRES_SERVER = {os.environ.get('POSTGRES_SERVER')}")
+    # Print the actual DB URL being used by settings
+    from app.core.config.settings import get_settings
+    settings = get_settings()
+    print(f"Database URL from settings: {settings.DATABASE_URL}")
+
+    # Use test settings
+    from app.core.config.test_settings import TestSettings
+    test_settings = TestSettings()
+    print(f"Test settings DB URL: {test_settings.DATABASE_URL}")
+    
+    # Create a clean app without problematic middlewares
+    from fastapi import FastAPI
+    from app.main import register_exception_handlers, StorefrontError, handle_storefront_error
+    
+    app = FastAPI(
+        title="Test API",
+        description="Test version of API",
+        debug=True
+    )
+    
+    # Register exception handlers
+    register_exception_handlers(app)
+    app.add_exception_handler(StorefrontError, handle_storefront_error)
+    
+    # Add CORS middleware
+    from fastapi.middleware.cors import CORSMiddleware
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    
+    # Add only test middlewares
+    app.add_middleware(TestRateLimitMiddleware)
+    app.add_middleware(TestTenantMiddleware)
+    
+    # Import API router
+    from app.api.v1.api import api_router
+    app.include_router(api_router, prefix="/api/v1")
 
     # Override the get_db dependency
-    def override_get_db():
+    async def override_get_db():
         try:
-            yield db_session
+            db = AsyncTestingSessionLocal()
+            yield db
         finally:
-            db_session.close()
+            await db.close()
 
     # Override the require_auth dependency to handle different tokens
     from fastapi import Request

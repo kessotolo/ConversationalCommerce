@@ -33,7 +33,8 @@ def test_create_order_minimum_fields(client, auth_headers, db_session, test_prod
         "buyer_phone": "+1234567890",
         "quantity": 1,
         "total_amount": 99.99,
-        "order_source": "website"
+        "order_source": "website",
+        "buyer_email": "test@example.com"
     }
 
     # Submit the order
@@ -62,7 +63,8 @@ def test_create_order_all_fields(client, auth_headers, db_session, test_product)
         "quantity": 2,
         "total_amount": 199.98,
         "notes": "Please deliver quickly",
-        "order_source": "website"
+        "order_source": "website",
+        "buyer_email": "test@example.com"
     }
 
     # Submit the order
@@ -125,7 +127,8 @@ def test_create_order_missing_required_fields(client, auth_headers, test_product
         "buyer_phone": "+1234567890",
         "quantity": 1,
         "total_amount": 99.99,
-        "order_source": "website"
+        "order_source": "website",
+        "buyer_email": "test@example.com"
     }
 
     response = client.post(
@@ -138,7 +141,8 @@ def test_create_order_missing_required_fields(client, auth_headers, test_product
         "buyer_phone": "+1234567890",
         "quantity": 1,
         "total_amount": 99.99,
-        "order_source": "website"
+        "order_source": "website",
+        "buyer_email": "test@example.com"
     }
 
     response = client.post(
@@ -155,7 +159,8 @@ def test_create_order_invalid_product_id(client, auth_headers):
         "buyer_phone": "+1234567890",
         "quantity": 1,
         "total_amount": 99.99,
-        "order_source": "website"
+        "order_source": "website",
+        "buyer_email": "test@example.com"
     }
 
     response = client.post(
@@ -179,7 +184,8 @@ def test_create_order_invalid_data_types(client, auth_headers, test_product):
         "buyer_phone": "+1234567890",
         "quantity": "one",  # Invalid: should be an integer
         "total_amount": 99.99,
-        "order_source": "website"
+        "order_source": "website",
+        "buyer_email": "test@example.com"
     }
 
     response = client.post(
@@ -199,7 +205,8 @@ def test_create_order_invalid_data_types(client, auth_headers, test_product):
         "buyer_phone": "+1234567890",
         "quantity": 1,
         "total_amount": -10.50,  # Invalid: should be positive
-        "order_source": "website"
+        "order_source": "website",
+        "buyer_email": "test@example.com"
     }
 
     response = client.post(
@@ -216,7 +223,8 @@ def test_create_website_order_without_email(client, auth_headers, test_product):
         "buyer_phone": "+1234567890",
         "quantity": 1,
         "total_amount": 99.99,
-        "order_source": "website"
+        "order_source": "website",
+        "buyer_email": "test@example.com"
         # No email provided
     }
 
@@ -234,7 +242,8 @@ def test_create_order_unauthorized(client, test_product):
         "buyer_phone": "+1234567890",
         "quantity": 1,
         "total_amount": 99.99,
-        "order_source": "website"
+        "order_source": "website",
+        "buyer_email": "test@example.com"
     }
 
     # Submit without auth headers

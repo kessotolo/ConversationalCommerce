@@ -85,12 +85,8 @@ class Settings(BaseSettings):
         if self.DATABASE_URL:
             return self.DATABASE_URL
 
-        # For deployment, construct URL with credentials for Railway or other remote DB
-        if self.ENVIRONMENT == "production":
-            return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
-
-        # For local development and testing, use local PostgreSQL
-        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@localhost/{self.POSTGRES_DB}"
+        # For all environments, use the configured PostgreSQL server
+        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
 
 
 def is_test_environment() -> bool:

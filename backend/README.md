@@ -965,3 +965,27 @@ All database migrations are managed using Alembic in the backend directory. To e
 - Alembic expects a synchronous SQLAlchemy engine for migrations. The async engine is only created by the app, not during migrations.
 - If you add new models or fields, run Alembic migrations from the `backend` directory.
 - Do not import or create the async engine at the top level in modules that Alembic will import (see `app/db/session.py`).
+
+## Multi-Tenancy and Migration Best Practices
+
+### Multi-Tenancy
+- This project uses PostgreSQL session variables (e.g., `SET my.tenant_id = ...`) for tenant isolation at the DB level.
+- All DB access is scoped to the current tenant by setting this variable at the start of each request/session.
+- **Important:** Only use trusted UUIDs for tenant IDs to avoid SQL injection.
+- If you change the tenant isolation approach (e.g., schemas, RLS), update this section and the code accordingly.
+
+### Migration Hygiene
+- Always generate and review Alembic migrations after changing models.
+- Test migrations on a fresh database: drop, create, migrate.
+- Use the provided `scripts/db_reset_and_migrate.sh` to reset and migrate your local dev DB.
+- Never edit migration scripts after they are applied to shared environments.
+
+### Local DB Reset & Migration
+To reset and migrate your local dev database:
+
+```sh
+cd backend
+bash scripts/db_reset_and_migrate.sh
+```
+
+This will drop, recreate, and migrate your local DB using Alembic.
