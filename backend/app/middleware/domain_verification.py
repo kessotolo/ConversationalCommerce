@@ -293,9 +293,8 @@ class DomainVerificationService:
             await asyncio.sleep(self.verification_interval)
 
     async def _verify_all_domains(self):
-        """Verify all domains in the system."""
-        db = get_async_session_local()
-        try:
+        sessionmaker = get_async_session_local()
+        async with sessionmaker() as db:
             # Get all domains with custom domains
             configs = await db.execute(
                 select(StorefrontConfig).filter(
@@ -342,9 +341,6 @@ class DomainVerificationService:
 
                 # Sleep briefly to avoid overwhelming resources
                 await asyncio.sleep(1)
-
-        finally:
-            await db.close()
 
     async def _verify_dns(self, domain: str, tenant_id: str) -> Tuple[bool, Optional[str]]:
         """
@@ -410,10 +406,8 @@ verification_service = DomainVerificationService()
 
 
 async def verify_domain_async(domain, db=None):
-    db = db or get_async_session_local()
-    try:
-        # await db.execute(...)
-        # await db.commit()
+    sessionmaker = db or get_async_session_local()
+    async with sessionmaker() as db_session:
+        # await db_session.execute(...)
+        # await db_session.commit()
         pass
-    finally:
-        await db.close()

@@ -164,9 +164,8 @@ class ActivityMonitor:
                 )
 
             # 2. Check for API rate limits (per user)
-            db = get_async_session_local()
-            try:
-                # Count recent activities by this user
+            sessionmaker = get_async_session_local()
+            async with sessionmaker() as db:
                 for severity, window in self.activity_windows.items():
                     window_start = current_time - timedelta(seconds=window)
 
@@ -189,8 +188,6 @@ class ActivityMonitor:
                             },
                             severity
                         )
-            finally:
-                await db.close()
 
             # 3. Check for error rates
             if activity.get("details", {}).get("status_code", 200) >= 500:
@@ -258,12 +255,13 @@ class ActivityMonitor:
 
         # Store in database for future reference
         try:
-            db = get_async_session_local()
-            # If you have an alerts table, you could store it here
-            # alert_record = Alert(**alert)
-            # db.add(alert_record)
-            # await db.commit()
-            await db.close()
+            sessionmaker = get_async_session_local()
+            async with sessionmaker() as db:
+                # If you have an alerts table, you could store it here
+                # alert_record = Alert(**alert)
+                # db.add(alert_record)
+                # await db.commit()
+                pass
         except Exception as e:
             logger.error(f"Error storing alert: {str(e)}")
 
@@ -313,4 +311,13 @@ async def get_websocket_endpoint(
 
 
 async def update_monitoring_async(*args, db=None):
-    pass  # TODO: implement or restore logic
+    """
+    Async function for updating monitoring data in the websocket monitoring system.
+    This should be implemented to update or restore monitoring state as needed.
+    Args:
+        *args: Additional arguments for monitoring update.
+        db: Optional database session or sessionmaker.
+    Raises:
+        NotImplementedError: This function is a placeholder and must be implemented.
+    """
+    raise NotImplementedError("update_monitoring_async must be implemented.")

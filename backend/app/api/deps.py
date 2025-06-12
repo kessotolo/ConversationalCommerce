@@ -15,7 +15,11 @@ from app.models.storefront import StorefrontConfig
 
 
 def get_db():
-    # Deprecated: use async_get_db instead
+    """
+    Deprecated synchronous DB dependency. Use async_get_db for async DB access.
+    Raises:
+        NotImplementedError: Always, to enforce async DB usage.
+    """
     raise NotImplementedError("Use async_get_db for async DB access.")
 
 

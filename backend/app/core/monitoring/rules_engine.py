@@ -272,4 +272,13 @@ rules_engine = RulesEngine()
 
 
 async def update_rule_async(*args, db=None):
-    pass  # TODO: implement or restore logic
+    """
+    Async function for updating rules in the monitoring rules engine.
+    This should be implemented to update or restore rule state as needed.
+    Args:
+        *args: Additional arguments for rule update.
+        db: Optional database session or sessionmaker.
+    Raises:
+        NotImplementedError: This function is a placeholder and must be implemented.
+    """
+    raise NotImplementedError("update_rule_async must be implemented.")

@@ -8,6 +8,7 @@ import logging
 import time
 from urllib.parse import urlparse
 from functools import lru_cache
+from sqlalchemy import select
 
 from app.db.session import get_async_session_local
 from app.models.storefront import StorefrontConfig
@@ -63,8 +64,8 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
             # If not in cache, query the database
             if not tenant_context:
                 # Initialize DB session
-                db = get_async_session_local()
-                try:
+                sessionmaker = get_async_session_local()
+                async with sessionmaker() as db:
                     # Check if this is a custom domain
                     config = await self._get_storefront_by_domain(db, host)
 
@@ -103,9 +104,6 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
 
                         # Cache the tenant context
                         self._add_to_cache(host, tenant_context)
-
-                finally:
-                    await db.close()
 
             # If tenant_context is found, store it in request state
             if tenant_context:
@@ -168,53 +166,39 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
     async def _get_storefront_by_domain(self, db: Session, domain: str) -> Optional[StorefrontConfig]:
         """
         Get StorefrontConfig by domain.
-
-        Args:
-            db: Database session
-            domain: Domain to lookup
-
-        Returns:
-            StorefrontConfig or None if not found
         """
-        # Clean the domain (remove port if present)
         parsed = urlparse(f"http://{domain}")
         clean_domain = parsed.netloc.split(":")[0]
-
-        return db.query(StorefrontConfig).filter(
-            StorefrontConfig.custom_domain == clean_domain,
-            StorefrontConfig.domain_verified == True
-        ).first()
+        result = await db.execute(
+            select(StorefrontConfig).where(
+                StorefrontConfig.custom_domain == clean_domain,
+                StorefrontConfig.domain_verified == True
+            )
+        )
+        return result.scalars().first()
 
     async def _get_storefront_by_subdomain(self, db: Session, subdomain: str) -> Optional[StorefrontConfig]:
         """
         Get StorefrontConfig by subdomain.
-
-        Args:
-            db: Database session
-            subdomain: Subdomain to lookup
-
-        Returns:
-            StorefrontConfig or None if not found
         """
-        return db.query(StorefrontConfig).filter(
-            StorefrontConfig.subdomain_name == subdomain
-        ).first()
+        result = await db.execute(
+            select(StorefrontConfig).where(
+                StorefrontConfig.subdomain_name == subdomain
+            )
+        )
+        return result.scalars().first()
 
     async def _get_tenant(self, db: Session, tenant_id: uuid.UUID) -> Optional[Tenant]:
         """
         Get Tenant by ID.
-
-        Args:
-            db: Database session
-            tenant_id: Tenant ID
-
-        Returns:
-            Tenant or None if not found
         """
-        return db.query(Tenant).filter(
-            Tenant.id == tenant_id,
-            Tenant.storefront_enabled == True
-        ).first()
+        result = await db.execute(
+            select(Tenant).where(
+                Tenant.id == tenant_id,
+                Tenant.storefront_enabled == True
+            )
+        )
+        return result.scalars().first()
 
 # Example async DB access in subdomain middleware
 

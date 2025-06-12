@@ -151,8 +151,8 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
                 return cached_context
 
         # Not in cache, query database
-        db = get_async_session_local()
-        try:
+        sessionmaker = get_async_session_local()
+        async with sessionmaker() as db:
             # Query for StorefrontConfig and related Tenant
             config = (
                 await db.execute(
@@ -190,8 +190,6 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
                 await redis_cache.set(cache_key, tenant_context, TENANT_CACHE_DURATION)
 
             return tenant_context
-        finally:
-            await db.close()
 
     async def _get_tenant_by_custom_domain(self, domain: str) -> Dict[str, Any]:
         """
@@ -211,8 +209,8 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
                 return cached_context
 
         # Not in cache, query database
-        db = get_async_session_local()
-        try:
+        sessionmaker = get_async_session_local()
+        async with sessionmaker() as db:
             # Query for StorefrontConfig and related Tenant
             config = (
                 await db.execute(
@@ -251,8 +249,6 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
                 await redis_cache.set(cache_key, tenant_context, TENANT_CACHE_DURATION)
 
             return tenant_context
-        finally:
-            await db.close()
 
 
 # Helper function to get tenant context from request
@@ -272,10 +268,8 @@ def get_tenant_context(request: Request) -> Dict[str, Any]:
 
 
 async def get_tenant_by_subdomain_async(subdomain, db=None):
-    db = db or get_async_session_local()
-    try:
-        # await db.execute(...)
-        # await db.commit()
+    sessionmaker = db or get_async_session_local()
+    async with sessionmaker() as db_session:
+        # await db_session.execute(...)
+        # await db_session.commit()
         pass
-    finally:
-        await db.close()
