@@ -68,6 +68,7 @@ typing_extensions==4.13.2
 typing-inspection==0.4.0
 MarkupSafe>=2.1.4
 pycparser>=2.22
+tenacity>=9.0.0
 
 # Note: For NLP features that require more advanced models,
 # consider installing these separately or using cloud-based APIs
