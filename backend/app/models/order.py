@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Enum, ForeignKey, Integer, Float, Text, DateTime, Index, Boolean
+from sqlalchemy import Column, String, Enum, ForeignKey, Integer, Float, Text, DateTime, Boolean
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -58,6 +58,11 @@ class Order(Base):
     complaints = relationship("Complaint", back_populates="order")
     channel_metadata = relationship(
         "OrderChannelMeta",
+        back_populates="order",
+        cascade="all, delete-orphan"
+    )
+    items = relationship(
+        "OrderItem",
         back_populates="order",
         cascade="all, delete-orphan"
     )

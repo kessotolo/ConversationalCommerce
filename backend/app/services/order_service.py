@@ -1,23 +1,16 @@
-from typing import List, Optional, Tuple, Dict, Any
+from typing import List, Optional, Tuple, Dict, Any, AsyncGenerator
 from uuid import UUID
-from sqlalchemy.orm import Session, sessionmaker
 import os
 from sqlalchemy import and_, or_, desc, func, select, update, text
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.exc import IntegrityError
 from datetime import datetime, timedelta
-from functools import wraps
-import contextlib
 from contextlib import asynccontextmanager
-from decimal import Decimal
-import asyncio
 from tenacity import AsyncRetrying, stop_after_attempt, wait_fixed
 
 from app.models.order import Order, OrderStatus, OrderSource
+from app.models.order_item import OrderItem
 from app.models.product import Product
-from app.models.user import User
 from app.services.audit_service import create_audit_log, AuditActionType
-from fastapi import HTTPException, status
 from app.models.order_channel_meta import OrderChannelMeta
 from app.models.conversation_history import ChannelType
 # WhatsAppOrderDetails has been replaced by OrderChannelMeta
