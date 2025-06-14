@@ -1,15 +1,12 @@
 import pytest
 from unittest.mock import patch, AsyncMock, MagicMock
-from fastapi import Request, Response
+from fastapi import Response
 import uuid
-import ssl
 import socket
 from app.middleware.domain_verification import (
     DomainVerificationMiddleware,
     DomainVerificationService,
     SSL_STATUS_VALID,
-    SSL_STATUS_INVALID,
-    SSL_STATUS_EXPIRED,
     SSL_STATUS_UNKNOWN
 )
 

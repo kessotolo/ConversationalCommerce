@@ -1,20 +1,17 @@
-from typing import Any, List
+from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, Header, Body, Request
 from sqlalchemy.orm import Session
 
 from app.api import deps
 from app.services.payment.payment_service import PaymentService
 from app.schemas.payment.payment import (
-    PaymentInitializeRequest,
     PaymentInitializeResponseWithWrapper,
     PaymentVerificationResponseWithWrapper,
     PaymentSettingsResponseWithWrapper,
     PaymentSettings,
-    PaymentProvider,
-    PaymentWebhookEvent,
-    ManualPaymentProof
+    PaymentProvider
 )
-from app.core.auth import get_current_user, get_current_active_user
+from app.core.auth import get_current_active_user
 from app.services.payment.payment_provider import get_payment_provider
 from app.schemas.payment.payment_validation import EnhancedPaymentInitializeRequest, EnhancedManualPaymentProof
 from app.services.audit_service import create_audit_log, AuditActionType, AuditResourceType

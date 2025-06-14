@@ -3,7 +3,6 @@ from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from app.core.behavior.behavior_analysis import behavior_analysis_service
 import time
-import json
 import logging
 
 logger = logging.getLogger(__name__)

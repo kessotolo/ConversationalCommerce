@@ -1,4 +1,3 @@
-from typing import List, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 import uuid
@@ -8,7 +7,6 @@ from app.schemas.storefront import (
     StorefrontConfigCreate,
     StorefrontConfigUpdate,
     StorefrontConfigResponse,
-    DomainVerificationRequest,
     DomainVerificationResponse,
     DomainVerificationStatusResponse,
     StorefrontStatusUpdate,

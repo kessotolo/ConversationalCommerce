@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
 import requests
-from typing import Dict, Any, Optional
+from typing import Dict, Optional
 import hmac
 import hashlib
 import json
-import base64
 from app.schemas.payment.payment import (
     PaymentInitializeRequest,
     PaymentInitializeResponse,
@@ -14,7 +13,6 @@ from app.schemas.payment.payment import (
     PaymentMethod,
     TransactionFee
 )
-from app.core.config import settings
 from app.core.logging import logger
 
 

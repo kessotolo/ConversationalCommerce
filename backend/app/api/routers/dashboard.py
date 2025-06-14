@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.seller_profile import SellerProfile
 from app.schemas.seller_profile import SellerProfileResponse, SellerProfileUpdate
-from uuid import UUID
 
 router = APIRouter(
     prefix="/api/dashboard",

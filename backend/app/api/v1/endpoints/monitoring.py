@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from typing import List, Optional
 from app.core.monitoring.rules_engine import Rule, RuleSeverity, rules_engine
 from app.core.security.dependencies import get_current_user

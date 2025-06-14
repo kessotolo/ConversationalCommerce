@@ -1,10 +1,8 @@
 import pytest
 from unittest.mock import patch, AsyncMock, MagicMock
-from fastapi import Request, Response
+from fastapi import Response
 import uuid
 from app.middleware.subdomain import SubdomainMiddleware, get_tenant_context
-from app.models.tenant import Tenant
-from app.models.storefront import StorefrontConfig
 
 
 class TestSubdomainMiddleware:

@@ -46,3 +46,18 @@ class ValidationError(Exception):
 class BusinessLogicError(Exception):
     """Raised when a business logic rule is violated"""
     pass
+
+
+class CacheError(Exception):
+    """Raised when a cache operation fails"""
+    pass
+
+
+class RateLimitError(Exception):
+    """Raised when rate limits are exceeded"""
+    pass
+
+
+class ConcurrentModificationError(Exception):
+    """Raised when concurrent modifications to the same resource are detected"""
+    pass

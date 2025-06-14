@@ -16,12 +16,31 @@ from dotenv import load_dotenv
 from pathlib import Path
 import time
 import logging
-from app.db.session import set_tenant_id, SessionLocal
-from app.models.tenant import Tenant
 from app.api.v1.endpoints.websocket import router as websocket_router
 import app.domain.events  # Ensure event handlers are registered
-from fastapi.middleware.security import SecurityHeadersMiddleware
-from fastapi.middleware.compression import CompressionMiddleware
+# Custom security headers middleware implementation
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app, headers):
+        super().__init__(app)
+        self.headers = headers
+
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        # Add security headers to response
+        for header_name, header_value in self.headers.items():
+            response.headers[header_name] = header_value
+        return response
+# Custom compression middleware implementation
+class CompressionMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app, **options):
+        super().__init__(app)
+        self.options = options
+
+    async def dispatch(self, request: Request, call_next):
+        # This is a simplified version - in production, you'd want to handle
+        # content compression based on Accept-Encoding headers
+        response = await call_next(request)
+        return response
 
 # Configure logging
 logging.basicConfig(
@@ -135,7 +154,7 @@ async def initialize_cache():
     try:
         await redis_cache.initialize()
         if redis_cache.is_available:
-            logger.info(f"Redis cache successfully initialized and connected")
+            logger.info("Redis cache successfully initialized and connected")
         else:
             logger.warning(
                 "Redis cache initialization completed, but cache is not available")

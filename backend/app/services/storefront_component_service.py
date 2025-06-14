@@ -2,13 +2,12 @@ from typing import List, Optional, Dict, Any, Tuple
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, and_, or_, func
+from sqlalchemy import desc, or_
 from fastapi import HTTPException, status
 from app.models.storefront_component import StorefrontComponent, ComponentType, ComponentStatus
 from app.models.tenant import Tenant
 from app.models.user import User
 from app.services.storefront_permissions_service import has_permission
-from sqlalchemy.sql import update
 
 
 async def create_component(
@@ -316,7 +315,7 @@ async def list_components(
 
     # Apply global filter
     if only_global:
-        query = query.filter(StorefrontComponent.is_global == True)
+        query = query.filter(StorefrontComponent.is_global)
 
     # Apply tag filter (simplified - would need database-specific implementation)
     if tags and len(tags) > 0:

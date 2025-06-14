@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
 import uuid
 
-from app.api.deps import get_db, get_current_user, get_current_active_user
+from app.api.deps import get_db, get_current_active_user
 from app.models.user import User
 from app.schemas.storefront_version import StorefrontVersionResponse, StorefrontVersionList
 from app.services import storefront_version_service

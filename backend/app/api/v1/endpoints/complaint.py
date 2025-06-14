@@ -2,7 +2,6 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.api import deps
-from app.models.complaint import Complaint
 from app.schemas.complaint import (
     ComplaintCreate,
     ComplaintUpdate,
@@ -76,7 +75,7 @@ async def update_complaint(
         raise HTTPException(status_code=403, detail=str(e))
     except ComplaintValidationError as e:
         raise HTTPException(status_code=422, detail=str(e))
-    except DatabaseError as e:
+    except DatabaseError:
         raise HTTPException(status_code=500, detail="Error updating complaint")
 
 

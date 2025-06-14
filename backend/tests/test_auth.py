@@ -2,7 +2,6 @@ from datetime import datetime, timedelta, timezone
 import jwt
 import pytest
 import os
-from uuid import UUID
 from fastapi.testclient import TestClient
 from app.main import create_app
 # Import the consistent UUID from conftest

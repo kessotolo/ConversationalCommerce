@@ -3,13 +3,11 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from starlette.responses import Response
 import os
 import time
-from typing import Dict, Tuple
-import asyncio
+from typing import Dict
 from app.core.config.settings import get_settings
 from app.db.session import get_async_session_local
 from app.models.tenant import Tenant
 from datetime import datetime, timezone
-import json
 from sqlalchemy.ext.asyncio import AsyncSession
 
 settings = get_settings()

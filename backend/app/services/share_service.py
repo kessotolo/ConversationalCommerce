@@ -10,7 +10,7 @@ from app.utils.social_links import (
     generate_telegram_share_link
 )
 from app.services.audit_service import create_audit_log
-from typing import Optional, Dict, Any, List, Union
+from typing import Dict, Any, List
 from urllib.parse import urlencode
 import logging
 

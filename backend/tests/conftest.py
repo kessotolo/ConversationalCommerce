@@ -1,27 +1,19 @@
 # Configure logging first
-from app.core.config.settings import get_settings
 import os
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy import create_engine
 import sys
-from app.db.session import get_db, SessionLocal as AppSessionLocal
+from app.db.session import get_db
 from app.core.security.clerk import ClerkTokenData
 from app.core.security.dependencies import require_auth
-from app.main import create_app
 from app.db.base_class import Base
-from tests.test_middleware import TestRateLimitMiddleware, TestTenantMiddleware
-from app.core.config.settings import Settings
-from app.db import session as db_session_module
 import pytest_asyncio
 import pytest
 from pathlib import Path
 from fastapi.testclient import TestClient
-from sqlalchemy.pool import StaticPool
 from uuid import uuid4, UUID
-from typing import Any, Generator
 import uuid
-from uuid import uuid4
 import logging
 from fastapi import Request
 
@@ -193,25 +185,21 @@ async def async_db_session(async_db_engine):
     logger.info("Creating async_db_session")
     try:
         # Create a new async database session for each test
+        # async_db_engine.begin() already creates a transaction
         async with async_db_engine.begin() as connection:
-            logger.info("Got connection from engine")
-            # Start a transaction
-            transaction = await connection.begin()
-            logger.info("Started transaction")
-
+            logger.info("Got connection from engine with transaction")
+            
             session = AsyncTestingSessionLocal(bind=connection)
             logger.info("Created session")
 
             try:
                 yield session
             finally:
-                logger.info("Rolling back transaction")
-                await transaction.rollback()
-                logger.info("Transaction rolled back")
-
                 logger.info("Closing session")
                 await session.close()
                 logger.info("Session closed")
+                # The transaction will be automatically rolled back when the
+                # context manager exits (no need for explicit rollback)
     except Exception as e:
         logger.error(f"Error in async_db_session fixture: {str(e)}")
         raise
@@ -310,7 +298,7 @@ async def test_user(async_db_session, test_tenant):
     """
     from app.models.user import User
     from app.models.tenant import Tenant
-    from sqlalchemy import text, select
+    from sqlalchemy import text
     # Remove all users for idempotency
     await async_db_session.execute(text("DELETE FROM users"))
     await async_db_session.commit()

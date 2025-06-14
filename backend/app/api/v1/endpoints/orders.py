@@ -1,8 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, Body
-from sqlalchemy.orm import Session
 from uuid import UUID
-from datetime import date, datetime, timedelta
-from typing import Optional, List
 from functools import wraps
 
 from app.core.security.dependencies import require_auth
@@ -22,8 +19,6 @@ from app.schemas.order import (
     PaginatedOrdersResponse,
     OrderUpdate
 )
-from fastapi import HTTPException, status
-from app.models.order import OrderStatus, OrderSource
 
 router = APIRouter()
 

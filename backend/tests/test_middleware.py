@@ -2,8 +2,6 @@
 from app.core.middleware.rate_limit import RateLimitMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi import Request, Response
-from uuid import UUID
-import os
 
 class TestRateLimitMiddleware(RateLimitMiddleware):
     """Test version of RateLimitMiddleware with test database session"""

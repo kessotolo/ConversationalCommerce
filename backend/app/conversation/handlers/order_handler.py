@@ -1,29 +1,19 @@
 import logging
-import json
 import uuid
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Dict, Any, Optional
 from datetime import datetime
 
 from app.domain.models.order import (
-    Order,
     OrderStatus,
     OrderSource,
     PaymentMethod,
-    PaymentStatus,
-    CreateOrderRequest,
-    CustomerInfo,
-    Money,
-    Address,
-    ShippingDetails,
-    PaymentDetails,
-    OrderItem
+    Address
 )
 from app.domain.events.event_bus import get_event_bus
 from app.domain.events.order_events import OrderEventFactory
 from app.conversation.nlp.intent_parser import IntentType, ParsedIntent
-from app.conversation.message_builder import MessageBuilder, MessageType
+from app.conversation.message_builder import MessageBuilder
 from app.services.cart_service import get_cart_service
-from app.db import get_db
 from app.utils.retry import with_retry
 from app.services.order_service import OrderService
 

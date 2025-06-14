@@ -1,13 +1,9 @@
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
 from uuid import uuid4
 from decimal import Decimal
-from datetime import datetime, timezone
 
 from app.models.order import Order, OrderStatus, OrderSource
 from app.models.product import Product
-from tests.conftest import TEST_USER_ID, TEST_TENANT_ID
 
 
 @pytest.fixture

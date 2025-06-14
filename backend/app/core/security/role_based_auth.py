@@ -1,10 +1,9 @@
 from fastapi import Depends, HTTPException, status
-from typing import List, Optional, Callable, Any
+from typing import List, Callable, Any
 import enum
 
 from app.core.security.dependencies import require_auth
 from app.core.security.clerk import ClerkTokenData
-from app.core.errors.error_response import forbidden_error
 
 
 class RoleType(str, enum.Enum):

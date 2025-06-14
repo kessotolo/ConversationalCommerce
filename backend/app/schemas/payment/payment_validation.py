@@ -1,4 +1,3 @@
-from typing import Dict, Any, Optional
 from pydantic import validator, root_validator
 from decimal import Decimal
 import re
@@ -6,7 +5,6 @@ import ipaddress
 
 from app.schemas.payment.payment import (
     PaymentInitializeRequest,
-    PaymentVerificationResponse,
     ManualPaymentProof,
     PaymentProviderConfig
 )

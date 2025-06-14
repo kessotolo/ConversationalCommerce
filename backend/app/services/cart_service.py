@@ -1,5 +1,4 @@
 from typing import Optional, Dict, Any
-from uuid import UUID
 from sqlalchemy.orm import Session
 from app.models.cart import Cart
 from app.api.v1.endpoints.cart import get_or_create_cart

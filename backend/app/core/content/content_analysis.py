@@ -1,6 +1,5 @@
 from typing import Dict, Any, List, Optional
 import re
-from datetime import datetime
 import logging
 from textblob import TextBlob
 import nltk
@@ -124,7 +123,7 @@ class ContentAnalysisService:
                 ContentFilterRule.filter(
                     ContentFilterRule.tenant_id == tenant_id,
                     ContentFilterRule.content_type == content_type,
-                    ContentFilterRule.enabled == True
+                    ContentFilterRule.enabled
                 )
             )
         finally:
@@ -188,7 +187,7 @@ class ContentAnalysisService:
                 # If analysis was limited due to missing spaCy, log it
                 if result.get('limited_analysis'):
                     logger.info(
-                        f"Performed limited language analysis due to missing spaCy model")
+                        "Performed limited language analysis due to missing spaCy model")
                 return result
             elif analysis_type == 'toxicity':
                 return self._analyze_toxicity(content)

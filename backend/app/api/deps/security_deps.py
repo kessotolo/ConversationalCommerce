@@ -1,18 +1,12 @@
-from typing import Optional, List, Callable
 from fastapi import Depends, HTTPException, Request, status
-from fastapi.security import OAuth2PasswordBearer
-from jose import jwt, JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime, timedelta
-import time
+from datetime import datetime
 import re
-import ipaddress
 import redis.asyncio as redis
 from app.core.config import settings
 from app.db.session import get_db
-from app.db.models.payment import RateLimitLog
 from app.core.logging import logger
-from app.core.auth import get_current_user, get_current_active_user
+from app.core.auth import get_current_active_user
 
 # Redis client for distributed rate limiting
 redis_client = redis.from_url(settings.REDIS_URL)

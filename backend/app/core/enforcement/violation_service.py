@@ -2,8 +2,6 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from app.models.violation import Violation
 from app.models.user import User
-from app.models.tenant import Tenant
-from app.models.behavior_analysis import PatternDetection
 import logging
 
 logger = logging.getLogger(__name__)

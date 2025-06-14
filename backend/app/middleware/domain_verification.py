@@ -3,20 +3,15 @@ import time
 import ssl
 import socket
 import asyncio
-import os
 from typing import Dict, Any, List, Optional, Tuple, Callable
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
-from sqlalchemy.orm import Session
 import uuid
-import dns.resolver
-import dns.exception
 from datetime import datetime
 
 from app.db.session import get_async_session_local, SessionLocal
 from app.models.storefront import StorefrontConfig
-from app.models.tenant import Tenant
 from app.utils.domain_validator import verify_domain_dns, generate_verification_token
 from app.core.cache.redis_cache import redis_cache
 

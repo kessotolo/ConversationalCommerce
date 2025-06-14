@@ -1,7 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from uuid import UUID
-from typing import List
 from app.core.security.dependencies import require_auth
 from app.core.security.clerk import ClerkTokenData
 from app.db.session import get_db
@@ -61,7 +60,7 @@ async def create_product_endpoint(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
-    except DatabaseError as e:
+    except DatabaseError:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error creating product"
@@ -98,7 +97,7 @@ async def list_products_endpoint(
             limit=search_params.limit,
             offset=search_params.offset
         )
-    except DatabaseError as e:
+    except DatabaseError:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error fetching products"
@@ -138,7 +137,7 @@ async def get_product_endpoint(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e)
         )
-    except DatabaseError as e:
+    except DatabaseError:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error fetching product"
@@ -189,7 +188,7 @@ async def update_product_endpoint(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(e)
         )
-    except DatabaseError as e:
+    except DatabaseError:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error updating product"
@@ -233,7 +232,7 @@ async def delete_product_endpoint(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=str(e)
         )
-    except DatabaseError as e:
+    except DatabaseError:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error deleting product"

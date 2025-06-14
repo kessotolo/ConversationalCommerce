@@ -1,9 +1,8 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import func, desc, and_, or_
-from typing import List, Optional, Dict, Any, Tuple
+from sqlalchemy import func, desc, or_
+from typing import List, Dict, Any, Tuple
 import uuid
 from fastapi import HTTPException, status
-from datetime import datetime, timedelta
 
 from app.models.product import Product as ProductModel
 from app.models.storefront import StorefrontConfig
@@ -94,9 +93,9 @@ async def get_featured_products(
     """
     query = db.query(ProductModel).filter(
         ProductModel.tenant_id == tenant_id,
-        ProductModel.is_deleted == False,
-        ProductModel.show_on_storefront == True,
-        ProductModel.is_featured == True
+        not ProductModel.is_deleted,
+        ProductModel.show_on_storefront,
+        ProductModel.is_featured
     )
     
     # Order by newest first
@@ -128,8 +127,8 @@ async def get_product_categories(
         func.count(ProductModel.id).label('product_count')
     ).filter(
         ProductModel.tenant_id == tenant_id,
-        ProductModel.is_deleted == False,
-        ProductModel.show_on_storefront == True,
+        not ProductModel.is_deleted,
+        ProductModel.show_on_storefront,
         ProductModel.category.isnot(None)
     ).group_by(
         ProductModel.category
@@ -171,8 +170,8 @@ async def get_products_by_category(
     """
     base_query = db.query(ProductModel).filter(
         ProductModel.tenant_id == tenant_id,
-        ProductModel.is_deleted == False,
-        ProductModel.show_on_storefront == True,
+        not ProductModel.is_deleted,
+        ProductModel.show_on_storefront,
         ProductModel.category == category
     )
     
@@ -207,8 +206,8 @@ async def get_product_detail(
     product = db.query(ProductModel).filter(
         ProductModel.id == product_id,
         ProductModel.tenant_id == tenant_id,
-        ProductModel.is_deleted == False,
-        ProductModel.show_on_storefront == True
+        not ProductModel.is_deleted,
+        ProductModel.show_on_storefront
     ).first()
     
     if not product:
@@ -220,8 +219,8 @@ async def get_product_detail(
     # Get related products (same category, excluding this product)
     related_products_query = db.query(ProductModel).filter(
         ProductModel.tenant_id == tenant_id,
-        ProductModel.is_deleted == False,
-        ProductModel.show_on_storefront == True,
+        not ProductModel.is_deleted,
+        ProductModel.show_on_storefront,
         ProductModel.id != product_id
     )
     
@@ -264,8 +263,8 @@ async def search_products(
     
     base_query = db.query(ProductModel).filter(
         ProductModel.tenant_id == tenant_id,
-        ProductModel.is_deleted == False,
-        ProductModel.show_on_storefront == True,
+        not ProductModel.is_deleted,
+        ProductModel.show_on_storefront,
         or_(
             ProductModel.name.ilike(search_term),
             ProductModel.description.ilike(search_term),

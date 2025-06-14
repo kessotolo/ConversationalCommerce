@@ -1,6 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
-from typing import Optional, List
+from typing import Optional
 import os
 import sys
 
@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     BASE_DOMAIN: str = "localhost"
     ENABLE_STOREFRONT: bool = True
     SUBDOMAIN_SEPARATOR: str = "."  # How subdomains are separated in local dev
+    
+    # CORS Settings
+    ALLOWED_ORIGINS: list[str] = ["http://localhost", "http://localhost:3000", "http://127.0.0.1", "http://127.0.0.1:3000"]
 
     # Redis and Caching Settings
     # IMPORTANT: Set REDIS_URL in your environment for production deployments.

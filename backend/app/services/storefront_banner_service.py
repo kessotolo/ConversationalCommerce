@@ -2,14 +2,13 @@ from typing import List, Optional, Dict, Any, Tuple
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, and_, or_, func
+from sqlalchemy import desc, or_, func
 from fastapi import HTTPException, status
 from app.models.storefront_banner import StorefrontBanner, BannerStatus, BannerType, TargetAudience
 from app.models.tenant import Tenant
 from app.models.user import User
 from app.services.storefront_permissions_service import has_permission
 from app.services.storefront_asset_service import get_asset, track_asset_usage
-from sqlalchemy.sql import update
 
 
 async def create_banner(

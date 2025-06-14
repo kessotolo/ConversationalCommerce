@@ -1,4 +1,3 @@
-import requests
 from typing import Tuple
 
 # Placeholder for image moderation logic

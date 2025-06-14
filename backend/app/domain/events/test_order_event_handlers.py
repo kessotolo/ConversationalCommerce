@@ -1,5 +1,4 @@
 import pytest
-import asyncio
 from unittest.mock import patch, AsyncMock
 from app.domain.events.order_event_handlers import (
     handle_order_created,

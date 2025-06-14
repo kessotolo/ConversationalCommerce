@@ -2,7 +2,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
 import logging
 from sqlalchemy.orm import Session
-from app.models.behavior_analysis import BehaviorPattern, PatternDetection, Evidence
+from app.models.behavior_analysis import BehaviorPattern, PatternDetection
 from app.core.notifications.notification_service import (
     Notification,
     NotificationPriority,
@@ -63,7 +63,7 @@ class BehaviorAnalysisService:
         return db.query(BehaviorPattern).filter(
             BehaviorPattern.tenant_id == tenant_id,
             BehaviorPattern.pattern_type == pattern_type,
-            BehaviorPattern.enabled == True
+            BehaviorPattern.enabled
         ).all()
 
     def _is_in_cooldown(

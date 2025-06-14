@@ -1,11 +1,9 @@
 from typing import Dict, List, Any, Optional
 from datetime import datetime, timezone, timedelta
 from enum import Enum
-import json
 import logging
 from pydantic import BaseModel, Field
 from app.db.session import get_async_session_local
-from app.models.audit_log import AuditLog
 from app.core.notifications.notification_service import (
     Notification,
     NotificationPriority,
@@ -143,7 +141,7 @@ class RulesEngine:
                 start_time = datetime.now(
                     timezone.utc) - timedelta(seconds=condition.duration_seconds)
                 activities = await db.execute(
-                    f"""
+                    """
                     SELECT * FROM audit_log
                     WHERE tenant_id = :tenant_id
                     AND timestamp >= :start_time

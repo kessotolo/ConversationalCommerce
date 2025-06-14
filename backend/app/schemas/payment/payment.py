@@ -1,8 +1,6 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, List
 from enum import Enum
-from datetime import datetime
-from uuid import UUID
 
 
 class PaymentProvider(str, Enum):

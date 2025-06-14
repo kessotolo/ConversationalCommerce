@@ -1,16 +1,10 @@
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
 from uuid import uuid4, UUID
-from decimal import Decimal
-from httpx import AsyncClient
-import asyncio
 import logging
 from sqlalchemy import select
 
 from app.models.order import Order, OrderStatus, OrderSource
-from app.models.product import Product
-from tests.conftest import TEST_USER_ID
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)

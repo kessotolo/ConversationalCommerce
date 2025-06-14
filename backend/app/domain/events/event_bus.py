@@ -1,9 +1,8 @@
 import asyncio
 import logging
-from typing import Dict, List, Callable, Any, Awaitable, TypeVar, Generic, Type, Optional
-from pydantic import BaseModel
+from typing import Dict, List, Callable, Awaitable, TypeVar, Optional
 
-from app.domain.events.order_events import DomainEvent, OrderEventUnion
+from app.domain.events.order_events import DomainEvent
 
 logger = logging.getLogger(__name__)
 

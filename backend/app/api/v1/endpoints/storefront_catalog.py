@@ -2,18 +2,15 @@ from fastapi import APIRouter, Depends, Request, Response, Query, Path, HTTPExce
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import uuid
-from datetime import datetime, timedelta
 
 from app.api.deps import get_db, get_tenant_context
 from app.services import storefront_product_service
 from app.schemas.storefront_product import (
     StorefrontProductBase,
-    StorefrontProductDetail,
     StorefrontProductWithVariants,
     PaginatedStorefrontProducts,
     CollectionInfo,
-    TagInfo,
-    ProductFilterParams
+    TagInfo
 )
 
 router = APIRouter()

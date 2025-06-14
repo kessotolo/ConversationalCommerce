@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, Query, BackgroundTasks
 from sqlalchemy.orm import Session
-from typing import Dict, Any, Optional, List
+from typing import Optional
 from datetime import datetime
 import json
 import hmac
@@ -11,12 +11,11 @@ import logging
 
 from app.db.session import get_db
 from app.models.conversation_history import ConversationHistory, SenderType, ChannelType
-from app.schemas.conversation_history import ConversationHistoryCreate
 from app.schemas.conversation_event import ConversationEventCreate
 from app.models.tenant import Tenant
 from app.api.routers.conversation import log_conversation_event
 from app.conversation.handlers.order_handler import OrderIntentHandler
-from app.conversation.nlp.intent_parser import IntentType, ParsedIntent, parse_intent
+from app.conversation.nlp.intent_parser import IntentType, parse_intent
 from app.conversation.nlp.cart_intent_processor import process_cart_intent
 
 # WhatsApp Business API settings
@@ -315,8 +314,6 @@ async def webhook(request: Request, background_tasks: BackgroundTasks, db: Sessi
 
                 # Process with NLP and get response
                 # Import here to avoid circular dependencies
-                from app.conversation.nlp.intent_parser import parse_intent
-                from app.conversation.nlp.cart_intent_processor import process_cart_intent
 
                 # Parse the intent from the message
                 parsed_intent = await parse_intent(message_body, tenant.id)

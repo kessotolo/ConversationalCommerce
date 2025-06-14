@@ -1,8 +1,8 @@
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 import json
 import hashlib
-from fastapi import Request, Response
+from fastapi import Response
 from starlette import status
 from app.core.http.response_optimization import (
     generate_etag,

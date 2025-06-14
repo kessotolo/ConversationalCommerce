@@ -1,9 +1,7 @@
-import os
-from typing import Optional, Dict, Any
 from twilio.rest import Client
 from app.core.config.settings import settings
 from app.models.order import Order, OrderStatus
-from app.services.audit_service import create_audit_log, AuditActionType
+from app.services.audit_service import create_audit_log
 from sqlalchemy.orm import Session
 from uuid import UUID
 import logging

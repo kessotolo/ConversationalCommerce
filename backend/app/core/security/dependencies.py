@@ -38,7 +38,7 @@ async def require_auth(
     try:
         token_data = verify_clerk_token(token)
         return token_data
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials"

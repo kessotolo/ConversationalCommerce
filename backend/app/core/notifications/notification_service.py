@@ -9,7 +9,6 @@ from app.models.tenant import Tenant
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import requests
 from twilio.rest import Client
 
 settings = get_settings()

@@ -2,12 +2,12 @@ import httpx
 import os
 import base64
 import json
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 from functools import lru_cache
 from pydantic import BaseModel, Field
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Optional, Any
 from app.core.config.settings import get_settings
-from uuid import uuid4, UUID
+from uuid import UUID
 
 # Try to import JWT libraries with fallbacks
 try:

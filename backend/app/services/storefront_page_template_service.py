@@ -2,7 +2,7 @@ from typing import List, Optional, Dict, Any, Tuple
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, and_, or_, func
+from sqlalchemy import desc, or_
 from fastapi import HTTPException, status
 from app.models.storefront_page_template import StorefrontPageTemplate, PageTemplateType, TemplateStatus
 from app.models.tenant import Tenant
@@ -85,7 +85,7 @@ async def create_page_template(
         default_templates = db.query(StorefrontPageTemplate).filter(
             StorefrontPageTemplate.tenant_id == tenant_id,
             StorefrontPageTemplate.template_type == template_type,
-            StorefrontPageTemplate.is_default == True
+            StorefrontPageTemplate.is_default
         ).all()
 
         for template in default_templates:
@@ -198,7 +198,7 @@ async def update_page_template(
         default_templates = db.query(StorefrontPageTemplate).filter(
             StorefrontPageTemplate.tenant_id == tenant_id,
             StorefrontPageTemplate.template_type == template.template_type,
-            StorefrontPageTemplate.is_default == True,
+            StorefrontPageTemplate.is_default,
             StorefrontPageTemplate.id != template_id
         ).all()
 
@@ -346,7 +346,7 @@ async def list_page_templates(
 
     # Apply default filter
     if only_defaults:
-        query = query.filter(StorefrontPageTemplate.is_default == True)
+        query = query.filter(StorefrontPageTemplate.is_default)
 
     # Apply tag filter (simplified - would need database-specific implementation)
     if tags and len(tags) > 0:
@@ -445,7 +445,7 @@ async def delete_page_template(
         default_count = db.query(StorefrontPageTemplate).filter(
             StorefrontPageTemplate.tenant_id == tenant_id,
             StorefrontPageTemplate.template_type == template.template_type,
-            StorefrontPageTemplate.is_default == True
+            StorefrontPageTemplate.is_default
         ).count()
 
         if default_count <= 1:
@@ -666,7 +666,7 @@ async def get_default_template(
     template = db.query(StorefrontPageTemplate).filter(
         StorefrontPageTemplate.tenant_id == tenant_id,
         StorefrontPageTemplate.template_type == template_type,
-        StorefrontPageTemplate.is_default == True,
+        StorefrontPageTemplate.is_default,
         StorefrontPageTemplate.status == TemplateStatus.PUBLISHED
     ).first()
 

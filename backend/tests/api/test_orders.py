@@ -1,16 +1,11 @@
-import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
 from uuid import UUID
 from decimal import Decimal
 from datetime import datetime, timedelta, timezone
-import json
 
 from app.models.order import Order, OrderStatus, OrderSource
 from app.models.order_channel_meta import OrderChannelMeta
 from app.models.conversation_history import ChannelType
 from app.models.product import Product
-from tests.conftest import TEST_USER_ID
 
 
 def test_create_order(client, auth_headers, db_session, test_user, test_tenant):

@@ -5,7 +5,7 @@ from typing import Optional
 from app.api import deps
 from app.models.cart import Cart, CartItem
 from app.models.product import Product
-from app.schemas.cart import CartResponse, CartCreate, CartItemCreate, CartItemUpdate
+from app.schemas.cart import CartResponse, CartItemCreate
 from app.core.security.clerk import ClerkTokenData
 from datetime import datetime
 

@@ -1,15 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, status, Request
 from sqlalchemy.orm import Session
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from uuid import UUID
 from app.db.session import get_db
-from app.core.security.dependencies import require_auth
 from app.core.security.clerk import ClerkTokenData
 from app.core.security.role_based_auth import require_seller
-from app.schemas.product import ProductResponse
 from app.services.product_service import batch_update_products
 from app.services.audit_service import create_audit_log, AuditActionType, AuditResourceType
-from app.core.errors.error_response import create_error_response
 from pydantic import BaseModel, Field, field_validator
 
 router = APIRouter()
@@ -93,6 +90,6 @@ async def batch_update_products_endpoint(
             "updated_count": updated_count
         }
         
-    except Exception as e:
+    except Exception:
         # Let the exception handlers handle specific errors
         raise

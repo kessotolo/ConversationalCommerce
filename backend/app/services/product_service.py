@@ -2,20 +2,16 @@ from sqlalchemy.orm import Session
 from app.models.product import Product as ProductModel
 from app.schemas.product import ProductCreate, ProductUpdate, ProductSearchParams
 from uuid import UUID
-from fastapi import HTTPException, status, Request
+from fastapi import Request
 from typing import List, Optional, Tuple, Dict, Any
 from datetime import datetime, timezone
-from sqlalchemy import or_, desc, asc, and_, update, func
-from decimal import Decimal
+from sqlalchemy import or_, desc, and_, update
 from app.core.exceptions import (
     ProductNotFoundError,
     ProductPermissionError,
     ProductValidationError,
     DatabaseError
 )
-from app.db.session import get_tenant_id_from_request
-from app.core.content.content_analysis import content_analysis_service
-from app.core.content.image_moderation import moderate_image
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # Add a new exception for optimistic locking conflicts
@@ -73,7 +69,7 @@ def get_product(db: Session, product_id: UUID) -> Optional[ProductModel]:
     try:
         return db.query(ProductModel).filter(
             ProductModel.id == product_id,
-            ProductModel.is_deleted == False
+            not ProductModel.is_deleted
         ).first()
     except Exception as e:
         raise DatabaseError(f"Error fetching product: {str(e)}")
@@ -97,7 +93,7 @@ def get_products(
         DatabaseError: If database operation fails
     """
     try:
-        query = db.query(ProductModel).filter(ProductModel.is_deleted == False)
+        query = db.query(ProductModel).filter(not ProductModel.is_deleted)
 
         # Apply filters
         if search_params.search:
@@ -161,7 +157,7 @@ def get_products_keyset(
         DatabaseError: If database operation fails
     """
     try:
-        query = db.query(ProductModel).filter(ProductModel.is_deleted == False)
+        query = db.query(ProductModel).filter(not ProductModel.is_deleted)
 
         # Apply filters same as in get_products
         if search_params.search:
@@ -316,7 +312,7 @@ async def batch_update_products(
             .filter(
                 ProductModel.id.in_(product_ids),
                 ProductModel.seller_id == seller_id,
-                ProductModel.is_deleted == False
+                not ProductModel.is_deleted
             )
         )
 
@@ -418,7 +414,7 @@ async def restore_product(db: AsyncSession, product_id: UUID, seller_id: UUID) -
             select(ProductModel)
             .filter(
                 ProductModel.id == product_id,
-                ProductModel.is_deleted == True
+                ProductModel.is_deleted
             )
         )
 

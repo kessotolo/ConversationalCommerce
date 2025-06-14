@@ -1,9 +1,8 @@
-from typing import List, Optional, Dict, Any, Tuple
+from typing import Optional, Dict, Any, Tuple
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-from sqlalchemy import and_, or_
 from app.models.storefront import StorefrontConfig, StorefrontStatus
 from app.models.storefront_draft import StorefrontDraft
 from app.models.tenant import Tenant
@@ -236,7 +235,7 @@ async def get_storefront_by_domain(
     """
     return db.query(StorefrontConfig).filter(
         StorefrontConfig.custom_domain == domain,
-        StorefrontConfig.domain_verified == True
+        StorefrontConfig.domain_verified
     ).first()
 
 

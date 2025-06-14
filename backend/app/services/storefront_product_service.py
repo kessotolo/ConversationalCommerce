@@ -3,10 +3,8 @@ from sqlalchemy import func, desc, asc, and_, or_, text
 from typing import List, Optional, Dict, Any, Tuple
 import uuid
 from fastapi import HTTPException, status
-from datetime import datetime
 
 from app.models.product import Product as ProductModel
-from app.schemas.product import ProductSearchParams
 
 
 async def get_storefront_products(
@@ -48,8 +46,8 @@ async def get_storefront_products(
     # Base query for visible products
     query = db.query(ProductModel).filter(
         ProductModel.tenant_id == tenant_id,
-        ProductModel.is_deleted == False,
-        ProductModel.show_on_storefront == True,
+        not ProductModel.is_deleted,
+        ProductModel.show_on_storefront,
         ProductModel.inventory_quantity > 0  # Only show in-stock products
     )
     
@@ -80,7 +78,7 @@ async def get_storefront_products(
         ))
     
     if featured_only:
-        query = query.filter(ProductModel.is_featured == True)
+        query = query.filter(ProductModel.is_featured)
     
     # Get total count before pagination
     total_count = query.count()
@@ -125,8 +123,8 @@ async def get_product_collections(
         func.count(ProductModel.id).label('product_count')
     ).filter(
         ProductModel.tenant_id == tenant_id,
-        ProductModel.is_deleted == False,
-        ProductModel.show_on_storefront == True,
+        not ProductModel.is_deleted,
+        ProductModel.show_on_storefront,
         ProductModel.collection.isnot(None)
     ).group_by(
         ProductModel.collection
@@ -210,8 +208,8 @@ async def get_product_detail_for_storefront(
     product = db.query(ProductModel).filter(
         ProductModel.id == product_id,
         ProductModel.tenant_id == tenant_id,
-        ProductModel.is_deleted == False,
-        ProductModel.show_on_storefront == True
+        not ProductModel.is_deleted,
+        ProductModel.show_on_storefront
     ).first()
     
     if not product:
@@ -223,8 +221,8 @@ async def get_product_detail_for_storefront(
     # Get related products (same category, excluding this product)
     related_products = db.query(ProductModel).filter(
         ProductModel.tenant_id == tenant_id,
-        ProductModel.is_deleted == False,
-        ProductModel.show_on_storefront == True,
+        not ProductModel.is_deleted,
+        ProductModel.show_on_storefront,
         ProductModel.id != product_id,
         ProductModel.category == product.category
     ).order_by(
@@ -235,8 +233,8 @@ async def get_product_detail_for_storefront(
     # Get recommended products (based on tags)
     recommended_query = db.query(ProductModel).filter(
         ProductModel.tenant_id == tenant_id,
-        ProductModel.is_deleted == False,
-        ProductModel.show_on_storefront == True,
+        not ProductModel.is_deleted,
+        ProductModel.show_on_storefront,
         ProductModel.id != product_id
     )
     
@@ -267,8 +265,8 @@ async def get_product_detail_for_storefront(
             
         variants = db.query(ProductModel).filter(
             ProductModel.tenant_id == tenant_id,
-            ProductModel.is_deleted == False,
-            ProductModel.show_on_storefront == True,
+            not ProductModel.is_deleted,
+            ProductModel.show_on_storefront,
             or_(
                 ProductModel.base_product_id == base_id,
                 and_(
@@ -375,8 +373,8 @@ async def get_new_arrivals(
     """
     products = db.query(ProductModel).filter(
         ProductModel.tenant_id == tenant_id,
-        ProductModel.is_deleted == False,
-        ProductModel.show_on_storefront == True,
+        not ProductModel.is_deleted,
+        ProductModel.show_on_storefront,
         ProductModel.inventory_quantity > 0
     ).order_by(
         desc(ProductModel.created_at)
@@ -405,9 +403,9 @@ async def get_bestsellers(
     # For this example, we'll use featured products as a proxy
     products = db.query(ProductModel).filter(
         ProductModel.tenant_id == tenant_id,
-        ProductModel.is_deleted == False,
-        ProductModel.show_on_storefront == True,
-        ProductModel.is_featured == True,
+        not ProductModel.is_deleted,
+        ProductModel.show_on_storefront,
+        ProductModel.is_featured,
         ProductModel.inventory_quantity > 0
     ).order_by(
         desc(ProductModel.popularity_score) if hasattr(ProductModel, 'popularity_score') else desc(ProductModel.created_at)

@@ -33,7 +33,7 @@ async def with_retry(
     while attempt < retry_count:
         try:
             return await func(*args, **kwargs)
-        except exceptions as e:
+        except exceptions:
             attempt += 1
             if attempt >= retry_count:
                 raise

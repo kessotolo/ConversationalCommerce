@@ -4,25 +4,21 @@ from typing import List
 from app.db.session import get_db
 from app.models.conversation_history import ConversationHistory, SenderType, ChannelType
 from app.schemas.conversation_history import ConversationHistoryCreate, ConversationHistoryResponse
-from uuid import UUID
 from app.models.conversation_event import ConversationEvent
 from app.schemas.conversation_event import ConversationEventCreate, ConversationEventResponse
 from fastapi import status
 from datetime import datetime, timedelta
-from sqlalchemy import func, cast, Date, and_
+from sqlalchemy import func, cast, Date
 from app.core.websocket.monitoring import connection_manager
 import asyncio
 from textblob import TextBlob
 from fastapi.responses import StreamingResponse
 import csv
 from io import StringIO
-from app.services.audit_service import create_audit_log
 from app.services.conversation_audit_bridge import log_event_to_audit
 from app.services.alert_service import maybe_trigger_alert
 from app.models.cart import Cart, CartItem
 from app.models.product import Product
-from app.schemas.cart import CartItemCreate
-from sqlalchemy.orm.exc import NoResultFound
 
 router = APIRouter()
 
@@ -210,7 +206,7 @@ def log_conversation_event(event: ConversationEventCreate, db: Session = Depends
                 if not cart.items:
                     chat_response = "Your cart is empty."
                 else:
-                    lines = [f"Your cart:"]
+                    lines = ["Your cart:"]
                     for item in cart.items:
                         product = db.query(Product).filter(
                             Product.id == item.product_id).first()

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, ForeignKey, Boolean, Integer, DateTime, Enum, Index, JSON
+from sqlalchemy import Column, String, ForeignKey, Boolean, DateTime, Enum, Index
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func

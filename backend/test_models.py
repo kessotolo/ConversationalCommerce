@@ -4,7 +4,6 @@
 from app.db.base import *  # This imports all models registered in the app
 from app.db.base_class import Base
 import os
-import sys
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import uuid

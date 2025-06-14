@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Path, Query, Body, File, UploadFile, Form
 from sqlalchemy.orm import Session
-from typing import List, Optional, Dict, Any
+from typing import Optional, Dict, Any
 import uuid
 
 from app.api.deps import get_db, get_current_active_user

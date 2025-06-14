@@ -1,11 +1,8 @@
-import enum
-import uuid
 from sqlalchemy import (
     Column, Integer, String, Boolean, Float, DateTime,
-    ForeignKey, Enum, Text, JSON, LargeBinary, Table
+    ForeignKey, Text, JSON
 )
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.hybrid import hybrid_property
 from datetime import datetime
 

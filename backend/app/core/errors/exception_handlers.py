@@ -1,8 +1,7 @@
-from fastapi import Request, status
+from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from app.core.errors.error_response import (
-    create_error_response,
     server_error,
     not_found_error,
     validation_error,
@@ -15,7 +14,6 @@ from app.core.errors.error_response import (
 from app.core.exceptions import (
     ProductNotFoundError,
     ProductPermissionError,
-    ProductValidationError,
     DatabaseError,
     AuthenticationError,
     AuthorizationError,
@@ -28,7 +26,6 @@ from app.core.exceptions import (
 from app.services.product_service import ConcurrentModificationError
 import logging
 import traceback
-from typing import Dict, Any, Optional
 
 # Configure logger
 logger = logging.getLogger(__name__)

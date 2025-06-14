@@ -3,15 +3,11 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from uuid import uuid4, UUID
 from decimal import Decimal
-import json
 from datetime import datetime, timezone
 from app.models.product import Product
 from app.models.user import User
-from app.core.security.clerk import ClerkTokenData
-from app.main import app
-from app.db.session import SessionLocal, get_db
+from app.db.session import SessionLocal
 from app.core.security.dependencies import require_auth
-from app.schemas.product import ProductCreate, ProductUpdate
 
 # Create a test database session
 TestingSessionLocal = SessionLocal
@@ -390,8 +386,6 @@ def test_products_require_auth():
     Verify that each endpoint in the product router requires authentication.
     """
     from app.api.v1.endpoints.products import router
-    from app.core.security.dependencies import require_auth
-    from fastapi import Depends
     import inspect
 
     # This test checks that all route handlers in the product router have

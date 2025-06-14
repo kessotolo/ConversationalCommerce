@@ -1,16 +1,15 @@
 import json
 import hashlib
 import logging
-from typing import Any, Optional, Dict, List, Callable, Union
+from typing import Any, Optional, Dict
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
 import redis.asyncio as redis
-from fastapi import Request, Response
-import uuid
+from fastapi import Request
 
 from app.core.config.settings import get_settings
 from app.core.config import settings
-from app.core.errors import CacheError
+from app.core.exceptions import CacheError
 
 settings = get_settings()
 logger = logging.getLogger(__name__)

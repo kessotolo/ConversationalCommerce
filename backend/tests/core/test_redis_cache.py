@@ -1,11 +1,8 @@
 import pytest
 import uuid
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import patch, AsyncMock
 from app.core.cache.redis_cache import (
     RedisCache, 
-    DEFAULT_EXPIRATION,
-    cached_response,
-    invalidate_tenant_cache,
     invalidate_product_cache,
     invalidate_config_cache
 )

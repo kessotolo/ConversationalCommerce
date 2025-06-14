@@ -1,20 +1,18 @@
-from typing import List, Optional, Dict, Any, Tuple, BinaryIO
+from typing import List, Optional, Dict, Any, Tuple
 import uuid
 import os
-import shutil
 from pathlib import Path
 import mimetypes
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, and_, or_, func
-from fastapi import HTTPException, status, UploadFile, File
+from sqlalchemy import desc, or_
+from fastapi import HTTPException, status, UploadFile
 from app.models.storefront_asset import StorefrontAsset, AssetType
 from app.models.tenant import Tenant
 from app.models.user import User
 from app.services.storefront_permissions_service import has_permission
 from PIL import Image
 import io
-from sqlalchemy.sql import update
 
 # Configuration
 UPLOAD_BASE_DIR = os.getenv("ASSET_UPLOAD_DIR", "/tmp/storefront_assets")
@@ -247,7 +245,7 @@ async def get_assets(
     # Base query
     query = db.query(StorefrontAsset).filter(
         StorefrontAsset.tenant_id == tenant_id,
-        StorefrontAsset.is_active == True
+        StorefrontAsset.is_active
     )
 
     # Apply asset type filter
@@ -324,7 +322,7 @@ async def get_asset(
     asset = db.query(StorefrontAsset).filter(
         StorefrontAsset.id == asset_id,
         StorefrontAsset.tenant_id == tenant_id,
-        StorefrontAsset.is_active == True
+        StorefrontAsset.is_active
     ).first()
 
     return asset
@@ -398,7 +396,7 @@ async def update_asset(
     asset = db.query(StorefrontAsset).filter(
         StorefrontAsset.id == asset_id,
         StorefrontAsset.tenant_id == tenant_id,
-        StorefrontAsset.is_active == True
+        StorefrontAsset.is_active
     ).first()
 
     if not asset:
@@ -494,7 +492,7 @@ async def delete_asset(
     asset = db.query(StorefrontAsset).filter(
         StorefrontAsset.id == asset_id,
         StorefrontAsset.tenant_id == tenant_id,
-        StorefrontAsset.is_active == True
+        StorefrontAsset.is_active
     ).first()
 
     if not asset:
@@ -540,7 +538,7 @@ async def optimize_image(
     asset = db.query(StorefrontAsset).filter(
         StorefrontAsset.id == asset_id,
         StorefrontAsset.tenant_id == tenant_id,
-        StorefrontAsset.is_active == True
+        StorefrontAsset.is_active
     ).first()
 
     if not asset:
@@ -677,7 +675,7 @@ async def track_asset_usage(
     # Get the asset
     asset = db.query(StorefrontAsset).filter(
         StorefrontAsset.id == asset_id,
-        StorefrontAsset.is_active == True
+        StorefrontAsset.is_active
     ).first()
 
     if not asset:
@@ -750,7 +748,7 @@ async def cleanup_unused_assets(
     # Find unused assets
     unused_assets = db.query(StorefrontAsset).filter(
         StorefrontAsset.tenant_id == tenant_id,
-        StorefrontAsset.is_active == True,
+        StorefrontAsset.is_active,
         StorefrontAsset.usage_count == 0,
         StorefrontAsset.created_at < cutoff_date
     ).all()

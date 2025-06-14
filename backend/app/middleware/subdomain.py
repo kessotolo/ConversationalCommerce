@@ -2,9 +2,6 @@ import logging
 from typing import Optional, Dict, Any, Callable
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.types import ASGIApp
-from sqlalchemy.orm import Session
-import uuid
 from fastapi.responses import JSONResponse
 from fastapi import status
 import re
@@ -12,7 +9,6 @@ import re
 from app.db.session import get_async_session_local, SessionLocal
 from app.models.tenant import Tenant
 from app.models.storefront import StorefrontConfig
-from app.utils.domain_validator import validate_subdomain
 from app.core.cache.redis_cache import redis_cache
 from app.core.config.settings import get_settings
 from sqlalchemy import select

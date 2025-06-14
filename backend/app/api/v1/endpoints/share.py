@@ -8,7 +8,7 @@ from app.core.security.clerk import ClerkTokenData
 import qrcode
 import io
 from fastapi.responses import StreamingResponse
-from typing import Optional, List, Dict, Any
+from typing import Optional, List
 
 router = APIRouter()
 

@@ -1,6 +1,6 @@
 import re
 import dns.resolver
-from typing import List, Tuple, Optional
+from typing import Tuple, Optional
 import logging
 
 logger = logging.getLogger(__name__)

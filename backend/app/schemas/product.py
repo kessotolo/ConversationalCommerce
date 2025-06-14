@@ -1,8 +1,7 @@
-from pydantic import BaseModel, Field, HttpUrl, field_validator, ConfigDict, ValidationError
+from pydantic import BaseModel, Field, HttpUrl, field_validator, ConfigDict
 from typing import Optional, List
 from datetime import datetime
 from uuid import UUID
-import re
 from decimal import Decimal
 
 

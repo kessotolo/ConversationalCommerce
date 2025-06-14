@@ -1,5 +1,5 @@
 from urllib.parse import quote, urlencode
-from typing import Dict, Optional, Any
+from typing import Dict
 
 
 def generate_whatsapp_link(phone_number: str, product_name: str, caption: str = None) -> str:

@@ -2,11 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, status, Path, Query, Body
 from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
 import uuid
-from datetime import datetime
 
 from app.api.deps import get_db, get_current_active_user
 from app.models.user import User
-from app.models.storefront_banner import BannerType, BannerStatus, TargetAudience
+from app.models.storefront_banner import BannerType, BannerStatus
 from app.schemas.storefront_banner import BannerCreate, BannerResponse, BannerList, BannerUpdate, BannerOrderUpdate
 from app.services import storefront_banner_service
 

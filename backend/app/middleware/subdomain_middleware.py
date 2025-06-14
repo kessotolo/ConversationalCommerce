@@ -7,7 +7,6 @@ import uuid
 import logging
 import time
 from urllib.parse import urlparse
-from functools import lru_cache
 from sqlalchemy import select
 
 from app.db.session import get_async_session_local
@@ -213,7 +212,7 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
         result = await db.execute(
             select(StorefrontConfig).where(
                 StorefrontConfig.custom_domain == clean_domain,
-                StorefrontConfig.domain_verified == True
+                StorefrontConfig.domain_verified
             )
         )
         return result.scalars().first()
@@ -236,7 +235,7 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
         result = await db.execute(
             select(Tenant).where(
                 Tenant.id == tenant_id,
-                Tenant.storefront_enabled == True
+                Tenant.storefront_enabled
             )
         )
         return result.scalars().first()

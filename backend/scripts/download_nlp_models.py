@@ -7,7 +7,6 @@ Run this before starting the application to ensure all models are available.
 import sys
 import subprocess
 import logging
-import os
 import argparse
 
 logging.basicConfig(

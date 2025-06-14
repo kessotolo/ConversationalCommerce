@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
-from typing import List, Optional
+from fastapi import APIRouter, HTTPException
+from typing import Optional
 from datetime import datetime
 
 router = APIRouter(

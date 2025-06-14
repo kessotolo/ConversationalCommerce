@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, text
-from fastapi import Depends, Request
+from fastapi import Request
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import sessionmaker
 from app.core.config.settings import Settings

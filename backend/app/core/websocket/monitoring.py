@@ -1,7 +1,5 @@
 from fastapi import WebSocket, WebSocketDisconnect, Depends
-from typing import Dict, List, Optional, Any
-import json
-import asyncio
+from typing import Dict, List, Any
 from datetime import datetime, timezone, timedelta
 from uuid import UUID
 import logging
@@ -204,7 +202,7 @@ class ActivityMonitor:
                 await self._send_alert(
                     tenant_id,
                     "auth_failure",
-                    f"Authentication/Authorization failure",
+                    "Authentication/Authorization failure",
                     activity,
                     "medium"
                 )

@@ -1,15 +1,11 @@
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
-from uuid import UUID, uuid4
+from uuid import uuid4
 from decimal import Decimal
-from typing import Dict, Any
 
 from app.models.order import Order, OrderStatus, OrderSource
 from app.models.order_channel_meta import OrderChannelMeta
 from app.models.conversation_history import ChannelType
 from app.models.product import Product
-from tests.conftest import TEST_USER_ID
 
 
 @pytest.fixture
@@ -377,7 +373,7 @@ def test_delete_order(client, db_session, test_user, auth_headers, test_tenant):
 
     # Verify in database (should be soft deleted)
     db_session.refresh(test_orders[0])
-    assert test_orders[0].is_deleted == True
+    assert test_orders[0].is_deleted
 
     # Attempt to get the deleted order
     get_response = client.get(

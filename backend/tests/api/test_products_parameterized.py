@@ -1,12 +1,7 @@
 import pytest
-from fastapi.testclient import TestClient
-from uuid import UUID
-from sqlalchemy.orm import Session
 from sqlalchemy import delete
-from decimal import Decimal
 from tests.conftest import TEST_USER_ID
 from app.models.product import Product
-from app.models.user import User
 
 
 @pytest.mark.parametrize("product_data, expected_status", [

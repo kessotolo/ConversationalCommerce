@@ -1,19 +1,16 @@
 from fastapi import APIRouter, Depends, Request, Response, Query, Path, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List, Optional, Dict
+from typing import List, Dict
 import uuid
-from datetime import datetime, timedelta
 
 from app.api.deps import get_db, get_tenant_context
 from app.services import storefront_content_service
 from app.schemas.storefront_content import (
     ProductBase,
-    ProductDetail,
     RelatedProducts,
     CategoryInfo,
     PaginatedProducts,
     StorefrontMetadata,
-    StorefrontLayout,
     NavigationMenu
 )
 
