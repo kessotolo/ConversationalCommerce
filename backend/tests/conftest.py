@@ -1,29 +1,37 @@
-# PATCH TEST SESSION GLOBALLY BEFORE ANY APP IMPORTS
-import uuid
-from typing import Any, Generator
-from uuid import uuid4, UUID
-from sqlalchemy.pool import StaticPool
-from fastapi.testclient import TestClient
-from pathlib import Path
-import pytest
-import pytest_asyncio
-from app.db import session as db_session_module
-from app.core.config.settings import Settings
-# Import our test middlewares instead of the regular ones
-from tests.test_middleware import TestRateLimitMiddleware, TestTenantMiddleware
-from app.db.base_class import Base
-from app.main import create_app
-from app.core.security.dependencies import require_auth
-from app.core.security.clerk import ClerkTokenData
-from app.db.session import get_db, SessionLocal as AppSessionLocal
-import sys
-from sqlalchemy import create_engine
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.orm import sessionmaker
+# Configure logging first
+from app.core.config.settings import get_settings
 import os
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy import create_engine
+import sys
+from app.db.session import get_db, SessionLocal as AppSessionLocal
+from app.core.security.clerk import ClerkTokenData
+from app.core.security.dependencies import require_auth
+from app.main import create_app
+from app.db.base_class import Base
+from tests.test_middleware import TestRateLimitMiddleware, TestTenantMiddleware
+from app.core.config.settings import Settings
+from app.db import session as db_session_module
+import pytest_asyncio
+import pytest
+from pathlib import Path
+from fastapi.testclient import TestClient
+from sqlalchemy.pool import StaticPool
+from uuid import uuid4, UUID
+from typing import Any, Generator
+import uuid
+from uuid import uuid4
+import logging
+from fastapi import Request
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+# PATCH TEST SESSION GLOBALLY BEFORE ANY APP IMPORTS
+# Import our test middlewares instead of the regular ones
 
 # Import settings here to ensure environment variables are properly loaded
-from app.core.config.settings import get_settings
 
 # For sync operations (testing only)
 TEST_DATABASE_URL_SYNC = os.environ.get(
@@ -38,8 +46,8 @@ TEST_DATABASE_URL = os.environ.get(
 )
 
 # Print debug information
-print(f"Using sync DB URL: {TEST_DATABASE_URL_SYNC}")
-print(f"Using async DB URL: {TEST_DATABASE_URL}")
+logger.info(f"Using sync DB URL: {TEST_DATABASE_URL_SYNC}")
+logger.info(f"Using async DB URL: {TEST_DATABASE_URL}")
 
 # Force use of 127.0.0.1 explicitly
 FORCED_SYNC_URL = "postgresql://postgres:postgres@127.0.0.1/conversational_commerce_test"
@@ -47,20 +55,51 @@ FORCED_ASYNC_URL = "postgresql+asyncpg://postgres:postgres@127.0.0.1/conversatio
 
 # Create both sync and async engines
 try:
-    print("Attempting to create engines with configured URLs")
-    sync_engine = create_engine(TEST_DATABASE_URL_SYNC, pool_size=5, max_overflow=10)
-    async_engine = create_async_engine(TEST_DATABASE_URL)
-    print("Engines created successfully")
+    logger.info("Attempting to create engines with configured URLs")
+    logger.info(f"Sync URL: {TEST_DATABASE_URL_SYNC}")
+    logger.info(f"Async URL: {TEST_DATABASE_URL}")
+
+    sync_engine = create_engine(
+        TEST_DATABASE_URL_SYNC,
+        pool_size=5,
+        max_overflow=10,
+        pool_timeout=30,
+        pool_recycle=1800
+    )
+    logger.info("Sync engine created successfully")
+
+    async_engine = create_async_engine(
+        TEST_DATABASE_URL,
+        pool_size=5,
+        max_overflow=10,
+        pool_timeout=30,
+        pool_recycle=1800
+    )
+    logger.info("Async engine created successfully")
 except Exception as e:
-    print(f"Error creating engines with configured URLs: {e}")
-    print("Falling back to hardcoded 127.0.0.1 URLs")
-    sync_engine = create_engine(FORCED_SYNC_URL, pool_size=5, max_overflow=10)
-    async_engine = create_async_engine(FORCED_ASYNC_URL)
-    print("Fallback engines created successfully")
+    logger.error(f"Error creating engines with configured URLs: {e}")
+    logger.info("Falling back to hardcoded 127.0.0.1 URLs")
+    sync_engine = create_engine(
+        FORCED_SYNC_URL,
+        pool_size=5,
+        max_overflow=10,
+        pool_timeout=30,
+        pool_recycle=1800
+    )
+    async_engine = create_async_engine(
+        FORCED_ASYNC_URL,
+        pool_size=5,
+        max_overflow=10,
+        pool_timeout=30,
+        pool_recycle=1800
+    )
+    logger.info("Fallback engines created successfully")
 
 # Create session factories
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=sync_engine)
-AsyncTestingSessionLocal = async_sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)
+TestingSessionLocal = sessionmaker(
+    autocommit=False, autoflush=False, bind=sync_engine)
+AsyncTestingSessionLocal = async_sessionmaker(
+    async_engine, class_=AsyncSession, expire_on_commit=False)
 
 # Override the session modules for testing
 sys.modules['app.db.session'].SessionLocal = TestingSessionLocal
@@ -75,6 +114,40 @@ sys.path.insert(0, backend_dir)
 os.environ['TESTING'] = 'True'
 
 # Test data
+
+
+@pytest_asyncio.fixture(scope="function")
+async def test_product(async_db_session, test_tenant, test_user):
+    from app.models.product import Product
+    from sqlalchemy import text, select
+    # Remove any existing test products for idempotency
+    await async_db_session.execute(text("DELETE FROM products WHERE name = 'Test Product'"))
+    await async_db_session.commit()
+
+    # Set the tenant context for this session if the GUC is available
+    try:
+        await async_db_session.execute(text(f"SET LOCAL my.tenant_id = '{test_tenant.id}'"))
+    except Exception:
+        pass  # Ignore if GUC not present in test DB
+
+    product = Product(
+        id=uuid4(),
+        name="Test Product",
+        description="A product for testing order creation.",
+        price=1000,
+        seller_id=test_user.id,
+        tenant_id=test_tenant.id
+    )
+    async_db_session.add(product)
+    await async_db_session.commit()
+
+    # Use select to refresh the product
+    stmt = select(Product).where(Product.id == product.id)
+    result = await async_db_session.execute(stmt)
+    product = result.scalar_one_or_none()
+
+    return product
+
 # Use a fixed UUID for consistent testing
 # Consistent test UUID
 TEST_USER_ID = UUID("00000000-0000-0000-0000-000000000001")
@@ -90,6 +163,7 @@ def db_engine():
     yield sync_engine
     # Drop test database tables
     Base.metadata.drop_all(bind=sync_engine)
+
 
 @pytest_asyncio.fixture(scope="session")
 async def async_db_engine():
@@ -113,13 +187,35 @@ def db_session(db_engine):
     transaction.rollback()
     connection.close()
 
+
 @pytest_asyncio.fixture(scope="function")
 async def async_db_session(async_db_engine):
-    # Create a new async database session for each test
-    async with async_db_engine.begin() as connection:
-        session = AsyncTestingSessionLocal(bind=connection)
-        yield session
-        await session.close()
+    logger.info("Creating async_db_session")
+    try:
+        # Create a new async database session for each test
+        async with async_db_engine.begin() as connection:
+            logger.info("Got connection from engine")
+            # Start a transaction
+            transaction = await connection.begin()
+            logger.info("Started transaction")
+
+            session = AsyncTestingSessionLocal(bind=connection)
+            logger.info("Created session")
+
+            try:
+                yield session
+            finally:
+                logger.info("Rolling back transaction")
+                await transaction.rollback()
+                logger.info("Transaction rolled back")
+
+                logger.info("Closing session")
+                await session.close()
+                logger.info("Session closed")
+    except Exception as e:
+        logger.error(f"Error in async_db_session fixture: {str(e)}")
+        raise
+    logger.info("async_db_session fixture completed")
 
 
 @pytest.fixture
@@ -135,86 +231,39 @@ def client() -> TestClient:
     os.environ['POSTGRES_PASSWORD'] = 'postgres'
     os.environ['POSTGRES_DB'] = 'conversational_commerce_test'
 
-    # Print debug info to diagnose db connection issues
-    print(f"TEST_DATABASE_URL_SYNC = {TEST_DATABASE_URL_SYNC}")
-    print(f"TEST_DATABASE_URL = {TEST_DATABASE_URL}")
-    print(f"POSTGRES_SERVER = {os.environ.get('POSTGRES_SERVER')}")
-    # Print the actual DB URL being used by settings
-    from app.core.config.settings import get_settings
-    settings = get_settings()
-    print(f"Database URL from settings: {settings.DATABASE_URL}")
-
-    # Use test settings
-    from app.core.config.test_settings import TestSettings
-    test_settings = TestSettings()
-    print(f"Test settings DB URL: {test_settings.DATABASE_URL}")
-    
     # Create a clean app without problematic middlewares
     from fastapi import FastAPI
     from app.main import register_exception_handlers, StorefrontError, handle_storefront_error
-    
-    app = FastAPI(
-        title="Test API",
-        description="Test version of API",
-        debug=True
-    )
-    
-    # Register exception handlers
+
+    app = FastAPI()
     register_exception_handlers(app)
     app.add_exception_handler(StorefrontError, handle_storefront_error)
-    
-    # Add CORS middleware
-    from fastapi.middleware.cors import CORSMiddleware
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-    
-    # Add only test middlewares
-    app.add_middleware(TestRateLimitMiddleware)
-    app.add_middleware(TestTenantMiddleware)
-    
-    # Import API router
+
+    # Override the get_db dependency to use our test session
+    async def override_get_db():
+        async with AsyncTestingSessionLocal() as session:
+            try:
+                yield session
+            finally:
+                await session.close()
+
+    # Override the auth dependency for testing
+    async def override_require_auth(request: Request):
+        return ClerkTokenData(
+            sub=str(TEST_USER_ID),
+            email=TEST_USER_EMAIL,
+            role="seller"
+        )
+
+    # Override dependencies
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[require_auth] = override_require_auth
+
+    # Include API router
     from app.api.v1.api import api_router
     app.include_router(api_router, prefix="/api/v1")
 
-    # Override the get_db dependency
-    async def override_get_db():
-        try:
-            db = AsyncTestingSessionLocal()
-            yield db
-        finally:
-            await db.close()
-
-    # Override the require_auth dependency to handle different tokens
-    from fastapi import Request
-    from app.core.security.clerk import verify_clerk_token
-
-    async def override_require_auth(request: Request):
-        # Extract the token from the Authorization header
-        auth_header = request.headers.get("Authorization", "")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            # Use the default test user if no token provided
-            return ClerkTokenData(sub=str(TEST_USER_ID), email=TEST_USER_EMAIL)
-
-        # Extract the token
-        token = auth_header.replace("Bearer ", "")
-
-        # Use the real verification function to determine which user to return
-        # This will correctly handle test_token and other_token
-        return verify_clerk_token(token)
-
-    app.dependency_overrides[require_auth] = override_require_auth
-    app.dependency_overrides[get_db] = override_get_db
-
-    with TestClient(app) as test_client:
-        yield test_client
-
-    # Clean up
-    app.dependency_overrides.clear()
+    return TestClient(app)
 
 
 @pytest.fixture(scope="function")
@@ -249,9 +298,9 @@ def test_tenant(db_session):
     return test_tenant
 
 
-@pytest.fixture(scope="function")
-def test_user(db_session, test_tenant):
-    """Create test users in the database and ensure they exist throughout tests.
+@pytest_asyncio.fixture(scope="function")
+async def test_user(async_db_session, test_tenant):
+    """Create test users in the async database and ensure they exist throughout tests.
 
     This fixture creates two users with consistent UUIDs:
     1. Main test user: 00000000-0000-0000-0000-000000000001
@@ -260,33 +309,42 @@ def test_user(db_session, test_tenant):
     The main test user is returned, but both are available in the database.
     """
     from app.models.user import User
-    from app.core.security.password import get_password_hash
+    from app.models.tenant import Tenant
+    from sqlalchemy import text, select
+    # Remove all users for idempotency
+    await async_db_session.execute(text("DELETE FROM users"))
+    await async_db_session.commit()
 
-    # Force-delete any existing users first to avoid conflicts
-    db_session.query(User).filter(User.id.in_([TEST_USER_ID, UUID(
-        "00000000-0000-0000-0000-000000000002")])).delete(synchronize_session=False)
-    db_session.commit()
+    # Ensure tenant exists in async DB session
+    tenant = await async_db_session.get(Tenant, test_tenant.id)
+    if not tenant:
+        # Create a new Tenant instance for this session with all required fields
+        subdomain = getattr(test_tenant, 'subdomain', None) or 'testtenant'
+        tenant = Tenant(id=test_tenant.id,
+                        name=test_tenant.name, subdomain=subdomain)
+        async_db_session.add(tenant)
+        await async_db_session.commit()
+        await async_db_session.refresh(tenant)
 
-    # Create the primary test user
     test_user = User(
-        id=TEST_USER_ID,
+        id=UUID("00000000-0000-0000-0000-000000000001"),
         email=TEST_USER_EMAIL,
-        is_seller=True
+        is_seller=True,
+        tenant_id=test_tenant.id
     )
-    db_session.add(test_user)
+    async_db_session.add(test_user)
 
-    # Create the secondary test user
     other_user = User(
         id=UUID("00000000-0000-0000-0000-000000000002"),
         email="other@example.com",
-        is_seller=True
+        is_seller=True,
+        tenant_id=test_tenant.id
     )
-    db_session.add(other_user)
+    async_db_session.add(other_user)
 
-    # Commit to ensure they're in the database
-    db_session.commit()
-    db_session.refresh(test_user)
-    db_session.refresh(other_user)
+    await async_db_session.commit()
+    await async_db_session.refresh(test_user)
+    await async_db_session.refresh(other_user)
 
     return test_user
 

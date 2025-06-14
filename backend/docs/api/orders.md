@@ -501,3 +501,12 @@ The backend uses an event-driven architecture for order-related actions. This en
   - Extend optimistic locking to all update/patch flows, including order changes, refund requests, and any other critical state transitions.
   - For new models or flows, add a version field and implement version checks in service methods.
 - See `OrderService.update_order_status` and related methods for reference implementation.
+
+## 🛡️ Error Response Format
+All order API errors use the following format:
+```json
+{ "detail": "Error message here" }
+```
+
+## 🏢 Tenant Context Requirement
+All order endpoints are tenant-aware and require tenant context to be set (via middleware and request headers). Requests without valid tenant context will be rejected.

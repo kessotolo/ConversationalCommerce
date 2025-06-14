@@ -44,7 +44,7 @@ async def create_product(db: AsyncSession, product_in: ProductCreate, request: R
     """
     try:
         async with db.begin():
-            product = ProductModel(**product_in.dict())
+            product = ProductModel(**product_in.model_dump())
             db.add(product)
             await db.flush()
             await db.refresh(product)

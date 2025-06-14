@@ -34,3 +34,19 @@
   - Extend optimistic locking to all update and patch flows, including order changes, refund requests, and any other critical state transitions.
   - For new models or flows, add a version field and implement version checks in service methods.
 - See `OrderService.update_order_status` and related methods for reference implementation.
+
+## 🏢 Tenant Context Propagation
+- Tenant context is set by middleware (see TenantMiddleware and SubdomainMiddleware) and stored in request.state. The async DB session uses this context to set the PostgreSQL session variable (`SET LOCAL my.tenant_id`).
+- All DB access is async and uses the tenant context for RLS enforcement. No business logic or endpoint should set tenant context directly.
+- See backend/README.md for more on middleware and session management.
+
+## 🧪 Testing and Tenant Context
+- All tests that touch tenant data must use the `test_tenant` fixture to ensure tenant context is set and RLS is enforced.
+- Use async test fixtures and sessions for all DB access in tests.
+- See backend/README.md for test patterns and best practices.
+
+## ➕ How to Extend (New Endpoints/Services)
+- Add new endpoints by following the thin-endpoint, service-centric pattern: endpoints handle HTTP, services handle business logic.
+- Always use async DB sessions and ensure tenant context is set via dependency/decorator.
+- For new services, follow the OrderService pattern: all business logic, validation, and DB access in the service class.
+- For new endpoints, see backend/app/api/v1/endpoints/orders.py as a reference.

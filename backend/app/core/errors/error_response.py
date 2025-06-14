@@ -4,38 +4,38 @@ from typing import Optional, Dict, Any
 
 
 def create_error_response(
-    status_code: int, 
-    detail: str, 
-    error_code: Optional[str] = None, 
+    status_code: int,
+    detail: str,
+    error_code: Optional[str] = None,
     additional_info: Optional[Dict[str, Any]] = None
 ) -> JSONResponse:
     """
     Create a standardized error response structure for the API.
-    
+
     Args:
         status_code: HTTP status code to return
         detail: Detailed error message
         error_code: Optional specific error code for client handling
         additional_info: Optional additional contextual information
-        
+
     Returns:
         JSONResponse with consistent error structure
     """
     # Create a default error code if none provided
     if not error_code:
         error_code = f"ERR_{status_code}"
-    
+
     content = {
+        "detail": detail,
         "error": {
-            "code": error_code,
-            "detail": detail
+            "code": error_code
         }
     }
-    
+
     # Add additional info if provided
     if additional_info:
         content["error"]["additional_info"] = additional_info
-    
+
     return JSONResponse(
         status_code=status_code,
         content=content
@@ -57,8 +57,8 @@ def not_found_error(detail: str = "Resource not found", error_code: str = "NOT_F
 
 def validation_error(detail: str = "Validation error", fields: Dict[str, str] = None, error_code: str = "VALIDATION_ERROR") -> JSONResponse:
     return create_error_response(
-        status.HTTP_422_UNPROCESSABLE_ENTITY, 
-        detail, 
+        status.HTTP_422_UNPROCESSABLE_ENTITY,
+        detail,
         error_code,
         {"fields": fields} if fields else None
     )

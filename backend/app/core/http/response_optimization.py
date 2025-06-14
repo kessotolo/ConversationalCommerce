@@ -4,24 +4,28 @@ import time
 from typing import Any, Optional, Dict, Callable
 from fastapi import Request, Response, HTTPException, status
 import logging
+from datetime import datetime, timezone, timedelta
 
 logger = logging.getLogger(__name__)
+
 
 def generate_etag(data: Any) -> str:
     """
     Generate an ETag for a response.
-    
+
     Args:
-        data: Data to generate ETag for
-        
+        data: Response data
+
     Returns:
-        ETag string
+        str: ETag value
     """
-    if isinstance(data, dict) or isinstance(data, list):
+    # Convert data to JSON string
+    if isinstance(data, (dict, list)):
         data_str = json.dumps(data, sort_keys=True)
     else:
         data_str = str(data)
-    
+
+    # Generate MD5 hash
     return hashlib.md5(data_str.encode()).hexdigest()
 
 
@@ -34,7 +38,7 @@ def set_cache_headers(
 ) -> None:
     """
     Set cache headers on a response.
-    
+
     Args:
         response: FastAPI response
         cache_control: Cache control directive
@@ -44,48 +48,49 @@ def set_cache_headers(
     """
     # Set Cache-Control header
     response.headers["Cache-Control"] = f"{cache_control}, max-age={max_age}"
-    
+
     # Set ETag if provided
     if etag:
         response.headers["ETag"] = etag
-    
+
+    # Set Date header
+    response.headers["Date"] = datetime.now(
+        timezone.utc).strftime("%a, %d %b %Y %H:%M:%S GMT")
+
     # Set Vary header if provided
     if vary:
         response.headers["Vary"] = vary
-    
-    # Set Date header
-    response.headers["Date"] = time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime())
 
 
 def handle_conditional_request(request: Request, response: Response, etag: str) -> bool:
     """
     Handle conditional request based on ETag.
-    
+
     Args:
         request: FastAPI request
         response: FastAPI response
         etag: ETag for the current resource version
-        
+
     Returns:
-        True if a 304 Not Modified response was sent, False otherwise
+        bool: True if a 304 Not Modified response was sent, False otherwise
     """
     # Check If-None-Match header
     if_none_match = request.headers.get("If-None-Match")
-    
+
     if if_none_match and if_none_match == etag:
         # Resource has not been modified
         response.status_code = status.HTTP_304_NOT_MODIFIED
-        
+
         # Set ETag and other cache headers
         response.headers["ETag"] = etag
-        
+
         # Clear response body
         response.body = b""
-        response.headers.pop("Content-Length", None)
-        response.headers.pop("Content-Type", None)
-        
+        response.headers["Content-Length"] = "0"
+        response.headers["Content-Type"] = "application/json"
+
         return True
-    
+
     return False
 
 
@@ -99,7 +104,7 @@ def optimize_response(
 ) -> Any:
     """
     Optimize a response with caching headers and conditional request handling.
-    
+
     Args:
         response_data: Data to return in response
         request: FastAPI request
@@ -107,17 +112,17 @@ def optimize_response(
         cache_control: Cache control directive
         max_age: Max age in seconds
         vary: Optional Vary header value
-        
+
     Returns:
-        Response data or None if a 304 Not Modified response was sent
+        Any: Response data or None if a 304 Not Modified response was sent
     """
     # Generate ETag for the response data
     etag = generate_etag(response_data)
-    
+
     # Check if we can return a 304 Not Modified
     if handle_conditional_request(request, response, etag):
         return None
-    
+
     # Set cache headers
     set_cache_headers(
         response=response,
@@ -126,7 +131,7 @@ def optimize_response(
         etag=etag,
         vary=vary or "Accept, Accept-Encoding, X-Tenant-ID"
     )
-    
+
     return response_data
 
 
@@ -137,50 +142,29 @@ def conditional_response(
 ):
     """
     Decorator for handling conditional requests and setting cache headers.
-    
+
     Args:
         cache_control: Cache control directive
         max_age: Max age in seconds
         vary: Optional Vary header value
-        
+
     Returns:
         Decorator function
     """
     def decorator(func: Callable):
         async def wrapper(*args, **kwargs):
-            # Find request and response objects
-            request = None
-            response = None
-            
-            for arg in args:
-                if isinstance(arg, Request):
-                    request = arg
-                if isinstance(arg, Response):
-                    response = arg
-            
-            if not request:
-                request = kwargs.get("request")
-            
-            if not response:
-                response = kwargs.get("response")
-            
+            request = kwargs.get("request")
+            response = kwargs.get("response")
             if not request or not response:
-                # Can't optimize without request and response
                 return await func(*args, **kwargs)
-            
-            # Call the original function
-            result = await func(*args, **kwargs)
-            
-            # Optimize the response
+            response_data = await func(*args, **kwargs)
             return optimize_response(
-                response_data=result,
+                response_data=response_data,
                 request=request,
                 response=response,
                 cache_control=cache_control,
                 max_age=max_age,
                 vary=vary
             )
-        
         return wrapper
-    
     return decorator

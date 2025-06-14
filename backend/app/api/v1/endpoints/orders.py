@@ -19,7 +19,8 @@ from app.schemas.order import (
     OrderStatusUpdate,
     OrderSearchParams,
     OrderStats,
-    PaginatedOrdersResponse
+    PaginatedOrdersResponse,
+    OrderUpdate
 )
 from fastapi import HTTPException, status
 from app.models.order import OrderStatus, OrderSource
@@ -60,7 +61,6 @@ async def create_new_order(
     _: bool = Depends(require_seller)
 ):
     service = OrderService(db)
-    await service.set_tenant_session(UUID(user.sub))
     order = await service.create_order(order_in, seller_id=UUID(user.sub))
     return order
 
@@ -78,7 +78,6 @@ async def create_whatsapp_order(
     _: bool = Depends(require_seller)
 ):
     service = OrderService(db)
-    await service.set_tenant_session(UUID(user.sub))
     order = await service.create_whatsapp_order(order_in, seller_id=UUID(user.sub))
     return order
 
@@ -95,7 +94,6 @@ async def list_orders(
     _: bool = Depends(require_seller)
 ):
     service = OrderService(db)
-    await service.set_tenant_session(UUID(user.sub))
     orders, total = await service.get_orders(
         seller_id=UUID(user.sub),
         status=search_params.status,
@@ -126,8 +124,27 @@ async def get_order_by_id(
     _: bool = Depends(require_seller)
 ):
     service = OrderService(db)
-    await service.set_tenant_session(UUID(user.sub))
     order = await service.get_order(order_id=order_id, seller_id=UUID(user.sub))
+    if not order:
+        raise OrderNotFoundError("Order not found")
+    return order
+
+
+@router.put("/orders/{order_id}",
+            response_model=OrderResponse,
+            summary="Update order",
+            description="Update an order's information. Requires seller or admin role.")
+@handle_order_errors
+async def update_order_endpoint(
+    order_id: UUID = Path(..., description="The ID of the order to update"),
+    order_update: OrderUpdate = Body(...,
+                                     description="The updated order information"),
+    db=Depends(get_db),
+    user: ClerkTokenData = Depends(require_auth),
+    _: bool = Depends(require_seller)
+):
+    service = OrderService(db)
+    order = await service.update_order(order_id, order_update, seller_id=UUID(user.sub))
     if not order:
         raise OrderNotFoundError("Order not found")
     return order
@@ -147,7 +164,6 @@ async def update_order_status_endpoint(
     _: bool = Depends(require_seller)
 ):
     service = OrderService(db)
-    await service.set_tenant_session(UUID(user.sub))
     order = await service.update_order_status(order_id, status_update, seller_id=UUID(user.sub))
     if not order:
         raise OrderNotFoundError("Order not found")
@@ -166,7 +182,6 @@ async def delete_order_endpoint(
     _: bool = Depends(require_seller)
 ):
     service = OrderService(db)
-    await service.set_tenant_session(UUID(user.sub))
     result = await service.delete_order(order_id=order_id, seller_id=UUID(user.sub))
     if not result:
         raise OrderNotFoundError("Order not found or could not be deleted")
@@ -186,7 +201,6 @@ async def get_order_stats(
     _: bool = Depends(require_seller)
 ):
     service = OrderService(db)
-    await service.set_tenant_session(UUID(user.sub))
     return await service.get_seller_dashboard_stats(seller_id=UUID(user.sub), days=days)
 
 
@@ -202,7 +216,6 @@ async def mark_notification_sent_endpoint(
     _: bool = Depends(require_seller)
 ):
     service = OrderService(db)
-    await service.set_tenant_session(UUID(user.sub))
     result = await service.mark_notification_sent(
         order_id=order_id, seller_id=UUID(user.sub))
     if not result:

@@ -2,7 +2,7 @@
 Dependencies for API endpoints.
 """
 from fastapi import Depends, Request, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 import uuid
 from functools import lru_cache
 from typing import Dict, Any, Optional
@@ -14,13 +14,14 @@ from app.models.tenant import Tenant
 from app.models.storefront import StorefrontConfig
 
 
-def get_db():
+async def get_db() -> AsyncSession:
     """
-    Deprecated synchronous DB dependency. Use async_get_db for async DB access.
-    Raises:
-        NotImplementedError: Always, to enforce async DB usage.
+    Get database session for async operations.
+    Returns:
+        AsyncSession: Database session
     """
-    raise NotImplementedError("Use async_get_db for async DB access.")
+    async for session in async_get_db():
+        yield session
 
 
 def get_current_user(request: Request = None) -> ClerkTokenData:
@@ -32,7 +33,7 @@ def get_current_user(request: Request = None) -> ClerkTokenData:
 
 
 @lru_cache(maxsize=128)
-def get_tenant_by_id(db: Session, tenant_id: uuid.UUID) -> Optional[Tenant]:
+def get_tenant_by_id(db: AsyncSession, tenant_id: uuid.UUID) -> Optional[Tenant]:
     """
     Get a tenant by ID with caching to avoid repeated DB lookups.
 
@@ -97,7 +98,7 @@ def get_current_tenant_id(request: Request) -> uuid.UUID:
     return uuid.UUID(tenant_context["tenant_id"])
 
 
-def get_current_storefront_config(db: Session = Depends(get_db), tenant_id: uuid.UUID = Depends(get_current_tenant_id)) -> StorefrontConfig:
+def get_current_storefront_config(db: AsyncSession, tenant_id: uuid.UUID = Depends(get_current_tenant_id)) -> StorefrontConfig:
     """
     Get the current storefront configuration for the tenant.
 

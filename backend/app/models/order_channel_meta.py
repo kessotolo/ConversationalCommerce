@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 from app.db import Base
 from app.models.conversation_history import ChannelType
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class OrderChannelMeta(Base):
@@ -18,7 +18,7 @@ class OrderChannelMeta(Base):
     chat_session_id = Column(String, nullable=True)
     # Consider JSON if needed
     user_response_log = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, onupdate=lambda: datetime.now(timezone.utc))
 
     order = relationship("Order", back_populates="channel_metadata")

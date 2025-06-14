@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from uuid import UUID, uuid4
 from decimal import Decimal
+from datetime import datetime, timezone
 
 from app.models.order import Order, OrderStatus, OrderSource
 from app.models.order_channel_meta import OrderChannelMeta
@@ -12,12 +13,17 @@ from tests.conftest import TEST_USER_ID
 
 
 @pytest.fixture
-def whatsapp_product(db_session, test_user):
+def whatsapp_product(db_session, test_user, test_tenant):
     """Create a test product for WhatsApp order testing"""
+    # Set tenant context for the session
+    from sqlalchemy import text
+    tenant_id = str(test_tenant.id)
+    db_session.execute(text(f"SET LOCAL my.tenant_id = '{tenant_id}'"))
+
     product = Product(
-        name="WhatsApp Test Product",
-        description="WhatsApp Test Description",
-        price=Decimal("49.99"),
+        name="WhatsApp Product",
+        description="Test product for WhatsApp order",
+        price=49.99,
         seller_id=test_user.id,
         show_on_whatsapp=True
     )
@@ -27,7 +33,7 @@ def whatsapp_product(db_session, test_user):
     return product
 
 
-def test_create_whatsapp_order_success(client, auth_headers, db_session, whatsapp_product):
+def test_create_whatsapp_order_success(client, auth_headers, db_session, whatsapp_product, test_tenant):
     """Test creating a WhatsApp order with all required fields"""
     # Create WhatsApp order data with channel metadata
     order_data = {
@@ -36,6 +42,9 @@ def test_create_whatsapp_order_success(client, auth_headers, db_session, whatsap
         "buyer_phone": "+1987654321",
         "quantity": 2,
         "total_amount": 99.98,
+        "whatsapp_number": str(test_tenant.whatsapp_number or "+1987654321"),
+        "message_id": "test_message_id",
+        "conversation_id": "test_conversation_id",
         "channel_metadata": {
             "channel": "whatsapp",
             "message_id": "test_message_id",
@@ -126,7 +135,7 @@ def test_create_whatsapp_order_invalid_phone(client, auth_headers, whatsapp_prod
     assert response.status_code == 422
 
 
-def test_get_whatsapp_orders_by_number(client, auth_headers, db_session, test_user):
+def test_get_whatsapp_orders_by_number(client, db_session, test_user, auth_headers, test_tenant):
     """Test getting orders for a specific WhatsApp number"""
     # Create test product
     product = Product(
@@ -189,7 +198,7 @@ def test_get_whatsapp_orders_by_number(client, auth_headers, db_session, test_us
         assert order["channel_metadata"]["user_response_log"] == whatsapp_number
 
 
-def test_get_whatsapp_orders_with_filters(client, auth_headers, db_session, test_user):
+def test_get_whatsapp_orders_with_filters(client, db_session, test_user, auth_headers, test_tenant):
     """Test getting WhatsApp orders with status filters"""
     # Create test product
     product = Product(
@@ -307,7 +316,7 @@ def test_get_whatsapp_orders_invalid_number(client, auth_headers):
     assert response.status_code == 422
 
 
-def test_get_whatsapp_orders_nonexistent_number(client, auth_headers):
+def test_get_whatsapp_orders_nonexistent_number(client, db_session, test_user, auth_headers, test_tenant):
     """Test getting orders with a nonexistent WhatsApp number (should return empty list)"""
     response = client.get(
         "/api/v1/orders/whatsapp?whatsapp_number=+1234567890", headers=auth_headers)

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Enum, ForeignKey, Integer, Float, Text, DateTime, Index
+from sqlalchemy import Column, String, Enum, ForeignKey, Integer, Float, Text, DateTime, Index, Boolean
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -43,6 +43,16 @@ class Order(Base):
     order_source = Column(Enum(OrderSource), default=OrderSource.whatsapp)
     status = Column(Enum(OrderStatus), default=OrderStatus.pending)
     notes = Column(Text)
+
+    # Version for optimistic locking
+    version = Column(Integer, default=1, nullable=False)
+
+    # Notification tracking
+    notification_sent = Column(Boolean, default=False)
+    last_notification_at = Column(DateTime(timezone=True))
+
+    # Soft delete flag
+    is_deleted = Column(Boolean, default=False)
 
     # Relationships
     complaints = relationship("Complaint", back_populates="order")

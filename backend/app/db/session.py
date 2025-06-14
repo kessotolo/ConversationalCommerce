@@ -38,11 +38,20 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 async def set_tenant_id(session: AsyncSession, tenant_id):
-    await session.execute(text(f"SET my.tenant_id = '{tenant_id}'"))
+    """
+    Set the PostgreSQL session variable for tenant context (RLS enforcement).
+    This ensures all queries in this session are scoped to the given tenant_id.
+    """
+    # Use SET LOCAL to ensure transaction-level isolation
+    # This helps prevent the 'operation in progress' errors during concurrent connections
+    await session.execute(text(f"SET LOCAL my.tenant_id = '{tenant_id}'"))
 
 
 async def get_db(request: Request = None):
-    """Async DB dependency that sets tenant context from request state"""
+    """
+    Async DB dependency that sets tenant context from request state.
+    Ensures all DB access is async and tenant-aware for RLS enforcement.
+    """
     AsyncSessionLocal = get_async_session_local()
     async with AsyncSessionLocal() as db:
         if request and hasattr(request.state, 'tenant_id'):

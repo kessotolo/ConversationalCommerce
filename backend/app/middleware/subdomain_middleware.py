@@ -25,11 +25,11 @@ logger = logging.getLogger(__name__)
 
 class SubdomainMiddleware(BaseHTTPMiddleware):
     """
-    Middleware for resolving tenant-specific storefronts based on subdomain or custom domain.
+    Middleware that extracts tenant information from subdomains and custom domains.
 
-    This middleware checks the incoming request's host header and determines if it matches a
-    tenant's subdomain or custom domain. If a match is found, it adds tenant context to the request
-    state for use by the storefront routes.
+    - Sets tenant context in request.state for use by dependencies and DB session.
+    - Uses async session management for all DB access.
+    - Ensures tenant isolation and RLS enforcement by setting the correct tenant_id for each request.
     """
 
     def __init__(
@@ -48,6 +48,21 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
         self.cache_timestamp = {}
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        # Always allow public endpoints (docs, openapi, favicon, test-env) to pass with default context
+        public_paths = [
+            "/docs", "/redoc", "/openapi.json", "/favicon.ico", "/test-env"
+        ]
+        if any(request.url.path.startswith(path) for path in public_paths):
+            request.state.tenant_context = {
+                "tenant_id": None,
+                "tenant_name": None,
+                "storefront_id": None,
+                "subdomain": None,
+                "custom_domain": None,
+                "theme_settings": None
+            }
+            return await call_next(request)
+
         # Skip middleware for excluded paths
         if any(request.url.path.startswith(path) for path in self.exclude_paths):
             return await call_next(request)
@@ -107,19 +122,45 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
 
             # If tenant_context is found, store it in request state
             if tenant_context:
+                # Defensive: ensure tenant_id is a valid UUID string
+                try:
+                    if not tenant_context.get("tenant_id"):
+                        raise ValueError("tenant_id missing in tenant_context")
+                    uuid.UUID(tenant_context["tenant_id"])
+                except Exception as e:
+                    logger.error(
+                        f"Invalid tenant_id in tenant_context: {tenant_context.get('tenant_id')}, error: {e}")
+                    return await handle_storefront_error(request, InvalidSubdomainError(subdomain or host))
                 request.state.tenant_context = tenant_context
                 logger.info(
                     f"Resolved tenant: {tenant_context['tenant_name']} for host: {host}")
                 return await call_next(request)
             else:
                 # No tenant found for this domain/subdomain
-                raise InvalidSubdomainError(subdomain or host)
+                logger.error(
+                    f"No tenant found for host: {host}, subdomain: {subdomain}")
+                return await handle_storefront_error(request, InvalidSubdomainError(subdomain or host))
 
         except (InvalidSubdomainError, InactiveTenantError, MaintenanceModeError) as exc:
             return await handle_storefront_error(request, exc)
         except Exception as e:
-            logger.error(f"Error in subdomain middleware: {str(e)}")
-            return await call_next(request)
+            # If the error is a DNS resolution error, return a default context and proceed
+            if "nodename nor servname provided" in str(e):
+                logger.warning(
+                    f"Host '{host}' could not be resolved. Using default tenant context for this request.")
+                request.state.tenant_context = {
+                    "tenant_id": None,
+                    "tenant_name": None,
+                    "storefront_id": None,
+                    "subdomain": None,
+                    "custom_domain": None,
+                    "theme_settings": None
+                }
+                return await call_next(request)
+            else:
+                logger.error(
+                    f"Error in subdomain middleware for Host '{host}': {str(e)}")
+                return await call_next(request)
 
     def _get_from_cache(self, key: str) -> Optional[Dict[str, Any]]:
         """

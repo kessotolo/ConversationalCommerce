@@ -3,55 +3,81 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from uuid import uuid4, UUID
 from decimal import Decimal
+from httpx import AsyncClient
+import asyncio
+import logging
+from sqlalchemy import select
 
 from app.models.order import Order, OrderStatus, OrderSource
 from app.models.product import Product
 from tests.conftest import TEST_USER_ID
 
-
-@pytest.fixture
-def test_product(db_session, test_user):
-    """Create a test product for order testing"""
-    product = Product(
-        name="Test Product",
-        description="Test Description",
-        price=Decimal("99.99"),
-        seller_id=test_user.id
-    )
-    db_session.add(product)
-    db_session.commit()
-    db_session.refresh(product)
-    return product
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
-def test_create_order_minimum_fields(client, auth_headers, db_session, test_product):
+@pytest.mark.asyncio
+async def test_create_order_minimum_fields(client: TestClient, async_db_session, test_user, auth_headers, test_product, test_tenant):
     """Test creating a new order with minimum required fields"""
-    # Create order data with only required fields
-    order_data = {
-        "product_id": str(test_product.id),
-        "buyer_name": "Test Buyer",
-        "buyer_phone": "+1234567890",
-        "quantity": 1,
-        "total_amount": 99.99,
-        "order_source": "website",
-        "buyer_email": "test@example.com"
-    }
+    logger.info("Starting test_create_order_minimum_fields")
 
-    # Submit the order
-    response = client.post(
-        "/api/v1/orders", headers=auth_headers, json=order_data)
+    try:
+        # Create order data with only required fields
+        order_data = {
+            "product_id": str(test_product.id),
+            "buyer_name": "Test Buyer",
+            "buyer_phone": "+1234567890",
+            "quantity": 1,
+            "total_amount": 99.99,
+            "order_source": "website",
+            "buyer_email": "test@example.com"
+        }
+        logger.info(f"Created order data: {order_data}")
 
-    # Check response
-    assert response.status_code == 201, f"Expected 201, got {response.status_code}: {response.text}"
-    data = response.json()
-    assert data["buyer_name"] == order_data["buyer_name"]
-    assert data["buyer_phone"] == order_data["buyer_phone"]
-    assert data["quantity"] == order_data["quantity"]
-    assert float(data["total_amount"]) == order_data["total_amount"]
-    assert data["status"] == "pending"
+        # Use the regular client since we're testing the API endpoint
+        response = client.post(
+            "/api/v1/orders", headers=auth_headers, json=order_data)
+        logger.info(f"Order submitted with status: {response.status_code}")
+
+        # Check response
+        assert response.status_code == 201, f"Expected 201, got {response.status_code}: {response.text}"
+        data = response.json()
+        logger.info(f"Got response data: {data}")
+
+        assert data["buyer_name"] == order_data["buyer_name"]
+        assert data["buyer_phone"] == order_data["buyer_phone"]
+        assert data["quantity"] == order_data["quantity"]
+        assert float(data["total_amount"]) == order_data["total_amount"]
+        assert data["status"] == "pending"
+
+        # Verify in database
+        logger.info("Verifying order in database")
+        order_id = UUID(data["id"])
+        try:
+            # Use select to get the order
+            stmt = select(Order).where(Order.id == order_id)
+            result = await async_db_session.execute(stmt)
+            db_order = result.scalar_one_or_none()
+            logger.info(f"Retrieved order from database: {db_order}")
+        except Exception as e:
+            logger.error(f"Error retrieving order from database: {str(e)}")
+            raise
+
+        assert db_order is not None
+        assert db_order.buyer_name == order_data["buyer_name"]
+        assert db_order.buyer_phone == order_data["buyer_phone"]
+        assert db_order.quantity == order_data["quantity"]
+        assert float(db_order.total_amount) == order_data["total_amount"]
+        assert db_order.status == OrderStatus.pending
+
+        logger.info("Test completed successfully")
+    except Exception as e:
+        logger.error(f"Test failed with error: {str(e)}")
+        raise
 
 
-def test_create_order_all_fields(client, auth_headers, db_session, test_product):
+def test_create_order_all_fields(client, db_session, test_user, auth_headers, test_product, test_tenant):
     """Test creating a new order with all fields populated"""
     # Create order data with all possible fields
     order_data = {
@@ -94,7 +120,7 @@ def test_create_order_all_fields(client, auth_headers, db_session, test_product)
     assert db_order.notes == order_data["notes"]
 
 
-def test_create_order_different_sources(client, auth_headers, db_session, test_product):
+def test_create_order_different_sources(client, db_session, test_user, auth_headers, test_product, test_tenant):
     """Test creating orders from different sources (website, instagram)"""
     # Test Instagram source
     instagram_order = {
@@ -119,7 +145,7 @@ def test_create_order_different_sources(client, auth_headers, db_session, test_p
     assert db_order.order_source == OrderSource.instagram
 
 
-def test_create_order_missing_required_fields(client, auth_headers, test_product):
+def test_create_order_missing_required_fields(client, db_session, test_user, auth_headers, test_product, test_tenant):
     """Test creating an order with missing required fields"""
     # Missing buyer_name
     order_data = {
@@ -150,7 +176,7 @@ def test_create_order_missing_required_fields(client, auth_headers, test_product
     assert response.status_code == 422
 
 
-def test_create_order_invalid_product_id(client, auth_headers):
+def test_create_order_invalid_product_id(client, db_session, test_user, auth_headers, test_tenant):
     """Test creating an order with invalid product_id"""
     # Non-existent product ID
     order_data = {
@@ -175,7 +201,7 @@ def test_create_order_invalid_product_id(client, auth_headers):
     assert response.status_code == 422
 
 
-def test_create_order_invalid_data_types(client, auth_headers, test_product):
+def test_create_order_invalid_data_types(client, db_session, test_user, auth_headers, test_product, test_tenant):
     """Test creating an order with invalid data types"""
     # String for quantity (should be integer)
     order_data = {
@@ -214,7 +240,7 @@ def test_create_order_invalid_data_types(client, auth_headers, test_product):
     assert response.status_code == 422
 
 
-def test_create_website_order_without_email(client, auth_headers, test_product):
+def test_create_website_order_without_email(client, db_session, test_user, auth_headers, test_product, test_tenant):
     """Test creating a website order without email (should fail validation)"""
     # Website orders require email
     order_data = {

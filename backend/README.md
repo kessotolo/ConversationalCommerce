@@ -989,3 +989,30 @@ bash scripts/db_reset_and_migrate.sh
 ```
 
 This will drop, recreate, and migrate your local DB using Alembic.
+
+## 🆕 Recent Changes (2024-06)
+- Tenant context is now set in middleware and dependencies, not in services or endpoints. All business logic assumes tenant context is already set.
+- All database access is fully async using AsyncSession. No sync/async mixing is allowed.
+- All tests use async sessions and set tenant context via fixtures (see test_tenant). This ensures RLS and tenant isolation are always tested.
+- Error responses are now standardized with a top-level `detail` field. See backend/docs/api/orders.md for schema.
+
+## 🧪 Testing Best Practices
+- Always use async fixtures and set tenant context for any test that touches tenant data.
+- Use the `test_tenant` fixture in all relevant tests.
+- Ensure test isolation: tests should not leak data between tenants or between test runs.
+- Test RLS by verifying that data is only visible to the correct tenant.
+- See docs/architecture.md for more on test isolation and patterns.
+
+## 🛡️ Error Response Format
+- All API error responses use a standardized format:
+  ```json
+  { "detail": "Error message here" }
+  ```
+- See backend/docs/api/orders.md for more details and examples.
+
+## ➕ How to Add a New Tenant-Aware Feature
+- Use the async DB session and ensure tenant context is set via middleware/dependency.
+- Access tenant_id from request.state or via dependency injection.
+- Never set tenant context in the service or endpoint directly.
+- For new endpoints, follow the patterns in existing endpoints and services.
+- For more, see docs/architecture.md and backend/app/api/v1/endpoints/orders.py.

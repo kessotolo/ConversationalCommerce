@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from uuid import UUID
 from decimal import Decimal
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import json
 
 from app.models.order import Order, OrderStatus, OrderSource
@@ -13,7 +13,7 @@ from app.models.product import Product
 from tests.conftest import TEST_USER_ID
 
 
-def test_create_order(client, auth_headers, db_session, test_user):
+def test_create_order(client, auth_headers, db_session, test_user, test_tenant):
     """Test creating a new order"""
     # First create a test product
     product = Product(
@@ -66,13 +66,13 @@ def test_create_order(client, auth_headers, db_session, test_user):
     assert db_order.status == OrderStatus.pending
 
 
-def test_create_whatsapp_order(client, auth_headers, db_session, test_user):
+def test_create_whatsapp_order(client, auth_headers, db_session, test_user, test_tenant):
     """Test creating a WhatsApp order"""
     # First create a test product
     product = Product(
         name="WhatsApp Product",
-        description="Test Description",
-        price=Decimal("49.99"),
+        description="Test product for WhatsApp order",
+        price=49.99,
         seller_id=test_user.id,
         show_on_whatsapp=True
     )
@@ -87,6 +87,9 @@ def test_create_whatsapp_order(client, auth_headers, db_session, test_user):
         "buyer_phone": "+1987654321",
         "quantity": 2,
         "total_amount": 99.98,
+        "whatsapp_number": str(test_tenant.whatsapp_number or "+1987654321"),
+        "message_id": "test_message_id",
+        "conversation_id": "test_conversation_id",
         "channel_metadata": {
             "channel": "whatsapp",
             "message_id": "test_message_id",
@@ -402,7 +405,7 @@ def test_order_dashboard_stats(client, auth_headers, db_session, test_user):
             total_amount=10.00,
             status=OrderStatus.pending,
             order_source=OrderSource.whatsapp,
-            created_at=datetime.utcnow() - timedelta(days=5)
+            created_at=datetime.now(timezone.utc) - timedelta(days=5)
         ),
         Order(
             product_id=product1.id,
@@ -413,7 +416,7 @@ def test_order_dashboard_stats(client, auth_headers, db_session, test_user):
             total_amount=20.00,
             status=OrderStatus.shipped,
             order_source=OrderSource.whatsapp,
-            created_at=datetime.utcnow() - timedelta(days=3)
+            created_at=datetime.now(timezone.utc) - timedelta(days=3)
         ),
         # Website orders
         Order(
@@ -426,7 +429,7 @@ def test_order_dashboard_stats(client, auth_headers, db_session, test_user):
             total_amount=20.00,
             status=OrderStatus.delivered,
             order_source=OrderSource.website,
-            created_at=datetime.utcnow() - timedelta(days=10)
+            created_at=datetime.now(timezone.utc) - timedelta(days=10)
         ),
         Order(
             product_id=product2.id,
@@ -438,7 +441,7 @@ def test_order_dashboard_stats(client, auth_headers, db_session, test_user):
             total_amount=60.00,
             status=OrderStatus.confirmed,
             order_source=OrderSource.website,
-            created_at=datetime.utcnow() - timedelta(days=1)
+            created_at=datetime.now(timezone.utc) - timedelta(days=1)
         ),
         # Instagram order
         Order(
@@ -450,7 +453,7 @@ def test_order_dashboard_stats(client, auth_headers, db_session, test_user):
             total_amount=20.00,
             status=OrderStatus.processing,
             order_source=OrderSource.instagram,
-            created_at=datetime.utcnow() - timedelta(days=2)
+            created_at=datetime.now(timezone.utc) - timedelta(days=2)
         )
     ]
     db_session.add_all(orders)

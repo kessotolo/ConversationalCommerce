@@ -1027,3 +1027,11 @@ For comprehensive implementation details, configuration options, and troubleshoo
 - All legacy/duplicate order endpoints have been removed; `/api/v1/orders/` is the single source of truth.
 - Request/response schemas remain backward compatible for clients.
 - This architecture reduces boilerplate, improves maintainability, and ensures robust multi-tenant security.
+
+## 🏗️ Technical Architecture & Coding Principles
+
+For technical details on our multi-tenant architecture, PostgreSQL Row-Level Security (RLS), async backend, and coding principles, see:
+- [Backend README](backend/README.md) — backend architecture, async, multi-tenancy, and testing
+- [Architecture Docs](docs/architecture.md) — service structure, tenant context propagation, and extensibility
+
+For backend contribution and developer practices, see the backend/README.md.

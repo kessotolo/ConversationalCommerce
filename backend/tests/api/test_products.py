@@ -61,15 +61,18 @@ TEST_PRODUCT_DATA = {
 # We don't need to define them here
 
 
-def setup_test_user(db_session: Session):
+def setup_test_user(db_session: Session, test_tenant):
     """Create a test user and clean up after tests."""
     # Create test user
     test_user = User(
-        id=TEST_USER_ID,  # Use the consistent test UUID
-        email=TEST_USER_EMAIL,
+        email="testuser@example.com",
         is_seller=True
     )
     db_session.add(test_user)
+    db_session.commit()
+
+    # If needed, set tenant_id after creation
+    test_user.tenant_id = test_tenant.id
     db_session.commit()
 
     yield test_user
@@ -81,8 +84,8 @@ def setup_test_user(db_session: Session):
 
 
 @pytest.fixture
-def test_user(db_session: Session):
-    yield from setup_test_user(db_session)
+def test_user(db_session: Session, test_tenant):
+    yield from setup_test_user(db_session, test_tenant)
 
 
 @pytest.fixture
@@ -91,20 +94,20 @@ def auth_headers():
     return {"Authorization": "Bearer test_token"}
 
 
-def test_create_product(client: TestClient, db_session: Session, test_user: User, auth_headers: dict):
+def test_create_product(client: TestClient, db_session: Session, test_user: User, auth_headers: dict, test_tenant):
     """Test creating a product."""
     # The test_user fixture now handles ensuring the user exists
-    
+
     # Create a local copy of the test data WITHOUT seller_id since the endpoint sets it
     product_data = TEST_PRODUCT_DATA.copy()
     if "seller_id" in product_data:
         del product_data["seller_id"]
-    
+
     # Use string URLs instead of HttpUrl objects to avoid adaptation issues
     for field in ['image_url', 'video_url', 'whatsapp_status_url', 'instagram_story_url', 'storefront_url']:
         if field in product_data and product_data[field] is not None:
             product_data[field] = str(product_data[field])
-    
+
     # Ensure auth_headers has X-Tenant-ID
     response = client.post(
         "/api/v1/products/",
@@ -139,7 +142,7 @@ def test_create_product_validation(client: TestClient, auth_headers: dict):
     assert response.status_code == 422
 
 
-def test_get_product(client: TestClient, db_session: Session, test_user: User, auth_headers: dict):
+def test_get_product(client: TestClient, db_session: Session, test_user: User, auth_headers: dict, test_tenant):
     """Test retrieving a product."""
     # Create a product
     product = Product(
@@ -173,7 +176,7 @@ def test_get_product_not_found(client: TestClient, auth_headers: dict):
     assert response.status_code == 404
 
 
-def test_list_products(client: TestClient, db_session: Session, test_user: User, auth_headers: dict):
+def test_list_products(client: TestClient, db_session: Session, test_user: User, auth_headers: dict, test_tenant):
     """Test listing products."""
     # Create test products
     products = [
@@ -199,7 +202,7 @@ def test_list_products(client: TestClient, db_session: Session, test_user: User,
     assert data["total"] == 3
 
 
-def test_list_products_with_filters(client: TestClient, db_session: Session, test_user: User, auth_headers: dict):
+def test_list_products_with_filters(client: TestClient, db_session: Session, test_user: User, auth_headers: dict, test_tenant):
     """Test listing products with filters."""
     # Create test products
     products = [
@@ -229,7 +232,7 @@ def test_list_products_with_filters(client: TestClient, db_session: Session, tes
     assert float(data["items"][0]["price"]) == 100.00
 
 
-def test_update_product(client: TestClient, db_session: Session, test_user: User, auth_headers: dict):
+def test_update_product(client: TestClient, db_session: Session, test_user: User, auth_headers: dict, test_tenant):
     """Test updating a product."""
     # Create a product
     product = Product(
@@ -260,59 +263,52 @@ def test_update_product(client: TestClient, db_session: Session, test_user: User
     assert float(data["price"]) == update_data["price"]
 
 
-def test_update_product_unauthorized(client: TestClient, db_session: Session, test_user: User, auth_headers: dict):
+def test_update_product_unauthorized(client: TestClient, db_session: Session, test_user: User, auth_headers: dict, test_tenant):
     """Test updating a product with unauthorized user."""
     # Create a product owned by a different user
     # First, create a different user (with ID "00000000-0000-0000-0000-000000000002")
-    from app.models.user import User
-    from uuid import UUID
-    
-    other_user_id = UUID("00000000-0000-0000-0000-000000000002")
     other_user = User(
-        id=other_user_id,
-        email="other@example.com",
+        email="otheruser@example.com",
         is_seller=True
     )
     db_session.add(other_user)
     db_session.commit()
-    
+
+    # If needed, set tenant_id after creation
+    other_user.tenant_id = test_tenant.id
+    db_session.commit()
+
     # Now create a product owned by this other user
-    from app.models.product import Product
-    from decimal import Decimal
-    from datetime import datetime, timezone
-    
-    product_id = UUID("a5e959e5-e0c5-4128-981f-93d1a70102e0")
     product = Product(
-        id=product_id,
         name="Other User Product",
         description="This product belongs to the other user",
         price=Decimal("99.99"),
         image_url="https://example.com/image.jpg",
-        seller_id=other_user_id,  # The other user owns this product
+        seller_id=other_user.id,  # The other user owns this product
         created_at=datetime.now(timezone.utc),
         updated_at=datetime.now(timezone.utc)
     )
-    
+
     db_session.add(product)
     db_session.commit()
-    
+
     # Now try to update with the main test user's token (not the owner)
     # This should fail with a 403 since the product belongs to other_user
     response = client.patch(
-        f"/api/v1/products/{product_id}",
+        f"/api/v1/products/{product.id}",
         json={
             "name": "Updated Product",
             "description": "This product belongs to the other user"
         },
         headers=auth_headers  # Use the main test_user token to try to update other user's product
     )
-    
+
     # Verify that the response matches what we expect from the permission check
     assert response.status_code == 403, f"Expected 403 but got {response.status_code}. Response: {response.text}"
     assert "Not authorized to update this product" in response.text, f"Expected authorization error but got: {response.text}"
 
 
-def test_delete_product(client: TestClient, db_session: Session, test_user: User, auth_headers: dict):
+def test_delete_product(client: TestClient, db_session: Session, test_user: User, auth_headers: dict, test_tenant):
     """Test deleting a product."""
     # Create a product with a consistent UUID
     product_id = uuid4()
@@ -328,7 +324,7 @@ def test_delete_product(client: TestClient, db_session: Session, test_user: User
     )
     db_session.add(product)
     db_session.commit()  # Actually commit this time
-    
+
     # Delete the product
     response = client.delete(
         f"/api/v1/products/{product_id}",
@@ -344,52 +340,46 @@ def test_delete_product(client: TestClient, db_session: Session, test_user: User
     assert response.status_code == 404
 
 
-def test_delete_product_unauthorized(client: TestClient, db_session: Session, test_user: User, auth_headers: dict):
+def test_delete_product_unauthorized(client: TestClient, db_session: Session, test_user: User, auth_headers: dict, test_tenant):
     """Test deleting a product with unauthorized user."""
     # Create a product owned by a different user
     # First, create a different user (with ID "00000000-0000-0000-0000-000000000002")
-    from app.models.user import User
-    from uuid import UUID
-    
-    other_user_id = UUID("00000000-0000-0000-0000-000000000002")
+    other_user = User(
+        email="otheruser@example.com",
+        is_seller=True
+    )
     # Check if user already exists
-    other_user = db_session.query(User).filter(User.id == other_user_id).first()
-    if not other_user:
-        other_user = User(
-            id=other_user_id,
-            email="other@example.com",
-            is_seller=True
-        )
+    existing_user = db_session.query(User).filter(
+        User.email == other_user.email).first()
+    if not existing_user:
         db_session.add(other_user)
         db_session.commit()
-    
+
+    # If needed, set tenant_id after creation
+    other_user.tenant_id = test_tenant.id
+    db_session.commit()
+
     # Now create a product owned by this other user
-    from app.models.product import Product
-    from decimal import Decimal
-    from datetime import datetime, timezone
-    
-    product_id = UUID("b5e959e5-e0c5-4128-981f-93d1a70102e0")
     product = Product(
-        id=product_id,
         name="Other User Delete Product",
         description="This product belongs to the other user and should not be deletable",
         price=Decimal("99.99"),
         image_url="https://example.com/image.jpg",
-        seller_id=other_user_id,  # The other user owns this product
+        seller_id=other_user.id,  # The other user owns this product
         created_at=datetime.now(timezone.utc),
         updated_at=datetime.now(timezone.utc)
     )
-    
+
     db_session.add(product)
     db_session.commit()
-    
+
     # Now try to delete with the main test user's token (not the owner)
     # This should fail with a 403 since the product belongs to other_user
     response = client.delete(
-        f"/api/v1/products/{product_id}",
+        f"/api/v1/products/{product.id}",
         headers=auth_headers  # Use the main test_user token to try to delete other user's product
     )
-    
+
     # Verify that the response matches what we expect from the permission check
     assert response.status_code == 403, f"Expected 403 but got {response.status_code}. Response: {response.text}"
     assert "Not authorized to delete this product" in response.text, f"Expected authorization error but got: {response.text}"
@@ -403,20 +393,20 @@ def test_products_require_auth():
     from app.core.security.dependencies import require_auth
     from fastapi import Depends
     import inspect
-    
+
     # This test checks that all route handlers in the product router have
     # the require_auth dependency in their parameters
-    
+
     # Flag to track if we found at least one endpoint with auth requirements
     found_auth_dependency = False
-    
+
     for route in router.routes:
         # Get the endpoint function
         endpoint_function = route.endpoint
-        
+
         # Get the function signature
         signature = inspect.signature(endpoint_function)
-        
+
         # Look for parameters that have the require_auth dependency
         for param_name, param in signature.parameters.items():
             # Check if this parameter has a dependency and if it's the require_auth dependency
@@ -429,12 +419,12 @@ def test_products_require_auth():
                     if param.default.dependency == require_auth:
                         found_auth_dependency = True
                         break
-    
+
     # Assert that we found at least one endpoint that requires authentication
     assert found_auth_dependency, "No authentication dependencies found in product router endpoints"
 
 
-def test_list_products_pagination(client: TestClient, db_session: Session, test_user: User, auth_headers: dict):
+def test_list_products_pagination(client: TestClient, db_session: Session, test_user: User, auth_headers: dict, test_tenant):
     """Test product listing pagination."""
     # Create test products
     products = [
@@ -473,7 +463,7 @@ def test_list_products_pagination(client: TestClient, db_session: Session, test_
     assert data["offset"] == 10
 
 
-def test_list_products_filters(client: TestClient, db_session: Session, test_user: User, auth_headers: dict):
+def test_list_products_filters(client: TestClient, db_session: Session, test_user: User, auth_headers: dict, test_tenant):
     """Test product listing with various filters."""
     # Create test products
     products = [
@@ -502,7 +492,7 @@ def test_list_products_filters(client: TestClient, db_session: Session, test_use
     assert data["items"][0]["is_featured"] is True
 
 
-def test_soft_delete(client: TestClient, db_session: Session, test_user: User, auth_headers: dict):
+def test_soft_delete(client: TestClient, db_session: Session, test_user: User, auth_headers: dict, test_tenant):
     """Test soft delete functionality."""
     # Create a product
     product = Product(
@@ -520,7 +510,7 @@ def test_soft_delete(client: TestClient, db_session: Session, test_user: User, a
     # Get product ID before potential session detachment
     product_id = str(product.id)
     db_session.refresh(product)  # Ensure it's attached to the session
-    
+
     # Soft delete the product
     response = client.delete(
         f"/api/v1/products/{product_id}?soft=true",
@@ -550,3 +540,26 @@ def test_rate_limiting(client: TestClient, auth_headers: dict):
 
     # The last request should be rate limited
     assert response.status_code == 429
+
+
+def test_create_product_with_all_fields(client: TestClient, db_session: Session, test_user: User, auth_headers: dict, test_tenant):
+    """Test creating a product with all required fields."""
+    # Create a product with all required fields
+    product = Product(
+        name="Test Product",
+        description="Test product for products API",
+        price=10.0,
+        seller_id=test_user.id
+    )
+    db_session.add(product)
+    db_session.commit()
+
+    # Get the product
+    response = client.get(
+        f"/api/v1/products/{product.id}", headers=auth_headers)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["name"] == product.name
+    assert data["description"] == product.description
+    assert float(data["price"]) == float(product.price)
+    assert data["seller_id"] == str(product.seller_id)

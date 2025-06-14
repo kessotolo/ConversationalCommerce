@@ -5,10 +5,12 @@ import os
 from uuid import UUID
 from fastapi.testclient import TestClient
 from app.main import create_app
-from tests.conftest import TEST_USER_ID  # Import the consistent UUID from conftest
+# Import the consistent UUID from conftest
+from tests.conftest import TEST_USER_ID
 
 # Ensure we're in test mode
 os.environ["TESTING"] = "1"
+
 
 @pytest.fixture
 def unauth_client():
@@ -18,11 +20,13 @@ def unauth_client():
         yield test_client
 
 # Mock Clerk JWT token
+
+
 def create_mock_token():
     # Import the test settings to access the SECRET_KEY
     from app.core.config.test_settings import get_test_settings
     test_settings = get_test_settings()
-    
+
     payload = {
         "sub": str(TEST_USER_ID),  # Use the UUID but convert to string for JWT
         "email": "test@example.com",
@@ -71,13 +75,14 @@ def test_create_product_with_token(client, auth_headers, test_user):
         headers=auth_headers,
         json=product_data
     )
-    
+
     # Print response info for debugging
     print(f"Status: {response.status_code}\nResponse: {response.text}")
-    
+
     # Check if we have a successful response (either 200 or 201)
-    assert response.status_code in [200, 201], f"Expected 200 or 201, got {response.status_code}: {response.text}"
-    
+    assert response.status_code in [
+        200, 201], f"Expected 200 or 201, got {response.status_code}: {response.text}"
+
     # Verify the product was created with the correct seller ID
     data = response.json()
     # Use the known TEST_USER_ID as a string directly

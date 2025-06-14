@@ -3,6 +3,7 @@ from fastapi import FastAPI, Depends, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.api import api_router
 from app.core.config.settings import Settings, get_settings
+from app.db.session import get_async_session_local
 from app.core.middleware.rate_limit import RateLimitMiddleware
 from app.core.middleware.activity_tracker import ActivityTrackerMiddleware
 from app.middleware.subdomain_middleware import SubdomainMiddleware
@@ -19,6 +20,8 @@ from app.db.session import set_tenant_id, SessionLocal
 from app.models.tenant import Tenant
 from app.api.v1.endpoints.websocket import router as websocket_router
 import app.domain.events  # Ensure event handlers are registered
+from fastapi.middleware.security import SecurityHeadersMiddleware
+from fastapi.middleware.compression import CompressionMiddleware
 
 # Configure logging
 logging.basicConfig(
@@ -77,6 +80,10 @@ class TenantMiddleware(BaseHTTPMiddleware):
             else:
                 return Response("Missing X-Tenant-ID header", status_code=400)
 
+        # Create a new AsyncSession for the request
+        AsyncSessionLocal = get_async_session_local()
+        db = None
+
         try:
             # Validate UUID format
             from uuid import UUID
@@ -85,16 +92,12 @@ class TenantMiddleware(BaseHTTPMiddleware):
             # Store tenant_id in request.state for use in dependencies
             request.state.tenant_id = str(tenant_uuid)
 
-            # Set tenant_id in DB session for this request
-            db = SessionLocal()
+            # Create an async database session
+            db = AsyncSessionLocal()
 
-            # Validate tenant exists
-            tenant = db.query(Tenant).filter(Tenant.id == tenant_uuid).first()
-            if not tenant:
-                db.close()
-                return Response(f"Invalid tenant ID: {tenant_id}", status_code=403)
-
-            set_tenant_id(db, str(tenant_uuid))
+            # Use the session directly in the request state
+            # Do not set tenant context here - will be handled by the get_db dependency
+            # when the endpoint is called
             request.state.db = db
 
             # Execute the rest of the request
@@ -106,9 +109,9 @@ class TenantMiddleware(BaseHTTPMiddleware):
             logger.error(f"Tenant middleware error: {str(e)}")
             return Response("Internal server error in tenant handling", status_code=500)
         finally:
-            # Make sure to close the db connection
-            if hasattr(request.state, 'db'):
-                request.state.db.close()
+            # Close the async db connection if it was created
+            if db:
+                await db.close()
 
     def _is_public_path(self, path: str) -> bool:
         """Check if the path is a public endpoint that doesn't require tenant isolation"""
@@ -160,14 +163,23 @@ async def stop_domain_verification():
 
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
+    # Determine if we're running in test mode
+    is_test = os.getenv('TESTING', '').lower() in (
+        'true', '1', 't', 'yes', 'y')
+
+    # Configure FastAPI event handlers based on test mode
+    startup_handlers = [initialize_cache]
+    shutdown_handlers = []
+    if not is_test:
+        startup_handlers.append(start_domain_verification)
+        shutdown_handlers.append(stop_domain_verification)
+
     app = FastAPI(
         title=settings.PROJECT_NAME,
         openapi_url=f"{settings.API_V1_STR}/openapi.json",
-        # Add debug flag based on environment
         debug=(settings.ENVIRONMENT != "production"),
-        # Add event handlers for startup and shutdown
-        on_startup=[initialize_cache, start_domain_verification],
-        on_shutdown=[stop_domain_verification]
+        on_startup=startup_handlers,
+        on_shutdown=shutdown_handlers
     )
 
     # Register exception handlers
@@ -176,13 +188,33 @@ def create_app() -> FastAPI:
     # Register storefront error handler
     app.add_exception_handler(StorefrontError, handle_storefront_error)
 
-    # Add request timing middleware
+    # Add middleware in order of execution (top to bottom)
+    # 1. Security middleware (first to catch security issues)
+    app.add_middleware(
+        SecurityHeadersMiddleware,
+        headers={
+            "X-Content-Type-Options": "nosniff",
+            "X-Frame-Options": "DENY",
+            "X-XSS-Protection": "1; mode=block",
+            "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+            "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:;"
+        }
+    )
+
+    # 2. Rate limiting (early to prevent abuse)
+    app.add_middleware(
+        RateLimitMiddleware,
+        config={
+            "default": {"limit": 100, "window": 60},
+            "api": {"limit": 1000, "window": 60},
+            "auth": {"limit": 10, "window": 60}
+        }
+    )
+
+    # 3. Request timing (for performance monitoring)
     app.add_middleware(RequestTimingMiddleware)
 
-    # Add rate limiting middleware
-    app.add_middleware(RateLimitMiddleware)
-
-    # Add activity tracking middleware
+    # 4. Activity tracking (for audit and monitoring)
     app.add_middleware(
         ActivityTrackerMiddleware,
         skip_paths={
@@ -195,17 +227,17 @@ def create_app() -> FastAPI:
         }
     )
 
-    # Add tenant middleware
+    # 5. Tenant resolution (for multi-tenant support)
     app.add_middleware(TenantMiddleware)
 
-    # Add domain verification middleware
+    # 6. Domain verification (for security)
     app.add_middleware(
         DomainVerificationMiddleware,
         exclude_paths=["/api/", "/admin/", "/_next/",
                        "/static/", "/docs/", "/redoc/"]
     )
 
-    # Add subdomain resolution middleware for multi-tenant storefronts
+    # 7. Subdomain resolution (for multi-tenant storefronts)
     app.add_middleware(
         SubdomainMiddleware,
         base_domain=settings.BASE_DOMAIN if hasattr(
@@ -214,13 +246,21 @@ def create_app() -> FastAPI:
                        "/static/", "/docs/", "/redoc/"]
     )
 
-    # Set up CORS
+    # 8. CORS (after security middleware)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.BACKEND_CORS_ORIGINS,
+        allow_origins=settings.ALLOWED_ORIGINS,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["X-Request-ID"]
+    )
+
+    # 9. Compression (last to compress all responses)
+    app.add_middleware(
+        CompressionMiddleware,
+        minimum_size=1000,  # Only compress responses larger than 1KB
+        compression_level=6  # Balanced compression level
     )
 
     # Include API router

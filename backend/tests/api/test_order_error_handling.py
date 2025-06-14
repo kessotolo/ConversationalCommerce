@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from uuid import uuid4
 from decimal import Decimal
+from datetime import datetime, timezone
 
 from app.models.order import Order, OrderStatus, OrderSource
 from app.models.product import Product
@@ -10,12 +11,17 @@ from tests.conftest import TEST_USER_ID, TEST_TENANT_ID
 
 
 @pytest.fixture
-def error_test_product(db_session, test_user):
+def error_test_product(db_session, test_user, test_tenant):
     """Create a test product for error handling tests"""
+    # Set tenant context for the session
+    from sqlalchemy import text
+    tenant_id = str(test_tenant.id)
+    db_session.execute(text(f"SET LOCAL my.tenant_id = '{tenant_id}'"))
+
     product = Product(
         name="Error Test Product",
-        description="For testing error handling",
-        price=Decimal("99.99"),
+        description="Test product for error handling",
+        price=10.0,
         seller_id=test_user.id,
         is_featured=False,
         show_on_storefront=True
@@ -61,26 +67,29 @@ def test_error_format_consistency(client, auth_headers, error_test_product):
             "data": None
         }
     ]
-    
+
     for test_case in error_test_cases:
         if test_case["method"] == "get":
             response = client.get(test_case["endpoint"], headers=auth_headers)
         elif test_case["method"] == "post":
-            response = client.post(test_case["endpoint"], headers=auth_headers, json=test_case["data"])
+            response = client.post(
+                test_case["endpoint"], headers=auth_headers, json=test_case["data"])
         elif test_case["method"] == "put":
-            response = client.put(test_case["endpoint"], headers=auth_headers, json=test_case["data"])
+            response = client.put(
+                test_case["endpoint"], headers=auth_headers, json=test_case["data"])
         elif test_case["method"] == "delete":
-            response = client.delete(test_case["endpoint"], headers=auth_headers)
-        
+            response = client.delete(
+                test_case["endpoint"], headers=auth_headers)
+
         # Check status code
         assert response.status_code == test_case["expected_status"], \
             f"Expected status {test_case['expected_status']} for {test_case['method']} {test_case['endpoint']}, got {response.status_code}"
-        
+
         # Check error response format
         error_data = response.json()
         assert "detail" in error_data, \
             f"Error response for {test_case['method']} {test_case['endpoint']} missing 'detail' field"
-        
+
         # Check detail is either a string or a list of validation errors
         if isinstance(error_data["detail"], list):
             # Validation errors should have consistent format
@@ -95,28 +104,33 @@ def test_authentication_error_consistency(client):
     # List of endpoints to test without authentication
     auth_endpoints = [
         {"url": "/api/v1/orders", "method": "get"},
-        {"url": "/api/v1/orders", "method": "post", "data": {"product_id": str(uuid4())}},
+        {"url": "/api/v1/orders", "method": "post",
+            "data": {"product_id": str(uuid4())}},
         {"url": f"/api/v1/orders/{uuid4()}", "method": "get"},
-        {"url": f"/api/v1/orders/{uuid4()}", "method": "put", "data": {"status": "confirmed"}},
+        {"url": f"/api/v1/orders/{uuid4()}", "method": "put",
+         "data": {"status": "confirmed"}},
         {"url": f"/api/v1/orders/{uuid4()}", "method": "delete"},
-        {"url": "/api/v1/orders/whatsapp", "method": "post", "data": {"product_id": str(uuid4())}},
+        {"url": "/api/v1/orders/whatsapp", "method": "post",
+            "data": {"product_id": str(uuid4())}},
         {"url": "/api/v1/orders/whatsapp/+1234567890", "method": "get"}
     ]
-    
+
     for endpoint in auth_endpoints:
         if endpoint["method"] == "get":
             response = client.get(endpoint["url"])
         elif endpoint["method"] == "post":
-            response = client.post(endpoint["url"], json=endpoint.get("data", {}))
+            response = client.post(
+                endpoint["url"], json=endpoint.get("data", {}))
         elif endpoint["method"] == "put":
-            response = client.put(endpoint["url"], json=endpoint.get("data", {}))
+            response = client.put(
+                endpoint["url"], json=endpoint.get("data", {}))
         elif endpoint["method"] == "delete":
             response = client.delete(endpoint["url"])
-        
+
         # Check that the status code is either 401 (Unauthorized) or 403 (Forbidden)
         assert response.status_code in (401, 403), \
             f"Expected 401 or 403 for unauthenticated {endpoint['method']} {endpoint['url']}, got {response.status_code}"
-        
+
         # Check error response format
         error_data = response.json()
         assert "detail" in error_data, \
@@ -141,27 +155,30 @@ def test_optimistic_locking(client, auth_headers, db_session, test_user, error_t
     db_session.add(order)
     db_session.commit()
     db_session.refresh(order)
-    
+
     order_id = str(order.id)
-    
+
     # First update should succeed
     update_data = {
         "status": "confirmed",
         "version": 1  # Same as current version
     }
-    response = client.put(f"/api/v1/orders/{order_id}", headers=auth_headers, json=update_data)
+    response = client.put(
+        f"/api/v1/orders/{order_id}", headers=auth_headers, json=update_data)
     assert response.status_code == 200
-    
+
     # Second update with old version should fail
     update_data = {
         "status": "delivered",
         "version": 1  # Now outdated
     }
-    response = client.put(f"/api/v1/orders/{order_id}", headers=auth_headers, json=update_data)
-    
+    response = client.put(
+        f"/api/v1/orders/{order_id}", headers=auth_headers, json=update_data)
+
     # Should return a concurrency error
     assert response.status_code == 409  # Conflict
-    assert "version" in response.json().get("detail", "").lower()  # Error message should mention version
+    # Error message should mention version
+    assert "version" in response.json().get("detail", "").lower()
 
 
 def test_transaction_rollback(client, auth_headers, db_session, test_user):
@@ -176,7 +193,7 @@ def test_transaction_rollback(client, auth_headers, db_session, test_user):
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
-    
+
     # Create a valid order that will later trigger a database error
     order_data = {
         "product_id": str(product.id),
@@ -187,29 +204,31 @@ def test_transaction_rollback(client, auth_headers, db_session, test_user):
         "total_amount": 50.00,
         "order_source": "website"
     }
-    
+
     # To simulate a database error during a complex operation, we need to modify
     # the database state after validation but before commit
     # For testing purposes, we'll delete the product after validation
-    
+
     # First create a successful order to get the ID
-    response = client.post("/api/v1/orders", headers=auth_headers, json=order_data)
+    response = client.post(
+        "/api/v1/orders", headers=auth_headers, json=order_data)
     assert response.status_code == 201
-    
+
     order_id = response.json()["id"]
-    
+
     # Now try an update that will trigger validation but fail at database level
     # (This is hard to simulate perfectly in a test, but we can test the error handling)
     # Delete the order first to cause a conflict
     db_session.query(Order).filter(Order.id == order_id).delete()
     db_session.commit()
-    
+
     # Try updating the now non-existent order
     update_data = {"status": "confirmed"}
-    response = client.put(f"/api/v1/orders/{order_id}", headers=auth_headers, json=update_data)
-    
+    response = client.put(
+        f"/api/v1/orders/{order_id}", headers=auth_headers, json=update_data)
+
     # Should get a 404 error
     assert response.status_code == 404
-    
+
     # The error shouldn't cause any partial updates or side effects
     # We've verified the system handles database errors properly

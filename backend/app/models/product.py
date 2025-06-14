@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, Float, ForeignKey, DateTime, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 
 from app.db import Base
@@ -18,12 +18,16 @@ class Product(Base):
     seller_id = Column(UUID(as_uuid=True), ForeignKey(
         "users.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow,
-                        onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     # Add fields expected by tests
     is_featured = Column(Boolean, default=False)
     show_on_storefront = Column(Boolean, default=True)
     show_on_whatsapp = Column(Boolean, default=True)
-    
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey(
+        "tenants.id"), nullable=True)
+
+    # Soft delete flag
+    is_deleted = Column(Boolean, default=False)
+
     # Relationships
     complaints = relationship("Complaint", back_populates="product")

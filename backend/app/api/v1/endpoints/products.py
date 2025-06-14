@@ -221,7 +221,7 @@ async def delete_product_endpoint(
     - Returns 204 on success
     """
     try:
-        delete_product(db, product_id, user.sub)
+        await delete_product(db, product_id, user.sub)
         return None
     except ProductNotFoundError as e:
         raise HTTPException(
