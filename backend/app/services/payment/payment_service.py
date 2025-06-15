@@ -1,6 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timedelta
+import sentry_sdk
 
 from app.db.models.store import Store
 from app.db.models.order import Order
@@ -21,6 +22,8 @@ from app.core.logging import logger
 from app.core.security.payment_security import (
     generate_payment_reference, verify_payment_reference, get_tls12_session, calculate_payment_risk
 )
+from app.services.order.order_service import OrderService
+from app.main import payment_failures, webhook_errors
 
 
 class PaymentService:
@@ -143,6 +146,8 @@ class PaymentService:
             except Exception as e:
                 await self.db.rollback()
                 logger.error(f"Error initializing payment: {str(e)}")
+                sentry_sdk.capture_exception(e)
+                payment_failures.inc()
                 raise HTTPException(
                     status_code=500, detail=f"Payment initialization failed: {str(e)}")
 
@@ -213,10 +218,7 @@ class PaymentService:
                     payment.transaction_date = verification_response.transaction_date
 
                     # Update order status if payment successful
-                    order.payment_status = "PAID"
-                    order.status = "PROCESSING"
-
-                    await self.db.commit()
+                    await OrderService._update_order_status(self.db, order, "PROCESSING")
 
                     # Emit PaymentProcessedEvent
                     from app.domain.events.order_events import OrderEventFactory
@@ -237,6 +239,8 @@ class PaymentService:
                 raise
             except Exception as e:
                 logger.error(f"Error verifying payment: {str(e)}")
+                sentry_sdk.capture_exception(e)
+                payment_failures.inc()
                 raise HTTPException(
                     status_code=500, detail=f"Payment verification failed: {str(e)}")
 
@@ -308,7 +312,7 @@ class PaymentService:
                     self.db.add(new_proof)
 
                 # Update order status to indicate manual payment proof was submitted
-                order.payment_status = "PENDING_VERIFICATION"
+                await OrderService._update_order_status(self.db, order, "PENDING_VERIFICATION")
 
                 await self.db.commit()
                 return True
@@ -319,6 +323,7 @@ class PaymentService:
                 await self.db.rollback()
                 logger.error(
                     f"Error submitting manual payment proof: {str(e)}")
+                sentry_sdk.capture_exception(e)
                 raise HTTPException(
                     status_code=500, detail=f"Failed to submit payment proof: {str(e)}")
 
@@ -342,13 +347,12 @@ class PaymentService:
                     payment.verified_at = datetime.now()
 
                     # Update order status
-                    order.payment_status = "PAID"
-                    order.status = "PROCESSING"
+                    await OrderService._update_order_status(self.db, order, "PROCESSING")
                 else:
                     payment.status = PaymentStatus.FAILED.value
 
                     # Update order status
-                    order.payment_status = "FAILED"
+                    await OrderService._update_order_status(self.db, order, "FAILED")
 
                 await self.db.commit()
                 return True
@@ -358,6 +362,7 @@ class PaymentService:
             except Exception as e:
                 await self.db.rollback()
                 logger.error(f"Error confirming manual payment: {str(e)}")
+                sentry_sdk.capture_exception(e)
                 raise HTTPException(
                     status_code=500, detail=f"Failed to confirm payment: {str(e)}")
 
@@ -410,6 +415,7 @@ class PaymentService:
 
         except Exception as e:
             logger.error(f"Error getting payment settings: {str(e)}")
+            sentry_sdk.capture_exception(e)
             raise HTTPException(
                 status_code=500, detail=f"Failed to get payment settings: {str(e)}")
 
@@ -493,5 +499,6 @@ class PaymentService:
             except Exception as e:
                 await self.db.rollback()
                 logger.error(f"Error updating payment settings: {str(e)}")
+                sentry_sdk.capture_exception(e)
                 raise HTTPException(
                     status_code=500, detail=f"Failed to update payment settings: {str(e)}")

@@ -18,7 +18,20 @@ import time
 import logging
 from app.api.v1.endpoints.websocket import router as websocket_router
 import app.domain.events  # Ensure event handlers are registered
+import sentry_sdk
+from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
+from prometheus_client import make_asgi_app, Counter
+
+sentry_sdk.init(dsn="YOUR_SENTRY_DSN")
+
+# Prometheus metrics
+order_failures = Counter('order_failures', 'Number of failed order creations')
+payment_failures = Counter('payment_failures', 'Number of failed payments')
+webhook_errors = Counter('webhook_errors', 'Number of webhook errors')
+
 # Custom security headers middleware implementation
+
+
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, headers):
         super().__init__(app)
@@ -31,6 +44,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             response.headers[header_name] = header_value
         return response
 # Custom compression middleware implementation
+
+
 class CompressionMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, **options):
         super().__init__(app)
@@ -41,6 +56,7 @@ class CompressionMiddleware(BaseHTTPMiddleware):
         # content compression based on Accept-Encoding headers
         response = await call_next(request)
         return response
+
 
 # Configure logging
 logging.basicConfig(
@@ -323,6 +339,12 @@ def create_app() -> FastAPI:
                 "api_version": settings.API_V1_STR
             }
         }
+
+    # Add Prometheus metrics endpoint
+    app.mount("/metrics", make_asgi_app())
+
+    # Wrap app with Sentry middleware
+    app = SentryAsgiMiddleware(app)
 
     return app
 

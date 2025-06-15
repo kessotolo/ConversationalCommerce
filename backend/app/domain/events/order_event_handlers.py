@@ -9,8 +9,19 @@ from app.domain.events.order_events import (
 )
 from app.domain.events.event_bus import get_event_bus
 from app.core.notifications.notification_service import NotificationService, Notification, NotificationChannel
+from app.models.product import Product
+from sqlalchemy import update
+from app.services.order_service import OrderService
 
 logger = logging.getLogger(__name__)
+
+"""
+Developer Note: Event Flow
+-------------------------
+All order lifecycle changes (creation, payment, status change, cancellation, refund) emit domain events via the event bus.
+Handlers are registered for each event type to perform side effects (notifications, analytics, inventory deduction, etc.).
+Never update order status or perform side effects directly in service logic—always use events and handlers for extensibility and auditability.
+"""
 
 
 async def handle_order_created(event: OrderCreatedEvent):
@@ -26,7 +37,11 @@ async def handle_order_created(event: OrderCreatedEvent):
         metadata={"order_id": event.order_id}
     )
     service = NotificationService()
-    await service.send_notification(notification)
+    try:
+        await service.send_notification(notification)
+    except Exception as e:
+        logger.error(
+            f"Notification sending failed for order {event.order_id}: {str(e)}")
 
     # 2. Log analytics (placeholder: log to logger)
     logger.info(
@@ -50,7 +65,11 @@ async def handle_order_status_changed(event: OrderStatusChangedEvent):
         metadata={"order_id": event.order_id, "new_status": event.new_status}
     )
     service = NotificationService()
-    await service.send_notification(notification)
+    try:
+        await service.send_notification(notification)
+    except Exception as e:
+        logger.error(
+            f"Notification sending failed for order {event.order_id}: {str(e)}")
 
     # 2. Log analytics
     logger.info(
@@ -75,7 +94,11 @@ async def handle_order_shipped(event: OrderShippedEvent):
                   "tracking_number": event.tracking_number}
     )
     service = NotificationService()
-    await service.send_notification(notification)
+    try:
+        await service.send_notification(notification)
+    except Exception as e:
+        logger.error(
+            f"Notification sending failed for order {event.order_id}: {str(e)}")
 
     # 2. Log analytics
     logger.info(
@@ -100,7 +123,11 @@ async def handle_order_delivered(event: OrderDeliveredEvent):
                   "delivery_date": str(event.delivery_date)}
     )
     service = NotificationService()
-    await service.send_notification(notification)
+    try:
+        await service.send_notification(notification)
+    except Exception as e:
+        logger.error(
+            f"Notification sending failed for order {event.order_id}: {str(e)}")
 
     # 2. Log analytics
     logger.info(
@@ -125,7 +152,11 @@ async def handle_order_cancelled(event: OrderCancelledEvent):
                   "reason": event.cancellation_reason}
     )
     service = NotificationService()
-    await service.send_notification(notification)
+    try:
+        await service.send_notification(notification)
+    except Exception as e:
+        logger.error(
+            f"Notification sending failed for order {event.order_id}: {str(e)}")
 
     # 2. Log analytics
     logger.info(
@@ -150,7 +181,11 @@ async def handle_payment_processed(event: PaymentProcessedEvent):
                   "transaction_id": event.transaction_id}
     )
     service = NotificationService()
-    await service.send_notification(notification)
+    try:
+        await service.send_notification(notification)
+    except Exception as e:
+        logger.error(
+            f"Notification sending failed for order {event.order_id}: {str(e)}")
 
     # 2. Log analytics
     logger.info(
@@ -160,6 +195,32 @@ async def handle_payment_processed(event: PaymentProcessedEvent):
     logger.info(
         f"[Fulfillment] Release order for fulfillment after payment {event.order_id}")
 
+
+async def handle_inventory_deduction(event):
+    """Deduct inventory for products in the order when an order is created or paid."""
+    db = event.order._sa_instance_state.session if hasattr(
+        event.order, '_sa_instance_state') else None
+    if not db:
+        logging.error("No DB session found for inventory deduction.")
+        return
+    try:
+        for item in getattr(event.order, 'items', []):
+            product_id = getattr(item, 'product_id', None)
+            quantity = getattr(item, 'quantity', 1)
+            if product_id:
+                await db.execute(
+                    update(Product)
+                    .where(Product.id == product_id)
+                    .values(inventory_quantity=Product.inventory_quantity - quantity)
+                )
+        await db.commit()
+        logging.info(f"Inventory deducted for order {event.order.id}")
+    except Exception as e:
+        await db.rollback()
+        logging.error(
+            f"Inventory deduction failed for order {event.order.id}: {str(e)}")
+
+
 # Register the handlers
 get_event_bus().subscribe('ORDER_CREATED', handle_order_created)
 get_event_bus().subscribe('ORDER_STATUS_CHANGED', handle_order_status_changed)
@@ -167,3 +228,5 @@ get_event_bus().subscribe('ORDER_SHIPPED', handle_order_shipped)
 get_event_bus().subscribe('ORDER_DELIVERED', handle_order_delivered)
 get_event_bus().subscribe('ORDER_CANCELLED', handle_order_cancelled)
 get_event_bus().subscribe('PAYMENT_PROCESSED', handle_payment_processed)
+get_event_bus().subscribe('ORDER_CREATED', handle_inventory_deduction)
+get_event_bus().subscribe('PAYMENT_PROCESSED', handle_inventory_deduction)

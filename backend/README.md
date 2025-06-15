@@ -1039,3 +1039,26 @@ cp backend/.env.example backend/.env.test
 ```
 
 - The backend config loader will automatically pick up `.env.test` if you run commands from `backend/`.
+
+## Monitoring, Alerting, and Event-Driven Architecture
+
+### Sentry & Prometheus Setup
+- Sentry is integrated for error monitoring. Set the `SENTRY_DSN` environment variable to enable error reporting.
+- Prometheus metrics are exposed at `/metrics`. Use Prometheus to scrape this endpoint for metrics like `order_failures`, `payment_failures`, and `webhook_errors`.
+- Alerting: Configure Prometheus Alertmanager to trigger alerts on high failure rates or error spikes.
+
+### Event System & Handler Registration
+- All order lifecycle changes emit domain events via the event bus (`EventBus`).
+- Handlers are registered for each event type in `order_event_handlers.py`.
+- Never update order status or perform side effects directly in service logic—always use events and handlers for extensibility and auditability.
+
+### Monitoring & Alerting for Ops
+- Monitor `/metrics` for failure counters and set up alerts for spikes.
+- Sentry will capture and report all unhandled exceptions and critical errors.
+- WhatsApp alerting is available for critical events (see frontend/docs/WHATSAPP_ALERTING.md).
+
+### Developer Onboarding: Event-Driven Patterns
+- Use the centralized `_update_order_status` method for all order status changes.
+- Register new event handlers in `order_event_handlers.py` and subscribe them to the event bus.
+- All side effects (notifications, inventory, analytics) should be implemented as event handlers, not inline in service logic.
+- See `test_order_event_handlers.py` for examples of handler testing and isolation.
