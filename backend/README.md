@@ -1,5 +1,18 @@
 # Backend Service for Conversational Commerce Platform
 
+## 📚 Documentation
+
+- [Documentation Index](./docs/index.md) - Complete documentation index
+- [Getting Started Guide](./docs/getting_started.md) - Setup and first steps
+- [API Reference](./docs/api/index.md) - API documentation
+
+### Key Guides
+- [Checkout Flow](./docs/guides/checkout_flow.md) - Unified checkout for web & chat
+- [Chat NLP Flow](./docs/guides/chat_nlp_flow.md) - Conversation handling
+- [Error Handling](./docs/guides/error_handling.md) - Error recovery & logging
+- [Order Service](./docs/guides/order_service_guide.md) - Order management
+- [Payment Integration](./docs/guides/payment_integration.md) - Payment processing
+
 ## 🚀 Our Core: Commerce in Conversation
 
 The backend is architected to make commerce in conversation the default. All APIs, business logic, and analytics are designed to work seamlessly in chat (WhatsApp, IG, TikTok, etc.) as well as on the web. The webapp is a complement, but the heart of the platform is enabling every commerce action—discovery, cart, upsell, checkout, payment—through natural conversation, just as Africans do commerce every day.
@@ -129,7 +142,33 @@ If you encounter NLP-related errors:
 
 3. The application will still function with limited NLP capabilities if models cannot be loaded
 
----
+## 💬 Conversational Checkout Flow Engine (2025-06)
+
+The backend now includes a robust, stateful chat flow engine for conversational checkout, integrated with WhatsApp and extensible to SMS, Telegram, and other channels.
+
+### How It Works
+- All incoming WhatsApp messages are routed through the chat flow engine unless they are cart/order intents.
+- The engine guides the buyer through a step-by-step checkout: name → phone → address → payment method → confirm.
+- Input is validated at each step, with retry and error handling.
+- Buyers can edit or cancel at any step using natural language.
+- On confirmation, the engine creates an order from the user's cart and generates a real payment link using the selected provider (Paystack, M-Pesa, Flutterwave, Stripe, etc.).
+- All state and context are persisted in ConversationHistory for audit and analytics.
+
+### Key Files
+- `app/conversation/chat_flow_engine.py`: Core chat flow logic
+- `app/api/v1/endpoints/whatsapp.py`: WhatsApp webhook integration
+- `app/services/order_service.py`: Order creation from chat/cart
+- `app/services/payment/payment_service.py`: Payment link generation
+
+### Extending to Other Channels
+- The chat flow engine is channel-agnostic; integrate with SMS, Telegram, etc. by routing their webhooks through the same engine.
+- Use the `ChannelType` and `SenderType` enums for channel-specific handling.
+
+### Logging & Monitoring
+- All chat flow transitions, validation errors, order creation, and payment events are logged for debugging and monitoring.
+
+### Testing
+- The flow can be tested via WhatsApp sandbox, API scripts, or by inspecting the database for created orders, payments, and conversation history.
 
 ## 🏪 Multi-Tenant Storefront System (2025-05-28)
 
@@ -998,122 +1037,4 @@ This will drop, recreate, and migrate your local DB using Alembic.
 
 ## 🧪 Testing Best Practices
 - Always use async fixtures and set tenant context for any test that touches tenant data.
-- Use the `test_tenant` fixture in all relevant tests.
-- Ensure test isolation: tests should not leak data between tenants or between test runs.
-- Test RLS by verifying that data is only visible to the correct tenant.
-- See docs/architecture.md for more on test isolation and patterns.
-
-## 🛡️ Error Response Format
-- All API error responses use a standardized format:
-  ```json
-  { "detail": "Error message here" }
-  ```
-- See backend/docs/api/orders.md for more details and examples.
-
-## ➕ How to Add a New Tenant-Aware Feature
-- Use the async DB session and ensure tenant context is set via middleware/dependency.
-- Access tenant_id from request.state or via dependency injection.
-- Never set tenant context in the service or endpoint directly.
-- For new endpoints, follow the patterns in existing endpoints and services.
-- For more, see docs/architecture.md and backend/app/api/v1/endpoints/orders.py.
-
-## Environment File Management (Best Practice)
-
-- All backend environment files (e.g., `.env`, `.env.test`, `.env.local`) **must be kept in the `backend/` directory**.
-- Do **not** place backend env files at the project root or in other module directories.
-- This keeps backend configuration isolated and respects module boundaries.
-- All backend commands (tests, migrations, server) should be run from the `backend/` directory:
-
-```sh
-cd backend
-source venv/bin/activate
-pytest
-# or
-uvicorn app.main:app --reload
-```
-
-- If you need to create a new environment file, copy from the example:
-
-```sh
-cp backend/.env.example backend/.env.test
-```
-
-- The backend config loader will automatically pick up `.env.test` if you run commands from `backend/`.
-
-## Monitoring, Alerting, and Event-Driven Architecture
-
-### Sentry & Prometheus Setup
-- Sentry is integrated for error monitoring. Set the `SENTRY_DSN` environment variable to enable error reporting.
-- Prometheus metrics are exposed at `/metrics`. Use Prometheus to scrape this endpoint for metrics like `order_failures`, `payment_failures`, and `webhook_errors`.
-- Alerting: Configure Prometheus Alertmanager to trigger alerts on high failure rates or error spikes.
-
-### Event System & Handler Registration
-- All order lifecycle changes emit domain events via the event bus (`EventBus`).
-- Handlers are registered for each event type in `order_event_handlers.py`.
-- Never update order status or perform side effects directly in service logic—always use events and handlers for extensibility and auditability.
-
-### Monitoring & Alerting for Ops
-- Monitor `/metrics` for failure counters and set up alerts for spikes.
-- Sentry will capture and report all unhandled exceptions and critical errors.
-- WhatsApp alerting is available for critical events (see frontend/docs/WHATSAPP_ALERTING.md).
-
-### Developer Onboarding: Event-Driven Patterns
-- Use the centralized `_update_order_status` method for all order status changes.
-- Register new event handlers in `order_event_handlers.py` and subscribe them to the event bus.
-- All side effects (notifications, inventory, analytics) should be implemented as event handlers, not inline in service logic.
-- See `test_order_event_handlers.py` for examples of handler testing and isolation.
-
-## Analytics Logging, Fulfillment, and Alerting (2024-06)
-- **Structured analytics logging**: All key events (order, payment, status changes) are logged as structured JSON (see `order_event_handlers.py`, `analytics_log_event`).
-- **Event-driven fulfillment workflow**: Shipping and delivery are handled by a fulfillment event handler (see `order_event_handlers.py`, `handle_fulfillment`). Ready for integration with real fulfillment providers.
-- **Actionable alerting**: Email/WhatsApp alert stubs are called for critical failures (see `rules_engine.py`, `send_alert_via_email`, `send_alert_via_whatsapp`). Replace stubs with real integrations as needed.
-- **All code is ready for integration** with real analytics, fulfillment, and alerting systems. See code comments for extension points.
-
-## API Versioning & Migration (2024-06)
-- All breaking changes to the API are introduced under `/api/v2/` endpoints
-- `/api/v2/orders/` and other v2 endpoints are available for new or breaking changes
-- v1 endpoints are maintained for backward compatibility
-- See `backend/app/api/v2/endpoints/orders.py` for implementation examples
-- Migration plan: maintain v1 for backward compatibility; notify consumers of v2 changes in advance
-
-For a comprehensive guide on our API versioning strategy, including:
-- When to create a new API version
-- Implementation guidelines
-- Maintenance policy
-- Migration procedures for both API consumers and developers
-- Best practices and examples
-
-Please refer to [API Versioning Strategy Documentation](./docs/api/api_versioning.md)
-
-## M-Pesa Integration & USSD Fallback
-- M-Pesa (Daraja) is now supported as a payment provider, including STK Push and USSD fallback.
-- `/api/webhook/mpesa` endpoint processes M-Pesa callbacks.
-- USSD fallback code is included in the payment initialization response metadata.
-
-## Payment Status Mapping
-- All payment providers now map external statuses to the internal `PaymentStatus` enum using a standard mapping utility.
-
-## Testing
-- New/updated tests are required for:
-  - M-Pesa payment initialization and webhook callback
-  - USSD fallback logic
-  - Payment status mapping for all providers
-  - Mock callbacks for Paystack, Flutterwave, and M-Pesa
-
-## Stripe Integration (2024-06)
-- Stripe is now supported as an optional payment provider.
-- `/api/webhook/stripe` endpoint processes Stripe webhooks (e.g., payment_intent.succeeded).
-- Payment initialization returns a client_secret for frontend SDK use.
-- Status mapping is standardized for Stripe events.
-- See PaymentProvider.STRIPE and StripeProvider in code for details.
-
-## Paystack & Flutterwave Enhancements
-- All payment channels/types (card, bank, USSD, mobile money) are supported where available.
-- Error handling and logging improved for all providers.
-- Credentials are loaded securely per store/tenant (update env/config as needed).
-- See PaymentProvider and provider classes for details.
-
-## Frontend Integration Notes
-- For Stripe, use the client_secret from payment initialization with Stripe.js or mobile SDKs.
-- For Paystack/Flutterwave, use the returned checkout/payment link or integrate with their JS SDKs.
-- Ensure webhooks are configured in provider dashboards to point to the correct backend endpoints.
+- Use the `test_tenant`
