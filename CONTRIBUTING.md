@@ -28,6 +28,14 @@ Thank you for contributing! Please follow these guidelines to ensure code qualit
 - Follow the thin-endpoint, service-centric pattern.
 - Reference backend/README.md and docs/architecture.md for patterns and best practices.
 
+## 🔄 API Versioning Guidelines
+- **When to version:** Create a new version when making breaking changes to existing endpoints.
+- **How to version:** Place new API endpoints in the `/api/v2/` directory structure.
+- **Backward compatibility:** Never modify existing v1 endpoints in ways that break compatibility.
+- **Documentation:** Update documentation for both v1 and v2 versions when adding new functionality.
+- **Reference:** Follow the detailed guidelines in [backend/docs/api/api_versioning.md](backend/docs/api/api_versioning.md).
+- **Testing:** Write tests for both v1 and v2 endpoints to ensure proper functionality.
+
 ## 📚 References
 - [backend/README.md](backend/README.md)
 - [docs/architecture.md](docs/architecture.md)

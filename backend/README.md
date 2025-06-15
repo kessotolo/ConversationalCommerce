@@ -1070,11 +1070,20 @@ cp backend/.env.example backend/.env.test
 - **All code is ready for integration** with real analytics, fulfillment, and alerting systems. See code comments for extension points.
 
 ## API Versioning & Migration (2024-06)
-- All breaking changes to the API are introduced under `/api/v2/` endpoints.
-- `/api/v2/orders/` and other v2 endpoints are available for new or breaking changes.
-- v1 endpoints are maintained for backward compatibility.
-- See `backend/app/api/v2/endpoints/orders.py` for details.
-- Migration plan: maintain v1 for backward compatibility; notify consumers of v2 changes in advance.
+- All breaking changes to the API are introduced under `/api/v2/` endpoints
+- `/api/v2/orders/` and other v2 endpoints are available for new or breaking changes
+- v1 endpoints are maintained for backward compatibility
+- See `backend/app/api/v2/endpoints/orders.py` for implementation examples
+- Migration plan: maintain v1 for backward compatibility; notify consumers of v2 changes in advance
+
+For a comprehensive guide on our API versioning strategy, including:
+- When to create a new API version
+- Implementation guidelines
+- Maintenance policy
+- Migration procedures for both API consumers and developers
+- Best practices and examples
+
+Please refer to [API Versioning Strategy Documentation](./docs/api/api_versioning.md)
 
 ## M-Pesa Integration & USSD Fallback
 - M-Pesa (Daraja) is now supported as a payment provider, including STK Push and USSD fallback.
