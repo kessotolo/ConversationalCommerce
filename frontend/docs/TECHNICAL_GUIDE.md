@@ -914,3 +914,8 @@ The following considerations are critical during the build and deployment proces
 ### Analytics, Fulfillment, and Alerting (2024-06)
 - Analytics logging is now structured (JSON), fulfillment is event-driven, and alerting is actionable and ready for real integration.
 - See backend/README.md and MONITORING.md for details.
+
+## API Versioning (2024-06)
+- The backend supports API versioning for all breaking changes.
+- `/api/v2/orders/` and other v2 endpoints are available for new or breaking changes.
+- See backend/README.md for migration plan and technical details.

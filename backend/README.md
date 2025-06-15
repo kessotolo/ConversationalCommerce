@@ -1071,7 +1071,8 @@ cp backend/.env.example backend/.env.test
 
 ## API Versioning & Migration (2024-06)
 - All breaking changes to the API are introduced under `/api/v2/` endpoints.
-- `/api/v2/orders/` is now available and reuses v1 logic for now. Update v2 endpoints for future breaking changes.
+- `/api/v2/orders/` and other v2 endpoints are available for new or breaking changes.
+- v1 endpoints are maintained for backward compatibility.
 - See `backend/app/api/v2/endpoints/orders.py` for details.
 - Migration plan: maintain v1 for backward compatibility; notify consumers of v2 changes in advance.
 

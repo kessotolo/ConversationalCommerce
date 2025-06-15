@@ -749,3 +749,9 @@ import NotificationCenter from 'src/components/monitoring/NotificationCenter';
 - The backend is now fully event-driven and monitored with Sentry and Prometheus. All order, payment, and webhook failures are tracked and alertable.
 - Frontend monitoring and alerting (NotificationCenter, WhatsApp alerts) are fully integrated with backend events and metrics.
 - See backend/README.md and frontend/docs/MONITORING.md for details.
+
+## Backend API Versioning (2024-06)
+- The backend supports API versioning for all breaking changes.
+- `/api/v2/orders/` and other v2 endpoints are available for new or breaking changes.
+- Frontend should consume v2 endpoints for new features or breaking changes.
+- See backend/README.md for details.

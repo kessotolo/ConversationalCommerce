@@ -1,4 +1,4 @@
-import {
+import type {
   PaymentInitializeRequest,
   PaymentInitializeResponse,
   PaymentProvider,
@@ -6,7 +6,8 @@ import {
   ManualPaymentProof,
   PaymentSettings,
 } from '../models/payment';
-import { Result } from '@/modules/core/models/base/result';
+import { StripeProvider } from './providers/StripeProvider';
+import type { Result } from '@/modules/core/models/base/result';
 
 /**
  * Payment service interface for handling payments across different providers
@@ -216,3 +217,6 @@ export class HttpPaymentService implements PaymentService {
     }
   }
 }
+
+// Document: To use Stripe, instantiate StripeProvider with your public key and use initializePayment and createPaymentWidget.
+// For sandbox/testing, use test keys for Paystack, Flutterwave, and Stripe.
