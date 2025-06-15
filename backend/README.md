@@ -1062,3 +1062,9 @@ cp backend/.env.example backend/.env.test
 - Register new event handlers in `order_event_handlers.py` and subscribe them to the event bus.
 - All side effects (notifications, inventory, analytics) should be implemented as event handlers, not inline in service logic.
 - See `test_order_event_handlers.py` for examples of handler testing and isolation.
+
+## Analytics Logging, Fulfillment, and Alerting (2024-06)
+- **Structured analytics logging**: All key events (order, payment, status changes) are logged as structured JSON (see `order_event_handlers.py`, `analytics_log_event`).
+- **Event-driven fulfillment workflow**: Shipping and delivery are handled by a fulfillment event handler (see `order_event_handlers.py`, `handle_fulfillment`). Ready for integration with real fulfillment providers.
+- **Actionable alerting**: Email/WhatsApp alert stubs are called for critical failures (see `rules_engine.py`, `send_alert_via_email`, `send_alert_via_whatsapp`). Replace stubs with real integrations as needed.
+- **All code is ready for integration** with real analytics, fulfillment, and alerting systems. See code comments for extension points.

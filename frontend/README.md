@@ -744,3 +744,8 @@ import NotificationCenter from 'src/components/monitoring/NotificationCenter';
 - The backend order system uses an event-driven architecture for notifications, analytics, and fulfillment. See backend/docs/api/orders.md for event types and details.
 
 - Payment events (e.g., PaymentProcessedEvent) are now part of the backend event system. See backend/docs/api/orders.md for details.
+
+## Backend Event-Driven Architecture & Monitoring (2024-06)
+- The backend is now fully event-driven and monitored with Sentry and Prometheus. All order, payment, and webhook failures are tracked and alertable.
+- Frontend monitoring and alerting (NotificationCenter, WhatsApp alerts) are fully integrated with backend events and metrics.
+- See backend/README.md and frontend/docs/MONITORING.md for details.

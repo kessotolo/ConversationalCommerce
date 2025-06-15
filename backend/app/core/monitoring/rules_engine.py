@@ -216,6 +216,18 @@ class RulesEngine:
         if success:
             self.notification_cooldowns[rule.id] = datetime.now(timezone.utc)
 
+        # For demonstration, send alerts for critical events
+        if rule.severity in [RuleSeverity.CRITICAL, RuleSeverity.HIGH]:
+            send_alert_via_email(
+                subject=f"ALERT: {rule.name}",
+                message=f"Rule triggered: {rule.name} for activity {activity.get('id')}"
+            )
+            send_alert_via_whatsapp(
+                number="+1234567890",  # Replace with real recipient
+                message=f"ALERT: {rule.name} triggered for activity {activity.get('id')}"
+            )
+        # In production, replace stubs with real integrations
+
     def _get_cooldown_period(self, severity: RuleSeverity) -> timedelta:
         """Get notification cooldown period based on severity"""
         cooldowns = {
@@ -261,6 +273,16 @@ Rule Description:
 
 Please review this activity and take appropriate action if necessary.
 """
+
+
+def send_alert_via_email(subject, message):
+    # Stub: Replace with real email integration
+    print(f"[ALERT][EMAIL] {subject}: {message}")
+
+
+def send_alert_via_whatsapp(number, message):
+    # Stub: Replace with real WhatsApp integration
+    print(f"[ALERT][WHATSAPP] {number}: {message}")
 
 
 # Create global instance

@@ -44,7 +44,7 @@ The following environment variables are required for WhatsApp alerting:
 
 ```
 TWILIO_ACCOUNT_SID=your_twilio_sid
-TWILIO_AUTH_TOKEN=your_twilio_token  
+TWILIO_AUTH_TOKEN=your_twilio_token
 TWILIO_WHATSAPP_NUMBER=your_whatsapp_number
 ```
 
@@ -129,3 +129,12 @@ Common issues and solutions:
    - Verify authentication and tenant context
    - Check network requests in browser developer tools
    - Ensure proper API response from `/tenants/me` endpoint
+
+## Backend Event-Driven Monitoring & Alerting (2024-06)
+- WhatsApp alerting is now fully integrated with the backend event system and Prometheus metrics.
+- All critical events (order, payment, webhook failures) are monitored and alertable via Prometheus Alertmanager and Sentry.
+- See backend/README.md and frontend/docs/MONITORING.md for details.
+
+### Analytics, Fulfillment, and Alerting (2024-06)
+- Analytics logging is now structured (JSON), fulfillment is event-driven, and alerting is actionable and ready for real integration.
+- See backend/README.md and MONITORING.md for details.

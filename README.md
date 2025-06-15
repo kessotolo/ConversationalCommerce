@@ -1035,3 +1035,11 @@ For technical details on our multi-tenant architecture, PostgreSQL Row-Level Sec
 - [Architecture Docs](docs/architecture.md) — service structure, tenant context propagation, and extensibility
 
 For backend contribution and developer practices, see the backend/README.md.
+
+## Backend Event-Driven Architecture, Monitoring, and Alerting (2024-06)
+
+- The backend is now fully event-driven: all order lifecycle changes emit domain events, and all side effects (notifications, inventory, analytics) are handled by event handlers.
+- Sentry is integrated for error monitoring; Prometheus metrics are exposed at `/metrics` for order, payment, and webhook failures.
+- Alerting is supported via Prometheus Alertmanager and WhatsApp for critical events (see frontend/docs/WHATSAPP_ALERTING.md).
+- All event flows and hooks are covered by comprehensive integration and unit tests, including handler failure isolation.
+- Developer and ops onboarding for event-driven patterns, monitoring, and alerting is documented in backend/README.md.

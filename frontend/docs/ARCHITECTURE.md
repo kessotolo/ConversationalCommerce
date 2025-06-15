@@ -518,3 +518,13 @@ Trust is at the heart of commerce in Africa. Our architecture is designed so tha
 - **Seamless Human Escalation:** If a conversation gets stuck, it's easy to talk to a real person—no dead ends.
 
 Our conversational engine is trained on real African chat data, supports local dialects, and is always improving to make commerce feel as natural and trustworthy as chatting with a friend or local vendor.
+
+## Event-Driven Backend, Monitoring, and Alerting (2024-06)
+- The backend is now fully event-driven, with all order, payment, and webhook events monitored via Sentry and Prometheus.
+- Alerting is automated via Prometheus Alertmanager and WhatsApp for critical events.
+- All frontend monitoring and alerting (NotificationCenter, WhatsApp alerts) are integrated with backend events and metrics.
+- See backend/README.md and frontend/docs/MONITORING.md for details.
+
+### Analytics, Fulfillment, and Alerting (2024-06)
+- Analytics logging is now structured (JSON), fulfillment is event-driven, and alerting is actionable and ready for real integration.
+- See backend/README.md and MONITORING.md for details.

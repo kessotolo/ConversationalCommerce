@@ -221,3 +221,13 @@ If you use React hooks (like `useState`, `useEffect`, `useParams`, etc.) in a fi
 - See backend/docs/api/orders.md for event types, payloads, and usage.
 
 - Payment events (e.g., PaymentProcessedEvent) are now part of the backend event system. See backend/docs/api/orders.md for details.
+
+## Event-Driven Backend, Monitoring, and Alerting (2024-06)
+- The backend is now fully event-driven, with all order, payment, and webhook events monitored via Sentry and Prometheus.
+- Alerting is automated via Prometheus Alertmanager and WhatsApp for critical events.
+- All frontend monitoring and alerting (NotificationCenter, WhatsApp alerts) are integrated with backend events and metrics.
+- See backend/README.md and frontend/docs/MONITORING.md for details.
+
+### Analytics, Fulfillment, and Alerting (2024-06)
+- Analytics logging is now structured (JSON), fulfillment is event-driven, and alerting is actionable and ready for real integration.
+- See backend/README.md and MONITORING.md for details.

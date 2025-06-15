@@ -94,12 +94,12 @@ class Order {
   shippingDetails: ShippingDetails;
   paymentDetails: PaymentDetails;
   totalAmount: Money;
-  
+
   // Domain methods
   canBeCancelled(): boolean {
     return [OrderStatus.PENDING, OrderStatus.PAID].includes(this.status);
   }
-  
+
   calculateTotal(): Money {
     // Business logic for calculating totals including tax, shipping, etc.
   }
@@ -159,13 +159,13 @@ CREATE TABLE orders (
   currency TEXT NOT NULL,
   idempotency_key UUID UNIQUE,
   metadata JSONB,
-  
+
   -- Encrypted PII
   customer_info BYTEA, -- Encrypted customer info
   shipping_address BYTEA, -- Encrypted shipping address
-  
+
   CONSTRAINT valid_status CHECK (status IN (
-    'PENDING', 'PAID', 'PROCESSING', 'SHIPPED', 
+    'PENDING', 'PAID', 'PROCESSING', 'SHIPPED',
     'DELIVERED', 'CANCELLED', 'REFUNDED', 'FAILED'
   ))
 );
@@ -195,7 +195,7 @@ CREATE TABLE order_timelines (
 
 ### Phase 2: Core Services Implementation
 - Implement OrderService with transactional processing
-- Build PaymentService with support for multiple payment methods 
+- Build PaymentService with support for multiple payment methods
 - Create InventoryService for stock validation and reservation
 - Develop NotificationService for multi-channel alerts
 - Set up event handlers for order lifecycle events
@@ -312,3 +312,7 @@ The unified checkout system will integrate with our existing architecture:
 - Optimized for low-bandwidth and intermittent connectivity
 - Local state persistence for offline resilience
 - Minimal payload sizes for WhatsApp communication
+
+### Analytics, Fulfillment, and Alerting (2024-06)
+- Analytics logging is now structured (JSON), fulfillment is event-driven, and alerting is actionable and ready for real integration.
+- See backend/README.md and MONITORING.md for details.

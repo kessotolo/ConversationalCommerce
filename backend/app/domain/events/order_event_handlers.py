@@ -12,6 +12,7 @@ from app.core.notifications.notification_service import NotificationService, Not
 from app.models.product import Product
 from sqlalchemy import update
 from app.services.order_service import OrderService
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,12 @@ All order lifecycle changes (creation, payment, status change, cancellation, ref
 Handlers are registered for each event type to perform side effects (notifications, analytics, inventory deduction, etc.).
 Never update order status or perform side effects directly in service logic—always use events and handlers for extensibility and auditability.
 """
+
+
+def analytics_log_event(event_type, **kwargs):
+    """Log structured analytics event as JSON."""
+    log_data = {"event_type": event_type, **kwargs}
+    logger.info("[Analytics] %s", json.dumps(log_data))
 
 
 async def handle_order_created(event: OrderCreatedEvent):
@@ -44,8 +51,8 @@ async def handle_order_created(event: OrderCreatedEvent):
             f"Notification sending failed for order {event.order_id}: {str(e)}")
 
     # 2. Log analytics (placeholder: log to logger)
-    logger.info(
-        f"[Analytics] Order created: {event.order_id} value={event.order.total_amount.amount} currency={event.order.total_amount.currency}")
+    analytics_log_event("OrderCreated", order_id=event.order_id,
+                        value=event.order.total_amount.amount, currency=event.order.total_amount.currency)
 
     # 3. Trigger fulfillment workflow (placeholder)
     logger.info(
@@ -72,8 +79,8 @@ async def handle_order_status_changed(event: OrderStatusChangedEvent):
             f"Notification sending failed for order {event.order_id}: {str(e)}")
 
     # 2. Log analytics
-    logger.info(
-        f"[Analytics] Order status changed: {event.order_id} {event.previous_status} → {event.new_status}")
+    analytics_log_event("OrderStatusChanged", order_id=event.order_id,
+                        previous_status=event.previous_status, new_status=event.new_status)
 
     # 3. Fulfillment/side effects
     logger.info(
@@ -101,8 +108,8 @@ async def handle_order_shipped(event: OrderShippedEvent):
             f"Notification sending failed for order {event.order_id}: {str(e)}")
 
     # 2. Log analytics
-    logger.info(
-        f"[Analytics] Order shipped: {event.order_id} tracking={event.tracking_number}")
+    analytics_log_event("OrderShipped", order_id=event.order_id,
+                        tracking_number=event.tracking_number)
 
     # 3. Fulfillment/side effects
     logger.info(
@@ -130,8 +137,8 @@ async def handle_order_delivered(event: OrderDeliveredEvent):
             f"Notification sending failed for order {event.order_id}: {str(e)}")
 
     # 2. Log analytics
-    logger.info(
-        f"[Analytics] Order delivered: {event.order_id} delivered_at={event.delivery_date}")
+    analytics_log_event("OrderDelivered", order_id=event.order_id,
+                        delivery_date=event.delivery_date)
 
     # 3. Fulfillment/side effects
     logger.info(
@@ -159,8 +166,8 @@ async def handle_order_cancelled(event: OrderCancelledEvent):
             f"Notification sending failed for order {event.order_id}: {str(e)}")
 
     # 2. Log analytics
-    logger.info(
-        f"[Analytics] Order cancelled: {event.order_id} reason={event.cancellation_reason}")
+    analytics_log_event("OrderCancelled", order_id=event.order_id,
+                        reason=event.cancellation_reason)
 
     # 3. Fulfillment/side effects
     logger.info(
@@ -188,8 +195,8 @@ async def handle_payment_processed(event: PaymentProcessedEvent):
             f"Notification sending failed for order {event.order_id}: {str(e)}")
 
     # 2. Log analytics
-    logger.info(
-        f"[Analytics] Payment processed: {event.order_id} transaction_id={event.transaction_id} amount={event.amount}")
+    analytics_log_event("PaymentProcessed", order_id=event.order_id,
+                        transaction_id=event.transaction_id, amount=event.amount)
 
     # 3. Fulfillment/side effects
     logger.info(
@@ -221,6 +228,19 @@ async def handle_inventory_deduction(event):
             f"Inventory deduction failed for order {event.order.id}: {str(e)}")
 
 
+async def handle_fulfillment(event):
+    """Simulate fulfillment workflow integration for shipping and delivery events."""
+    if hasattr(event, 'order_id'):
+        if getattr(event, 'event_type', None) == 'ORDER_SHIPPED':
+            logger.info(
+                f"[Fulfillment] Order {event.order_id} shipped. Notifying warehouse/shipping provider.")
+            # Simulate integration with fulfillment provider here
+        elif getattr(event, 'event_type', None) == 'ORDER_DELIVERED':
+            logger.info(
+                f"[Fulfillment] Order {event.order_id} delivered. Completing fulfillment.")
+            # Simulate post-delivery actions here
+
+
 # Register the handlers
 get_event_bus().subscribe('ORDER_CREATED', handle_order_created)
 get_event_bus().subscribe('ORDER_STATUS_CHANGED', handle_order_status_changed)
@@ -230,3 +250,12 @@ get_event_bus().subscribe('ORDER_CANCELLED', handle_order_cancelled)
 get_event_bus().subscribe('PAYMENT_PROCESSED', handle_payment_processed)
 get_event_bus().subscribe('ORDER_CREATED', handle_inventory_deduction)
 get_event_bus().subscribe('PAYMENT_PROCESSED', handle_inventory_deduction)
+get_event_bus().subscribe('ORDER_SHIPPED', handle_fulfillment)
+get_event_bus().subscribe('ORDER_DELIVERED', handle_fulfillment)
+
+"""
+Fulfillment Orchestration:
+- Fulfillment steps (shipping, delivery) are triggered by events (ORDER_SHIPPED, ORDER_DELIVERED).
+- The handle_fulfillment handler simulates integration with a fulfillment provider (e.g., warehouse, shipping API).
+- To extend, implement real API calls or queue jobs in this handler.
+"""
