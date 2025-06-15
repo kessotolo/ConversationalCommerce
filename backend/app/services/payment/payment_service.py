@@ -522,6 +522,13 @@ class PaymentService:
                 "Success": "COMPLETED",
                 "Failed": "FAILED",
                 "Pending": "PENDING"
+            },
+            "stripe": {
+                "succeeded": "COMPLETED",
+                "requires_payment_method": "FAILED",
+                "requires_action": "PENDING",
+                "processing": "PENDING",
+                "canceled": "FAILED"
             }
         }
         return mapping.get(provider.lower(), {}).get(external_status, "PENDING")

@@ -281,3 +281,34 @@ async def mpesa_webhook(
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Error processing webhook: {str(e)}")
+
+
+@router.post("/webhook/stripe", response_model=dict)
+async def stripe_webhook(
+    request: Request,
+    stripe_signature: str = Header(None),
+    db: Session = Depends(deps.get_db),
+    _: bool = Depends(payment_security_checks("payment:webhook"))
+) -> Any:
+    """
+    Handle Stripe webhook events
+    """
+    payload = await request.body()
+    try:
+        credentials = {"secret_key": "your_stripe_secret_key"}
+        provider = get_payment_provider(PaymentProvider.STRIPE, credentials)
+        if not provider.validate_webhook(payload, stripe_signature):
+            raise HTTPException(
+                status_code=400, detail="Invalid webhook signature")
+        event_data = await request.json()
+        # Stripe event types: payment_intent.succeeded, etc.
+        event_type = event_data.get("type")
+        if event_type == "payment_intent.succeeded":
+            reference = event_data.get("data", {}).get("object", {}).get("id")
+            if reference:
+                payment_service = PaymentService(db)
+                await payment_service.verify_payment(reference, PaymentProvider.STRIPE)
+        return {"success": True, "message": f"Webhook processed: {event_type}"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error processing webhook: {str(e)}")

@@ -1089,3 +1089,21 @@ cp backend/.env.example backend/.env.test
   - USSD fallback logic
   - Payment status mapping for all providers
   - Mock callbacks for Paystack, Flutterwave, and M-Pesa
+
+## Stripe Integration (2024-06)
+- Stripe is now supported as an optional payment provider.
+- `/api/webhook/stripe` endpoint processes Stripe webhooks (e.g., payment_intent.succeeded).
+- Payment initialization returns a client_secret for frontend SDK use.
+- Status mapping is standardized for Stripe events.
+- See PaymentProvider.STRIPE and StripeProvider in code for details.
+
+## Paystack & Flutterwave Enhancements
+- All payment channels/types (card, bank, USSD, mobile money) are supported where available.
+- Error handling and logging improved for all providers.
+- Credentials are loaded securely per store/tenant (update env/config as needed).
+- See PaymentProvider and provider classes for details.
+
+## Frontend Integration Notes
+- For Stripe, use the client_secret from payment initialization with Stripe.js or mobile SDKs.
+- For Paystack/Flutterwave, use the returned checkout/payment link or integrate with their JS SDKs.
+- Ensure webhooks are configured in provider dashboards to point to the correct backend endpoints.

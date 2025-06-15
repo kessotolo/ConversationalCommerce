@@ -4,10 +4,11 @@ from enum import Enum
 
 
 class PaymentProvider(str, Enum):
-    PAYSTACK = "PAYSTACK"
-    FLUTTERWAVE = "FLUTTERWAVE"
+    PAYSTACK = "paystack"
+    FLUTTERWAVE = "flutterwave"
     MANUAL = "MANUAL"
-    MPESA = "MPESA"
+    MPESA = "mpesa"
+    STRIPE = "stripe"
 
 
 class PaymentMethod(str, Enum):

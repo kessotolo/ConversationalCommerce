@@ -93,3 +93,46 @@ def test_flutterwave_webhook():
         "/api/v1/payments/webhook/flutterwave", json=payload)
     assert response.status_code == 200
     assert response.json()["success"]
+
+# Test Stripe payment initialization (mock Stripe API)
+
+
+def test_stripe_initialize_payment():
+    with patch("app.services.payment.payment_provider.requests.post") as mock_post:
+        mock_post.return_value.json.return_value = {
+            "id": "pi_123", "client_secret": "secret_abc"}
+        mock_post.return_value.raise_for_status = lambda: None
+        payload = {
+            "order_id": "order123",
+            "provider": "stripe",
+            "amount": {"value": 100, "currency": "USD"},
+            "customer_email": "test@example.com",
+            "customer_name": "Test User",
+            "metadata": {}
+        }
+        response = client.post("/api/v1/payments/initialize", json=payload)
+        assert response.status_code == 200
+        assert "client_secret" in response.json()["payment"]["metadata"]
+
+# Test Stripe webhook callback (mock request)
+
+
+def test_stripe_webhook():
+    payload = {"type": "payment_intent.succeeded",
+               "data": {"object": {"id": "pi_123"}}}
+    response = client.post("/api/v1/payments/webhook/stripe", json=payload)
+    assert response.status_code == 200
+    assert response.json()["success"]
+
+# Test Stripe status mapping
+
+
+def test_stripe_status_mapping():
+    from app.services.payment.payment_service import PaymentService
+    service = PaymentService(None)
+    assert service.map_provider_status_to_internal(
+        "stripe", "succeeded") == "COMPLETED"
+    assert service.map_provider_status_to_internal(
+        "stripe", "canceled") == "FAILED"
+    assert service.map_provider_status_to_internal(
+        "stripe", "processing") == "PENDING"
