@@ -7,6 +7,7 @@ class PaymentProvider(str, Enum):
     PAYSTACK = "PAYSTACK"
     FLUTTERWAVE = "FLUTTERWAVE"
     MANUAL = "MANUAL"
+    MPESA = "MPESA"
 
 
 class PaymentMethod(str, Enum):

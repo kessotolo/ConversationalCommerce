@@ -211,7 +211,8 @@ class PaymentService:
 
                 # Update payment status in the database
                 if verification_response.success:
-                    payment.status = PaymentStatus.COMPLETED.value
+                    payment.status = self.map_provider_status_to_internal(
+                        provider.value, verification_response.status)
                     payment.verified_at = datetime.now()
                     payment.provider_reference = verification_response.provider_reference
                     payment.payment_method = verification_response.payment_method.value if verification_response.payment_method else None
@@ -502,3 +503,25 @@ class PaymentService:
                 sentry_sdk.capture_exception(e)
                 raise HTTPException(
                     status_code=500, detail=f"Failed to update payment settings: {str(e)}")
+
+    def map_provider_status_to_internal(self, provider: str, external_status: str) -> str:
+        """Map external provider status to internal PaymentStatus enum."""
+        mapping = {
+            "paystack": {
+                "success": "COMPLETED",
+                "failed": "FAILED",
+                "abandoned": "FAILED",
+                "pending": "PENDING"
+            },
+            "flutterwave": {
+                "successful": "COMPLETED",
+                "failed": "FAILED",
+                "pending": "PENDING"
+            },
+            "mpesa": {
+                "Success": "COMPLETED",
+                "Failed": "FAILED",
+                "Pending": "PENDING"
+            }
+        }
+        return mapping.get(provider.lower(), {}).get(external_status, "PENDING")

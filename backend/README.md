@@ -1068,3 +1068,24 @@ cp backend/.env.example backend/.env.test
 - **Event-driven fulfillment workflow**: Shipping and delivery are handled by a fulfillment event handler (see `order_event_handlers.py`, `handle_fulfillment`). Ready for integration with real fulfillment providers.
 - **Actionable alerting**: Email/WhatsApp alert stubs are called for critical failures (see `rules_engine.py`, `send_alert_via_email`, `send_alert_via_whatsapp`). Replace stubs with real integrations as needed.
 - **All code is ready for integration** with real analytics, fulfillment, and alerting systems. See code comments for extension points.
+
+## API Versioning & Migration (2024-06)
+- All breaking changes to the API are introduced under `/api/v2/` endpoints.
+- `/api/v2/orders/` is now available and reuses v1 logic for now. Update v2 endpoints for future breaking changes.
+- See `backend/app/api/v2/endpoints/orders.py` for details.
+- Migration plan: maintain v1 for backward compatibility; notify consumers of v2 changes in advance.
+
+## M-Pesa Integration & USSD Fallback
+- M-Pesa (Daraja) is now supported as a payment provider, including STK Push and USSD fallback.
+- `/api/webhook/mpesa` endpoint processes M-Pesa callbacks.
+- USSD fallback code is included in the payment initialization response metadata.
+
+## Payment Status Mapping
+- All payment providers now map external statuses to the internal `PaymentStatus` enum using a standard mapping utility.
+
+## Testing
+- New/updated tests are required for:
+  - M-Pesa payment initialization and webhook callback
+  - USSD fallback logic
+  - Payment status mapping for all providers
+  - Mock callbacks for Paystack, Flutterwave, and M-Pesa

@@ -21,6 +21,7 @@ import app.domain.events  # Ensure event handlers are registered
 import sentry_sdk
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from prometheus_client import make_asgi_app, Counter
+from app.api.v2.endpoints import orders as v2_orders
 
 sentry_sdk.init(dsn="YOUR_SENTRY_DSN")
 
@@ -303,6 +304,10 @@ def create_app() -> FastAPI:
 
     # Include WebSocket router
     app.include_router(websocket_router)
+
+    # Include v2 orders router
+    app.include_router(
+        v2_orders.router, prefix="/api/v2/orders", tags=["orders_v2"])
 
     # Test endpoint to verify environment variables
     @app.get("/test-env")

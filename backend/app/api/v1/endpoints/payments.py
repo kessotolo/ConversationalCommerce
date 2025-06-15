@@ -245,3 +245,39 @@ async def flutterwave_webhook(
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Error processing webhook: {str(e)}")
+
+
+@router.post("/webhook/mpesa", response_model=dict)
+async def mpesa_webhook(
+    request: Request,
+    db: Session = Depends(deps.get_db),
+    _: bool = Depends(payment_security_checks("payment:webhook"))
+) -> Any:
+    """
+    Handle M-Pesa webhook events
+    """
+    payload = await request.body()
+    try:
+        # For demonstration, use default credentials; in production, fetch from DB
+        credentials = {
+            "consumer_key": "your_mpesa_consumer_key",
+            "consumer_secret": "your_mpesa_consumer_secret",
+            "shortcode": "your_mpesa_shortcode",
+            "passkey": "your_mpesa_passkey"
+        }
+        provider = get_payment_provider(PaymentProvider.MPESA, credentials)
+        # Validate webhook (add real logic as needed)
+        if not provider.validate_webhook(payload, ""):
+            raise HTTPException(
+                status_code=400, detail="Invalid webhook signature")
+        event_data = await request.json()
+        # Extract reference (CheckoutRequestID or similar)
+        reference = event_data.get(
+            "CheckoutRequestID") or event_data.get("reference")
+        if reference:
+            payment_service = PaymentService(db)
+            await payment_service.verify_payment(reference, PaymentProvider.MPESA)
+        return {"success": True, "message": "Webhook processed"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error processing webhook: {str(e)}")
