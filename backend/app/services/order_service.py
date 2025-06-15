@@ -6,6 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timedelta
 from contextlib import asynccontextmanager
 from tenacity import AsyncRetrying, stop_after_attempt, wait_fixed
+from app.domain.events.order_events import OrderEventFactory
+from app.domain.events.event_bus import EventBus
 
 from app.models.order import Order, OrderStatus, OrderSource
 from app.models.order_item import OrderItem
@@ -394,8 +396,13 @@ class OrderService:
         payment_response = await payment_service.initialize_payment(payment_data)
         if not payment_response or not getattr(payment_response, 'success', True):
             raise OrderValidationError("Payment failed or was not successful.")
-        order.status = OrderStatus.PAID
-        await self.db.commit()
+            
+        # Use the centralized status update method to ensure events are emitted
+        await self._update_order_status(
+            order_id=order.id,
+            seller_id=order.seller_id,
+            status=OrderStatus.PAID
+        )
 
     async def create_order(self, order_in: OrderCreate, seller_id: UUID) -> Order:
         items = [{
@@ -492,6 +499,199 @@ class OrderService:
             tracking_number=status_update.tracking_number,
             shipping_carrier=status_update.shipping_carrier
         )
+        
+    async def _update_order_status(
+        self,
+        order_id: UUID,
+        seller_id: UUID,
+        status: OrderStatus,
+        tracking_number: Optional[str] = None,
+        shipping_carrier: Optional[str] = None
+    ) -> Optional[Order]:
+        """
+        Update the status of an order with comprehensive business rule validation and event emission.
+        
+        This is the centralized method for all order status updates. It enforces valid state 
+        transitions according to business rules, emits appropriate domain events, creates audit 
+        logs, and handles optimistic locking for concurrent updates.
+        
+        Valid transitions:
+        - PENDING -> PAID, CANCELLED
+        - PAID -> PROCESSING, CANCELLED, REFUNDED
+        - PROCESSING -> SHIPPED, CANCELLED
+        - SHIPPED -> DELIVERED, RETURNED
+        - DELIVERED -> RETURNED
+        - Terminal states (CANCELLED, REFUNDED, RETURNED) only to themselves
+        
+        Events emitted:
+        - OrderStatusChangedEvent (for all transitions)
+        - PaymentProcessedEvent (when status becomes PAID)
+        - OrderCancelledEvent (when status becomes CANCELLED)
+        - OrderShippedEvent (when status becomes SHIPPED)
+        - OrderDeliveredEvent (when status becomes DELIVERED)
+        
+        Args:
+            order_id: UUID of the order to update
+            seller_id: UUID of the seller performing the update
+            status: Target OrderStatus to set
+            tracking_number: Optional tracking number for shipping updates
+            shipping_carrier: Optional carrier name for shipping updates
+            
+        Returns:
+            Updated order if successful, None if order not found
+            
+        Raises:
+            OrderValidationError: If transition is invalid or required data missing
+            OperationalError: If database operation fails
+            
+        Note:
+            NEVER update order.status directly. Always use this method to ensure
+            proper validation, event emission, and audit logging.
+        """
+        # Try up to 3 times with retries for optimistic locking conflicts
+        async for attempt in AsyncRetrying(stop=stop_after_attempt(3), wait=wait_fixed(0.5)):
+            with attempt:
+                async with self.db.begin():
+                    # Get the current order with a lock for update
+                    order = await self.get_order(order_id)
+                    if not order:
+                        raise OrderNotFoundError(f"Order with ID {order_id} not found")
+                    
+                    # Store values for event emission
+                    previous_status = order.status
+                    current_version = order.version
+                    
+                    # Skip update if status is not changing (idempotent)
+                    if order.status == status:
+                        return order
+                    
+                    # Validate status transition
+                    valid = self._is_valid_transition(order.status, status)
+                    if not valid:
+                        raise OrderValidationError(
+                            f"Invalid status transition from {order.status} to {status}"
+                        )
+                    
+                    # Additional validations for specific status changes
+                    if status == OrderStatus.SHIPPED and not tracking_number:
+                        raise OrderValidationError(
+                            "Tracking number is required for SHIPPED status"
+                        )
+                    
+                    # Prepare update values
+                    update_values = {
+                        "status": status,
+                        "updated_at": datetime.utcnow(),
+                        "version": current_version + 1
+                    }
+                    
+                    # Add tracking info if provided
+                    if tracking_number:
+                        update_values["tracking_number"] = tracking_number
+                    if shipping_carrier:
+                        update_values["shipping_carrier"] = shipping_carrier
+                    
+                    # Execute update with optimistic locking
+                    result = await self.db.execute(
+                        update(Order)
+                        .where(
+                            Order.id == order_id,
+                            Order.version == current_version
+                        )
+                        .values(**update_values)
+                    )
+                    
+                    # Check if update was successful
+                    if result.rowcount == 0:
+                        await self.db.rollback()
+                        raise OrderValidationError(
+                            "Order was modified by another process. Please try again."
+                        )
+                    
+                    # Create audit log entry asynchronously
+                    await create_audit_log(
+                        db=self.db,
+                        user_id=seller_id,
+                        action=AuditActionType.UPDATE,
+                        resource_type="Order",
+                        resource_id=str(order_id),
+                        details=f"Updated order status from {previous_status.value} to {status.value}"
+                    )
+                    
+                    # Get updated order to return and use for event emission
+                    updated_order = await self.get_order(order_id)
+                    
+                    # Emit appropriate domain event
+                    event_factory = OrderEventFactory()
+                    event = event_factory.create_status_changed_event(
+                        order=updated_order,
+                        previous_status=previous_status,
+                        current_status=status
+                    )
+                    
+                    # Special events for specific transitions
+                    if previous_status == OrderStatus.PENDING and status == OrderStatus.PAID:
+                        payment_event = event_factory.create_payment_processed_event(
+                            order=updated_order
+                        )
+                        await EventBus().publish(payment_event)
+                    
+                    if status == OrderStatus.CANCELLED:
+                        cancel_event = event_factory.create_cancelled_event(
+                            order=updated_order
+                        )
+                        await EventBus().publish(cancel_event)
+                    
+                    if status == OrderStatus.SHIPPED:
+                        shipped_event = event_factory.create_shipped_event(
+                            order=updated_order, 
+                            tracking_info={
+                                "tracking_number": tracking_number,
+                                "carrier": shipping_carrier
+                            }
+                        )
+                        await EventBus().publish(shipped_event)
+                    
+                    if status == OrderStatus.DELIVERED:
+                        delivered_event = event_factory.create_delivered_event(
+                            order=updated_order
+                        )
+                        await EventBus().publish(delivered_event)
+                    
+                    # Always publish the status changed event
+                    await EventBus().publish(event)
+                    
+                    return updated_order
+    
+    def _is_valid_transition(self, current_status: OrderStatus, new_status: OrderStatus) -> bool:
+        """
+        Validate if a status transition is allowed based on business rules.
+        
+        Args:
+            current_status: Current OrderStatus
+            new_status: Target OrderStatus
+            
+        Returns:
+            bool: True if transition is valid, False otherwise
+        """
+        # Same status is always valid (idempotent)
+        if current_status == new_status:
+            return True
+            
+        # Define valid transitions for each status
+        valid_transitions = {
+            OrderStatus.PENDING: [OrderStatus.PAID, OrderStatus.CANCELLED],
+            OrderStatus.PAID: [OrderStatus.PROCESSING, OrderStatus.CANCELLED, OrderStatus.REFUNDED],
+            OrderStatus.PROCESSING: [OrderStatus.SHIPPED, OrderStatus.CANCELLED],
+            OrderStatus.SHIPPED: [OrderStatus.DELIVERED, OrderStatus.RETURNED],
+            OrderStatus.DELIVERED: [OrderStatus.RETURNED],
+            # Terminal states cannot transition except to themselves (handled above)
+            OrderStatus.CANCELLED: [],
+            OrderStatus.REFUNDED: [],
+            OrderStatus.RETURNED: []
+        }
+        
+        return new_status in valid_transitions.get(current_status, [])
 
     async def delete_order(
         self,

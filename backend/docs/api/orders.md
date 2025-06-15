@@ -433,6 +433,8 @@ For more details, see the Order and WhatsAppOrderDetails models in the backend c
 
 The backend uses an event-driven architecture for order-related actions. This enables decoupled notifications, analytics, and fulfillment logic.
 
+> **Note:** For detailed documentation on the order status lifecycle, state machine transitions, and event emission guidelines, see [Order Lifecycle & Event-Driven Architecture](order_lifecycle.md).
+
 ### Event Bus
 - Located at `app/domain/events/event_bus.py`.
 - Implements async publish/subscribe for domain events.
