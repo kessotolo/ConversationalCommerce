@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy import create_engine
 import sys
+import unittest.mock
 from app.db.session import get_db
 from app.core.security.clerk import ClerkTokenData
 from app.core.security.dependencies import require_auth
@@ -16,6 +17,7 @@ from uuid import uuid4, UUID
 import uuid
 import logging
 from fastapi import Request
+from tests.mocks.mock_content_analysis import mock_content_analysis_service, mock_analyze_content_async
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -87,6 +89,9 @@ except Exception as e:
     )
     logger.info("Fallback engines created successfully")
 
+# Set environment variable to indicate we're testing
+os.environ['TESTING'] = 'true'
+
 # Create session factories
 TestingSessionLocal = sessionmaker(
     autocommit=False, autoflush=False, bind=sync_engine)
@@ -96,6 +101,62 @@ AsyncTestingSessionLocal = async_sessionmaker(
 # Override the session modules for testing
 sys.modules['app.db.session'].SessionLocal = TestingSessionLocal
 sys.modules['app.db.session'].engine = sync_engine
+
+# Set environment variables for all tests
+@pytest.fixture(scope="session", autouse=True)
+def set_test_env_vars():
+    """Set additional environment variables for tests"""
+    logger.info("Setting test environment variables")
+    os.environ["PYTEST_RUNNING"] = "1"
+    yield
+    logger.info("Clearing test environment variables")
+    os.environ.pop("PYTEST_RUNNING", None)
+
+# Debug fixture to run before any test to help diagnose issues
+@pytest.fixture(scope="session", autouse=True)
+def debug_test_environment():
+    """Print debug information about the test environment"""
+    logger.info("====== TEST ENVIRONMENT DEBUG INFO ======")
+    logger.info(f"Python version: {sys.version}")
+    logger.info(f"Test database: {TEST_DATABASE_URL}")
+    logger.info(f"TESTING env var: {os.environ.get('TESTING')}")
+    logger.info(f"Current working directory: {os.getcwd()}")
+    logger.info(f"Path: {os.environ.get('PATH')}")
+    
+    # Checking for pytest deadlock culprits
+    logger.info("==== Checking for potential deadlock sources =====")
+    try:
+        import psutil
+        logger.info("Memory usage: {:.2f}MB".format(psutil.Process(os.getpid()).memory_info().rss / 1024 / 1024))
+    except ImportError:
+        logger.info("psutil not installed, skipping memory check")
+        
+    yield
+    logger.info("====== TEST ENVIRONMENT DEBUG COMPLETE ======")
+
+# Apply patches to avoid heavy model loading during tests
+@pytest.fixture(scope="session", autouse=True)
+def patch_content_analysis():
+    """Patch content_analysis_service and analyze_content_async to use mocks.
+    This prevents downloading heavy models during tests."""
+    logger.info("Applying content analysis patches for tests")
+    
+    # Patch the content analysis service
+    with unittest.mock.patch('app.core.content.content_analysis.content_analysis_service', 
+                           mock_content_analysis_service):
+        # Patch analyze_content_async
+        with unittest.mock.patch('app.core.content.content_analysis.analyze_content_async', 
+                               mock_analyze_content_async):
+            # Patch nlp initialization
+            with unittest.mock.patch('app.core.content.content_analysis.initialize_spacy', 
+                                  return_value=unittest.mock.MagicMock()):
+                # Patch any direct Detoxify imports
+                with unittest.mock.patch('app.core.content.content_analysis.Detoxify', 
+                                      unittest.mock.MagicMock()):
+                    logger.info("Content analysis patches applied successfully")
+                    yield
+                    
+    logger.info("Content analysis patches removed")
 
 
 # Add the backend directory to Python path
@@ -182,28 +243,46 @@ def db_session(db_engine):
 
 @pytest_asyncio.fixture(scope="function")
 async def async_db_session(async_db_engine):
-    logger.info("Creating async_db_session")
-    try:
-        # Create a new async database session for each test
-        # async_db_engine.begin() already creates a transaction
-        async with async_db_engine.begin() as connection:
-            logger.info("Got connection from engine with transaction")
+    logger.info("Creating async_db_session with simplified transaction management")
+    
+    # Create a connection and begin a transaction
+    async with async_db_engine.connect() as conn:
+        logger.info("DB Connection established")
+        
+        # Start a transaction that we control explicitly
+        async with conn.begin() as trans:
+            logger.info("Transaction started")
             
-            session = AsyncTestingSessionLocal(bind=connection)
-            logger.info("Created session")
-
+            # Create session with our connection
+            session = AsyncTestingSessionLocal(bind=conn)
+            logger.info("Session created with connection binding")
+            
             try:
+                # Configure session timezone
+                from sqlalchemy import text
+                await session.execute(text("SET TIME ZONE 'UTC'"))
+                logger.info("Database timezone set to UTC")
+                
+                # Yield session for test use
                 yield session
+                
+                # If test completes normally, flush changes before the transaction ends
+                await session.flush()
+                logger.info("Session flushed successfully after test completion")
+                
+            except Exception as e:
+                logger.error(f"Error during test execution: {e}")
+                import traceback
+                logger.error(f"Error traceback: {traceback.format_exc()}")
+                # Transaction will be rolled back by context manager
+                raise
             finally:
-                logger.info("Closing session")
+                # Always close session explicitly
                 await session.close()
-                logger.info("Session closed")
-                # The transaction will be automatically rolled back when the
-                # context manager exits (no need for explicit rollback)
-    except Exception as e:
-        logger.error(f"Error in async_db_session fixture: {str(e)}")
-        raise
-    logger.info("async_db_session fixture completed")
+                logger.info("Session closed properly")
+    
+    # Connection and transaction are automatically closed by context managers
+    logger.info("async_db_session fixture completed successfully")
 
 
 @pytest.fixture

@@ -38,9 +38,10 @@ class Settings(BaseSettings):
     BASE_DOMAIN: str = "localhost"
     ENABLE_STOREFRONT: bool = True
     SUBDOMAIN_SEPARATOR: str = "."  # How subdomains are separated in local dev
-    
+
     # CORS Settings
-    ALLOWED_ORIGINS: list[str] = ["http://localhost", "http://localhost:3000", "http://127.0.0.1", "http://127.0.0.1:3000"]
+    ALLOWED_ORIGINS: list[str] = [
+        "http://localhost", "http://localhost:3000", "http://127.0.0.1", "http://127.0.0.1:3000"]
 
     # Redis and Caching Settings
     # IMPORTANT: Set REDIS_URL in your environment for production deployments.
@@ -59,7 +60,14 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:3000"]
 
     model_config = SettingsConfigDict(
-        env_file=['.env.test', '.env.local', '.env'],
+        env_file=[
+            'backend/.env.test',
+            'backend/.env.local',
+            'backend/.env',
+            '.env.test',
+            '.env.local',
+            '.env',
+        ],
         env_file_encoding='utf-8',
         case_sensitive=True,
         extra='ignore'  # Ignore extra fields in .env

@@ -1016,3 +1016,26 @@ This will drop, recreate, and migrate your local DB using Alembic.
 - Never set tenant context in the service or endpoint directly.
 - For new endpoints, follow the patterns in existing endpoints and services.
 - For more, see docs/architecture.md and backend/app/api/v1/endpoints/orders.py.
+
+## Environment File Management (Best Practice)
+
+- All backend environment files (e.g., `.env`, `.env.test`, `.env.local`) **must be kept in the `backend/` directory**.
+- Do **not** place backend env files at the project root or in other module directories.
+- This keeps backend configuration isolated and respects module boundaries.
+- All backend commands (tests, migrations, server) should be run from the `backend/` directory:
+
+```sh
+cd backend
+source venv/bin/activate
+pytest
+# or
+uvicorn app.main:app --reload
+```
+
+- If you need to create a new environment file, copy from the example:
+
+```sh
+cp backend/.env.example backend/.env.test
+```
+
+- The backend config loader will automatically pick up `.env.test` if you run commands from `backend/`.

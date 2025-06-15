@@ -3,18 +3,98 @@ from fastapi.testclient import TestClient
 from uuid import uuid4, UUID
 import logging
 from sqlalchemy import select
+import time
+import threading
 
 from app.models.order import Order, OrderStatus, OrderSource
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler('pytest_debug.log'),
+    ]
+)
 logger = logging.getLogger(__name__)
 
+import os
+import sys
+import traceback
+import asyncio
+os.environ['TESTING'] = 'true'  # Force testing mode
+
+# Set unbuffered output
+os.environ['PYTHONUNBUFFERED'] = '1'
+
+# Create a thread debugging function to detect deadlocks
+def dump_threads():
+    """Dump all thread stacks for debugging"""
+    thread_info = []
+    for t in threading.enumerate():
+        thread_info.append(f"Thread {t.ident}: {t.name}")
+        frame = sys._current_frames().get(t.ident)
+        if frame:
+            thread_info.append(''.join(traceback.format_stack(frame)))
+    return '\n'.join(thread_info)
+
+def debug_print(msg):
+    """Print debug messages with timestamp and also log them"""
+    timestamp = time.time()
+    message = f"\n[{timestamp:.2f}s] {msg}"
+    print(message, flush=True)
+    logger.info(message)
+    sys.stdout.flush()
 
 @pytest.mark.asyncio
+@pytest.mark.timeout(30)  # Add timeout to prevent infinite hanging
 async def test_create_order_minimum_fields(client: TestClient, async_db_session, test_user, auth_headers, test_product, test_tenant):
     """Test creating a new order with minimum required fields"""
+    debug_print("==== STARTING TEST - DEBUG PRINTING ====\n")
     logger.info("Starting test_create_order_minimum_fields")
+    debug_print("Got fixtures: all fixtures loaded successfully")
+    
+    # Print thread info for deadlock detection
+    thread_dump = dump_threads()
+    debug_print(f"THREAD DUMP AT TEST START:\n{thread_dump}")
+    
+    # Debug fixture information
+    debug_print("About to create order data dict")
+    # Print DB session info
+    debug_print(f"async_db_session type: {type(async_db_session)}")
+    debug_print(f"async_db_session info: {async_db_session}")
+    debug_print(f"async_db_session is_active: {async_db_session.is_active}")
+    debug_print(f"test_user ID: {test_user.id if test_user else 'None'}")
+    debug_print(f"test_product ID: {test_product.id if test_product else 'None'}")
+    debug_print(f"test_tenant ID: {test_tenant.id if test_tenant else 'None'}")
+    debug_print(f"Event loop: {asyncio.get_event_loop()}")
+    debug_print(f"Is event loop running: {asyncio.get_event_loop().is_running()}")
+    debug_print("Starting the main test logic...")
+    
+    # Log the HTTP client type and any relevant config
+    debug_print(f"TestClient type: {type(client)}")
+    try:
+        debug_print(f"TestClient app: {client.app}")
+    except Exception as e:
+        debug_print(f"Error inspecting client: {e}")
+        
+    # Check if we have active transactions 
+    try:
+        debug_print(f"Session in transaction: {async_db_session.in_transaction()}")
+    except Exception as e:
+        debug_print(f"Error checking transaction status: {e}")
+        
+    # Log memory usage
+    try:
+        import psutil
+        process = psutil.Process(os.getpid())
+        memory_info = process.memory_info()
+        debug_print(f"Memory usage: {memory_info.rss / 1024 / 1024:.2f} MB")
+    except ImportError:
+        debug_print("psutil not available for memory tracking")
+
+
 
     try:
         # Create order data with only required fields
