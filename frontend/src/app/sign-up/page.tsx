@@ -1,11 +1,12 @@
+'use client';
 import { SignUp } from '@clerk/nextjs';
 
 export default function SignUpPage() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-[#FFFFF0] px-4">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8 mt-12">
-        <SignUp appearance={{ elements: { card: 'shadow-none' } }} />
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="w-full max-w-md mx-auto p-6 bg-white rounded-2xl shadow-lg">
+        <SignUp routing="path" path="/sign-up" afterSignUpUrl="/dashboard" />
       </div>
-    </main>
+    </div>
   );
 }

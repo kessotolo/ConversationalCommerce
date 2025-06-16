@@ -816,3 +816,26 @@ import { ThemeService } from '@/modules/theme/services/ThemeService';
 
 ---
 For more details, see AI_AGENT_CONFIG.md.
+
+## Navigation
+- Uses a modern, mobile-first `MobileNav` component (see `src/components/MobileNav.tsx`).
+- `MobileNav` is a client component (uses React hooks, Clerk auth) and must include the `"use client"` directive.
+- On mobile, the admin dashboard uses a sticky bottom nav for quick access.
+- The old `Navbar` is deprecated and replaced by `MobileNav` everywhere.
+
+## Onboarding Experience
+- After sign in/up, users land on the dashboard (not a blocking wizard).
+- If onboarding is incomplete, a prominent, dismissible onboarding card appears at the top of the dashboard (web & mobile).
+- The onboarding card shows progress, a "Continue Onboarding" button (opens modal wizard), and a dismiss (X) button.
+- The onboarding wizard is accessible as a modal from the card, and progress is saved.
+- This "soft onboarding" matches best-in-class SaaS UX (Shopify-style).
+
+## Customization & Extensibility
+- To change onboarding steps, edit `OnboardingWizard` in `src/modules/tenant/components/OnboardingWizard.tsx`.
+- To customize the onboarding prompt card, see `src/components/dashboard/OnboardingPromptCard.tsx`.
+- To update navigation, edit `MobileNav.tsx`.
+
+## Notes
+- All navigation and onboarding flows are mobile-first and accessible.
+- The onboarding prompt logic is ready to connect to a real backend status API.
+- For more, see the module-level README in `src/modules/tenant/components/README.md`.

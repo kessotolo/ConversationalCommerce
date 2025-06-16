@@ -1,4 +1,4 @@
-# Seller Onboarding Wizard (Web)
+# Seller Onboarding Wizard (Web & Mobile)
 
 ## Overview
 This module implements a mobile-first, robust seller onboarding flow for the ConversationalCommerce platform. It covers:
@@ -7,6 +7,13 @@ This module implements a mobile-first, robust seller onboarding flow for the Con
 - Subdomain setup with real-time validation
 - Team invite (WhatsApp, email, web link)
 - Progress/status UI and error handling
+- **Soft onboarding:** After sign in/up, users land on the dashboard. If onboarding is incomplete, a dismissible onboarding card appears at the top (web & mobile), launching the wizard in a modal. No hard blocks.
+
+## Navigation & UX
+- Uses the new `MobileNav` (see `src/components/MobileNav.tsx`) for all navigation (web & mobile).
+- On mobile admin, a sticky bottom nav is used for quick access.
+- The onboarding wizard is accessible from the dashboard onboarding card/modal at any time.
+- Progress is saved; users can exit and return.
 
 ## API Usage
 All onboarding API calls are imported from `../api/onboardingApi`:
@@ -15,11 +22,11 @@ All onboarding API calls are imported from `../api/onboardingApi`:
 - `validateDomain(domain)`
 - `sendInviteEmail(email, link)`
 
-## Adding/Extending Steps
-- Add new steps to the `steps` array and update the form logic.
-- Use the shared API module for backend calls.
-- Add new fields to the form state as needed.
-- Add/extend tests in `OnboardingWizard.test.tsx`.
+## Customization & Extending
+- To add or change onboarding steps, update `OnboardingWizard.tsx`.
+- To customize the onboarding prompt card, see `OnboardingPromptCard.tsx`.
+- To update navigation, edit `MobileNav.tsx`.
+- The onboarding prompt logic is ready to connect to a real backend status API.
 
 ## Mobile-First & Accessibility
 - Large touch targets, readable font sizes, and sticky progress bar
@@ -34,6 +41,7 @@ All onboarding API calls are imported from `../api/onboardingApi`:
 - All errors are shown in a dismissible banner
 - User-friendly messages for file upload, domain conflict, invite failure, and invalid input
 
-## Extending
-- To add new onboarding steps or API calls, update this README and the wizard logic
+## Best Practices
+- Use soft onboarding for a professional, user-friendly experience (Shopify-style)
+- Never block users from exploring the app
 - Keep UI/UX mobile-first and accessible

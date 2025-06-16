@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { useUser } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
 
 const menuItems = [
     { label: 'Sign In', action: 'signin' },
@@ -16,16 +17,17 @@ const authItems = [
 export default function MobileNav() {
     const [open, setOpen] = useState(false);
     const { user, isSignedIn, isLoaded } = useUser();
+    const router = useRouter();
 
     // Placeholder handlers
     const handleAction = (action: string) => {
         setOpen(false);
         switch (action) {
             case 'signin':
-                window.location.href = '/sign-in';
+                router.push('/sign-in');
                 break;
             case 'signup':
-                window.location.href = '/sign-up';
+                router.push('/sign-up');
                 break;
             case 'dashboard':
                 window.location.href = '/dashboard';
