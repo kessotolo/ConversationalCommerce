@@ -51,7 +51,7 @@ export default function Home() {
           <div className="w-[600px] h-[400px] bg-gradient-to-tr from-[#6C9A8B] via-[#A8D5BA] to-white opacity-30 rounded-full blur-3xl" />
         </div>
         <h1 className="text-5xl sm:text-6xl font-extrabold text-gray-900 text-center leading-tight mb-4 tracking-tight drop-shadow-lg" style={{ fontFamily: 'Inter, DM Sans, Poppins, sans-serif' }}>
-          Commerce, <span className="text-[#6C9A8B]">Simplified</span>.
+          Welcome to <span className="text-[#6C9A8B]">enwhe.io</span>
         </h1>
         <p className="text-[#6C9A8B] text-xl font-semibold text-center mb-6 tracking-wide">
           Anywhere. Anytime. <span className="text-[#FFD700]">|</span> For everyone.
@@ -147,7 +147,7 @@ export default function Home() {
             <Linkedin className="w-6 h-6" />
           </a>
         </div>
-        <span>&copy; {new Date().getFullYear()} ConvoCommerce. All rights reserved.</span>
+        <span>&copy; {new Date().getFullYear()} enwhe.io. All rights reserved.</span>
       </footer>
     </main>
   );

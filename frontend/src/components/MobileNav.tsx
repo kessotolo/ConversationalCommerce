@@ -48,7 +48,7 @@ export default function MobileNav() {
 
     return (
         <nav className="w-full flex items-center justify-between px-4 py-3 bg-white shadow-sm sticky top-0 z-50">
-            <span className="text-lg font-bold tracking-tight text-gray-800">Conversational Commerce</span>
+            <span className="text-lg font-bold tracking-tight text-gray-800">enwhe.io</span>
             <button
                 className="flex flex-col justify-center items-center w-10 h-10 rounded focus:outline-none"
                 aria-label={open ? 'Close menu' : 'Open menu'}
