@@ -16,7 +16,8 @@ import {
   Store,
   User,
 } from 'lucide-react';
-import UserButton from '@/components/auth/UserButton';
+import { useUser } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
 
 const navItems = [
   {
@@ -59,6 +60,8 @@ const navItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const { user } = useUser();
+  const router = useRouter();
 
   // Only highlight the Storefront link if on /dashboard/storefront or its subpages
   const isStorefrontActive =
@@ -106,7 +109,12 @@ export function Sidebar() {
                     </button>
                   );
                 }
-                const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+                let isActive;
+                if (item.href === '/dashboard') {
+                  isActive = pathname === '/dashboard';
+                } else {
+                  isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+                }
                 const Icon = item.icon;
                 return (
                   <Link
@@ -150,11 +158,28 @@ export function Sidebar() {
           <div className="flex-shrink-0 flex flex-col border-t border-gray-200 p-4 mt-4">
             <div className="flex items-center gap-3">
               <User className="h-6 w-6 text-gray-400" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">Seller Account</p>
-                <p className="text-xs text-gray-500">Sign out →</p>
+              <div className="flex-1 min-w-0">
+                <button
+                  className="text-sm font-medium text-gray-900 text-left truncate hover:underline"
+                  onClick={() => router.push('/dashboard/profile')}
+                  title={user?.firstName || user?.primaryEmailAddress?.emailAddress || 'Profile'}
+                >
+                  {user?.firstName || user?.primaryEmailAddress?.emailAddress || 'Profile'}
+                </button>
+                <button
+                  className="text-xs text-gray-500 hover:underline mt-1"
+                  onClick={() => {
+                    // Use Clerk global signOut if available
+                    if (typeof window !== 'undefined' && (window as any).Clerk?.signOut) {
+                      (window as any).Clerk.signOut();
+                    } else {
+                      router.push('/');
+                    }
+                  }}
+                >
+                  Sign out →
+                </button>
               </div>
-              <UserButton afterSignOutUrl="/" />
             </div>
           </div>
         </div>

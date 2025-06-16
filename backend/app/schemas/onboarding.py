@@ -1,39 +1,56 @@
-from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any
+from pydantic import BaseModel, Field, ConfigDict
+from typing import Optional, Dict, Any, List
 from uuid import UUID
+from datetime import datetime
+from backend.app.schemas.kyc_info import KYCInfoCreate, KYCInfoResponse
+from backend.app.schemas.team_invite import TeamInviteCreate, TeamInviteResponse
 
 
 class OnboardingStartRequest(BaseModel):
-    business_name: str = Field(..., description="Merchant business name")
-    phone: str = Field(..., description="Merchant phone number")
+    business_name: str = Field(..., min_length=2,
+                               max_length=100, description="Merchant business name")
+    phone: str = Field(..., min_length=8, max_length=20,
+                       description="Merchant phone number")
     email: Optional[str] = Field(None, description="Merchant email address")
-    # Add more fields as needed
+    subdomain: str = Field(..., min_length=3, max_length=30,
+                           regex=r"^[a-z0-9-]+$", description="Requested subdomain")
 
 
-class KYCRequest(BaseModel):
-    merchant_id: UUID
-    id_number: str = Field(..., description="Government-issued ID number")
-    id_type: str = Field(...,
-                         description="Type of ID (passport, national, etc.)")
-    business_info: Dict[str,
-                        Any] = Field(..., description="Additional business info")
-    # Add more fields as needed
+class OnboardingStartResponse(BaseModel):
+    status: str
+    message: str
+    tenant_id: UUID
+
+
+class KYCRequest(KYCInfoCreate):
+    tenant_id: UUID
+
+
+class KYCResponse(KYCInfoResponse):
+    pass
 
 
 class DomainRequest(BaseModel):
-    merchant_id: UUID
-    domain: str = Field(...,
-                        description="Requested subdomain or custom domain")
+    tenant_id: UUID
+    domain: str = Field(..., min_length=3, max_length=30,
+                        regex=r"^[a-z0-9-]+$", description="Requested subdomain or custom domain")
 
 
-class TeamInviteRequest(BaseModel):
-    merchant_id: UUID
-    invitee_phone: str = Field(...,
-                               description="Phone number of team member to invite")
-    role: Optional[str] = Field(None, description="Role for the invitee")
+class DomainResponse(BaseModel):
+    status: str
+    message: str
+    domain: str
+
+
+class TeamInviteRequest(TeamInviteCreate):
+    tenant_id: UUID
+
+
+class TeamInviteResponseModel(TeamInviteResponse):
+    pass
 
 
 class KYCUploadResponse(BaseModel):
-    status: str = Field(..., description="KYC document upload status")
-    message: Optional[str] = Field(
-        None, description="Additional info or error message")
+    status: str
+    message: Optional[str]
+    file_url: Optional[str]

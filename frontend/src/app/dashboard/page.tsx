@@ -22,9 +22,8 @@ import {
   User,
   Users,
 } from 'lucide-react';
-import OnboardingPromptCard from '@/components/dashboard/OnboardingPromptCard';
-import { useUser } from '@clerk/nextjs';
 import OnboardingWizard from '@/modules/tenant/components/OnboardingWizard';
+import { useUser } from '@clerk/nextjs';
 
 // Define types to match component requirements
 type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
@@ -148,7 +147,48 @@ const mockMessages = [
   },
 ];
 
-function OnboardingChecklist({ onOpenSettings }: { onOpenSettings: (section: string) => void }) {
+// --- SmartNudgeCard component ---
+function SmartNudgeCard({ steps, onAction, onOpenWizard }: { steps: any[]; onAction: (key: string) => void; onOpenWizard: () => void }) {
+  // Prioritize by logical order/impact
+  const priority = [
+    'addProduct',
+    'payments',
+    'domains',
+    'notifications',
+    'users',
+    'storeDetails',
+    'logo',
+  ];
+  const nextStep = priority.map((key) => steps.find((s) => s.key === key && !s.complete)).find(Boolean);
+  if (!nextStep) return null;
+  return (
+    <div className="bg-white rounded-2xl border border-[#e6f0eb] shadow-sm p-6 mb-8 w-full max-w-sm hidden lg:block">
+      <h2 className="text-lg font-bold text-gray-900 mb-2">Quick Start Tip</h2>
+      <p className="text-gray-700 mb-4 text-base">
+        {nextStep.label === 'Add your first product' && 'Add your first product to start selling!'}
+        {nextStep.label === 'Configure payments' && 'Set up payments to get paid faster.'}
+        {nextStep.label === 'Connect a domain' && 'Connect your domain to build trust with buyers.'}
+        {nextStep.label === 'Set up notifications' && 'Enable notifications to stay updated on orders.'}
+        {nextStep.label === 'Invite team members' && 'Invite your team to help manage your store.'}
+        {nextStep.label === 'Set up store details' && 'Complete your store details for a professional look.'}
+        {nextStep.label === 'Add a store logo' && 'Upload a logo to personalize your store.'}
+      </p>
+      <div className="flex gap-2">
+        {nextStep.action && (
+          <div>{nextStep.action}</div>
+        )}
+        <button
+          className="text-xs text-[#6C9A8B] underline ml-2"
+          onClick={onOpenWizard}
+        >
+          Open Onboarding Wizard
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function OnboardingChecklist({ onOpenSettings, onOpenWizard }: { onOpenSettings: (section: string) => void, onOpenWizard: () => void }) {
   // Mock completion state
   const steps = [
     {
@@ -249,7 +289,7 @@ function OnboardingChecklist({ onOpenSettings }: { onOpenSettings: (section: str
   const randomized = [...incomplete.sort(() => Math.random() - 0.5), ...complete];
   const progress = steps.filter((s) => s.complete).length;
   return (
-    <div className="bg-white rounded-2xl border border-[#e6f0eb] shadow-sm p-6 mb-8">
+    <div className="bg-white rounded-2xl border border-[#e6f0eb] shadow-sm p-6 mb-8 w-full">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold text-gray-900">Get ready to sell</h2>
         <span className="text-xs text-gray-500">
@@ -283,6 +323,12 @@ function OnboardingChecklist({ onOpenSettings }: { onOpenSettings: (section: str
           </li>
         ))}
       </ul>
+      <button
+        className="mt-6 w-full bg-[#6C9A8B] hover:bg-[#5d8a7b] text-white font-semibold rounded-lg py-2"
+        onClick={onOpenWizard}
+      >
+        Open Onboarding Wizard
+      </button>
     </div>
   );
 }
@@ -290,7 +336,6 @@ function OnboardingChecklist({ onOpenSettings }: { onOpenSettings: (section: str
 export default function Dashboard() {
   const [period, setPeriod] = useState<'7days' | '30days' | '90days'>('7days');
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [showOnboardingPrompt, setShowOnboardingPrompt] = useState(true);
   const [showWizard, setShowWizard] = useState(false);
   const { user } = useUser();
 
@@ -319,19 +364,104 @@ export default function Dashboard() {
   const totalSteps = 5;
   const onboardingIncomplete = stepsComplete < totalSteps;
 
+  // --- Onboarding steps logic (move to top-level for reuse) ---
+  const steps = [
+    {
+      key: 'addProduct',
+      label: 'Add your first product',
+      complete: false,
+      action: (
+        <Link
+          href="/dashboard/products/add"
+          className="text-[#6C9A8B] font-semibold hover:underline flex items-center"
+        >
+          Add Product <ChevronRight className="ml-1 h-4 w-4" />
+        </Link>
+      ),
+    },
+    {
+      key: 'storeDetails',
+      label: 'Set up store details',
+      complete: true,
+      action: (
+        <button
+          onClick={() => setSettingsOpen(true)}
+          className="text-[#6C9A8B] font-semibold hover:underline flex items-center"
+        >
+          Edit Details <ChevronRight className="ml-1 h-4 w-4" />
+        </button>
+      ),
+    },
+    {
+      key: 'payments',
+      label: 'Configure payments',
+      complete: false,
+      action: (
+        <button
+          onClick={() => setSettingsOpen(true)}
+          className="text-[#6C9A8B] font-semibold hover:underline flex items-center"
+        >
+          Set Up <ChevronRight className="ml-1 h-4 w-4" />
+        </button>
+      ),
+    },
+    {
+      key: 'logo',
+      label: 'Add a store logo',
+      complete: true,
+      action: (
+        <button
+          onClick={() => setSettingsOpen(true)}
+          className="text-[#6C9A8B] font-semibold hover:underline flex items-center"
+        >
+          Upload Logo <ChevronRight className="ml-1 h-4 w-4" />
+        </button>
+      ),
+    },
+    {
+      key: 'notifications',
+      label: 'Set up notifications',
+      complete: false,
+      action: (
+        <button
+          onClick={() => setSettingsOpen(true)}
+          className="text-[#6C9A8B] font-semibold hover:underline flex items-center"
+        >
+          Configure <ChevronRight className="ml-1 h-4 w-4" />
+        </button>
+      ),
+    },
+    {
+      key: 'users',
+      label: 'Invite team members',
+      complete: false,
+      action: (
+        <button
+          onClick={() => setSettingsOpen(true)}
+          className="text-[#6C9A8B] font-semibold hover:underline flex items-center"
+        >
+          Invite <ChevronRight className="ml-1 h-4 w-4" />
+        </button>
+      ),
+    },
+    {
+      key: 'domains',
+      label: 'Connect a domain',
+      complete: false,
+      action: (
+        <button
+          onClick={() => setSettingsOpen(true)}
+          className="text-[#6C9A8B] font-semibold hover:underline flex items-center"
+        >
+          Connect <ChevronRight className="ml-1 h-4 w-4" />
+        </button>
+      ),
+    },
+  ];
+
   return (
     <>
-      {/* Onboarding Prompt Card (web & mobile) */}
-      {showOnboardingPrompt && onboardingIncomplete && (
-        <OnboardingPromptCard
-          stepsComplete={stepsComplete}
-          totalSteps={totalSteps}
-          userName={user?.firstName || user?.primaryEmailAddress?.emailAddress}
-          onContinue={() => setShowWizard(true)}
-          onDismiss={() => setShowOnboardingPrompt(false)}
-        />
-      )}
-      {/* Onboarding Wizard Modal (placeholder) */}
+      {/* Onboarding Wizard Modal */}
       {showWizard && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 overflow-y-auto">
           <div className="bg-white rounded-2xl shadow-2xl p-4 w-full max-w-lg mx-auto relative animate-fade-in max-h-[90vh] overflow-y-auto">
@@ -375,10 +505,11 @@ export default function Dashboard() {
             </button>
           </div>
         </div>
-
-        {/* Onboarding Checklist */}
-        <OnboardingChecklist onOpenSettings={() => setSettingsOpen(true)} />
-
+        {/* Unified Onboarding Section */}
+        <div className="flex flex-col lg:flex-row gap-6 mb-8">
+          <SmartNudgeCard steps={steps} onAction={() => { }} onOpenWizard={() => setShowWizard(true)} />
+          <OnboardingChecklist onOpenSettings={() => setSettingsOpen(true)} onOpenWizard={() => setShowWizard(true)} />
+        </div>
         {/* Quick Action Buttons */}
         <div className="flex flex-wrap gap-3 mb-8 relative">
           <Link
@@ -411,8 +542,8 @@ export default function Dashboard() {
         </Link>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-          <div className="rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-5 flex flex-col items-start">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8 overflow-x-auto">
+          <div className="min-w-0 rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-5 flex flex-col items-start">
             <StatCard
               title="Total Orders"
               value="85"
@@ -422,7 +553,7 @@ export default function Dashboard() {
               subtitle="Last 30 days"
             />
           </div>
-          <div className="rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-5 flex flex-col items-start">
+          <div className="min-w-0 rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-5 flex flex-col items-start">
             <StatCard
               title="Total Revenue"
               value="₦6,674.55"
@@ -432,7 +563,7 @@ export default function Dashboard() {
               subtitle="Last 30 days"
             />
           </div>
-          <div className="rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-5 flex flex-col items-start">
+          <div className="min-w-0 rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-5 flex flex-col items-start">
             <StatCard
               title="Customers"
               value="63"
@@ -442,7 +573,7 @@ export default function Dashboard() {
               subtitle="Last 30 days"
             />
           </div>
-          <div className="rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-5 flex flex-col items-start">
+          <div className="min-w-0 rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-5 flex flex-col items-start">
             <StatCard
               title="Conversion Rate"
               value="54%"

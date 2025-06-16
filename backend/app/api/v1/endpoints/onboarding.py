@@ -1,27 +1,36 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
-from typing import Any
+from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.services.seller_onboarding_service import SellerOnboardingService, OnboardingError, DomainConflictError
 from backend.app.schemas.onboarding import (
-    OnboardingStartRequest, KYCRequest, DomainRequest, TeamInviteRequest, KYCUploadResponse
+    OnboardingStartRequest, OnboardingStartResponse, KYCRequest, KYCResponse, DomainRequest, DomainResponse, TeamInviteRequest, TeamInviteResponseModel, KYCUploadResponse
 )
+from backend.app.db.session import get_db
+from backend.app.core.security.dependencies import require_auth
+from backend.app.core.security.clerk import ClerkTokenData
 
 router = APIRouter(prefix="/onboarding", tags=["onboarding"])
 service = SellerOnboardingService()
 
-# TODO: Extract tenant_id from auth/session context in production
+
+def extract_tenant_id(token_data: ClerkTokenData) -> str:
+    # Prefer store_id in metadata, fallback to sub (user_id)
+    if token_data.metadata and "store_id" in token_data.metadata:
+        return token_data.metadata["store_id"]
+    return str(token_data.sub)
 
 
-def get_tenant_id():
-    # Placeholder: in real code, extract from auth/session
-    return "00000000-0000-0000-0000-000000000000"
-
-
-@router.post("/start")
-async def start_onboarding(payload: OnboardingStartRequest, tenant_id: str = Depends(get_tenant_id)):
+@router.post("/start", response_model=OnboardingStartResponse)
+async def start_onboarding(
+    payload: OnboardingStartRequest,
+    db: AsyncSession = Depends(get_db),
+    token_data: ClerkTokenData = Depends(require_auth),
+):
+    tenant_id = extract_tenant_id(token_data)
     try:
-        result = await service.start_onboarding(tenant_id, payload.dict())
-        # TODO: Log onboarding_started event
+        result = await service.start_onboarding(tenant_id, payload.dict(), db)
         return result
+    except DomainConflictError as e:
+        raise HTTPException(status_code=409, detail=str(e))
     except OnboardingError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
@@ -29,11 +38,15 @@ async def start_onboarding(payload: OnboardingStartRequest, tenant_id: str = Dep
             status_code=500, detail="Unexpected error during onboarding start.")
 
 
-@router.post("/kyc")
-async def submit_kyc(payload: KYCRequest, tenant_id: str = Depends(get_tenant_id)):
+@router.post("/kyc", response_model=KYCResponse)
+async def submit_kyc(
+    payload: KYCRequest,
+    db: AsyncSession = Depends(get_db),
+    token_data: ClerkTokenData = Depends(require_auth),
+):
+    tenant_id = extract_tenant_id(token_data)
     try:
-        result = await service.submit_kyc(tenant_id, payload.merchant_id, payload.dict())
-        # TODO: Log kyc_submitted event
+        result = await service.submit_kyc(tenant_id, payload.dict(), db)
         return result
     except OnboardingError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -42,11 +55,15 @@ async def submit_kyc(payload: KYCRequest, tenant_id: str = Depends(get_tenant_id
             status_code=500, detail="Unexpected error during KYC submission.")
 
 
-@router.post("/domain")
-async def set_domain(payload: DomainRequest, tenant_id: str = Depends(get_tenant_id)):
+@router.post("/domain", response_model=DomainResponse)
+async def set_domain(
+    payload: DomainRequest,
+    db: AsyncSession = Depends(get_db),
+    token_data: ClerkTokenData = Depends(require_auth),
+):
+    tenant_id = extract_tenant_id(token_data)
     try:
-        result = await service.set_domain(tenant_id, payload.merchant_id, payload.domain)
-        # TODO: Log domain_set event
+        result = await service.set_domain(tenant_id, payload.domain, db)
         return result
     except DomainConflictError as e:
         raise HTTPException(status_code=409, detail=str(e))
@@ -57,11 +74,15 @@ async def set_domain(payload: DomainRequest, tenant_id: str = Depends(get_tenant
             status_code=500, detail="Unexpected error during domain setup.")
 
 
-@router.post("/team-invite")
-async def invite_team_member(payload: TeamInviteRequest, tenant_id: str = Depends(get_tenant_id)):
+@router.post("/team-invite", response_model=TeamInviteResponseModel)
+async def invite_team_member(
+    payload: TeamInviteRequest,
+    db: AsyncSession = Depends(get_db),
+    token_data: ClerkTokenData = Depends(require_auth),
+):
+    tenant_id = extract_tenant_id(token_data)
     try:
-        result = await service.invite_team_member(tenant_id, payload.merchant_id, payload.dict())
-        # TODO: Log team_invited event
+        result = await service.invite_team_member(tenant_id, payload.dict(), db)
         return result
     except OnboardingError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -71,10 +92,15 @@ async def invite_team_member(payload: TeamInviteRequest, tenant_id: str = Depend
 
 
 @router.post("/upload-doc", response_model=KYCUploadResponse)
-async def upload_kyc_document(merchant_id: str, file: UploadFile = File(...), tenant_id: str = Depends(get_tenant_id)):
+async def upload_kyc_document(
+    kyc_id: str,
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+    token_data: ClerkTokenData = Depends(require_auth),
+):
+    tenant_id = extract_tenant_id(token_data)
     try:
-        result = await service.upload_kyc_document(tenant_id, merchant_id, file)
-        # TODO: Log kyc_doc_uploaded event
+        result = await service.upload_kyc_document(tenant_id, kyc_id, file, db)
         return result
     except OnboardingError as e:
         raise HTTPException(status_code=400, detail=str(e))

@@ -1092,3 +1092,18 @@ from app.theme.models import Theme
 
 ---
 For more details, see AI_AGENT_CONFIG.md.
+
+## Type Safety and Async/Await Standards
+
+- **No `any` types in TypeScript**: The use of `any` is strictly prohibited. Use explicit interfaces, types, or `unknown` with type guards for dynamic data. All module boundaries must use explicit interfaces. Use generics with constraints for flexible APIs. For record types, use `Record[str, Any]` in Python with explicit type hints, and `Record<string, unknown>` in TypeScript.
+- **All asynchronous code must use async/await**: Do not use callbacks or mix sync and async logic in the same function.
+- **Error handling is required for all async flows**: Use try/except (Python) or try/catch (TypeScript) around all await calls that can throw.
+- **All async functions must be fully typed**: Never use `any` in async function signatures or return types (TypeScript), and always use type hints in Python async functions.
+- **Async flows must be documented and tested**: All async logic must have corresponding tests and inline comments for complex flows.
+
+## 🖥️ Frontend Onboarding & Navigation (2024-06)
+
+- The frontend now uses a modern, mobile-first `MobileNav` for all navigation (see frontend/README.md).
+- Onboarding is a "soft" flow: after sign in/up, users land on the dashboard. If onboarding is incomplete, a dismissible onboarding card appears at the top (web & mobile), launching the wizard in a modal.
+- The backend onboarding APIs are designed for async, non-blocking flows, supporting this soft onboarding UX.
+- For details, see `frontend/README.md` and `src/modules/tenant/components/README.md` in the frontend.

@@ -80,6 +80,14 @@ import { TenantService } from '@/modules/tenant/services/TenantService'; // WRON
   - Error handling
   - Logging (contextual and redacted)
   - Inline comments for complex logic
+- **No use of `any` type in TypeScript**: All code must use explicit interfaces, types, or `unknown` with type guards for dynamic data. Module boundaries must use explicit interfaces. Use generics with constraints for flexible APIs. For record types, use `Record<string, unknown>` instead of `{[key: string]: any}`.
+
+### Async/Await and Asynchronous Code
+
+- **All asynchronous code must use async/await**: Do not use callbacks or mix sync and async logic in the same function.
+- **Error handling is required for all async flows**: Use try/catch around all await calls that can throw.
+- **All async functions must be fully typed**: Never use `any` in async function signatures or return types.
+- **Async flows must be documented and tested**: All async logic must have corresponding tests and inline comments for complex flows.
 
 ### Frontend Specific
 
@@ -90,6 +98,10 @@ import { TenantService } from '@/modules/tenant/services/TenantService'; // WRON
 - **React server components** for performance where possible
 - **Chat-native UX**: UI interactions should feel like chat - async with real-time feedback
 - **TypeScript in strict mode**
+- **Navigation must use the MobileNav component (see src/components/MobileNav.tsx)**
+- **Onboarding must use a soft, non-blocking prompt card at the top of the dashboard (web & mobile)**
+- **Onboarding wizard is launched from the card/modal, not as a forced flow**
+- **Sticky bottom nav is used for mobile admin dashboard**
 
 ### Backend Specific
 
@@ -107,6 +119,7 @@ import { TenantService } from '@/modules/tenant/services/TenantService'; // WRON
 - **Async mindset**: Handle messaging delays gracefully
 - **Ease of internationalization**: Support for multiple languages and regional slang
 - **Trust signals**: Verified merchant badges, SSL, audit logs, fraud detection
+- **Soft onboarding only**: Never block users from exploring the app; always use a dismissible onboarding prompt card and modal wizard (Shopify-style)
 
 ### Performance Requirements
 
