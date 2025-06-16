@@ -1077,5 +1077,18 @@ from app.theme.models import Theme
 **Analytics/Event Logging:** Use ConversationEvent pattern where applicable.
 **Testing:** See /services/tests/unit and /services/tests/integration.
 
+## onboarding
+**Purpose:** Seller onboarding flows (merchant signup, KYC, domain setup, team invites, document upload).
+**Endpoints:**
+- `POST /api/v1/onboarding/start` — Start onboarding, create merchant draft
+- `POST /api/v1/onboarding/kyc` — Submit KYC info
+- `POST /api/v1/onboarding/domain` — Set subdomain/custom domain
+- `POST /api/v1/onboarding/team-invite` — Invite team member
+- `POST /api/v1/onboarding/upload-doc` — KYC document upload
+**Service:** `SellerOnboardingService` in `services/seller_onboarding_service.py` handles all business logic.
+**Schemas:** See `schemas/onboarding.py` for request/response validation.
+**Analytics/Event Logging:** All onboarding steps must log ConversationEvent (see ConversationEvent pattern docs).
+**Testing:** Add unit/integration tests for all onboarding flows.
+
 ---
 For more details, see AI_AGENT_CONFIG.md.

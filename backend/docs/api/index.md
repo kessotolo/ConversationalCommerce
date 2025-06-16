@@ -50,3 +50,15 @@ All API errors follow a standardized format:
 - `500 Internal Server Error` - Server error
 
 For endpoint-specific error codes, see the relevant documentation.
+
+## Onboarding Endpoints
+
+The onboarding API enables chat-driven seller onboarding, KYC, domain setup, team invitations, and document upload.
+
+- `POST /api/v1/onboarding/start` — Start onboarding, create merchant draft
+- `POST /api/v1/onboarding/kyc` — Submit KYC info
+- `POST /api/v1/onboarding/domain` — Set subdomain/custom domain
+- `POST /api/v1/onboarding/team-invite` — Invite team member
+- `POST /api/v1/onboarding/upload-doc` — KYC document upload
+
+See [backend/README.md](/README.md) for more details on onboarding flows and event logging.

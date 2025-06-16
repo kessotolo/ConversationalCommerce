@@ -27,6 +27,9 @@ Thank you for contributing! Please follow these guidelines to ensure code qualit
 - Use async DB sessions and ensure tenant context is set via dependency/middleware.
 - Follow the thin-endpoint, service-centric pattern.
 - Reference backend/README.md and docs/architecture.md for patterns and best practices.
+- **For onboarding flows:**
+  - Use the onboarding endpoints in `api/v1/endpoints/onboarding.py` and the `SellerOnboardingService` in `services/seller_onboarding_service.py` as your pattern.
+  - All onboarding steps must log analytics/events using the ConversationEvent pattern (see backend/README.md for details).
 
 ## 🔄 API Versioning Guidelines
 - **When to version:** Create a new version when making breaking changes to existing endpoints.

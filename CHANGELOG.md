@@ -34,3 +34,13 @@ A comprehensive list of TODOs remains in the codebase:
 #### Frontend TODOs
 - Cart page: implement real session/user/phone logic
 - Storefront Editor: align DTOs with backend (asset_id, alt_text, description fields, banner_type)
+
+## 2025-06-16
+
+### Added
+
+#### Seller Onboarding (Phase 1.2)
+- Scaffolded onboarding API endpoints: start, KYC, domain, team invite, KYC document upload
+- Added SellerOnboardingService for onboarding business logic
+- Created onboarding request/response schemas in `schemas/onboarding.py`
+- Updated backend/README.md and schemas/README.md with onboarding documentation
