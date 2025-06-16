@@ -1,6 +1,5 @@
 'use client';
 import MobileNav from '@/components/MobileNav';
-import { Providers } from '@/app/providers';
 import { UserButton, useClerk } from '@clerk/nextjs';
 import { useState } from 'react';
 
@@ -8,7 +7,7 @@ export default function ClientLayoutShell({ children }: { children: React.ReactN
     const { signOut } = useClerk();
     const [settingsOpen, setSettingsOpen] = useState(false);
     return (
-        <Providers>
+        <>
             <MobileNav />
             {children}
             {/* Sticky settings/signout button */}
@@ -33,6 +32,6 @@ export default function ClientLayoutShell({ children }: { children: React.ReactN
                     </div>
                 )}
             </div>
-        </Providers>
+        </>
     );
 }
