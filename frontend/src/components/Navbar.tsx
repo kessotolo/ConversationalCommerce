@@ -1,3 +1,4 @@
+// DEPRECATED: This Navbar is replaced by MobileNav.tsx for all new and existing layouts. Use <MobileNav /> instead for modern, mobile-first navigation.
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -7,7 +8,7 @@ import { useUser } from '@clerk/nextjs';
 import { ShoppingCart } from 'lucide-react';
 import Image from 'next/image';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
+const API_BASE = process.env['NEXT_PUBLIC_API_BASE'] || '';
 
 export default function Navbar() {
   const { isSignedIn, user } = useUser();

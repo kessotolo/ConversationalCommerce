@@ -1,6 +1,6 @@
 import './globals.css';
 import { Inter } from 'next/font/google';
-import Navbar from '@/components/Navbar';
+import MobileNav from '@/components/MobileNav';
 import { Providers } from './providers';
 
 const inter = Inter({
@@ -19,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${inter.variable} font-sans`}>
       <body className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
         <Providers>
-          <Navbar />
+          <MobileNav />
           {children}
         </Providers>
       </body>

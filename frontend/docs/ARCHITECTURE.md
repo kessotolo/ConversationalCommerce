@@ -533,3 +533,16 @@ Our conversational engine is trained on real African chat data, supports local d
 - The backend supports API versioning for all breaking changes.
 - `/api/v2/orders/` and other v2 endpoints are available for new or breaking changes.
 - See backend/README.md for migration plan and technical details.
+
+### TypeScript Type Safety Standards
+
+#### Type Safety Best Practices for All Developers and AI Assistants
+
+- **No `any` types**: The use of `any` is strictly prohibited. Use explicit interfaces, types, or `unknown` with type guards for dynamic data. All module boundaries must use explicit interfaces. Use generics with constraints for flexible APIs. For record types, use `Record<string, unknown>` instead of `{[key: string]: any}`.
+
+#### Async/Await and Asynchronous Code
+
+- **All asynchronous code must use async/await**: Do not use callbacks or mix sync and async logic in the same function.
+- **Error handling is required for all async flows**: Use try/catch around all await calls that can throw.
+- **All async functions must be fully typed**: Never use `any` in async function signatures or return types.
+- **Async flows must be documented and tested**: All async logic must have corresponding tests and inline comments for complex flows.

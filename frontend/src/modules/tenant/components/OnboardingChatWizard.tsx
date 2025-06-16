@@ -4,6 +4,7 @@ import { useUser, useOrganization } from '@clerk/nextjs';
 import { ConversationEventLogger } from '@/modules/conversation/utils/eventLogger';
 import { ConversationEventType } from '@/modules/conversation/models/event';
 import { onboardingApi } from '../api/onboardingApi';
+import { validateDomain } from '../api/onboardingApi';
 
 // Types for chat messages and form state
 interface ChatMessage {
@@ -41,6 +42,7 @@ export default function OnboardingChatWizard() {
     const [loading, setLoading] = useState(false);
     const [file, setFile] = useState<File | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [domainStatus, setDomainStatus] = useState<{ available: boolean; message: string } | null>(null);
     const { user } = useUser();
     const { organization } = useOrganization();
 
@@ -188,6 +190,14 @@ export default function OnboardingChatWizard() {
                         e.preventDefault();
                         const inputElem = (e.target as HTMLFormElement).elements.namedItem('input') as HTMLInputElement | null;
                         if (inputElem && inputElem.value) {
+                            if (steps[step] === 'domain') {
+                                const res = await validateDomain(inputElem.value);
+                                setDomainStatus(res);
+                                if (!res.available) {
+                                    setError(res.message);
+                                    return;
+                                }
+                            }
                             await handleUserInput(inputElem.value);
                             inputElem.value = '';
                         }
@@ -210,6 +220,33 @@ export default function OnboardingChatWizard() {
                                 }}
                                 disabled={loading}
                             />
+                        </>
+                    ) : steps[step] === 'domain' ? (
+                        <>
+                            <input
+                                name="input"
+                                type="text"
+                                className="flex-1 border rounded px-2 py-1"
+                                placeholder="Enter your subdomain"
+                                disabled={loading}
+                                autoFocus
+                                onChange={async e => {
+                                    const val = e.target.value;
+                                    if (val) {
+                                        const res = await validateDomain(val);
+                                        setDomainStatus(res);
+                                        setError(res.available ? null : res.message);
+                                    } else {
+                                        setDomainStatus(null);
+                                        setError(null);
+                                    }
+                                }}
+                            />
+                            {domainStatus && (
+                                <div className={domainStatus.available ? 'text-green-600 text-xs mt-1' : 'text-red-600 text-xs mt-1'}>
+                                    {domainStatus.message}
+                                </div>
+                            )}
                         </>
                     ) : (
                         <input
