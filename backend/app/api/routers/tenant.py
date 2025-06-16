@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
+from app.api.deps import get_current_tenant_id
 from app.db import get_db
 from app.models.tenant import Tenant
 from app.schemas.tenant import TenantOut, TenantUpdate
-from app.api.deps import get_current_tenant_id
 
 router = APIRouter()
 

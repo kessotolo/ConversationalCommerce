@@ -17,7 +17,10 @@ from uuid import uuid4, UUID
 import uuid
 import logging
 from fastapi import Request
-from tests.mocks.mock_content_analysis import mock_content_analysis_service, mock_analyze_content_async
+from tests.mocks.mock_content_analysis import (
+    mock_content_analysis_service,
+    mock_analyze_content_async,
+)
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -30,13 +33,13 @@ logger = logging.getLogger(__name__)
 # For sync operations (testing only)
 TEST_DATABASE_URL_SYNC = os.environ.get(
     "TEST_DATABASE_URL_SYNC",
-    "postgresql://postgres:postgres@127.0.0.1/conversational_commerce_test"
+    "postgresql://postgres:postgres@127.0.0.1/conversational_commerce_test",
 )
 
 # For async operations
 TEST_DATABASE_URL = os.environ.get(
     "TEST_DATABASE_URL",
-    "postgresql+asyncpg://postgres:postgres@127.0.0.1/conversational_commerce_test"
+    "postgresql+asyncpg://postgres:postgres@127.0.0.1/conversational_commerce_test",
 )
 
 # Print debug information
@@ -44,8 +47,12 @@ logger.info(f"Using sync DB URL: {TEST_DATABASE_URL_SYNC}")
 logger.info(f"Using async DB URL: {TEST_DATABASE_URL}")
 
 # Force use of 127.0.0.1 explicitly
-FORCED_SYNC_URL = "postgresql://postgres:postgres@127.0.0.1/conversational_commerce_test"
-FORCED_ASYNC_URL = "postgresql+asyncpg://postgres:postgres@127.0.0.1/conversational_commerce_test"
+FORCED_SYNC_URL = (
+    "postgresql://postgres:postgres@127.0.0.1/conversational_commerce_test"
+)
+FORCED_ASYNC_URL = (
+    "postgresql+asyncpg://postgres:postgres@127.0.0.1/conversational_commerce_test"
+)
 
 # Create both sync and async engines
 try:
@@ -58,7 +65,7 @@ try:
         pool_size=5,
         max_overflow=10,
         pool_timeout=30,
-        pool_recycle=1800
+        pool_recycle=1800,
     )
     logger.info("Sync engine created successfully")
 
@@ -67,7 +74,7 @@ try:
         pool_size=5,
         max_overflow=10,
         pool_timeout=30,
-        pool_recycle=1800
+        pool_recycle=1800,
     )
     logger.info("Async engine created successfully")
 except Exception as e:
@@ -78,29 +85,30 @@ except Exception as e:
         pool_size=5,
         max_overflow=10,
         pool_timeout=30,
-        pool_recycle=1800
+        pool_recycle=1800,
     )
     async_engine = create_async_engine(
         FORCED_ASYNC_URL,
         pool_size=5,
         max_overflow=10,
         pool_timeout=30,
-        pool_recycle=1800
+        pool_recycle=1800,
     )
     logger.info("Fallback engines created successfully")
 
 # Set environment variable to indicate we're testing
-os.environ['TESTING'] = 'true'
+os.environ["TESTING"] = "true"
 
 # Create session factories
-TestingSessionLocal = sessionmaker(
-    autocommit=False, autoflush=False, bind=sync_engine)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=sync_engine)
 AsyncTestingSessionLocal = async_sessionmaker(
-    async_engine, class_=AsyncSession, expire_on_commit=False)
+    async_engine, class_=AsyncSession, expire_on_commit=False
+)
 
 # Override the session modules for testing
-sys.modules['app.db.session'].SessionLocal = TestingSessionLocal
-sys.modules['app.db.session'].engine = sync_engine
+sys.modules["app.db.session"].SessionLocal = TestingSessionLocal
+sys.modules["app.db.session"].engine = sync_engine
+
 
 # Set environment variables for all tests
 @pytest.fixture(scope="session", autouse=True)
@@ -112,6 +120,7 @@ def set_test_env_vars():
     logger.info("Clearing test environment variables")
     os.environ.pop("PYTEST_RUNNING", None)
 
+
 # Debug fixture to run before any test to help diagnose issues
 @pytest.fixture(scope="session", autouse=True)
 def debug_test_environment():
@@ -122,17 +131,23 @@ def debug_test_environment():
     logger.info(f"TESTING env var: {os.environ.get('TESTING')}")
     logger.info(f"Current working directory: {os.getcwd()}")
     logger.info(f"Path: {os.environ.get('PATH')}")
-    
+
     # Checking for pytest deadlock culprits
     logger.info("==== Checking for potential deadlock sources =====")
     try:
         import psutil
-        logger.info("Memory usage: {:.2f}MB".format(psutil.Process(os.getpid()).memory_info().rss / 1024 / 1024))
+
+        logger.info(
+            "Memory usage: {:.2f}MB".format(
+                psutil.Process(os.getpid()).memory_info().rss / 1024 / 1024
+            )
+        )
     except ImportError:
         logger.info("psutil not installed, skipping memory check")
-        
+
     yield
     logger.info("====== TEST ENVIRONMENT DEBUG COMPLETE ======")
+
 
 # Apply patches to avoid heavy model loading during tests
 @pytest.fixture(scope="session", autouse=True)
@@ -140,22 +155,30 @@ def patch_content_analysis():
     """Patch content_analysis_service and analyze_content_async to use mocks.
     This prevents downloading heavy models during tests."""
     logger.info("Applying content analysis patches for tests")
-    
+
     # Patch the content analysis service
-    with unittest.mock.patch('app.core.content.content_analysis.content_analysis_service', 
-                           mock_content_analysis_service):
+    with unittest.mock.patch(
+        "app.core.content.content_analysis.content_analysis_service",
+        mock_content_analysis_service,
+    ):
         # Patch analyze_content_async
-        with unittest.mock.patch('app.core.content.content_analysis.analyze_content_async', 
-                               mock_analyze_content_async):
+        with unittest.mock.patch(
+            "app.core.content.content_analysis.analyze_content_async",
+            mock_analyze_content_async,
+        ):
             # Patch nlp initialization
-            with unittest.mock.patch('app.core.content.content_analysis.initialize_spacy', 
-                                  return_value=unittest.mock.MagicMock()):
+            with unittest.mock.patch(
+                "app.core.content.content_analysis.initialize_spacy",
+                return_value=unittest.mock.MagicMock(),
+            ):
                 # Patch any direct Detoxify imports
-                with unittest.mock.patch('app.core.content.content_analysis.Detoxify', 
-                                      unittest.mock.MagicMock()):
+                with unittest.mock.patch(
+                    "app.core.content.content_analysis.Detoxify",
+                    unittest.mock.MagicMock(),
+                ):
                     logger.info("Content analysis patches applied successfully")
                     yield
-                    
+
     logger.info("Content analysis patches removed")
 
 
@@ -164,7 +187,7 @@ backend_dir = str(Path(__file__).parent.parent)
 sys.path.insert(0, backend_dir)
 
 # Set testing environment variable
-os.environ['TESTING'] = 'True'
+os.environ["TESTING"] = "True"
 
 # Test data
 
@@ -173,13 +196,18 @@ os.environ['TESTING'] = 'True'
 async def test_product(async_db_session, test_tenant, test_user):
     from app.models.product import Product
     from sqlalchemy import text, select
+
     # Remove any existing test products for idempotency
-    await async_db_session.execute(text("DELETE FROM products WHERE name = 'Test Product'"))
+    await async_db_session.execute(
+        text("DELETE FROM products WHERE name = 'Test Product'")
+    )
     await async_db_session.commit()
 
     # Set the tenant context for this session if the GUC is available
     try:
-        await async_db_session.execute(text(f"SET LOCAL my.tenant_id = '{test_tenant.id}'"))
+        await async_db_session.execute(
+            text(f"SET LOCAL my.tenant_id = '{test_tenant.id}'")
+        )
     except Exception:
         pass  # Ignore if GUC not present in test DB
 
@@ -189,7 +217,7 @@ async def test_product(async_db_session, test_tenant, test_user):
         description="A product for testing order creation.",
         price=1000,
         seller_id=test_user.id,
-        tenant_id=test_tenant.id
+        tenant_id=test_tenant.id,
     )
     async_db_session.add(product)
     await async_db_session.commit()
@@ -200,6 +228,7 @@ async def test_product(async_db_session, test_tenant, test_user):
     product = result.scalar_one_or_none()
 
     return product
+
 
 # Use a fixed UUID for consistent testing
 # Consistent test UUID
@@ -244,35 +273,37 @@ def db_session(db_engine):
 @pytest_asyncio.fixture(scope="function")
 async def async_db_session(async_db_engine):
     logger.info("Creating async_db_session with simplified transaction management")
-    
+
     # Create a connection and begin a transaction
     async with async_db_engine.connect() as conn:
         logger.info("DB Connection established")
-        
+
         # Start a transaction that we control explicitly
         async with conn.begin() as trans:
             logger.info("Transaction started")
-            
+
             # Create session with our connection
             session = AsyncTestingSessionLocal(bind=conn)
             logger.info("Session created with connection binding")
-            
+
             try:
                 # Configure session timezone
                 from sqlalchemy import text
+
                 await session.execute(text("SET TIME ZONE 'UTC'"))
                 logger.info("Database timezone set to UTC")
-                
+
                 # Yield session for test use
                 yield session
-                
+
                 # If test completes normally, flush changes before the transaction ends
                 await session.flush()
                 logger.info("Session flushed successfully after test completion")
-                
+
             except Exception as e:
                 logger.error(f"Error during test execution: {e}")
                 import traceback
+
                 logger.error(f"Error traceback: {traceback.format_exc()}")
                 # Transaction will be rolled back by context manager
                 raise
@@ -280,7 +311,7 @@ async def async_db_session(async_db_engine):
                 # Always close session explicitly
                 await session.close()
                 logger.info("Session closed properly")
-    
+
     # Connection and transaction are automatically closed by context managers
     logger.info("async_db_session fixture completed successfully")
 
@@ -289,18 +320,22 @@ async def async_db_session(async_db_engine):
 def client() -> TestClient:
     """Create a test client for the app"""
     # Force test environment for safety
-    os.environ['TESTING'] = 'true'
-    os.environ['ENVIRONMENT'] = 'test'
+    os.environ["TESTING"] = "true"
+    os.environ["ENVIRONMENT"] = "test"
 
     # Override database settings using environment variables for tests
-    os.environ['POSTGRES_SERVER'] = '127.0.0.1'
-    os.environ['POSTGRES_USER'] = 'postgres'
-    os.environ['POSTGRES_PASSWORD'] = 'postgres'
-    os.environ['POSTGRES_DB'] = 'conversational_commerce_test'
+    os.environ["POSTGRES_SERVER"] = "127.0.0.1"
+    os.environ["POSTGRES_USER"] = "postgres"
+    os.environ["POSTGRES_PASSWORD"] = "postgres"
+    os.environ["POSTGRES_DB"] = "conversational_commerce_test"
 
     # Create a clean app without problematic middlewares
     from fastapi import FastAPI
-    from app.main import register_exception_handlers, StorefrontError, handle_storefront_error
+    from app.main import (
+        register_exception_handlers,
+        StorefrontError,
+        handle_storefront_error,
+    )
 
     app = FastAPI()
     register_exception_handlers(app)
@@ -317,9 +352,7 @@ def client() -> TestClient:
     # Override the auth dependency for testing
     async def override_require_auth(request: Request):
         return ClerkTokenData(
-            sub=str(TEST_USER_ID),
-            email=TEST_USER_EMAIL,
-            role="seller"
+            sub=str(TEST_USER_ID), email=TEST_USER_EMAIL, role="seller"
         )
 
     # Override dependencies
@@ -328,6 +361,7 @@ def client() -> TestClient:
 
     # Include API router
     from app.api.v1.api import api_router
+
     app.include_router(api_router, prefix="/api/v1")
 
     return TestClient(app)
@@ -336,10 +370,7 @@ def client() -> TestClient:
 @pytest.fixture(scope="function")
 def auth_headers():
     # Create auth headers with test token and tenant ID
-    return {
-        "Authorization": "Bearer test_token",
-        "X-Tenant-ID": str(TEST_TENANT_ID)
-    }
+    return {"Authorization": "Bearer test_token", "X-Tenant-ID": str(TEST_TENANT_ID)}
 
 
 @pytest.fixture(scope="function")
@@ -348,8 +379,7 @@ def test_tenant(db_session):
     from app.models.tenant import Tenant
 
     # Check if the test tenant already exists
-    test_tenant = db_session.query(Tenant).filter(
-        Tenant.id == TEST_TENANT_ID).first()
+    test_tenant = db_session.query(Tenant).filter(Tenant.id == TEST_TENANT_ID).first()
 
     if not test_tenant:
         # Create a test tenant
@@ -357,7 +387,7 @@ def test_tenant(db_session):
             id=TEST_TENANT_ID,
             name="Test Tenant",
             subdomain=f"test-{uuid.uuid4()}",
-            is_active=True
+            is_active=True,
         )
         db_session.add(test_tenant)
         db_session.commit()
@@ -378,6 +408,7 @@ async def test_user(async_db_session, test_tenant):
     from app.models.user import User
     from app.models.tenant import Tenant
     from sqlalchemy import text
+
     # Remove all users for idempotency
     await async_db_session.execute(text("DELETE FROM users"))
     await async_db_session.commit()
@@ -386,9 +417,8 @@ async def test_user(async_db_session, test_tenant):
     tenant = await async_db_session.get(Tenant, test_tenant.id)
     if not tenant:
         # Create a new Tenant instance for this session with all required fields
-        subdomain = getattr(test_tenant, 'subdomain', None) or 'testtenant'
-        tenant = Tenant(id=test_tenant.id,
-                        name=test_tenant.name, subdomain=subdomain)
+        subdomain = getattr(test_tenant, "subdomain", None) or "testtenant"
+        tenant = Tenant(id=test_tenant.id, name=test_tenant.name, subdomain=subdomain)
         async_db_session.add(tenant)
         await async_db_session.commit()
         await async_db_session.refresh(tenant)
@@ -397,7 +427,7 @@ async def test_user(async_db_session, test_tenant):
         id=UUID("00000000-0000-0000-0000-000000000001"),
         email=TEST_USER_EMAIL,
         is_seller=True,
-        tenant_id=test_tenant.id
+        tenant_id=test_tenant.id,
     )
     async_db_session.add(test_user)
 
@@ -405,7 +435,7 @@ async def test_user(async_db_session, test_tenant):
         id=UUID("00000000-0000-0000-0000-000000000002"),
         email="other@example.com",
         is_seller=True,
-        tenant_id=test_tenant.id
+        tenant_id=test_tenant.id,
     )
     async_db_session.add(other_user)
 

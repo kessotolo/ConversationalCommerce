@@ -1,22 +1,32 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, Query, BackgroundTasks
-from sqlalchemy.orm import Session
-from typing import Optional
-from datetime import datetime
-import json
-import hmac
 import hashlib
-import os
-import requests
+import hmac
+import json
 import logging
+import os
+from datetime import datetime
+from typing import Optional
 
-from app.db.session import get_db
-from app.models.conversation_history import ConversationHistory, SenderType, ChannelType
-from app.schemas.conversation_event import ConversationEventCreate
-from app.models.tenant import Tenant
+import requests
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    HTTPException,
+    Query,
+    Request,
+    Response,
+)
+from sqlalchemy.orm import Session
+
 from app.api.routers.conversation import log_conversation_event
+from app.conversation.chat_flow_engine import ChatFlowEngine
 from app.conversation.handlers.order_handler import OrderIntentHandler
-from app.conversation.nlp.intent_parser import IntentType, parse_intent
 from app.conversation.nlp.cart_intent_processor import process_cart_intent
+from app.conversation.nlp.intent_parser import IntentType, parse_intent
+from app.db.session import get_db
+from app.models.conversation_history import ChannelType, ConversationHistory, SenderType
+from app.models.tenant import Tenant
+from app.schemas.conversation_event import ConversationEventCreate
 
 # WhatsApp Business API settings
 WHATSAPP_API_VERSION = os.getenv("WHATSAPP_API_VERSION", "v16.0")
@@ -36,19 +46,17 @@ def verify_whatsapp_signature(request_body: bytes, signature_header: str) -> boo
         return True
 
     # Split the signature header
-    elements = signature_header.split('=')
+    elements = signature_header.split("=")
     if len(elements) != 2:
         return False
 
     method, signature = elements
-    if method != 'sha256':
+    if method != "sha256":
         return False
 
     # Calculate the expected signature
     expected_signature = hmac.new(
-        WHATSAPP_APP_SECRET.encode('utf-8'),
-        msg=request_body,
-        digestmod=hashlib.sha256
+        WHATSAPP_APP_SECRET.encode("utf-8"), msg=request_body, digestmod=hashlib.sha256
     ).hexdigest()
 
     return hmac.compare_digest(signature, expected_signature)
@@ -57,25 +65,32 @@ def verify_whatsapp_signature(request_body: bytes, signature_header: str) -> boo
 def find_tenant_by_whatsapp(phone_number: str, db: Session) -> Optional[Tenant]:
     """Find tenant with matching WhatsApp number"""
     # Remove any '+' prefix for consistent comparison
-    clean_number = phone_number.replace('+', '')
+    clean_number = phone_number.replace("+", "")
 
     # Try to find tenant with matching WhatsApp number
-    tenant = db.query(Tenant).filter(
-        Tenant.whatsapp_number.contains(clean_number)
-    ).first()
+    tenant = (
+        db.query(Tenant).filter(Tenant.whatsapp_number.contains(clean_number)).first()
+    )
 
     return tenant
 
 
 def get_tenant_by_id(db, tenant_id):
     from app.models.tenant import Tenant
+
     return db.query(Tenant).filter(Tenant.id == tenant_id).first()
 
 
 class WhatsAppCredential:
     """Represents credentials for a tenant's WhatsApp integration"""
 
-    def __init__(self, tenant_id: str, whatsapp_number: str, access_token: str = None, phone_number_id: str = None):
+    def __init__(
+        self,
+        tenant_id: str,
+        whatsapp_number: str,
+        access_token: str = None,
+        phone_number_id: str = None,
+    ):
         self.tenant_id = tenant_id
         self.whatsapp_number = whatsapp_number
         # If tenant doesn't have their own credentials, use Twilio integration
@@ -94,7 +109,9 @@ class WhatsAppMessageManager:
         self.twilio_auth_token = os.getenv("TWILIO_AUTH_TOKEN")
         self.twilio_whatsapp_number = os.getenv("TWILIO_WHATSAPP_NUMBER")
 
-    def get_tenant_credentials(self, tenant_id: str, db: Session) -> Optional[WhatsAppCredential]:
+    def get_tenant_credentials(
+        self, tenant_id: str, db: Session
+    ) -> Optional[WhatsAppCredential]:
         """Get WhatsApp credentials for a tenant from cache or database"""
         # Check cache first
         if tenant_id in self.credentials_cache:
@@ -118,23 +135,26 @@ class WhatsAppMessageManager:
             whatsapp_number=tenant.whatsapp_number,
             # In future: get these from tenant-specific settings
             access_token=None,  # tenant.whatsapp_access_token
-            phone_number_id=None  # tenant.whatsapp_phone_number_id
+            phone_number_id=None,  # tenant.whatsapp_phone_number_id
         )
 
         # Cache the credentials
         self.credentials_cache[tenant_id] = credential
         return credential
 
-    def send_whatsapp_reply(self, tenant_id: str, to_number: str, message: str, db: Session) -> bool:
+    def send_whatsapp_reply(
+        self, tenant_id: str, to_number: str, message: str, db: Session
+    ) -> bool:
         """Send a WhatsApp reply using tenant's WhatsApp credentials"""
         credentials = self.get_tenant_credentials(tenant_id, db)
         if not credentials:
-            logger.error(
-                f"No WhatsApp credentials found for tenant {tenant_id}")
+            logger.error(f"No WhatsApp credentials found for tenant {tenant_id}")
             return False
 
         if credentials.use_twilio:
-            return self._send_via_twilio(credentials.whatsapp_number, to_number, message)
+            return self._send_via_twilio(
+                credentials.whatsapp_number, to_number, message
+            )
         else:
             return self._send_via_graph_api(credentials, to_number, message)
 
@@ -160,8 +180,8 @@ class WhatsAppMessageManager:
             # Format the WhatsApp number with the whatsapp: prefix
             twilio_msg = client.messages.create(
                 body=message,
-                from_=f'whatsapp:{from_whatsapp}',
-                to=f'whatsapp:{to_number}'
+                from_=f"whatsapp:{from_whatsapp}",
+                to=f"whatsapp:{to_number}",
             )
 
             logger.info(f"Sent WhatsApp message via Twilio: {twilio_msg.sid}")
@@ -170,14 +190,16 @@ class WhatsAppMessageManager:
             logger.error(f"Error sending WhatsApp via Twilio: {str(e)}")
             return False
 
-    def _send_via_graph_api(self, credentials: WhatsAppCredential, to_number: str, message: str) -> bool:
+    def _send_via_graph_api(
+        self, credentials: WhatsAppCredential, to_number: str, message: str
+    ) -> bool:
         """Send message using Meta Graph API"""
         try:
             url = f"https://graph.facebook.com/{WHATSAPP_API_VERSION}/{credentials.phone_number_id}/messages"
 
             headers = {
                 "Authorization": f"Bearer {credentials.access_token}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             }
 
             data = {
@@ -185,20 +207,16 @@ class WhatsAppMessageManager:
                 "recipient_type": "individual",
                 "to": to_number,
                 "type": "text",
-                "text": {
-                    "body": message
-                }
+                "text": {"body": message},
             }
 
             response = requests.post(url, headers=headers, json=data)
             success = response.status_code == 200
 
             if success:
-                logger.info(
-                    f"Sent WhatsApp message via Graph API to {to_number}")
+                logger.info(f"Sent WhatsApp message via Graph API to {to_number}")
             else:
-                logger.error(
-                    f"Failed to send WhatsApp via Graph API: {response.text}")
+                logger.error(f"Failed to send WhatsApp via Graph API: {response.text}")
 
             return success
         except Exception as e:
@@ -215,7 +233,7 @@ ORDER_INTENT_TYPES = [
     IntentType.ORDER_STATUS,
     IntentType.CANCEL_ORDER,
     IntentType.TRACK_ORDER,
-    IntentType.PAYMENT_CONFIRMATION
+    IntentType.PAYMENT_CONFIRMATION,
 ]
 
 
@@ -233,11 +251,11 @@ async def verify_webhook(
 
     if not verify_token:
         raise HTTPException(
-            status_code=500, detail="WHATSAPP_VERIFY_TOKEN not configured")
+            status_code=500, detail="WHATSAPP_VERIFY_TOKEN not configured"
+        )
 
     if hub_verify_token != verify_token:
-        raise HTTPException(
-            status_code=403, detail="Verification token mismatch")
+        raise HTTPException(status_code=403, detail="Verification token mismatch")
 
     if hub_mode == "subscribe":
         return Response(content=hub_challenge)
@@ -246,7 +264,9 @@ async def verify_webhook(
 
 
 @router.post("/webhook")
-async def webhook(request: Request, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+async def webhook(
+    request: Request, background_tasks: BackgroundTasks, db: Session = Depends(get_db)
+):
     """
     Handle incoming WhatsApp messages
     Processes messages using the existing NLP cart management functionality
@@ -287,8 +307,7 @@ async def webhook(request: Request, background_tasks: BackgroundTasks, db: Sessi
                 customer_number = message.get("from")
                 # The business number that received the message
                 to_number = message.get("to")
-                timestamp = datetime.fromtimestamp(
-                    int(message.get("timestamp")))
+                timestamp = datetime.fromtimestamp(int(message.get("timestamp")))
                 message_body = message.get("text", {}).get("body", "")
 
                 # Find associated tenant by WhatsApp number that received the message
@@ -296,7 +315,8 @@ async def webhook(request: Request, background_tasks: BackgroundTasks, db: Sessi
                 if not tenant:
                     # This can happen if a message is sent to a number not registered in the platform
                     logger.warning(
-                        f"Received message to unknown WhatsApp number: {to_number}")
+                        f"Received message to unknown WhatsApp number: {to_number}"
+                    )
                     # No response since we don't know which business this is for
                     continue
 
@@ -306,70 +326,84 @@ async def webhook(request: Request, background_tasks: BackgroundTasks, db: Sessi
                     sender_type=SenderType.CUSTOMER,
                     channel=ChannelType.WHATSAPP,
                     timestamp=timestamp,
-                    tenant_id=tenant.id
+                    tenant_id=tenant.id,
                 )
                 db.add(conversation)
                 db.commit()
                 db.refresh(conversation)
 
-                # Process with NLP and get response
-                # Import here to avoid circular dependencies
-
-                # Parse the intent from the message
+                # --- Conversational Checkout Flow Integration ---
+                # If the message is not a cart/order intent, use ChatFlowEngine for stateful checkout
                 parsed_intent = await parse_intent(message_body, tenant.id)
+                is_checkout_flow = (
+                    not parsed_intent
+                    or parsed_intent.intent_type not in ORDER_INTENT_TYPES
+                )
+                if is_checkout_flow:
+                    chat_engine = ChatFlowEngine(
+                        tenant_id=tenant.id,
+                        user_id=None,
+                        db=db,
+                        channel=ChannelType.WHATSAPP,
+                        phone_number=customer_number,
+                    )
+                    chat_responses = chat_engine.handle_input(message_body)
+                    for resp in chat_responses:
+                        whatsapp_manager.send_whatsapp_reply(
+                            tenant.id, customer_number, resp.get("text", ""), db
+                        )
+                    continue
+                # --- End Conversational Checkout Flow Integration ---
 
-                # Create conversation context
+                # Existing order/cart intent logic
                 context = {
-                    'phone_number': customer_number,
-                    'tenant_id': tenant.id,
-                    'conversation_id': conversation.id,
-                    'platform': 'whatsapp',
-                    'timestamp': datetime.utcnow().isoformat()
+                    "phone_number": customer_number,
+                    "tenant_id": tenant.id,
+                    "conversation_id": conversation.id,
+                    "platform": "whatsapp",
+                    "timestamp": datetime.utcnow().isoformat(),
                 }
-
-                # Route to the appropriate handler based on intent type
                 if parsed_intent and parsed_intent.intent_type in ORDER_INTENT_TYPES:
-                    # Use our order intent handler for order-related intents
-                    order_handler = OrderIntentHandler(
-                        tenant.id, user_id=None, db=db)
+                    order_handler = OrderIntentHandler(tenant.id, user_id=None, db=db)
                     response = await order_handler.handle_intent(parsed_intent, context)
                 else:
-                    # Use existing cart intent processor for cart-related intents
-                    response = await process_cart_intent(message_body, tenant.id, customer_number, context)
-
-                # Get the response messages from the intent handler
-                response_messages = response.get('messages', [])
-
-                # Update context with any changes
-                context.update(response.get('context', {}))
-
-                # Send all response messages via WhatsApp
+                    response = await process_cart_intent(
+                        message_body, tenant.id, customer_number, context
+                    )
+                response_messages = response.get("messages", [])
+                context.update(response.get("context", {}))
                 for message in response_messages:
-                    # Extract message content based on message type
                     if isinstance(message, dict):
-                        if message.get('type') == 'text':
-                            message_content = message.get('text', '')
-                        elif message.get('type') == 'location':
+                        if message.get("type") == "text":
+                            message_content = message.get("text", "")
+                        elif message.get("type") == "location":
                             # Format location message specially
-                            lat = message.get('latitude')
-                            lng = message.get('longitude')
-                            name = message.get('name', 'Location')
-                            message_content = f"📍 {name}\nLatitude: {lat}\nLongitude: {lng}"
+                            lat = message.get("latitude")
+                            lng = message.get("longitude")
+                            name = message.get("name", "Location")
+                            message_content = (
+                                f"📍 {name}\nLatitude: {lat}\nLongitude: {lng}"
+                            )
                         else:
                             # Default to text content
-                            message_content = message.get('text', '')
+                            message_content = message.get("text", "")
                     else:
                         # If message is a string
                         message_content = str(message)
 
                     # Send the message
                     whatsapp_manager.send_whatsapp_reply(
-                        tenant.id, customer_number, message_content, db)
+                        tenant.id, customer_number, message_content, db
+                    )
 
                 # Log conversation event with AI response(s)
                 # Join multiple messages if needed
-                response_content = "\n".join([m.get('text', str(m)) if isinstance(m, dict) else str(m)
-                                              for m in response_messages])
+                response_content = "\n".join(
+                    [
+                        m.get("text", str(m)) if isinstance(m, dict) else str(m)
+                        for m in response_messages
+                    ]
+                )
 
                 log_event = ConversationEventCreate(
                     conversation_id=conversation.id,
@@ -378,17 +412,22 @@ async def webhook(request: Request, background_tasks: BackgroundTasks, db: Sessi
                     timestamp=datetime.utcnow(),
                     metadata={
                         "channel": "whatsapp",
-                        "intent": parsed_intent.intent_type if parsed_intent else "unknown",
-                        "context": {k: v for k, v in context.items() if k not in ['timestamp']}
-                    }
+                        "intent": (
+                            parsed_intent.intent_type if parsed_intent else "unknown"
+                        ),
+                        "context": {
+                            k: v for k, v in context.items() if k not in ["timestamp"]
+                        },
+                    },
                 )
 
                 # Use the existing NLP processing function
-                result = log_conversation_event(event, db)
+                result = log_conversation_event(log_event, db)
 
                 # Send the response back to WhatsApp using the tenant's credentials
                 response = result.payload.get(
-                    "chat_response", "I received your message.")
+                    "chat_response", "I received your message."
+                )
                 if response:
                     # Send response in background to avoid blocking the webhook
                     background_tasks.add_task(
@@ -396,7 +435,7 @@ async def webhook(request: Request, background_tasks: BackgroundTasks, db: Sessi
                         tenant.id,
                         customer_number,
                         response,
-                        db
+                        db,
                     )
                     responses.append(response)
 

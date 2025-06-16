@@ -1,22 +1,30 @@
 from typing import Any
-from fastapi import APIRouter, Depends, HTTPException, Header, Body, Request
+
+from fastapi import APIRouter, Body, Depends, Header, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app.api import deps
-from app.services.payment.payment_service import PaymentService
+from app.api.deps.security_deps import payment_security_checks
+from app.core.auth import get_current_active_user
+from app.core.security.payment_security import mask_sensitive_data
 from app.schemas.payment.payment import (
     PaymentInitializeResponseWithWrapper,
-    PaymentVerificationResponseWithWrapper,
-    PaymentSettingsResponseWithWrapper,
+    PaymentProvider,
     PaymentSettings,
-    PaymentProvider
+    PaymentSettingsResponseWithWrapper,
+    PaymentVerificationResponseWithWrapper,
 )
-from app.core.auth import get_current_active_user
+from app.schemas.payment.payment_validation import (
+    EnhancedManualPaymentProof,
+    EnhancedPaymentInitializeRequest,
+)
+from app.services.audit_service import (
+    AuditActionType,
+    AuditResourceType,
+    create_audit_log,
+)
 from app.services.payment.payment_provider import get_payment_provider
-from app.schemas.payment.payment_validation import EnhancedPaymentInitializeRequest, EnhancedManualPaymentProof
-from app.services.audit_service import create_audit_log, AuditActionType, AuditResourceType
-from app.core.security.payment_security import mask_sensitive_data
-from app.api.deps.security_deps import payment_security_checks
+from app.services.payment.payment_service import PaymentService
 
 router = APIRouter()
 
@@ -27,7 +35,7 @@ async def initialize_payment(
     db: Session = Depends(deps.get_db),
     current_user: Any = Depends(get_current_active_user),
     fastapi_request: Request = None,
-    _: bool = Depends(payment_security_checks("payment:initialize"))
+    _: bool = Depends(payment_security_checks("payment:initialize")),
 ) -> Any:
     """
     Initialize a payment transaction with the selected provider
@@ -37,7 +45,7 @@ async def initialize_payment(
     # Audit log
     create_audit_log(
         db=db,
-        user_id=getattr(current_user, 'id', None),
+        user_id=getattr(current_user, "id", None),
         action=AuditActionType.CREATE,
         resource_type=AuditResourceType.PAYMENT,
         resource_id=request.order_id,
@@ -45,18 +53,21 @@ async def initialize_payment(
             "masked_data": mask_sensitive_data(request.dict()),
             "operation": "initialize",
         },
-        request=fastapi_request
+        request=fastapi_request,
     )
     return {"payment": payment_response}
 
 
-@router.get("/verify/{reference}/{provider}", response_model=PaymentVerificationResponseWithWrapper)
+@router.get(
+    "/verify/{reference}/{provider}",
+    response_model=PaymentVerificationResponseWithWrapper,
+)
 async def verify_payment(
     reference: str,
     provider: PaymentProvider,
     db: Session = Depends(deps.get_db),
     current_user: Any = Depends(get_current_active_user),
-    _: bool = Depends(payment_security_checks("payment:verify"))
+    _: bool = Depends(payment_security_checks("payment:verify")),
 ) -> Any:
     """
     Verify the status of a payment using its reference
@@ -74,7 +85,7 @@ async def submit_manual_payment_proof(
     db: Session = Depends(deps.get_db),
     current_user: Any = Depends(get_current_active_user),
     fastapi_request: Request = None,
-    _: bool = Depends(payment_security_checks("payment:manual_proof"))
+    _: bool = Depends(payment_security_checks("payment:manual_proof")),
 ) -> Any:
     """
     Submit proof of manual bank transfer payment for an order
@@ -84,7 +95,7 @@ async def submit_manual_payment_proof(
     # Audit log
     create_audit_log(
         db=db,
-        user_id=getattr(current_user, 'id', None),
+        user_id=getattr(current_user, "id", None),
         action=AuditActionType.UPDATE,
         resource_type=AuditResourceType.PAYMENT,
         resource_id=order_id,
@@ -92,7 +103,7 @@ async def submit_manual_payment_proof(
             "masked_data": mask_sensitive_data(proof.dict()),
             "operation": "manual_payment_proof",
         },
-        request=fastapi_request
+        request=fastapi_request,
     )
     return {"success": success}
 
@@ -103,7 +114,7 @@ async def confirm_manual_payment(
     confirmed: bool = Body(..., embed=True),
     db: Session = Depends(deps.get_db),
     current_user: Any = Depends(deps.get_current_active_superuser),
-    _: bool = Depends(payment_security_checks("payment:manual_confirm"))
+    _: bool = Depends(payment_security_checks("payment:manual_confirm")),
 ) -> Any:
     """
     Confirm or reject a manual payment after reviewing proof (admin/seller only)
@@ -119,7 +130,7 @@ async def get_payment_settings(
     store_id: int,
     db: Session = Depends(deps.get_db),
     current_user: Any = Depends(get_current_active_user),
-    _: bool = Depends(payment_security_checks("payment:settings"))
+    _: bool = Depends(payment_security_checks("payment:settings")),
 ) -> Any:
     """
     Get payment settings for a store
@@ -137,7 +148,7 @@ async def update_payment_settings(
     settings_data: PaymentSettings,
     db: Session = Depends(deps.get_db),
     current_user: Any = Depends(get_current_active_user),
-    _: bool = Depends(payment_security_checks("payment:settings"))
+    _: bool = Depends(payment_security_checks("payment:settings")),
 ) -> Any:
     """
     Update payment settings for a store
@@ -154,7 +165,7 @@ async def paystack_webhook(
     request: Request,
     x_paystack_signature: str = Header(None),
     db: Session = Depends(deps.get_db),
-    _: bool = Depends(payment_security_checks("payment:webhook"))
+    _: bool = Depends(payment_security_checks("payment:webhook")),
 ) -> Any:
     """
     Handle Paystack webhook events
@@ -171,13 +182,13 @@ async def paystack_webhook(
         # In production, you'd retrieve this from the database based on the webhook data
         secret_key = "your_paystack_secret_key"
 
-        provider = get_payment_provider(PaymentProvider.PAYSTACK, {
-                                        "secret_key": secret_key})
+        provider = get_payment_provider(
+            PaymentProvider.PAYSTACK, {"secret_key": secret_key}
+        )
 
         # Validate webhook signature
         if not provider.validate_webhook(payload, x_paystack_signature):
-            raise HTTPException(
-                status_code=400, detail="Invalid webhook signature")
+            raise HTTPException(status_code=400, detail="Invalid webhook signature")
 
         # Parse the payload
         event_data = await request.json()
@@ -191,13 +202,16 @@ async def paystack_webhook(
 
             if reference:
                 payment_service = PaymentService(db)
-                await payment_service.verify_payment(reference, PaymentProvider.PAYSTACK)
+                await payment_service.verify_payment(
+                    reference, PaymentProvider.PAYSTACK
+                )
 
         return {"success": True, "message": f"Webhook processed: {event_type}"}
 
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Error processing webhook: {str(e)}")
+            status_code=500, detail=f"Error processing webhook: {str(e)}"
+        )
 
 
 @router.post("/webhook/flutterwave", response_model=dict)
@@ -205,7 +219,7 @@ async def flutterwave_webhook(
     request: Request,
     verify_hash: str = Header(None),
     db: Session = Depends(deps.get_db),
-    _: bool = Depends(payment_security_checks("payment:webhook"))
+    _: bool = Depends(payment_security_checks("payment:webhook")),
 ) -> Any:
     """
     Handle Flutterwave webhook events
@@ -218,13 +232,13 @@ async def flutterwave_webhook(
         # In production, you'd retrieve this from the database based on the webhook data
         secret_key = "your_flutterwave_secret_key"
 
-        provider = get_payment_provider(PaymentProvider.FLUTTERWAVE, {
-                                        "secret_key": secret_key})
+        provider = get_payment_provider(
+            PaymentProvider.FLUTTERWAVE, {"secret_key": secret_key}
+        )
 
         # Validate webhook signature
         if not provider.validate_webhook(payload, verify_hash):
-            raise HTTPException(
-                status_code=400, detail="Invalid webhook signature")
+            raise HTTPException(status_code=400, detail="Invalid webhook signature")
 
         # Parse the payload
         event_data = await request.json()
@@ -238,20 +252,23 @@ async def flutterwave_webhook(
 
             if tx_ref:
                 payment_service = PaymentService(db)
-                await payment_service.verify_payment(tx_ref, PaymentProvider.FLUTTERWAVE)
+                await payment_service.verify_payment(
+                    tx_ref, PaymentProvider.FLUTTERWAVE
+                )
 
         return {"success": True, "message": f"Webhook processed: {event_type}"}
 
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Error processing webhook: {str(e)}")
+            status_code=500, detail=f"Error processing webhook: {str(e)}"
+        )
 
 
 @router.post("/webhook/mpesa", response_model=dict)
 async def mpesa_webhook(
     request: Request,
     db: Session = Depends(deps.get_db),
-    _: bool = Depends(payment_security_checks("payment:webhook"))
+    _: bool = Depends(payment_security_checks("payment:webhook")),
 ) -> Any:
     """
     Handle M-Pesa webhook events
@@ -263,24 +280,23 @@ async def mpesa_webhook(
             "consumer_key": "your_mpesa_consumer_key",
             "consumer_secret": "your_mpesa_consumer_secret",
             "shortcode": "your_mpesa_shortcode",
-            "passkey": "your_mpesa_passkey"
+            "passkey": "your_mpesa_passkey",
         }
         provider = get_payment_provider(PaymentProvider.MPESA, credentials)
         # Validate webhook (add real logic as needed)
         if not provider.validate_webhook(payload, ""):
-            raise HTTPException(
-                status_code=400, detail="Invalid webhook signature")
+            raise HTTPException(status_code=400, detail="Invalid webhook signature")
         event_data = await request.json()
         # Extract reference (CheckoutRequestID or similar)
-        reference = event_data.get(
-            "CheckoutRequestID") or event_data.get("reference")
+        reference = event_data.get("CheckoutRequestID") or event_data.get("reference")
         if reference:
             payment_service = PaymentService(db)
             await payment_service.verify_payment(reference, PaymentProvider.MPESA)
         return {"success": True, "message": "Webhook processed"}
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Error processing webhook: {str(e)}")
+            status_code=500, detail=f"Error processing webhook: {str(e)}"
+        )
 
 
 @router.post("/webhook/stripe", response_model=dict)
@@ -288,7 +304,7 @@ async def stripe_webhook(
     request: Request,
     stripe_signature: str = Header(None),
     db: Session = Depends(deps.get_db),
-    _: bool = Depends(payment_security_checks("payment:webhook"))
+    _: bool = Depends(payment_security_checks("payment:webhook")),
 ) -> Any:
     """
     Handle Stripe webhook events
@@ -298,8 +314,7 @@ async def stripe_webhook(
         credentials = {"secret_key": "your_stripe_secret_key"}
         provider = get_payment_provider(PaymentProvider.STRIPE, credentials)
         if not provider.validate_webhook(payload, stripe_signature):
-            raise HTTPException(
-                status_code=400, detail="Invalid webhook signature")
+            raise HTTPException(status_code=400, detail="Invalid webhook signature")
         event_data = await request.json()
         # Stripe event types: payment_intent.succeeded, etc.
         event_type = event_data.get("type")
@@ -311,4 +326,5 @@ async def stripe_webhook(
         return {"success": True, "message": f"Webhook processed: {event_type}"}
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Error processing webhook: {str(e)}")
+            status_code=500, detail=f"Error processing webhook: {str(e)}"
+        )

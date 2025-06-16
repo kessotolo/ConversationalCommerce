@@ -1,17 +1,19 @@
+from datetime import datetime
 from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
 from app.api import deps
+from app.core.behavior.behavior_analysis import behavior_analysis_service
 from app.models.behavior_analysis import BehaviorPattern, PatternDetection
 from app.schemas.behavior import (
     BehaviorPatternCreate,
-    BehaviorPatternUpdate,
     BehaviorPatternResponse,
+    BehaviorPatternUpdate,
+    DetectionReviewUpdate,
     PatternDetectionResponse,
-    DetectionReviewUpdate
 )
-from app.core.behavior.behavior_analysis import behavior_analysis_service
-from datetime import datetime
 
 router = APIRouter()
 
@@ -24,10 +26,7 @@ async def create_behavior_pattern(
     current_user=Depends(deps.get_current_user)
 ):
     """Create a new behavior pattern"""
-    pattern = BehaviorPattern(
-        tenant_id=current_user.tenant_id,
-        **pattern_in.dict()
-    )
+    pattern = BehaviorPattern(tenant_id=current_user.tenant_id, **pattern_in.dict())
     db.add(pattern)
     db.commit()
     db.refresh(pattern)
@@ -63,10 +62,14 @@ async def get_behavior_pattern(
     current_user=Depends(deps.get_current_user)
 ):
     """Get a specific behavior pattern"""
-    pattern = db.query(BehaviorPattern).filter(
-        BehaviorPattern.id == pattern_id,
-        BehaviorPattern.tenant_id == current_user.tenant_id
-    ).first()
+    pattern = (
+        db.query(BehaviorPattern)
+        .filter(
+            BehaviorPattern.id == pattern_id,
+            BehaviorPattern.tenant_id == current_user.tenant_id,
+        )
+        .first()
+    )
     if not pattern:
         raise HTTPException(status_code=404, detail="Pattern not found")
     return pattern
@@ -81,10 +84,14 @@ async def update_behavior_pattern(
     current_user=Depends(deps.get_current_user)
 ):
     """Update a behavior pattern"""
-    pattern = db.query(BehaviorPattern).filter(
-        BehaviorPattern.id == pattern_id,
-        BehaviorPattern.tenant_id == current_user.tenant_id
-    ).first()
+    pattern = (
+        db.query(BehaviorPattern)
+        .filter(
+            BehaviorPattern.id == pattern_id,
+            BehaviorPattern.tenant_id == current_user.tenant_id,
+        )
+        .first()
+    )
     if not pattern:
         raise HTTPException(status_code=404, detail="Pattern not found")
 
@@ -105,10 +112,14 @@ async def delete_behavior_pattern(
     current_user=Depends(deps.get_current_user)
 ):
     """Delete a behavior pattern"""
-    pattern = db.query(BehaviorPattern).filter(
-        BehaviorPattern.id == pattern_id,
-        BehaviorPattern.tenant_id == current_user.tenant_id
-    ).first()
+    pattern = (
+        db.query(BehaviorPattern)
+        .filter(
+            BehaviorPattern.id == pattern_id,
+            BehaviorPattern.tenant_id == current_user.tenant_id,
+        )
+        .first()
+    )
     if not pattern:
         raise HTTPException(status_code=404, detail="Pattern not found")
 
@@ -130,7 +141,7 @@ async def analyze_behavior(
         db=db,
         tenant_id=current_user.tenant_id,
         user_id=user_id,
-        activity_data=activity_data
+        activity_data=activity_data,
     )
     return detections
 
@@ -159,7 +170,9 @@ async def list_detections(
     return query.all()
 
 
-@router.put("/detections/{detection_id}/review", response_model=PatternDetectionResponse)
+@router.put(
+    "/detections/{detection_id}/review", response_model=PatternDetectionResponse
+)
 async def review_detection(
     *,
     db: Session = Depends(deps.get_db),
@@ -168,10 +181,14 @@ async def review_detection(
     current_user=Depends(deps.get_current_user)
 ):
     """Review a pattern detection"""
-    detection = db.query(PatternDetection).filter(
-        PatternDetection.id == detection_id,
-        PatternDetection.tenant_id == current_user.tenant_id
-    ).first()
+    detection = (
+        db.query(PatternDetection)
+        .filter(
+            PatternDetection.id == detection_id,
+            PatternDetection.tenant_id == current_user.tenant_id,
+        )
+        .first()
+    )
     if not detection:
         raise HTTPException(status_code=404, detail="Detection not found")
 
@@ -180,8 +197,8 @@ async def review_detection(
     detection.reviewed_at = datetime.utcnow()
     detection.resolution_notes = review_in.notes
 
-    if review_in.status in ['approved', 'rejected']:
-        detection.status = 'resolved'
+    if review_in.status in ["approved", "rejected"]:
+        detection.status = "resolved"
 
     db.add(detection)
     db.commit()

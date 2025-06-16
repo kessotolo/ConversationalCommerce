@@ -1,10 +1,10 @@
-from fastapi import Request, Response, FastAPI
-from fastapi.responses import JSONResponse
-from fastapi.middleware.base import BaseHTTPMiddleware
 from typing import Callable
-from config import settings
-from fastapi import status
 from uuid import UUID
+
+from config import settings
+from fastapi import FastAPI, Request, Response, status
+from fastapi.middleware.base import BaseHTTPMiddleware
+from fastapi.responses import JSONResponse
 
 
 class TenantMiddleware(BaseHTTPMiddleware):
@@ -21,19 +21,22 @@ class TenantMiddleware(BaseHTTPMiddleware):
         tenant_id = request.headers.get("X-Tenant-ID")
 
         # In test mode, allow requests without tenant ID and use a default
-        if getattr(settings, 'TESTING', False) and not tenant_id:
+        if getattr(settings, "TESTING", False) and not tenant_id:
             tenant_id = "00000000-0000-0000-0000-000000000001"
             request.state.tenant_id = tenant_id
             return await call_next(request)
 
         if not tenant_id or not isinstance(tenant_id, str) or tenant_id.strip() == "":
             import logging
-            logging.error(f"TenantMiddleware: Missing or empty X-Tenant-ID header on path {request.url.path}")
+
+            logging.error(
+                f"TenantMiddleware: Missing or empty X-Tenant-ID header on path {request.url.path}"
+            )
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content={
                     "detail": "X-Tenant-ID header is required and must be a non-empty string"
-                }
+                },
             )
 
         # Validate UUID format
@@ -43,10 +46,13 @@ class TenantMiddleware(BaseHTTPMiddleware):
             tenant_uuid = UUID(tenant_id)
         except Exception as e:
             import logging
-            logging.error(f"TenantMiddleware: Invalid tenant ID format '{tenant_id}' on path {request.url.path}: {e}")
+
+            logging.error(
+                f"TenantMiddleware: Invalid tenant ID format '{tenant_id}' on path {request.url.path}: {e}"
+            )
             return JSONResponse(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                content={"detail": f"Invalid tenant ID format: {tenant_id}"}
+                content={"detail": f"Invalid tenant ID format: {tenant_id}"},
             )
         request.state.tenant_id = str(tenant_uuid)
 
@@ -139,5 +145,5 @@ class TenantMiddleware(BaseHTTPMiddleware):
             "/api/v1/domains/verify-domain-ownership-email-ssl-http-all",
             "/api/v1/domains/verify-domain-ownership-dns-ssl-http-all",
             "/api/v1/domains/verify-domain-email-dns-ssl-http-all",
-            "/api/v1/domains/verify-domain-ownership-email-dns-ssl-http-all"
+            "/api/v1/domains/verify-domain-ownership-email-dns-ssl-http-all",
         ]

@@ -1,10 +1,22 @@
-from sqlalchemy import Column, String, Enum, ForeignKey, Integer, Float, Text, DateTime, Boolean
-from sqlalchemy.sql import func
+import enum
+import uuid
+
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+
 from app.db import Base
-import uuid
-import enum
 
 
 class OrderStatus(str, enum.Enum):
@@ -57,14 +69,10 @@ class Order(Base):
     # Relationships
     complaints = relationship("Complaint", back_populates="order")
     channel_metadata = relationship(
-        "OrderChannelMeta",
-        back_populates="order",
-        cascade="all, delete-orphan"
+        "OrderChannelMeta", back_populates="order", cascade="all, delete-orphan"
     )
     items = relationship(
-        "OrderItem",
-        back_populates="order",
-        cascade="all, delete-orphan"
+        "OrderItem", back_populates="order", cascade="all, delete-orphan"
     )
     # whatsapp_details = relationship(
     #     "WhatsAppOrderDetails",

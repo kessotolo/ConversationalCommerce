@@ -1,9 +1,21 @@
-from sqlalchemy import Column, Enum, ForeignKey, DateTime
-from sqlalchemy.dialects.postgresql import UUID, JSONB
-from datetime import datetime
-import uuid
-from app.db.base_class import Base
+"""
+ConversationEvent Pattern
+------------------------
+This file defines the ConversationEventType enum and ConversationEvent model, which are used for analytics and monitoring.
+
+- When adding a new event type, update both this enum and the frontend ConversationEventType (see frontend/src/modules/conversation/models/event.ts).
+- All analytics and monitoring should use this pattern for extensibility and consistency.
+- See AI_AGENT_CONFIG.md for more details.
+"""
+
 import enum
+import uuid
+from datetime import datetime
+
+from sqlalchemy import Column, DateTime, Enum, ForeignKey
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+
+from app.db.base_class import Base
 
 
 class ConversationEventType(str, enum.Enum):
@@ -24,6 +36,7 @@ class ConversationEvent(Base):
     ConversationEvent logs all significant events in a conversation, not just messages.
     This enables analytics, monitoring, and extensibility for future event types.
     """
+
     __tablename__ = "conversation_event"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     # FK to conversations if exists
@@ -32,6 +45,5 @@ class ConversationEvent(Base):
     event_type = Column(Enum(ConversationEventType), nullable=False)
     payload = Column(JSONB, nullable=True)  # Arbitrary event data
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    tenant_id = Column(UUID(as_uuid=True), ForeignKey(
-        "tenants.id"), nullable=False)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
     event_metadata = Column(JSONB, nullable=True)  # Optional extra context

@@ -1,17 +1,19 @@
+from datetime import datetime
 from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
 from app.api import deps
-from app.models.content_filter import ContentFilterRule, ContentAnalysisResult
-from app.schemas.content_filter import (
-    ContentFilterRuleCreate,
-    ContentFilterRuleUpdate,
-    ContentFilterRuleResponse,
-    ContentAnalysisResultResponse,
-    ContentReviewUpdate
-)
 from app.core.content.content_analysis import content_analysis_service
-from datetime import datetime
+from app.models.content_filter import ContentAnalysisResult, ContentFilterRule
+from app.schemas.content_filter import (
+    ContentAnalysisResultResponse,
+    ContentFilterRuleCreate,
+    ContentFilterRuleResponse,
+    ContentFilterRuleUpdate,
+    ContentReviewUpdate,
+)
 
 router = APIRouter()
 
@@ -24,10 +26,7 @@ async def create_filter_rule(
     current_user=Depends(deps.get_current_user)
 ):
     """Create a new content filter rule"""
-    rule = ContentFilterRule(
-        tenant_id=current_user.tenant_id,
-        **rule_in.dict()
-    )
+    rule = ContentFilterRule(tenant_id=current_user.tenant_id, **rule_in.dict())
     db.add(rule)
     db.commit()
     db.refresh(rule)
@@ -63,10 +62,14 @@ async def get_filter_rule(
     current_user=Depends(deps.get_current_user)
 ):
     """Get a specific content filter rule"""
-    rule = db.query(ContentFilterRule).filter(
-        ContentFilterRule.id == rule_id,
-        ContentFilterRule.tenant_id == current_user.tenant_id
-    ).first()
+    rule = (
+        db.query(ContentFilterRule)
+        .filter(
+            ContentFilterRule.id == rule_id,
+            ContentFilterRule.tenant_id == current_user.tenant_id,
+        )
+        .first()
+    )
     if not rule:
         raise HTTPException(status_code=404, detail="Rule not found")
     return rule
@@ -81,10 +84,14 @@ async def update_filter_rule(
     current_user=Depends(deps.get_current_user)
 ):
     """Update a content filter rule"""
-    rule = db.query(ContentFilterRule).filter(
-        ContentFilterRule.id == rule_id,
-        ContentFilterRule.tenant_id == current_user.tenant_id
-    ).first()
+    rule = (
+        db.query(ContentFilterRule)
+        .filter(
+            ContentFilterRule.id == rule_id,
+            ContentFilterRule.tenant_id == current_user.tenant_id,
+        )
+        .first()
+    )
     if not rule:
         raise HTTPException(status_code=404, detail="Rule not found")
 
@@ -105,10 +112,14 @@ async def delete_filter_rule(
     current_user=Depends(deps.get_current_user)
 ):
     """Delete a content filter rule"""
-    rule = db.query(ContentFilterRule).filter(
-        ContentFilterRule.id == rule_id,
-        ContentFilterRule.tenant_id == current_user.tenant_id
-    ).first()
+    rule = (
+        db.query(ContentFilterRule)
+        .filter(
+            ContentFilterRule.id == rule_id,
+            ContentFilterRule.tenant_id == current_user.tenant_id,
+        )
+        .first()
+    )
     if not rule:
         raise HTTPException(status_code=404, detail="Rule not found")
 
@@ -132,7 +143,7 @@ async def analyze_content(
         content_type=content_type,
         content_id=content_id,
         field=field,
-        content=content
+        content=content,
     )
     return results
 
@@ -152,13 +163,11 @@ async def list_analysis_results(
     )
 
     if content_type:
-        query = query.filter(
-            ContentAnalysisResult.content_type == content_type)
+        query = query.filter(ContentAnalysisResult.content_type == content_type)
     if status:
         query = query.filter(ContentAnalysisResult.status == status)
     if review_status:
-        query = query.filter(
-            ContentAnalysisResult.review_status == review_status)
+        query = query.filter(ContentAnalysisResult.review_status == review_status)
 
     return query.all()
 
@@ -172,13 +181,16 @@ async def review_content(
     current_user=Depends(deps.get_current_user)
 ):
     """Review content analysis result"""
-    result = db.query(ContentAnalysisResult).filter(
-        ContentAnalysisResult.id == result_id,
-        ContentAnalysisResult.tenant_id == current_user.tenant_id
-    ).first()
+    result = (
+        db.query(ContentAnalysisResult)
+        .filter(
+            ContentAnalysisResult.id == result_id,
+            ContentAnalysisResult.tenant_id == current_user.tenant_id,
+        )
+        .first()
+    )
     if not result:
-        raise HTTPException(
-            status_code=404, detail="Analysis result not found")
+        raise HTTPException(status_code=404, detail="Analysis result not found")
 
     result.review_status = review_in.status
     result.reviewed_by = current_user.id

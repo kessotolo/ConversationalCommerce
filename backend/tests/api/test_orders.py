@@ -17,7 +17,7 @@ def test_create_order(client, auth_headers, db_session, test_user, test_tenant):
         price=Decimal("99.99"),
         seller_id=test_user.id,
         is_featured=False,
-        show_on_storefront=True
+        show_on_storefront=True,
     )
     db_session.add(product)
     db_session.commit()
@@ -33,15 +33,14 @@ def test_create_order(client, auth_headers, db_session, test_user, test_tenant):
         "quantity": 1,
         "total_amount": 99.99,
         "notes": "Test order notes",
-        "order_source": "website"
+        "order_source": "website",
     }
 
     # Store the user ID as a string for comparison
     user_id_str = str(test_user.id)
 
     # Submit the order
-    response = client.post(
-        "/api/v1/orders", headers=auth_headers, json=order_data)
+    response = client.post("/api/v1/orders", headers=auth_headers, json=order_data)
 
     # Check response
     assert response.status_code == 201
@@ -61,7 +60,9 @@ def test_create_order(client, auth_headers, db_session, test_user, test_tenant):
     assert db_order.status == OrderStatus.pending
 
 
-def test_create_whatsapp_order(client, auth_headers, db_session, test_user, test_tenant):
+def test_create_whatsapp_order(
+    client, auth_headers, db_session, test_user, test_tenant
+):
     """Test creating a WhatsApp order"""
     # First create a test product
     product = Product(
@@ -69,7 +70,7 @@ def test_create_whatsapp_order(client, auth_headers, db_session, test_user, test
         description="Test product for WhatsApp order",
         price=49.99,
         seller_id=test_user.id,
-        show_on_whatsapp=True
+        show_on_whatsapp=True,
     )
     db_session.add(product)
     db_session.commit()
@@ -88,16 +89,17 @@ def test_create_whatsapp_order(client, auth_headers, db_session, test_user, test
         "channel_metadata": {
             "channel": "whatsapp",
             "message_id": "test_message_id",
-            "chat_session_id": "test_conversation_id"
-        }
+            "chat_session_id": "test_conversation_id",
+        },
     }
 
     # Store the user ID as a string for comparison
     user_id_str = str(test_user.id)
 
     # Submit the WhatsApp order
-    response = client.post("/api/v1/orders/whatsapp",
-                           headers=auth_headers, json=order_data)
+    response = client.post(
+        "/api/v1/orders/whatsapp", headers=auth_headers, json=order_data
+    )
 
     # Check response
     assert response.status_code == 201
@@ -107,8 +109,14 @@ def test_create_whatsapp_order(client, auth_headers, db_session, test_user, test
     assert data["order_source"] == "whatsapp"
     # Check the channel metadata
     assert "channel_metadata" in data
-    assert data["channel_metadata"]["message_id"] == order_data["channel_metadata"]["message_id"]
-    assert data["channel_metadata"]["chat_session_id"] == order_data["channel_metadata"]["chat_session_id"]
+    assert (
+        data["channel_metadata"]["message_id"]
+        == order_data["channel_metadata"]["message_id"]
+    )
+    assert (
+        data["channel_metadata"]["chat_session_id"]
+        == order_data["channel_metadata"]["chat_session_id"]
+    )
 
     # Verify in database
     order_id = UUID(data["id"])
@@ -117,12 +125,18 @@ def test_create_whatsapp_order(client, auth_headers, db_session, test_user, test
     assert db_order.order_source == OrderSource.whatsapp
 
     # Verify channel metadata was created
-    channel_meta = db_session.query(OrderChannelMeta).filter(
-        OrderChannelMeta.order_id == order_id).first()
+    channel_meta = (
+        db_session.query(OrderChannelMeta)
+        .filter(OrderChannelMeta.order_id == order_id)
+        .first()
+    )
     assert channel_meta is not None
     assert channel_meta.channel == ChannelType.whatsapp
     assert channel_meta.message_id == order_data["channel_metadata"]["message_id"]
-    assert channel_meta.chat_session_id == order_data["channel_metadata"]["chat_session_id"]
+    assert (
+        channel_meta.chat_session_id
+        == order_data["channel_metadata"]["chat_session_id"]
+    )
 
 
 def test_get_orders_list(client, auth_headers, db_session, test_user):
@@ -132,13 +146,13 @@ def test_get_orders_list(client, auth_headers, db_session, test_user):
         name="List Test Product 1",
         description="Test Description 1",
         price=Decimal("10.00"),
-        seller_id=test_user.id
+        seller_id=test_user.id,
     )
     product2 = Product(
         name="List Test Product 2",
         description="Test Description 2",
         price=Decimal("20.00"),
-        seller_id=test_user.id
+        seller_id=test_user.id,
     )
     db_session.add_all([product1, product2])
     db_session.commit()
@@ -153,7 +167,7 @@ def test_get_orders_list(client, auth_headers, db_session, test_user):
         buyer_phone="+11111111111",
         quantity=1,
         total_amount=10.00,
-        status=OrderStatus.pending
+        status=OrderStatus.pending,
     )
     order2 = Order(
         product_id=product2.id,
@@ -163,7 +177,7 @@ def test_get_orders_list(client, auth_headers, db_session, test_user):
         quantity=2,
         total_amount=40.00,
         status=OrderStatus.confirmed,
-        order_source=OrderSource.website
+        order_source=OrderSource.website,
     )
     db_session.add_all([order1, order2])
     db_session.commit()
@@ -178,16 +192,14 @@ def test_get_orders_list(client, auth_headers, db_session, test_user):
     assert len(data["items"]) == 2
 
     # Check filtering by status
-    response = client.get(
-        "/api/v1/orders?status=confirmed", headers=auth_headers)
+    response = client.get("/api/v1/orders?status=confirmed", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert data["total"] == 1
     assert data["items"][0]["status"] == "confirmed"
 
     # Check filtering by order source
-    response = client.get(
-        "/api/v1/orders?order_source=website", headers=auth_headers)
+    response = client.get("/api/v1/orders?order_source=website", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert data["total"] == 1
@@ -195,7 +207,8 @@ def test_get_orders_list(client, auth_headers, db_session, test_user):
 
     # Check search by buyer name
     response = client.get(
-        "/api/v1/orders?search=List%20Buyer%201", headers=auth_headers)
+        "/api/v1/orders?search=List%20Buyer%201", headers=auth_headers
+    )
     assert response.status_code == 200
     data = response.json()
     assert data["total"] == 1
@@ -209,7 +222,7 @@ def test_get_order_by_id(client, auth_headers, db_session, test_user):
         name="Detail Test Product",
         description="Test Description",
         price=Decimal("15.50"),
-        seller_id=test_user.id
+        seller_id=test_user.id,
     )
     db_session.add(product)
     db_session.commit()
@@ -224,7 +237,7 @@ def test_get_order_by_id(client, auth_headers, db_session, test_user):
         quantity=3,
         total_amount=46.50,
         buyer_email="detail@example.com",
-        status=OrderStatus.processing
+        status=OrderStatus.processing,
     )
     db_session.add(order)
     db_session.commit()
@@ -235,8 +248,7 @@ def test_get_order_by_id(client, auth_headers, db_session, test_user):
     product_id_str = str(product.id)
 
     # Get order by ID
-    response = client.get(
-        f"/api/v1/orders/{order_id_str}", headers=auth_headers)
+    response = client.get(f"/api/v1/orders/{order_id_str}", headers=auth_headers)
 
     # Check response
     assert response.status_code == 200
@@ -248,7 +260,8 @@ def test_get_order_by_id(client, auth_headers, db_session, test_user):
 
     # Test non-existent order
     response = client.get(
-        "/api/v1/orders/00000000-0000-0000-0000-000000000999", headers=auth_headers)
+        "/api/v1/orders/00000000-0000-0000-0000-000000000999", headers=auth_headers
+    )
     assert response.status_code == 404
 
 
@@ -259,7 +272,7 @@ def test_update_order_status(client, auth_headers, db_session, test_user):
         name="Status Test Product",
         description="Test Description",
         price=Decimal("25.75"),
-        seller_id=test_user.id
+        seller_id=test_user.id,
     )
     db_session.add(product)
     db_session.commit()
@@ -273,7 +286,7 @@ def test_update_order_status(client, auth_headers, db_session, test_user):
         buyer_phone="+14444444444",
         quantity=1,
         total_amount=25.75,
-        status=OrderStatus.pending
+        status=OrderStatus.pending,
     )
     db_session.add(order)
     db_session.commit()
@@ -286,11 +299,14 @@ def test_update_order_status(client, auth_headers, db_session, test_user):
     status_update = {
         "status": "shipped",
         "tracking_number": "TRACK123456",
-        "shipping_carrier": "Test Shipping Co."
+        "shipping_carrier": "Test Shipping Co.",
     }
 
     response = client.patch(
-        f"/api/v1/orders/{order_id_str}/status", headers=auth_headers, json=status_update)
+        f"/api/v1/orders/{order_id_str}/status",
+        headers=auth_headers,
+        json=status_update,
+    )
 
     # Check response
     assert response.status_code == 200
@@ -300,15 +316,18 @@ def test_update_order_status(client, auth_headers, db_session, test_user):
     assert data["shipping_carrier"] == "Test Shipping Co."
 
     # Verify in database - query for a fresh order object
-    updated_order = db_session.query(Order).filter(
-        Order.id == UUID(order_id_str)).first()
+    updated_order = (
+        db_session.query(Order).filter(Order.id == UUID(order_id_str)).first()
+    )
     assert updated_order.status == OrderStatus.shipped
     assert updated_order.tracking_number == "TRACK123456"
 
     # Test updating non-existent order
-    response = client.patch("/api/v1/orders/00000000-0000-0000-0000-000000000999/status",
-                            headers=auth_headers,
-                            json={"status": "delivered"})
+    response = client.patch(
+        "/api/v1/orders/00000000-0000-0000-0000-000000000999/status",
+        headers=auth_headers,
+        json={"status": "delivered"},
+    )
     assert response.status_code == 404
 
 
@@ -319,7 +338,7 @@ def test_delete_order(client, auth_headers, db_session, test_user):
         name="Delete Test Product",
         description="Test Description",
         price=Decimal("5.99"),
-        seller_id=test_user.id
+        seller_id=test_user.id,
     )
     db_session.add(product)
     db_session.commit()
@@ -332,7 +351,7 @@ def test_delete_order(client, auth_headers, db_session, test_user):
         buyer_name="Delete Buyer",
         buyer_phone="+15555555555",
         quantity=1,
-        total_amount=5.99
+        total_amount=5.99,
     )
     db_session.add(order)
     db_session.commit()
@@ -342,20 +361,19 @@ def test_delete_order(client, auth_headers, db_session, test_user):
     order_id_str = str(order.id)
 
     # Delete the order
-    response = client.delete(
-        f"/api/v1/orders/{order_id_str}", headers=auth_headers)
+    response = client.delete(f"/api/v1/orders/{order_id_str}", headers=auth_headers)
 
     # Check response
     assert response.status_code == 204
 
     # Verify in database (soft delete) - query for a fresh order object
-    deleted_order = db_session.query(Order).filter(
-        Order.id == UUID(order_id_str)).first()
+    deleted_order = (
+        db_session.query(Order).filter(Order.id == UUID(order_id_str)).first()
+    )
     assert deleted_order.is_deleted is True
 
     # Try to get the deleted order
-    response = client.get(
-        f"/api/v1/orders/{order_id_str}", headers=auth_headers)
+    response = client.get(f"/api/v1/orders/{order_id_str}", headers=auth_headers)
     assert response.status_code == 404
 
     # Verify it doesn't appear in the list
@@ -371,13 +389,13 @@ def test_order_dashboard_stats(client, auth_headers, db_session, test_user):
         name="Stats Product 1",
         description="Test Description 1",
         price=Decimal("10.00"),
-        seller_id=test_user.id
+        seller_id=test_user.id,
     )
     product2 = Product(
         name="Stats Product 2",
         description="Test Description 2",
         price=Decimal("20.00"),
-        seller_id=test_user.id
+        seller_id=test_user.id,
     )
     db_session.add_all([product1, product2])
     db_session.commit()
@@ -400,7 +418,7 @@ def test_order_dashboard_stats(client, auth_headers, db_session, test_user):
             total_amount=10.00,
             status=OrderStatus.pending,
             order_source=OrderSource.whatsapp,
-            created_at=datetime.now(timezone.utc) - timedelta(days=5)
+            created_at=datetime.now(timezone.utc) - timedelta(days=5),
         ),
         Order(
             product_id=product1.id,
@@ -411,7 +429,7 @@ def test_order_dashboard_stats(client, auth_headers, db_session, test_user):
             total_amount=20.00,
             status=OrderStatus.shipped,
             order_source=OrderSource.whatsapp,
-            created_at=datetime.now(timezone.utc) - timedelta(days=3)
+            created_at=datetime.now(timezone.utc) - timedelta(days=3),
         ),
         # Website orders
         Order(
@@ -424,7 +442,7 @@ def test_order_dashboard_stats(client, auth_headers, db_session, test_user):
             total_amount=20.00,
             status=OrderStatus.delivered,
             order_source=OrderSource.website,
-            created_at=datetime.now(timezone.utc) - timedelta(days=10)
+            created_at=datetime.now(timezone.utc) - timedelta(days=10),
         ),
         Order(
             product_id=product2.id,
@@ -436,7 +454,7 @@ def test_order_dashboard_stats(client, auth_headers, db_session, test_user):
             total_amount=60.00,
             status=OrderStatus.confirmed,
             order_source=OrderSource.website,
-            created_at=datetime.now(timezone.utc) - timedelta(days=1)
+            created_at=datetime.now(timezone.utc) - timedelta(days=1),
         ),
         # Instagram order
         Order(
@@ -448,15 +466,14 @@ def test_order_dashboard_stats(client, auth_headers, db_session, test_user):
             total_amount=20.00,
             status=OrderStatus.processing,
             order_source=OrderSource.instagram,
-            created_at=datetime.now(timezone.utc) - timedelta(days=2)
-        )
+            created_at=datetime.now(timezone.utc) - timedelta(days=2),
+        ),
     ]
     db_session.add_all(orders)
     db_session.commit()
 
     # Get dashboard stats
-    response = client.get(
-        "/api/v1/dashboard/orders/stats", headers=auth_headers)
+    response = client.get("/api/v1/dashboard/orders/stats", headers=auth_headers)
 
     # Check response
     assert response.status_code == 200
@@ -484,13 +501,13 @@ def test_order_dashboard_stats(client, auth_headers, db_session, test_user):
     assert len(stats["top_products"]) > 0
     # Product 2 should be the top product by order count and revenue
     top_product = next(
-        (p for p in stats["top_products"] if p["id"] == product2_id_str), None)
+        (p for p in stats["top_products"] if p["id"] == product2_id_str), None
+    )
     assert top_product is not None
     assert top_product["revenue"] == 100.0  # 20.00 * 1 + 20.00 * 3 + 20.00 * 1
 
     # Check with different time period
-    response = client.get(
-        "/api/v1/dashboard/orders/stats?days=7", headers=auth_headers)
+    response = client.get("/api/v1/dashboard/orders/stats?days=7", headers=auth_headers)
     stats = response.json()
     assert stats["total_orders"] == 4  # One order is more than 7 days old
 
@@ -505,7 +522,7 @@ def test_order_notification_marking(client, auth_headers, db_session, test_user)
         name="Notification Test Product",
         description="Test Description",
         price=Decimal("35.50"),
-        seller_id=test_user.id
+        seller_id=test_user.id,
     )
     db_session.add(product)
     db_session.commit()
@@ -519,7 +536,7 @@ def test_order_notification_marking(client, auth_headers, db_session, test_user)
         buyer_phone="+17777777777",
         quantity=1,
         total_amount=35.50,
-        notification_sent=False
+        notification_sent=False,
     )
     db_session.add(order)
     db_session.commit()
@@ -530,7 +547,8 @@ def test_order_notification_marking(client, auth_headers, db_session, test_user)
 
     # Mark notification as sent
     response = client.post(
-        f"/api/v1/orders/{order_id_str}/notification", headers=auth_headers)
+        f"/api/v1/orders/{order_id_str}/notification", headers=auth_headers
+    )
 
     # Check response
     assert response.status_code == 200
@@ -539,11 +557,14 @@ def test_order_notification_marking(client, auth_headers, db_session, test_user)
     assert "successfully" in data["message"].lower()
 
     # Verify in database - query for a fresh order object
-    notified_order = db_session.query(Order).filter(
-        Order.id == UUID(order_id_str)).first()
+    notified_order = (
+        db_session.query(Order).filter(Order.id == UUID(order_id_str)).first()
+    )
     assert notified_order.notification_sent is True
 
     # Test with non-existent order
-    response = client.post("/api/v1/orders/00000000-0000-0000-0000-000000000999/notification",
-                           headers=auth_headers)
+    response = client.post(
+        "/api/v1/orders/00000000-0000-0000-0000-000000000999/notification",
+        headers=auth_headers,
+    )
     assert response.status_code == 404

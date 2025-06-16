@@ -1,34 +1,39 @@
-import os
-from fastapi import FastAPI, Depends, Request, Response
-from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1.api import api_router
-from app.core.config.settings import Settings, get_settings
-from app.db.session import get_async_session_local
-from app.core.middleware.rate_limit import RateLimitMiddleware
-from app.core.middleware.activity_tracker import ActivityTrackerMiddleware
-from app.middleware.subdomain_middleware import SubdomainMiddleware
-from app.middleware.domain_verification import DomainVerificationMiddleware, verification_service
-from app.core.errors.exception_handlers import register_exception_handlers
-from app.middleware.storefront_errors import StorefrontError, handle_storefront_error
-from app.core.cache.redis_cache import redis_cache
-from starlette.middleware.base import BaseHTTPMiddleware
-from dotenv import load_dotenv
-from pathlib import Path
-import time
 import logging
-from app.api.v1.endpoints.websocket import router as websocket_router
-import app.domain.events  # Ensure event handlers are registered
+import os
+import time
+from pathlib import Path
+
 import sentry_sdk
+from dotenv import load_dotenv
+from fastapi import Depends, FastAPI, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
+from prometheus_client import Counter, make_asgi_app
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
-from prometheus_client import make_asgi_app, Counter
+from starlette.middleware.base import BaseHTTPMiddleware
+
+import app.domain.events  # Ensure event handlers are registered
+from app.api.v1.api import api_router
+from app.api.v1.endpoints.websocket import router as websocket_router
 from app.api.v2.endpoints import orders as v2_orders
+from app.core.cache.redis_cache import redis_cache
+from app.core.config.settings import Settings, get_settings
+from app.core.errors.exception_handlers import register_exception_handlers
+from app.core.middleware.activity_tracker import ActivityTrackerMiddleware
+from app.core.middleware.rate_limit import RateLimitMiddleware
+from app.db.session import get_async_session_local
+from app.middleware.domain_verification import (
+    DomainVerificationMiddleware,
+    verification_service,
+)
+from app.middleware.storefront_errors import StorefrontError, handle_storefront_error
+from app.middleware.subdomain_middleware import SubdomainMiddleware
 
 sentry_sdk.init(dsn="YOUR_SENTRY_DSN")
 
 # Prometheus metrics
-order_failures = Counter('order_failures', 'Number of failed order creations')
-payment_failures = Counter('payment_failures', 'Number of failed payments')
-webhook_errors = Counter('webhook_errors', 'Number of webhook errors')
+order_failures = Counter("order_failures", "Number of failed order creations")
+payment_failures = Counter("payment_failures", "Number of failed payments")
+webhook_errors = Counter("webhook_errors", "Number of webhook errors")
 
 # Custom security headers middleware implementation
 
@@ -44,6 +49,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         for header_name, header_value in self.headers.items():
             response.headers[header_name] = header_value
         return response
+
+
 # Custom compression middleware implementation
 
 
@@ -63,15 +70,13 @@ class CompressionMiddleware(BaseHTTPMiddleware):
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.StreamHandler()
-    ]
+    handlers=[logging.StreamHandler()],
 )
 
 logger = logging.getLogger(__name__)
 
 # Load environment variables from the .env file in the backend directory
-env_path = Path(__file__).parent.parent.parent / '.env'
+env_path = Path(__file__).parent.parent.parent / ".env"
 load_dotenv(dotenv_path=env_path, override=True)
 
 # Initialize settings after environment variables are loaded
@@ -91,7 +96,8 @@ class RequestTimingMiddleware(BaseHTTPMiddleware):
         # Log request timing for slower requests (> 1 second)
         if process_time > 1.0:
             logger.warning(
-                f"Slow request: {request.method} {request.url.path} took {process_time:.2f}s")
+                f"Slow request: {request.method} {request.url.path} took {process_time:.2f}s"
+            )
 
         return response
 
@@ -102,11 +108,10 @@ class TenantMiddleware(BaseHTTPMiddleware):
         if self._is_public_path(request.url.path):
             return await call_next(request)
 
-        tenant_id = request.headers.get('X-Tenant-ID')
+        tenant_id = request.headers.get("X-Tenant-ID")
 
         # For tests, we allow missing X-Tenant-ID header in specific environments
-        is_test = os.getenv('TESTING', '').lower() in (
-            'true', '1', 't', 'yes', 'y')
+        is_test = os.getenv("TESTING", "").lower() in ("true", "1", "t", "yes", "y")
 
         if not tenant_id:
             if is_test:
@@ -123,6 +128,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
         try:
             # Validate UUID format
             from uuid import UUID
+
             tenant_uuid = UUID(tenant_id)
 
             # Store tenant_id in request.state for use in dependencies
@@ -158,11 +164,14 @@ class TenantMiddleware(BaseHTTPMiddleware):
             "/test-settings",
             "/docs",
             "/redoc",
-            "/openapi.json"
+            "/openapi.json",
         ]
 
         # Check if path exactly matches any public path or starts with one
-        return any(path == public_path or path.startswith(f"{public_path}/") for public_path in public_paths)
+        return any(
+            path == public_path or path.startswith(f"{public_path}/")
+            for public_path in public_paths
+        )
 
 
 async def initialize_cache():
@@ -174,10 +183,12 @@ async def initialize_cache():
             logger.info("Redis cache successfully initialized and connected")
         else:
             logger.warning(
-                "Redis cache initialization completed, but cache is not available")
+                "Redis cache initialization completed, but cache is not available"
+            )
     except Exception as e:
         logger.warning(
-            f"Redis cache initialization failed, continuing without cache: {str(e)}")
+            f"Redis cache initialization failed, continuing without cache: {str(e)}"
+        )
         # Still mark as initialized to prevent repeated attempts
         redis_cache._initialized = True
         redis_cache._is_available = False
@@ -200,8 +211,7 @@ async def stop_domain_verification():
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
     # Determine if we're running in test mode
-    is_test = os.getenv('TESTING', '').lower() in (
-        'true', '1', 't', 'yes', 'y')
+    is_test = os.getenv("TESTING", "").lower() in ("true", "1", "t", "yes", "y")
 
     # Configure FastAPI event handlers based on test mode
     startup_handlers = [initialize_cache]
@@ -215,7 +225,7 @@ def create_app() -> FastAPI:
         openapi_url=f"{settings.API_V1_STR}/openapi.json",
         debug=(settings.ENVIRONMENT != "production"),
         on_startup=startup_handlers,
-        on_shutdown=shutdown_handlers
+        on_shutdown=shutdown_handlers,
     )
 
     # Register exception handlers
@@ -233,8 +243,8 @@ def create_app() -> FastAPI:
             "X-Frame-Options": "DENY",
             "X-XSS-Protection": "1; mode=block",
             "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
-            "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:;"
-        }
+            "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:;",
+        },
     )
 
     # 2. Rate limiting (early to prevent abuse)
@@ -243,8 +253,8 @@ def create_app() -> FastAPI:
         config={
             "default": {"limit": 100, "window": 60},
             "api": {"limit": 1000, "window": 60},
-            "auth": {"limit": 10, "window": 60}
-        }
+            "auth": {"limit": 10, "window": 60},
+        },
     )
 
     # 3. Request timing (for performance monitoring)
@@ -254,13 +264,13 @@ def create_app() -> FastAPI:
     app.add_middleware(
         ActivityTrackerMiddleware,
         skip_paths={
-            '/docs',
-            '/redoc',
-            '/openapi.json',
-            '/health',
-            '/metrics',
-            '/ws/monitoring'
-        }
+            "/docs",
+            "/redoc",
+            "/openapi.json",
+            "/health",
+            "/metrics",
+            "/ws/monitoring",
+        },
     )
 
     # 5. Tenant resolution (for multi-tenant support)
@@ -269,17 +279,16 @@ def create_app() -> FastAPI:
     # 6. Domain verification (for security)
     app.add_middleware(
         DomainVerificationMiddleware,
-        exclude_paths=["/api/", "/admin/", "/_next/",
-                       "/static/", "/docs/", "/redoc/"]
+        exclude_paths=["/api/", "/admin/", "/_next/", "/static/", "/docs/", "/redoc/"],
     )
 
     # 7. Subdomain resolution (for multi-tenant storefronts)
     app.add_middleware(
         SubdomainMiddleware,
-        base_domain=settings.BASE_DOMAIN if hasattr(
-            settings, 'BASE_DOMAIN') else "example.com",
-        exclude_paths=["/api/", "/admin/", "/_next/",
-                       "/static/", "/docs/", "/redoc/"]
+        base_domain=(
+            settings.BASE_DOMAIN if hasattr(settings, "BASE_DOMAIN") else "example.com"
+        ),
+        exclude_paths=["/api/", "/admin/", "/_next/", "/static/", "/docs/", "/redoc/"],
     )
 
     # 8. CORS (after security middleware)
@@ -289,14 +298,14 @@ def create_app() -> FastAPI:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
-        expose_headers=["X-Request-ID"]
+        expose_headers=["X-Request-ID"],
     )
 
     # 9. Compression (last to compress all responses)
     app.add_middleware(
         CompressionMiddleware,
         minimum_size=1000,  # Only compress responses larger than 1KB
-        compression_level=6  # Balanced compression level
+        compression_level=6,  # Balanced compression level
     )
 
     # Include API router
@@ -306,8 +315,7 @@ def create_app() -> FastAPI:
     app.include_router(websocket_router)
 
     # Include v2 orders router
-    app.include_router(
-        v2_orders.router, prefix="/api/v2/orders", tags=["orders_v2"])
+    app.include_router(v2_orders.router, prefix="/api/v2/orders", tags=["orders_v2"])
 
     # Test endpoint to verify environment variables
     @app.get("/test-env")
@@ -316,12 +324,14 @@ def create_app() -> FastAPI:
             "project_name": settings.PROJECT_NAME,
             "postgres_server": settings.POSTGRES_SERVER,
             "cloudinary_configured": bool(settings.CLOUDINARY_CLOUD_NAME),
-            "twilio_configured": bool(settings.TWILIO_ACCOUNT_SID)
+            "twilio_configured": bool(settings.TWILIO_ACCOUNT_SID),
         }
 
     @app.get("/")
     def root():
-        return {"message": "Backend is running. Use /test-env to check environment variables."}
+        return {
+            "message": "Backend is running. Use /test-env to check environment variables."
+        }
 
     @app.get("/health")
     def health_check():
@@ -331,6 +341,7 @@ def create_app() -> FastAPI:
     async def test_settings():
         """Test endpoint to verify environment variables are loaded correctly"""
         from app.core.config.settings import get_settings
+
         settings = get_settings()
 
         return {
@@ -341,8 +352,8 @@ def create_app() -> FastAPI:
                 "cloudinary_configured": bool(settings.CLOUDINARY_CLOUD_NAME),
                 "twilio_configured": bool(settings.TWILIO_ACCOUNT_SID),
                 "postgres_server": settings.POSTGRES_SERVER,
-                "api_version": settings.API_V1_STR
-            }
+                "api_version": settings.API_V1_STR,
+            },
         }
 
     # Add Prometheus metrics endpoint

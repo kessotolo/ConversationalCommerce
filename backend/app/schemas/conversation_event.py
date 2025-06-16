@@ -1,8 +1,19 @@
-from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional, Any, Dict
-from uuid import UUID
-from datetime import datetime
+"""
+ConversationEvent Pattern
+------------------------
+This file defines the ConversationEventType enum and ConversationEventBase schema, which are used for analytics and monitoring.
+
+- When adding a new event type, update both this enum and the frontend ConversationEventType (see frontend/src/modules/conversation/models/event.ts).
+- All analytics and monitoring should use this pattern for extensibility and consistency.
+- See AI_AGENT_CONFIG.md for more details.
+"""
+
 import enum
+from datetime import datetime
+from typing import Any, Dict, Optional
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ConversationEventType(str, enum.Enum):
@@ -15,16 +26,21 @@ class ConversationEventType(str, enum.Enum):
 
 class ConversationEventBase(BaseModel):
     conversation_id: Optional[UUID] = Field(
-        None, description="Conversation ID (optional, for non-message events)")
+        None, description="Conversation ID (optional, for non-message events)"
+    )
     user_id: Optional[UUID] = Field(
-        None, description="User ID (optional, for system events)")
+        None, description="User ID (optional, for system events)"
+    )
     event_type: ConversationEventType = Field(
-        ..., description="Type of event (message_sent, product_clicked, etc.)")
+        ..., description="Type of event (message_sent, product_clicked, etc.)"
+    )
     payload: Optional[Dict[str, Any]] = Field(
-        None, description="Arbitrary event data for extensibility")
+        None, description="Arbitrary event data for extensibility"
+    )
     tenant_id: UUID = Field(..., description="Tenant ID for multi-tenancy")
     event_metadata: Optional[Dict[str, Any]] = Field(
-        None, description="Optional extra context (device info, etc.)")
+        None, description="Optional extra context (device info, etc.)"
+    )
 
 
 class ConversationEventCreate(ConversationEventBase):

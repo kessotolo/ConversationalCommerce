@@ -1,23 +1,29 @@
-from typing import Dict, Any, Optional
-from pydantic import BaseModel, Field, field_validator, ConfigDict
 import uuid
-from app.utils.domain_validator import validate_subdomain, validate_domain
+from typing import Any, Dict, Optional
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from app.utils.domain_validator import validate_domain, validate_subdomain
 
 
 class StorefrontConfigBase(BaseModel):
     subdomain_name: Optional[str] = Field(
-        None, description="Subdomain for the storefront")
+        None, description="Subdomain for the storefront"
+    )
     custom_domain: Optional[str] = Field(
-        None, description="Custom domain for the storefront")
+        None, description="Custom domain for the storefront"
+    )
     meta_title: Optional[str] = Field(None, description="SEO meta title")
-    meta_description: Optional[str] = Field(
-        None, description="SEO meta description")
+    meta_description: Optional[str] = Field(None, description="SEO meta description")
     theme_settings: Optional[Dict[str, Any]] = Field(
-        None, description="Theme configuration")
+        None, description="Theme configuration"
+    )
     layout_config: Optional[Dict[str, Any]] = Field(
-        None, description="Layout configuration")
+        None, description="Layout configuration"
+    )
     social_links: Optional[Dict[str, str]] = Field(
-        None, description="Social media links")
+        None, description="Social media links"
+    )
 
     @field_validator("subdomain_name")
     @classmethod
@@ -64,8 +70,7 @@ class DomainVerificationResponse(BaseModel):
 
 
 class DomainVerificationStatusResponse(BaseModel):
-    is_verified: bool = Field(...,
-                              description="Whether the domain is verified")
+    is_verified: bool = Field(..., description="Whether the domain is verified")
     domain: str = Field(..., description="The domain being verified")
 
 
@@ -74,5 +79,6 @@ class StorefrontStatusUpdate(BaseModel):
 
 
 class ThemeVariationsResponse(BaseModel):
-    themes: Dict[str, Dict[str, Any]
-                 ] = Field(..., description="Available theme variations")
+    themes: Dict[str, Dict[str, Any]] = Field(
+        ..., description="Available theme variations"
+    )

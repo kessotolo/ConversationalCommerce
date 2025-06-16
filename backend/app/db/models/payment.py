@@ -1,21 +1,31 @@
-from sqlalchemy import (
-    Column, Integer, String, Boolean, Float, DateTime,
-    ForeignKey, Text, JSON
-)
-from sqlalchemy.orm import relationship
-from sqlalchemy.ext.hybrid import hybrid_property
 from datetime import datetime
 
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import relationship
+
+from app.core.security.payment_security import (
+    decrypt_sensitive_data,
+    encrypt_sensitive_data,
+)
 from app.db.base_class import Base
-from app.core.security.payment_security import encrypt_sensitive_data, decrypt_sensitive_data
 
 
 class Payment(Base):
     __tablename__ = "payments"
 
     id = Column(Integer, primary_key=True)
-    order_id = Column(Integer, ForeignKey("orders.id"),
-                      nullable=False, index=True)
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False, index=True)
     reference = Column(String(255), nullable=False, unique=True, index=True)
     amount = Column(Float, nullable=False)
     currency = Column(String(3), nullable=False)
@@ -29,10 +39,8 @@ class Payment(Base):
     metadata = Column(JSON, nullable=True)
     verified_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow,
-                        onupdate=datetime.utcnow)
-    idempotency_key = Column(
-        String(255), nullable=True, unique=True, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    idempotency_key = Column(String(255), nullable=True, unique=True, index=True)
     # Store client IP for security
     ip_address = Column(String(45), nullable=True)
     user_agent = Column(String(255), nullable=True)  # Store client user agent
@@ -41,7 +49,8 @@ class Payment(Base):
     # Relationships
     order = relationship("Order", back_populates="payments")
     manual_proof = relationship(
-        "ManualPaymentProof", back_populates="payment", uselist=False)
+        "ManualPaymentProof", back_populates="payment", uselist=False
+    )
 
     # Audit trail for changes
     audit_log = relationship("PaymentAuditLog", back_populates="payment")
@@ -49,6 +58,7 @@ class Payment(Base):
 
 class PaymentAuditLog(Base):
     """Audit log for payment changes to detect suspicious activity"""
+
     __tablename__ = "payment_audit_logs"
 
     id = Column(Integer, primary_key=True)
@@ -56,8 +66,9 @@ class PaymentAuditLog(Base):
     action = Column(String(50), nullable=False)  # CREATE, UPDATE, VERIFY, etc.
     previous_status = Column(String(50), nullable=True)
     new_status = Column(String(50), nullable=True)
-    user_id = Column(Integer, ForeignKey("users.id"),
-                     nullable=True)  # Who made the change
+    user_id = Column(
+        Integer, ForeignKey("users.id"), nullable=True
+    )  # Who made the change
     ip_address = Column(String(45), nullable=True)
     changes = Column(JSON, nullable=True)  # What was changed
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -71,8 +82,7 @@ class ManualPaymentProof(Base):
     __tablename__ = "manual_payment_proofs"
 
     id = Column(Integer, primary_key=True)
-    payment_id = Column(Integer, ForeignKey("payments.id"),
-                        nullable=False, unique=True)
+    payment_id = Column(Integer, ForeignKey("payments.id"), nullable=False, unique=True)
     reference = Column(String(255), nullable=False)
     transfer_date = Column(String(10), nullable=False)  # YYYY-MM-DD
     bank_name = Column(String(255), nullable=True)
@@ -80,8 +90,7 @@ class ManualPaymentProof(Base):
     screenshot_url = Column(String(500), nullable=True)
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow,
-                        onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     payment = relationship("Payment", back_populates="manual_proof")
@@ -91,8 +100,7 @@ class ProviderConfiguration(Base):
     __tablename__ = "payment_provider_configurations"
 
     id = Column(Integer, primary_key=True)
-    settings_id = Column(Integer, ForeignKey(
-        "payment_settings.id"), nullable=False)
+    settings_id = Column(Integer, ForeignKey("payment_settings.id"), nullable=False)
     provider = Column(String(50), nullable=False)
     enabled = Column(Boolean, default=False)
     is_default = Column(Boolean, default=False)
@@ -121,7 +129,11 @@ class ProviderConfiguration(Base):
 
     @hybrid_property
     def encryption_key(self) -> str:
-        return decrypt_sensitive_data(self._encryption_key) if self._encryption_key else None
+        return (
+            decrypt_sensitive_data(self._encryption_key)
+            if self._encryption_key
+            else None
+        )
 
     @encryption_key.setter
     def encryption_key(self, value: str) -> None:
@@ -138,8 +150,7 @@ class ProviderConfiguration(Base):
     keys_last_rotated = Column(DateTime, nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow,
-                        onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     settings = relationship("PaymentSettings", back_populates="providers")
@@ -149,8 +160,7 @@ class PaymentSettings(Base):
     __tablename__ = "payment_settings"
 
     id = Column(Integer, primary_key=True)
-    store_id = Column(Integer, ForeignKey("stores.id"),
-                      nullable=False, unique=True)
+    store_id = Column(Integer, ForeignKey("stores.id"), nullable=False, unique=True)
     online_payments_enabled = Column(Boolean, default=False)
     platform_fee_percentage = Column(Float, default=5.0)
     auto_calculate_payout = Column(Boolean, default=True)
@@ -175,7 +185,9 @@ class PaymentSettings(Base):
 
     @hybrid_property
     def account_name(self) -> str:
-        return decrypt_sensitive_data(self._account_name) if self._account_name else None
+        return (
+            decrypt_sensitive_data(self._account_name) if self._account_name else None
+        )
 
     @account_name.setter
     def account_name(self, value: str) -> None:
@@ -183,30 +195,34 @@ class PaymentSettings(Base):
 
     @hybrid_property
     def account_number(self) -> str:
-        return decrypt_sensitive_data(self._account_number) if self._account_number else None
+        return (
+            decrypt_sensitive_data(self._account_number)
+            if self._account_number
+            else None
+        )
 
     @account_number.setter
     def account_number(self, value: str) -> None:
         self._account_number = encrypt_sensitive_data(value) if value else None
 
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow,
-                        onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     store = relationship("Store", back_populates="payment_settings")
     providers = relationship(
-        "ProviderConfiguration", back_populates="settings", cascade="all, delete-orphan")
+        "ProviderConfiguration", back_populates="settings", cascade="all, delete-orphan"
+    )
 
 
 class RateLimitLog(Base):
     """Track rate limits for payment endpoints to prevent abuse"""
+
     __tablename__ = "payment_rate_limit_logs"
 
     id = Column(Integer, primary_key=True)
     ip_address = Column(String(45), nullable=False, index=True)
-    user_id = Column(Integer, ForeignKey(
-        "users.id"), nullable=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
     endpoint = Column(String(255), nullable=False)
     request_count = Column(Integer, default=1)
     first_request_at = Column(DateTime, default=datetime.utcnow)
@@ -218,6 +234,7 @@ class RateLimitLog(Base):
 
 class PaymentSplitRule(Base):
     """Rules for splitting payments between platform and sellers"""
+
     __tablename__ = "payment_split_rules"
 
     id = Column(Integer, primary_key=True)
@@ -229,8 +246,7 @@ class PaymentSplitRule(Base):
     bearer = Column(String(20), default="account")
 
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow,
-                        onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     store = relationship("Store")

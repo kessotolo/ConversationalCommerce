@@ -1,25 +1,38 @@
-from fastapi import APIRouter, Depends, HTTPException, Body, Query
-from sqlalchemy.orm import Session
-from uuid import UUID
+from datetime import datetime
 from typing import Optional
+from uuid import UUID
+
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
+
 from app.api import deps
+from app.core.security.clerk import ClerkTokenData
 from app.models.cart import Cart, CartItem
 from app.models.product import Product
-from app.schemas.cart import CartResponse, CartItemCreate
-from app.core.security.clerk import ClerkTokenData
-from datetime import datetime
+from app.schemas.cart import CartItemCreate, CartResponse
 
 router = APIRouter()
 
 # Helper to get or create cart by user/session/phone/tenant
 
 
-def get_or_create_cart(db: Session, tenant_id: UUID, user_id: Optional[UUID], phone_number: Optional[str], session_id: Optional[str]):
-    cart = db.query(Cart).filter(
-        Cart.tenant_id == tenant_id,
-        (Cart.user_id == user_id) | (Cart.phone_number ==
-                                     phone_number) | (Cart.session_id == session_id)
-    ).first()
+def get_or_create_cart(
+    db: Session,
+    tenant_id: UUID,
+    user_id: Optional[UUID],
+    phone_number: Optional[str],
+    session_id: Optional[str],
+):
+    cart = (
+        db.query(Cart)
+        .filter(
+            Cart.tenant_id == tenant_id,
+            (Cart.user_id == user_id)
+            | (Cart.phone_number == phone_number)
+            | (Cart.session_id == session_id),
+        )
+        .first()
+    )
     if not cart:
         cart = Cart(
             tenant_id=tenant_id,
@@ -60,15 +73,20 @@ def add_to_cart(
     user_id = user.sub if user else None
     cart = get_or_create_cart(db, tenant_id, user_id, phone_number, session_id)
     # Check if item already exists
-    cart_item = next((ci for ci in cart.items if ci.product_id ==
-                     item.product_id and ci.variant_id == item.variant_id), None)
+    cart_item = next(
+        (
+            ci
+            for ci in cart.items
+            if ci.product_id == item.product_id and ci.variant_id == item.variant_id
+        ),
+        None,
+    )
     if cart_item:
         cart_item.quantity += item.quantity
         cart_item.updated_at = datetime.utcnow()
     else:
         # Get product price
-        product = db.query(Product).filter(
-            Product.id == item.product_id).first()
+        product = db.query(Product).filter(Product.id == item.product_id).first()
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
         cart_item = CartItem(
@@ -101,8 +119,14 @@ def update_cart_item(
 ):
     user_id = user.sub if user else None
     cart = get_or_create_cart(db, tenant_id, user_id, phone_number, session_id)
-    cart_item = next((ci for ci in cart.items if ci.product_id ==
-                     product_id and ci.variant_id == variant_id), None)
+    cart_item = next(
+        (
+            ci
+            for ci in cart.items
+            if ci.product_id == product_id and ci.variant_id == variant_id
+        ),
+        None,
+    )
     if not cart_item:
         raise HTTPException(status_code=404, detail="Cart item not found")
     cart_item.quantity = quantity
@@ -125,8 +149,14 @@ def remove_cart_item(
 ):
     user_id = user.sub if user else None
     cart = get_or_create_cart(db, tenant_id, user_id, phone_number, session_id)
-    cart_item = next((ci for ci in cart.items if ci.product_id ==
-                     product_id and ci.variant_id == variant_id), None)
+    cart_item = next(
+        (
+            ci
+            for ci in cart.items
+            if ci.product_id == product_id and ci.variant_id == variant_id
+        ),
+        None,
+    )
     if not cart_item:
         raise HTTPException(status_code=404, detail="Cart item not found")
     db.delete(cart_item)

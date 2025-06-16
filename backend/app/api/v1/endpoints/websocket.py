@@ -1,7 +1,8 @@
-from fastapi import APIRouter, WebSocket, Depends, Path
-from app.core.websocket.monitoring import get_websocket_endpoint
+from fastapi import APIRouter, Depends, Path, WebSocket
+
 from app.api import deps
 from app.core.security.clerk import ClerkTokenData
+from app.core.websocket.monitoring import get_websocket_endpoint
 
 router = APIRouter()
 
@@ -10,7 +11,7 @@ router = APIRouter()
 async def monitoring_websocket(
     websocket: WebSocket,
     tenant_id: str = Path(..., description="The tenant ID for monitoring"),
-    current_user: ClerkTokenData = Depends(deps.get_current_user)
+    current_user: ClerkTokenData = Depends(deps.get_current_user),
 ):
     """
     WebSocket endpoint for real-time activity monitoring.

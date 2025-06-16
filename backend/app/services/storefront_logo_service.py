@@ -1,14 +1,16 @@
-from typing import List, Optional, Dict, Any, Tuple
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy.orm import Session
-from sqlalchemy import desc, or_
+from typing import Any, Dict, List, Optional, Tuple
+
 from fastapi import HTTPException, status
-from app.models.storefront_logo import StorefrontLogo, LogoType, LogoStatus
+from sqlalchemy import desc, or_
+from sqlalchemy.orm import Session
+
+from app.models.storefront_logo import LogoStatus, LogoType, StorefrontLogo
 from app.models.tenant import Tenant
 from app.models.user import User
-from app.services.storefront_permissions_service import has_permission
 from app.services.storefront_asset_service import get_asset, track_asset_usage
+from app.services.storefront_permissions_service import has_permission
 
 
 async def create_logo(
@@ -22,7 +24,7 @@ async def create_logo(
     responsive_settings: Optional[Dict[str, Any]] = None,
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
-    status: LogoStatus = LogoStatus.DRAFT
+    status: LogoStatus = LogoStatus.DRAFT,
 ) -> StorefrontLogo:
     """
     Create a new logo for a tenant's storefront.
@@ -51,16 +53,14 @@ async def create_logo(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Check if user exists
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     # Check permission
@@ -69,30 +69,33 @@ async def create_logo(
         tenant_id=tenant_id,
         user_id=user_id,
         required_permission="edit",
-        section=None  # For now, using global permission
+        section=None,  # For now, using global permission
     )
 
     if not has_perm:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to create logos"
+            detail="You don't have permission to create logos",
         )
 
     # Check if asset exists
     asset = await get_asset(db, tenant_id, asset_id)
     if not asset:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Asset not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Asset not found"
         )
 
     # Check if there's already an active logo of the same type
     if logo_type == LogoType.PRIMARY:
-        existing_logos = db.query(StorefrontLogo).filter(
-            StorefrontLogo.tenant_id == tenant_id,
-            StorefrontLogo.logo_type == LogoType.PRIMARY,
-            StorefrontLogo.status == LogoStatus.PUBLISHED
-        ).all()
+        existing_logos = (
+            db.query(StorefrontLogo)
+            .filter(
+                StorefrontLogo.tenant_id == tenant_id,
+                StorefrontLogo.logo_type == LogoType.PRIMARY,
+                StorefrontLogo.status == LogoStatus.PUBLISHED,
+            )
+            .all()
+        )
 
         # If creating a new primary logo, set others to inactive
         if status == LogoStatus.PUBLISHED and existing_logos:
@@ -104,24 +107,15 @@ async def create_logo(
         display_settings = {
             "maxWidth": "200px",
             "maxHeight": "80px",
-            "position": "center"
+            "position": "center",
         }
 
     # Create default responsive settings if not provided
     if responsive_settings is None:
         responsive_settings = {
-            "mobile": {
-                "maxWidth": "150px",
-                "maxHeight": "60px"
-            },
-            "tablet": {
-                "maxWidth": "180px",
-                "maxHeight": "70px"
-            },
-            "desktop": {
-                "maxWidth": "200px",
-                "maxHeight": "80px"
-            }
+            "mobile": {"maxWidth": "150px", "maxHeight": "60px"},
+            "tablet": {"maxWidth": "180px", "maxHeight": "70px"},
+            "desktop": {"maxWidth": "200px", "maxHeight": "80px"},
         }
 
     # Create the logo
@@ -135,7 +129,7 @@ async def create_logo(
         start_date=start_date,
         end_date=end_date,
         status=status,
-        created_by=user_id
+        created_by=user_id,
     )
 
     db.add(logo)
@@ -146,11 +140,7 @@ async def create_logo(
     await track_asset_usage(
         db=db,
         asset_id=asset_id,
-        usage_location={
-            "type": "logo",
-            "id": str(logo.id),
-            "name": name
-        }
+        usage_location={"type": "logo", "id": str(logo.id), "name": name},
     )
 
     return logo
@@ -169,7 +159,7 @@ async def update_logo(
     responsive_settings: Optional[Dict[str, Any]] = None,
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
-    status: Optional[LogoStatus] = None
+    status: Optional[LogoStatus] = None,
 ) -> StorefrontLogo:
     """
     Update an existing logo.
@@ -201,16 +191,14 @@ async def update_logo(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Check if user exists
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     # Check permission
@@ -219,25 +207,25 @@ async def update_logo(
         tenant_id=tenant_id,
         user_id=user_id,
         required_permission="edit",
-        section=None  # For now, using global permission
+        section=None,  # For now, using global permission
     )
 
     if not has_perm:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to update logos"
+            detail="You don't have permission to update logos",
         )
 
     # Get the logo
-    logo = db.query(StorefrontLogo).filter(
-        StorefrontLogo.id == logo_id,
-        StorefrontLogo.tenant_id == tenant_id
-    ).first()
+    logo = (
+        db.query(StorefrontLogo)
+        .filter(StorefrontLogo.id == logo_id, StorefrontLogo.tenant_id == tenant_id)
+        .first()
+    )
 
     if not logo:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Logo not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Logo not found"
         )
 
     # Check if changing asset and the new asset exists
@@ -245,19 +233,14 @@ async def update_logo(
         asset = await get_asset(db, tenant_id, asset_id)
         if not asset:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="New asset not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="New asset not found"
             )
 
         # Track new asset usage
         await track_asset_usage(
             db=db,
             asset_id=asset_id,
-            usage_location={
-                "type": "logo",
-                "id": str(logo.id),
-                "name": logo.name
-            }
+            usage_location={"type": "logo", "id": str(logo.id), "name": logo.name},
         )
 
     # Handle logo type change to PRIMARY
@@ -268,13 +251,19 @@ async def update_logo(
     # Update status to PUBLISHED
     if status == LogoStatus.PUBLISHED and logo.status != LogoStatus.PUBLISHED:
         # If this is a primary logo, set other primary logos to inactive
-        if (logo_type == LogoType.PRIMARY) or (logo_type is None and logo.logo_type == LogoType.PRIMARY):
-            other_primary_logos = db.query(StorefrontLogo).filter(
-                StorefrontLogo.tenant_id == tenant_id,
-                StorefrontLogo.logo_type == LogoType.PRIMARY,
-                StorefrontLogo.status == LogoStatus.PUBLISHED,
-                StorefrontLogo.id != logo_id
-            ).all()
+        if (logo_type == LogoType.PRIMARY) or (
+            logo_type is None and logo.logo_type == LogoType.PRIMARY
+        ):
+            other_primary_logos = (
+                db.query(StorefrontLogo)
+                .filter(
+                    StorefrontLogo.tenant_id == tenant_id,
+                    StorefrontLogo.logo_type == LogoType.PRIMARY,
+                    StorefrontLogo.status == LogoStatus.PUBLISHED,
+                    StorefrontLogo.id != logo_id,
+                )
+                .all()
+            )
 
             for other_logo in other_primary_logos:
                 other_logo.status = LogoStatus.INACTIVE
@@ -325,9 +314,7 @@ async def update_logo(
 
 
 async def get_logo(
-    db: Session,
-    tenant_id: uuid.UUID,
-    logo_id: uuid.UUID
+    db: Session, tenant_id: uuid.UUID, logo_id: uuid.UUID
 ) -> Optional[StorefrontLogo]:
     """
     Get a specific logo by ID.
@@ -347,15 +334,15 @@ async def get_logo(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Get the logo
-    logo = db.query(StorefrontLogo).filter(
-        StorefrontLogo.id == logo_id,
-        StorefrontLogo.tenant_id == tenant_id
-    ).first()
+    logo = (
+        db.query(StorefrontLogo)
+        .filter(StorefrontLogo.id == logo_id, StorefrontLogo.tenant_id == tenant_id)
+        .first()
+    )
 
     return logo
 
@@ -367,7 +354,7 @@ async def list_logos(
     status: Optional[LogoStatus] = None,
     include_expired: bool = False,
     limit: int = 20,
-    offset: int = 0
+    offset: int = 0,
 ) -> Tuple[List[StorefrontLogo], int]:
     """
     List logos for a tenant with filtering.
@@ -391,14 +378,11 @@ async def list_logos(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Base query
-    query = db.query(StorefrontLogo).filter(
-        StorefrontLogo.tenant_id == tenant_id
-    )
+    query = db.query(StorefrontLogo).filter(StorefrontLogo.tenant_id == tenant_id)
 
     # Apply logo type filter
     if logo_type:
@@ -412,10 +396,7 @@ async def list_logos(
     if not include_expired:
         now = datetime.now(timezone.utc)
         query = query.filter(
-            or_(
-                StorefrontLogo.end_date.is_(None),
-                StorefrontLogo.end_date > now
-            )
+            or_(StorefrontLogo.end_date.is_(None), StorefrontLogo.end_date > now)
         )
 
     # Get total count
@@ -432,10 +413,7 @@ async def list_logos(
 
 
 async def delete_logo(
-    db: Session,
-    tenant_id: uuid.UUID,
-    logo_id: uuid.UUID,
-    user_id: uuid.UUID
+    db: Session, tenant_id: uuid.UUID, logo_id: uuid.UUID, user_id: uuid.UUID
 ) -> bool:
     """
     Delete a logo.
@@ -457,16 +435,14 @@ async def delete_logo(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Check if user exists
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     # Check permission
@@ -475,36 +451,41 @@ async def delete_logo(
         tenant_id=tenant_id,
         user_id=user_id,
         required_permission="delete",
-        section=None  # For now, using global permission
+        section=None,  # For now, using global permission
     )
 
     if not has_perm:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to delete logos"
+            detail="You don't have permission to delete logos",
         )
 
     # Get the logo
-    logo = db.query(StorefrontLogo).filter(
-        StorefrontLogo.id == logo_id,
-        StorefrontLogo.tenant_id == tenant_id
-    ).first()
+    logo = (
+        db.query(StorefrontLogo)
+        .filter(StorefrontLogo.id == logo_id, StorefrontLogo.tenant_id == tenant_id)
+        .first()
+    )
 
     if not logo:
         return False
 
     # Check if this is the only published primary logo
     if logo.logo_type == LogoType.PRIMARY and logo.status == LogoStatus.PUBLISHED:
-        primary_count = db.query(StorefrontLogo).filter(
-            StorefrontLogo.tenant_id == tenant_id,
-            StorefrontLogo.logo_type == LogoType.PRIMARY,
-            StorefrontLogo.status == LogoStatus.PUBLISHED
-        ).count()
+        primary_count = (
+            db.query(StorefrontLogo)
+            .filter(
+                StorefrontLogo.tenant_id == tenant_id,
+                StorefrontLogo.logo_type == LogoType.PRIMARY,
+                StorefrontLogo.status == LogoStatus.PUBLISHED,
+            )
+            .count()
+        )
 
         if primary_count <= 1:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Cannot delete the only published primary logo"
+                detail="Cannot delete the only published primary logo",
             )
 
     # Delete the logo
@@ -515,10 +496,7 @@ async def delete_logo(
 
 
 async def publish_logo(
-    db: Session,
-    tenant_id: uuid.UUID,
-    logo_id: uuid.UUID,
-    user_id: uuid.UUID
+    db: Session, tenant_id: uuid.UUID, logo_id: uuid.UUID, user_id: uuid.UUID
 ) -> StorefrontLogo:
     """
     Publish a logo.
@@ -540,16 +518,14 @@ async def publish_logo(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Check if user exists
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     # Check permission
@@ -558,35 +534,39 @@ async def publish_logo(
         tenant_id=tenant_id,
         user_id=user_id,
         required_permission="publish",
-        section=None  # For now, using global permission
+        section=None,  # For now, using global permission
     )
 
     if not has_perm:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to publish logos"
+            detail="You don't have permission to publish logos",
         )
 
     # Get the logo
-    logo = db.query(StorefrontLogo).filter(
-        StorefrontLogo.id == logo_id,
-        StorefrontLogo.tenant_id == tenant_id
-    ).first()
+    logo = (
+        db.query(StorefrontLogo)
+        .filter(StorefrontLogo.id == logo_id, StorefrontLogo.tenant_id == tenant_id)
+        .first()
+    )
 
     if not logo:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Logo not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Logo not found"
         )
 
     # If this is a primary logo, set other published primary logos to inactive
     if logo.logo_type == LogoType.PRIMARY:
-        other_primary_logos = db.query(StorefrontLogo).filter(
-            StorefrontLogo.tenant_id == tenant_id,
-            StorefrontLogo.logo_type == LogoType.PRIMARY,
-            StorefrontLogo.status == LogoStatus.PUBLISHED,
-            StorefrontLogo.id != logo_id
-        ).all()
+        other_primary_logos = (
+            db.query(StorefrontLogo)
+            .filter(
+                StorefrontLogo.tenant_id == tenant_id,
+                StorefrontLogo.logo_type == LogoType.PRIMARY,
+                StorefrontLogo.status == LogoStatus.PUBLISHED,
+                StorefrontLogo.id != logo_id,
+            )
+            .all()
+        )
 
         for other_logo in other_primary_logos:
             other_logo.status = LogoStatus.INACTIVE
@@ -605,9 +585,7 @@ async def publish_logo(
 
 
 async def get_active_logo(
-    db: Session,
-    tenant_id: uuid.UUID,
-    logo_type: LogoType
+    db: Session, tenant_id: uuid.UUID, logo_type: LogoType
 ) -> Optional[StorefrontLogo]:
     """
     Get the currently active logo of a specific type.
@@ -627,26 +605,24 @@ async def get_active_logo(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Get current time
     now = datetime.now(timezone.utc)
 
     # Get the active logo
-    logo = db.query(StorefrontLogo).filter(
-        StorefrontLogo.tenant_id == tenant_id,
-        StorefrontLogo.logo_type == logo_type,
-        StorefrontLogo.status == LogoStatus.PUBLISHED,
-        or_(
-            StorefrontLogo.start_date.is_(None),
-            StorefrontLogo.start_date <= now
-        ),
-        or_(
-            StorefrontLogo.end_date.is_(None),
-            StorefrontLogo.end_date > now
+    logo = (
+        db.query(StorefrontLogo)
+        .filter(
+            StorefrontLogo.tenant_id == tenant_id,
+            StorefrontLogo.logo_type == logo_type,
+            StorefrontLogo.status == LogoStatus.PUBLISHED,
+            or_(StorefrontLogo.start_date.is_(None), StorefrontLogo.start_date <= now),
+            or_(StorefrontLogo.end_date.is_(None), StorefrontLogo.end_date > now),
         )
-    ).order_by(desc(StorefrontLogo.published_at)).first()
+        .order_by(desc(StorefrontLogo.published_at))
+        .first()
+    )
 
     return logo

@@ -1,9 +1,12 @@
-from pydantic import BaseModel, Field, field_validator, ConfigDict
-from typing import Optional, List, Dict, Any
-from datetime import datetime, date
+from datetime import date, datetime
+from typing import Any, Dict, List, Optional
 from uuid import UUID
-from app.models.order import OrderStatus, OrderSource
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from app.models.order import OrderSource, OrderStatus
 from app.schemas.order_channel_meta import OrderChannelMetaResponse
+from app.schemas.shipping import ShippingDetails
 
 
 class OrderBase(BaseModel):
@@ -15,6 +18,7 @@ class OrderBase(BaseModel):
     quantity: int = Field(..., gt=0)
     total_amount: float = Field(..., gt=0)
     notes: Optional[str] = Field(None, max_length=1000)
+    channel: str = Field(..., description="Order channel: 'web', 'chat', etc.")
 
 
 # Compatibility layer for WhatsApp order creation
@@ -25,15 +29,15 @@ class WhatsAppOrderCreate(OrderBase):
     conversation_id: str
     order_source: OrderSource = Field(
         default=OrderSource.whatsapp,
-        description="Always whatsapp for this legacy schema."
+        description="Always whatsapp for this legacy schema.",
     )
 
-    @field_validator('whatsapp_number', 'buyer_phone')
+    @field_validator("whatsapp_number", "buyer_phone")
     @classmethod
     def validate_phone_number(cls, v):
         # Basic phone number validation
-        if not v.replace('+', '').replace('-', '').replace(' ', '').isdigit():
-            raise ValueError('Invalid phone number format')
+        if not v.replace("+", "").replace("-", "").replace(" ", "").isdigit():
+            raise ValueError("Invalid phone number format")
         return v
 
 
@@ -50,17 +54,26 @@ class WhatsAppOrderDetailsSchema(BaseModel):
 class OrderCreate(OrderBase):
     order_source: OrderSource = Field(
         default=OrderSource.whatsapp,
-        description="Source of the order. Use OrderSource.website for storefront orders."
+        description="Source of the order. Use OrderSource.website for storefront orders.",
     )
+    shipping: ShippingDetails
 
-    @field_validator('order_source')
+    @field_validator("order_source")
     @classmethod
     def validate_order_source(cls, v, info):
         # Get values from info.data
         values = info.data
         # For website orders, email is required
-        if v == OrderSource.website and not values.get('buyer_email'):
-            raise ValueError('Email is required for website orders')
+        if v == OrderSource.website and not values.get("buyer_email"):
+            raise ValueError("Email is required for website orders")
+        return v
+
+    @field_validator("channel")
+    @classmethod
+    def validate_channel(cls, v):
+        allowed = {"web", "chat", "whatsapp", "sms", "telegram"}
+        if v not in allowed:
+            raise ValueError(f"Channel must be one of {allowed}")
         return v
 
 
@@ -86,6 +99,7 @@ class OrderResponse(OrderBase):
     updated_at: Optional[datetime] = None
     channel_metadata: Optional[list[OrderChannelMetaResponse]] = None
     version: int
+    shipping: ShippingDetails
 
     model_config = ConfigDict(from_attributes=True)
 

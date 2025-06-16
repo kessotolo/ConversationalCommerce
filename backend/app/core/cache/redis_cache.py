@@ -1,14 +1,15 @@
-import json
-import hashlib
-import logging
-from typing import Any, Optional, Dict
 import asyncio
+import hashlib
+import json
+import logging
 from datetime import datetime
+from typing import Any, Dict, Optional
+
 import redis.asyncio as redis
 from fastapi import Request
 
-from app.core.config.settings import get_settings
 from app.core.config import settings
+from app.core.config.settings import get_settings
 from app.core.exceptions import CacheError
 
 settings = get_settings()
@@ -52,9 +53,10 @@ class RedisCache:
         self._initialized = True
 
         # Check if we should disable Redis in production
-        if settings.ENVIRONMENT == "production" and getattr(settings, "DISABLE_REDIS_IN_PRODUCTION", False):
-            logger.info(
-                "Redis cache is disabled in production by configuration")
+        if settings.ENVIRONMENT == "production" and getattr(
+            settings, "DISABLE_REDIS_IN_PRODUCTION", False
+        ):
+            logger.info("Redis cache is disabled in production by configuration")
             return
 
         # Check if REDIS_DISABLED is set (general setting)
@@ -65,8 +67,11 @@ class RedisCache:
 
         try:
             # Get Redis settings from environment
-            redis_url = settings.REDIS_URL if hasattr(
-                settings, "REDIS_URL") else "redis://localhost:6379/0"
+            redis_url = (
+                settings.REDIS_URL
+                if hasattr(settings, "REDIS_URL")
+                else "redis://localhost:6379/0"
+            )
 
             # Check if we're in a Docker/container environment
             is_container = getattr(settings, "IS_CONTAINER", False)
@@ -74,7 +79,8 @@ class RedisCache:
                 # In container environments, use the service name instead of localhost
                 redis_url = redis_url.replace("localhost", "redis")
                 logger.info(
-                    f"Container environment detected, using Redis URL: {redis_url}")
+                    f"Container environment detected, using Redis URL: {redis_url}"
+                )
 
             # Create Redis client with timeout
             self._connection_pool = redis.ConnectionPool.from_url(
@@ -82,10 +88,9 @@ class RedisCache:
                 max_connections=settings.REDIS_MAX_CONNECTIONS,
                 socket_timeout=settings.REDIS_SOCKET_TIMEOUT,
                 socket_connect_timeout=settings.REDIS_CONNECT_TIMEOUT,
-                retry_on_timeout=True
+                retry_on_timeout=True,
             )
-            self._redis_client = redis.Redis(
-                connection_pool=self._connection_pool)
+            self._redis_client = redis.Redis(connection_pool=self._connection_pool)
 
             try:
                 # Test connection with timeout
@@ -93,18 +98,19 @@ class RedisCache:
                 logger.info("Redis cache initialized successfully")
                 self._initialized = True
             except asyncio.TimeoutError:
-                logger.warning(
-                    "Redis connection timed out - continuing without cache")
+                logger.warning("Redis connection timed out - continuing without cache")
                 self._initialized = False
                 self._redis_client = None
             except Exception as e:
                 logger.warning(
-                    f"Redis ping failed - continuing without cache: {str(e)}")
+                    f"Redis ping failed - continuing without cache: {str(e)}"
+                )
                 self._initialized = False
                 self._redis_client = None
         except Exception as e:
             logger.warning(
-                f"Failed to initialize Redis cache - continuing without cache: {str(e)}")
+                f"Failed to initialize Redis cache - continuing without cache: {str(e)}"
+            )
             self._initialized = False
             self._redis_client = None
 
@@ -160,7 +166,8 @@ class RedisCache:
                 if attempt == self._max_retries - 1:
                     self._is_available = False
                     raise CacheError(
-                        f"Redis operation {operation} failed after {self._max_retries} attempts")
+                        f"Redis operation {operation} failed after {self._max_retries} attempts"
+                    )
                 await asyncio.sleep(self._retry_delay * (attempt + 1))
 
     async def get(self, key: str) -> Optional[Any]:
@@ -183,12 +190,7 @@ class RedisCache:
             logger.error(f"Redis cache get error: {str(e)}")
             return None
 
-    async def set(
-        self,
-        key: str,
-        value: Any,
-        expire: Optional[int] = None
-    ) -> bool:
+    async def set(self, key: str, value: Any, expire: Optional[int] = None) -> bool:
         """
         Set value in cache.
 
@@ -231,7 +233,9 @@ class RedisCache:
             logger.error(f"Redis cache delete error: {str(e)}")
             return False
 
-    async def invalidate_tenant_keys(self, tenant_id: str, prefix: Optional[str] = None) -> int:
+    async def invalidate_tenant_keys(
+        self, tenant_id: str, prefix: Optional[str] = None
+    ) -> int:
         """
         Invalidate all keys for a specific tenant.
 
@@ -246,12 +250,16 @@ class RedisCache:
             return 0
 
         try:
-            pattern = f"tenant:{tenant_id}:{prefix}*" if prefix else f"tenant:{tenant_id}:*"
+            pattern = (
+                f"tenant:{tenant_id}:{prefix}*" if prefix else f"tenant:{tenant_id}:*"
+            )
             cursor = 0
             total_deleted = 0
 
             while True:
-                cursor, keys = await self._execute_with_retry("scan", cursor, match=pattern, count=100)
+                cursor, keys = await self._execute_with_retry(
+                    "scan", cursor, match=pattern, count=100
+                )
                 if keys:
                     deleted = await self._execute_with_retry("delete", *keys)
                     total_deleted += deleted
@@ -292,10 +300,9 @@ class RedisCache:
                 max_connections=settings.REDIS_MAX_CONNECTIONS,
                 socket_timeout=settings.REDIS_SOCKET_TIMEOUT,
                 socket_connect_timeout=settings.REDIS_CONNECT_TIMEOUT,
-                retry_on_timeout=True
+                retry_on_timeout=True,
             )
-            self._redis_client = redis.Redis(
-                connection_pool=self._connection_pool)
+            self._redis_client = redis.Redis(connection_pool=self._connection_pool)
             await self._redis_client.ping()
             self._is_available = True
             self._retry_count = 0
@@ -326,14 +333,11 @@ class RedisCache:
                 "connected_clients": info.get("connected_clients", 0),
                 "used_memory": info.get("used_memory", 0),
                 "uptime_in_seconds": info.get("uptime_in_seconds", 0),
-                "last_save_time": info.get("last_save_time", 0)
+                "last_save_time": info.get("last_save_time", 0),
             }
         except Exception as e:
             logger.error(f"Redis health check error: {str(e)}")
-            return {
-                "status": "unhealthy",
-                "error": str(e)
-            }
+            return {"status": "unhealthy", "error": str(e)}
 
 
 # Create singleton instance
@@ -353,8 +357,9 @@ async def get_cache_key_from_request(request: Request, prefix: str) -> str:
     """
     # Get tenant ID from request state
     tenant_context = getattr(request.state, "tenant_context", None)
-    tenant_id = tenant_context.get(
-        "tenant_id", "default") if tenant_context else "default"
+    tenant_id = (
+        tenant_context.get("tenant_id", "default") if tenant_context else "default"
+    )
 
     # Generate cache key based on request path and query params
     path = request.url.path
@@ -374,7 +379,7 @@ async def get_cache_key_from_request(request: Request, prefix: str) -> str:
 def cached_response(
     prefix: str,
     expiration: int = DEFAULT_EXPIRATION,
-    include_request_headers: bool = False
+    include_request_headers: bool = False,
 ):
     """
     Decorator for caching API responses with tenant isolation.
@@ -387,6 +392,7 @@ def cached_response(
     Returns:
         Decorator function
     """
+
     def decorator(func):
         async def wrapper(*args, **kwargs):
             # Get request from args or kwargs
@@ -396,15 +402,15 @@ def cached_response(
                     request = arg
                     break
 
-            if not request and 'request' in kwargs:
-                request = kwargs['request']
+            if not request and "request" in kwargs:
+                request = kwargs["request"]
 
             if not request:
                 # Can't cache without request context
                 return await func(*args, **kwargs)
 
             # Get response from kwargs if present
-            response = kwargs.get('response', None)
+            response = kwargs.get("response", None)
 
             # Generate cache key
             cache_key = await get_cache_key_from_request(request, prefix)
@@ -453,12 +459,8 @@ def cached_response(
                 # Cache the result with ETag
                 await redis_cache.set(
                     cache_key,
-                    {
-                        "data": result,
-                        "etag": etag,
-                        "cached_at": str(datetime.now())
-                    },
-                    expiration
+                    {"data": result, "etag": etag, "cached_at": str(datetime.now())},
+                    expiration,
                 )
 
             return result
@@ -482,7 +484,9 @@ async def invalidate_tenant_cache(tenant_id: str, prefix: Optional[str] = None) 
     return await redis_cache.invalidate_tenant_keys(tenant_id, prefix)
 
 
-async def invalidate_product_cache(tenant_id: str, product_id: Optional[str] = None) -> int:
+async def invalidate_product_cache(
+    tenant_id: str, product_id: Optional[str] = None
+) -> int:
     """
     Invalidate product cache for a specific tenant.
 

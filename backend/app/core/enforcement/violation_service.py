@@ -1,30 +1,43 @@
-from datetime import datetime, timedelta
-from sqlalchemy.orm import Session
-from app.models.violation import Violation
-from app.models.user import User
 import logging
+from datetime import datetime, timedelta
+
+from sqlalchemy.orm import Session
+
+from app.models.user import User
+from app.models.violation import Violation
 
 logger = logging.getLogger(__name__)
 
 # Escalation policy: warning -> temp_ban -> perm_ban
 ESCALATION_ORDER = ["warning", "temp_ban", "perm_ban"]
-ESCALATION_THRESHOLDS = {
-    "warning": 1,
-    "temp_ban": 2,
-    "perm_ban": 3
-}
+ESCALATION_THRESHOLDS = {"warning": 1, "temp_ban": 2, "perm_ban": 3}
 TEMP_BAN_DURATION_MINUTES = 60 * 24  # 1 day
 
 
 class ViolationService:
-    def escalate_violation(self, db: Session, tenant_id: str, user_id: str, detection_id: str, type_: str, severity: str, reason: str, details: dict = None):
+    def escalate_violation(
+        self,
+        db: Session,
+        tenant_id: str,
+        user_id: str,
+        detection_id: str,
+        type_: str,
+        severity: str,
+        reason: str,
+        details: dict = None,
+    ):
         """Escalate enforcement action based on violation history."""
         # Count recent violations
-        recent_violations = db.query(Violation).filter(
-            Violation.tenant_id == tenant_id,
-            Violation.user_id == user_id,
-            Violation.status == "active"
-        ).order_by(Violation.created_at.desc()).all()
+        recent_violations = (
+            db.query(Violation)
+            .filter(
+                Violation.tenant_id == tenant_id,
+                Violation.user_id == user_id,
+                Violation.status == "active",
+            )
+            .order_by(Violation.created_at.desc())
+            .all()
+        )
 
         # Determine escalation level
         action = "warning"
@@ -50,7 +63,7 @@ class ViolationService:
             reason=reason,
             details=details or {},
             start_at=datetime.utcnow(),
-            end_at=end_at
+            end_at=end_at,
         )
         db.add(violation)
         db.commit()
@@ -59,7 +72,8 @@ class ViolationService:
         # Apply enforcement
         self.apply_enforcement(db, user_id, action, end_at)
         logger.info(
-            f"Enforcement applied: {action} for user {user_id} (tenant {tenant_id})")
+            f"Enforcement applied: {action} for user {user_id} (tenant {tenant_id})"
+        )
         return violation
 
     def apply_enforcement(self, db: Session, user_id: str, action: str, end_at=None):
@@ -80,9 +94,10 @@ class ViolationService:
         db.add(user)
         db.commit()
 
-    def resolve_violation(self, db: Session, violation_id: str, resolution_notes: str = None):
-        violation = db.query(Violation).filter(
-            Violation.id == violation_id).first()
+    def resolve_violation(
+        self, db: Session, violation_id: str, resolution_notes: str = None
+    ):
+        violation = db.query(Violation).filter(Violation.id == violation_id).first()
         if not violation:
             return None
         violation.status = "resolved"

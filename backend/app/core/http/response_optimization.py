@@ -1,9 +1,10 @@
 import hashlib
 import json
-from typing import Any, Optional, Callable
-from fastapi import Request, Response, status
 import logging
 from datetime import datetime, timezone
+from typing import Any, Callable, Optional
+
+from fastapi import Request, Response, status
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +34,7 @@ def set_cache_headers(
     cache_control: str = "public",
     max_age: int = 300,
     etag: Optional[str] = None,
-    vary: Optional[str] = None
+    vary: Optional[str] = None,
 ) -> None:
     """
     Set cache headers on a response.
@@ -53,8 +54,9 @@ def set_cache_headers(
         response.headers["ETag"] = etag
 
     # Set Date header
-    response.headers["Date"] = datetime.now(
-        timezone.utc).strftime("%a, %d %b %Y %H:%M:%S GMT")
+    response.headers["Date"] = datetime.now(timezone.utc).strftime(
+        "%a, %d %b %Y %H:%M:%S GMT"
+    )
 
     # Set Vary header if provided
     if vary:
@@ -99,7 +101,7 @@ def optimize_response(
     response: Response,
     cache_control: str = "public",
     max_age: int = 300,
-    vary: Optional[str] = None
+    vary: Optional[str] = None,
 ) -> Any:
     """
     Optimize a response with caching headers and conditional request handling.
@@ -128,16 +130,14 @@ def optimize_response(
         cache_control=cache_control,
         max_age=max_age,
         etag=etag,
-        vary=vary or "Accept, Accept-Encoding, X-Tenant-ID"
+        vary=vary or "Accept, Accept-Encoding, X-Tenant-ID",
     )
 
     return response_data
 
 
 def conditional_response(
-    cache_control: str = "public",
-    max_age: int = 300,
-    vary: Optional[str] = None
+    cache_control: str = "public", max_age: int = 300, vary: Optional[str] = None
 ):
     """
     Decorator for handling conditional requests and setting cache headers.
@@ -150,6 +150,7 @@ def conditional_response(
     Returns:
         Decorator function
     """
+
     def decorator(func: Callable):
         async def wrapper(*args, **kwargs):
             request = kwargs.get("request")
@@ -163,7 +164,9 @@ def conditional_response(
                 response=response,
                 cache_control=cache_control,
                 max_age=max_age,
-                vary=vary
+                vary=vary,
             )
+
         return wrapper
+
     return decorator

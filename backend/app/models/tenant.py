@@ -1,9 +1,11 @@
-from sqlalchemy import Column, String, DateTime, Boolean
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
-from app.db import Base
 import uuid
+
+from sqlalchemy import Boolean, Column, DateTime, String
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+
+from app.db import Base
 
 
 class Tenant(Base):
@@ -11,6 +13,7 @@ class Tenant(Base):
     Model for storing tenant information for the multi-tenant architecture.
     Each tenant represents a separate storefront with its own themes, products, etc.
     """
+
     __tablename__ = "tenants"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -29,21 +32,32 @@ class Tenant(Base):
 
     # Relationships
     storefront_config = relationship(
-        "StorefrontConfig", back_populates="tenant", uselist=False, cascade="all, delete-orphan")
+        "StorefrontConfig",
+        back_populates="tenant",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
     complaints = relationship(
-        "Complaint", back_populates="tenant", cascade="all, delete-orphan")
+        "Complaint", back_populates="tenant", cascade="all, delete-orphan"
+    )
     content_filter_rules = relationship(
-        "ContentFilterRule", back_populates="tenant", cascade="all, delete-orphan")
+        "ContentFilterRule", back_populates="tenant", cascade="all, delete-orphan"
+    )
     content_analysis_results = relationship(
-        "ContentAnalysisResult", back_populates="tenant", cascade="all, delete-orphan")
+        "ContentAnalysisResult", back_populates="tenant", cascade="all, delete-orphan"
+    )
     violations = relationship(
-        "Violation", back_populates="tenant", cascade="all, delete-orphan")
+        "Violation", back_populates="tenant", cascade="all, delete-orphan"
+    )
     behavior_patterns = relationship(
-        "BehaviorPattern", back_populates="tenant", cascade="all, delete-orphan")
+        "BehaviorPattern", back_populates="tenant", cascade="all, delete-orphan"
+    )
     pattern_detections = relationship(
-        "PatternDetection", back_populates="tenant", cascade="all, delete-orphan")
+        "PatternDetection", back_populates="tenant", cascade="all, delete-orphan"
+    )
     evidence = relationship(
-        "Evidence", back_populates="tenant", cascade="all, delete-orphan")
+        "Evidence", back_populates="tenant", cascade="all, delete-orphan"
+    )
 
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())

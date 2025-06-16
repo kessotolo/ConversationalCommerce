@@ -1,15 +1,17 @@
-from typing import List, Dict, Any, Optional
-from datetime import datetime, timezone
-from enum import Enum
 import logging
+import smtplib
+from datetime import datetime, timezone
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field
+from twilio.rest import Client
+
 from app.core.config.settings import get_settings
 from app.db.session import get_async_session_local
 from app.models.tenant import Tenant
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from twilio.rest import Client
 
 settings = get_settings()
 logger = logging.getLogger(__name__)
@@ -37,8 +39,7 @@ class Notification(BaseModel):
     priority: NotificationPriority
     channels: List[NotificationChannel]
     metadata: Dict[str, Any] = Field(default_factory=dict)
-    created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     sent_at: Optional[datetime] = None
     status: str = "pending"
 
@@ -48,7 +49,8 @@ class NotificationService:
         self.twilio_client = None
         if settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN:
             self.twilio_client = Client(
-                settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+                settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN
+            )
 
     async def send_notification(self, notification: Notification) -> bool:
         """Send a notification through all specified channels"""
@@ -84,9 +86,9 @@ class NotificationService:
                 raise ValueError("Tenant email not configured")
 
             msg = MIMEMultipart()
-            msg['From'] = settings.SMTP_FROM_EMAIL
-            msg['To'] = tenant.notification_email
-            msg['Subject'] = f"[{notification.priority.upper()}] {notification.title}"
+            msg["From"] = settings.SMTP_FROM_EMAIL
+            msg["To"] = tenant.notification_email
+            msg["Subject"] = f"[{notification.priority.upper()}] {notification.title}"
 
             body = f"""
             Priority: {notification.priority}
@@ -98,13 +100,12 @@ class NotificationService:
             {self._format_metadata(notification.metadata)}
             """
 
-            msg.attach(MIMEText(body, 'plain'))
+            msg.attach(MIMEText(body, "plain"))
 
             with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
                 if settings.SMTP_USERNAME and settings.SMTP_PASSWORD:
                     server.starttls()
-                    server.login(settings.SMTP_USERNAME,
-                                 settings.SMTP_PASSWORD)
+                    server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
                 server.send_message(msg)
 
         finally:
@@ -125,7 +126,7 @@ class NotificationService:
             message = self.twilio_client.messages.create(
                 body=f"[{notification.priority.upper()}] {notification.title}\n\n{notification.message}",
                 from_=settings.TWILIO_PHONE_NUMBER,
-                to=tenant.notification_phone
+                to=tenant.notification_phone,
             )
             logger.info(f"SMS sent: {message.sid}")
 
@@ -137,12 +138,10 @@ class NotificationService:
         # This will be handled by the WebSocket service
         # The notification will be broadcast to all connected clients for the tenant
         from app.core.websocket.monitoring import connection_manager
+
         await connection_manager.broadcast_to_tenant(
             notification.tenant_id,
-            {
-                "type": "notification",
-                "data": notification.dict()
-            }
+            {"type": "notification", "data": notification.dict()},
         )
 
     def _format_metadata(self, metadata: Dict[str, Any]) -> str:

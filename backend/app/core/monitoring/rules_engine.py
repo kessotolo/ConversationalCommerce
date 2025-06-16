@@ -1,16 +1,18 @@
-from typing import Dict, List, Any, Optional
-from datetime import datetime, timezone, timedelta
-from enum import Enum
 import logging
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+from uuid import uuid4
+
 from pydantic import BaseModel, Field
-from app.db.session import get_async_session_local
+
 from app.core.notifications.notification_service import (
     Notification,
-    NotificationPriority,
     NotificationChannel,
-    notification_service
+    NotificationPriority,
+    notification_service,
 )
-from uuid import uuid4
+from app.db.session import get_async_session_local
 
 logger = logging.getLogger(__name__)
 
@@ -37,10 +39,8 @@ class Rule(BaseModel):
     severity: RuleSeverity
     conditions: List[RuleCondition]
     enabled: bool = True
-    created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class RulesEngine:
@@ -62,7 +62,8 @@ class RulesEngine:
         """Remove a rule from the engine"""
         if tenant_id in self.rules:
             self.rules[tenant_id] = [
-                r for r in self.rules[tenant_id] if r.id != rule_id]
+                r for r in self.rules[tenant_id] if r.id != rule_id
+            ]
             logger.info(f"Removed rule {rule_id} for tenant {tenant_id}")
 
     async def evaluate_activity(self, activity: Dict[str, Any]) -> List[Rule]:
@@ -79,7 +80,8 @@ class RulesEngine:
             if self._evaluate_rule(rule, activity):
                 triggered_rules.append(rule)
                 logger.info(
-                    f"Rule {rule.id} triggered for activity {activity.get('id')}")
+                    f"Rule {rule.id} triggered for activity {activity.get('id')}"
+                )
 
                 # Send notification if cooldown period has passed
                 await self._handle_rule_notification(rule, activity)
@@ -97,7 +99,9 @@ class RulesEngine:
             logger.error(f"Error evaluating rule {rule.id}: {str(e)}")
             return False
 
-    def _evaluate_condition(self, condition: RuleCondition, activity: Dict[str, Any]) -> bool:
+    def _evaluate_condition(
+        self, condition: RuleCondition, activity: Dict[str, Any]
+    ) -> bool:
         """Evaluate a single condition against an activity"""
         try:
             field_value = activity.get(condition.field)
@@ -109,12 +113,16 @@ class RulesEngine:
                 return self._evaluate_time_condition(condition, activity)
             else:
                 # For immediate conditions
-                return self._evaluate_operator(condition.operator, field_value, condition.value)
+                return self._evaluate_operator(
+                    condition.operator, field_value, condition.value
+                )
         except Exception as e:
             logger.error(f"Error evaluating condition: {str(e)}")
             return False
 
-    def _evaluate_operator(self, operator: str, field_value: Any, condition_value: Any) -> bool:
+    def _evaluate_operator(
+        self, operator: str, field_value: Any, condition_value: Any
+    ) -> bool:
         """Evaluate a single operator"""
         operators = {
             "equals": lambda x, y: x == y,
@@ -123,7 +131,9 @@ class RulesEngine:
             "greater_than": lambda x, y: x > y,
             "less_than": lambda x, y: x < y,
             "in": lambda x, y: x in y if isinstance(y, (list, tuple)) else False,
-            "not_in": lambda x, y: x not in y if isinstance(y, (list, tuple)) else False,
+            "not_in": lambda x, y: (
+                x not in y if isinstance(y, (list, tuple)) else False
+            ),
         }
 
         if operator not in operators:
@@ -132,14 +142,17 @@ class RulesEngine:
 
         return operators[operator](field_value, condition_value)
 
-    def _evaluate_time_condition(self, condition: RuleCondition, activity: Dict[str, Any]) -> bool:
+    def _evaluate_time_condition(
+        self, condition: RuleCondition, activity: Dict[str, Any]
+    ) -> bool:
         """Evaluate a time-based condition by checking historical data"""
         try:
             db = get_async_session_local()
             try:
                 # Get activities within the time window
-                start_time = datetime.now(
-                    timezone.utc) - timedelta(seconds=condition.duration_seconds)
+                start_time = datetime.now(timezone.utc) - timedelta(
+                    seconds=condition.duration_seconds
+                )
                 activities = await db.execute(
                     """
                     SELECT * FROM audit_log
@@ -147,19 +160,24 @@ class RulesEngine:
                     AND timestamp >= :start_time
                     AND timestamp <= :end_time
                     """,
-                    {"tenant_id": activity["tenant_id"], "start_time": start_time, "end_time": datetime.now(
-                        timezone.utc)}
+                    {
+                        "tenant_id": activity["tenant_id"],
+                        "start_time": start_time,
+                        "end_time": datetime.now(timezone.utc),
+                    },
                 )
 
                 # Convert to dict for evaluation
                 activity_dicts = [a.__dict__ for a in activities]
 
                 # Count matching activities
-                matches = sum(1 for a in activity_dicts
-                              if self._evaluate_operator(condition.operator,
-                                                         a.get(
-                                                             condition.field),
-                                                         condition.value))
+                matches = sum(
+                    1
+                    for a in activity_dicts
+                    if self._evaluate_operator(
+                        condition.operator, a.get(condition.field), condition.value
+                    )
+                )
 
                 return matches > 0
             finally:
@@ -178,11 +196,12 @@ class RulesEngine:
             for i, r in enumerate(self.rules[rule.tenant_id]):
                 if r.id == rule.id:
                     self.rules[rule.tenant_id][i] = rule
-                    logger.info(
-                        f"Updated rule {rule.id} for tenant {rule.tenant_id}")
+                    logger.info(f"Updated rule {rule.id} for tenant {rule.tenant_id}")
                     break
 
-    async def _handle_rule_notification(self, rule: Rule, activity: Dict[str, Any]) -> None:
+    async def _handle_rule_notification(
+        self, rule: Rule, activity: Dict[str, Any]
+    ) -> None:
         """Handle notification for a triggered rule"""
         # Check cooldown period
         last_notification = self.notification_cooldowns.get(rule.id)
@@ -207,8 +226,8 @@ class RulesEngine:
                 "resource_type": activity.get("resource_type"),
                 "resource_id": activity.get("resource_id"),
                 "action": activity.get("action"),
-                "timestamp": activity.get("timestamp")
-            }
+                "timestamp": activity.get("timestamp"),
+            },
         )
 
         # Send notification
@@ -220,11 +239,11 @@ class RulesEngine:
         if rule.severity in [RuleSeverity.CRITICAL, RuleSeverity.HIGH]:
             send_alert_via_email(
                 subject=f"ALERT: {rule.name}",
-                message=f"Rule triggered: {rule.name} for activity {activity.get('id')}"
+                message=f"Rule triggered: {rule.name} for activity {activity.get('id')}",
             )
             send_alert_via_whatsapp(
                 number="+1234567890",  # Replace with real recipient
-                message=f"ALERT: {rule.name} triggered for activity {activity.get('id')}"
+                message=f"ALERT: {rule.name} triggered for activity {activity.get('id')}",
             )
         # In production, replace stubs with real integrations
 
@@ -234,24 +253,32 @@ class RulesEngine:
             RuleSeverity.LOW: timedelta(hours=24),
             RuleSeverity.MEDIUM: timedelta(hours=12),
             RuleSeverity.HIGH: timedelta(hours=6),
-            RuleSeverity.CRITICAL: timedelta(hours=1)
+            RuleSeverity.CRITICAL: timedelta(hours=1),
         }
         return cooldowns.get(severity, timedelta(hours=24))
 
-    def _get_notification_priority(self, severity: RuleSeverity) -> NotificationPriority:
+    def _get_notification_priority(
+        self, severity: RuleSeverity
+    ) -> NotificationPriority:
         """Map rule severity to notification priority"""
         priority_map = {
             RuleSeverity.LOW: NotificationPriority.LOW,
             RuleSeverity.MEDIUM: NotificationPriority.MEDIUM,
             RuleSeverity.HIGH: NotificationPriority.HIGH,
-            RuleSeverity.CRITICAL: NotificationPriority.URGENT
+            RuleSeverity.CRITICAL: NotificationPriority.URGENT,
         }
         return priority_map.get(severity, NotificationPriority.MEDIUM)
 
-    def _get_notification_channels(self, severity: RuleSeverity) -> List[NotificationChannel]:
+    def _get_notification_channels(
+        self, severity: RuleSeverity
+    ) -> List[NotificationChannel]:
         """Get notification channels based on severity"""
         if severity == RuleSeverity.CRITICAL:
-            return [NotificationChannel.EMAIL, NotificationChannel.SMS, NotificationChannel.IN_APP]
+            return [
+                NotificationChannel.EMAIL,
+                NotificationChannel.SMS,
+                NotificationChannel.IN_APP,
+            ]
         elif severity == RuleSeverity.HIGH:
             return [NotificationChannel.EMAIL, NotificationChannel.IN_APP]
         else:
@@ -303,9 +330,11 @@ async def update_rule_async(*args, db=None):
     """
     raise NotImplementedError("update_rule_async must be implemented.")
 
+
 # Monitoring/alerting integration stubs
 try:
     import sentry_sdk
+
     sentry_sdk.init(dsn="YOUR_SENTRY_DSN")
 except ImportError:
     pass

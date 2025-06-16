@@ -1,17 +1,17 @@
 import logging
-from typing import Optional, Dict, Any, Callable
-from fastapi import Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi.responses import JSONResponse
-from fastapi import status
 import re
+from typing import Any, Callable, Dict, Optional
 
-from app.db.session import get_async_session_local, SessionLocal
-from app.models.tenant import Tenant
-from app.models.storefront import StorefrontConfig
+from fastapi import Request, Response, status
+from fastapi.responses import JSONResponse
+from sqlalchemy import select
+from starlette.middleware.base import BaseHTTPMiddleware
+
 from app.core.cache.redis_cache import redis_cache
 from app.core.config.settings import get_settings
-from sqlalchemy import select
+from app.db.session import SessionLocal, get_async_session_local
+from app.models.storefront import StorefrontConfig
+from app.models.tenant import Tenant
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -41,7 +41,7 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
             "/docs",
             "/redoc",
             "/openapi.json",
-            "/health"
+            "/health",
         ]
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
@@ -59,13 +59,13 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
                 "tenant_id": None,
                 "subdomain": None,
                 "is_active": True,
-                "theme": "default"
+                "theme": "default",
             }
             return await call_next(request)
 
         # Extract subdomain
         subdomain = self._extract_subdomain(host)
-        
+
         # If no subdomain found, try to get tenant by custom domain
         tenant_context = None
         if subdomain:
@@ -77,7 +77,7 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
         if not tenant_context:
             return JSONResponse(
                 status_code=status.HTTP_404_NOT_FOUND,
-                content={"detail": "Tenant not found"}
+                content={"detail": "Tenant not found"},
             )
 
         # Set tenant context in request state
@@ -106,13 +106,13 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
         if self.base_domain:
             if not host.endswith(self.base_domain):
                 return None
-            
+
             # Remove base domain to get subdomain
-            prefix = host[:-len(self.base_domain)]
-            if not prefix or not prefix.endswith('.'):
+            prefix = host[: -len(self.base_domain)]
+            if not prefix or not prefix.endswith("."):
                 # No subdomain (it's the base domain itself)
                 return None
-            
+
             subdomain = prefix[:-1]  # Remove the trailing dot
         else:
             # Extract subdomain from first part
@@ -127,12 +127,18 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
 
         return subdomain
 
-    async def _get_tenant_by_subdomain(self, subdomain: str) -> Optional[Dict[str, Any]]:
+    async def _get_tenant_by_subdomain(
+        self, subdomain: str
+    ) -> Optional[Dict[str, Any]]:
         """Get tenant by subdomain."""
         cache_key = f"tenant:subdomain:{subdomain}"
-        
+
         # Try cache first
-        if redis_cache and hasattr(redis_cache, 'is_available') and redis_cache.is_available:
+        if (
+            redis_cache
+            and hasattr(redis_cache, "is_available")
+            and redis_cache.is_available
+        ):
             try:
                 cached_result = await redis_cache.get(cache_key)
                 if cached_result:
@@ -150,40 +156,54 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
                 # For tests, try to access the mocked subdomain attribute first
                 # Query StorefrontConfig and join with Tenant using sync session for tests
                 try:
-                    result = db.query(StorefrontConfig).join(Tenant).filter(
-                        StorefrontConfig.subdomain_name == subdomain
-                    ).first()
+                    result = (
+                        db.query(StorefrontConfig)
+                        .join(Tenant)
+                        .filter(StorefrontConfig.subdomain_name == subdomain)
+                        .first()
+                    )
                 except AttributeError:
                     # Fallback for tests that use 'subdomain' instead of 'subdomain_name'
-                    result = db.query(StorefrontConfig).join(Tenant).filter(
-                        StorefrontConfig.subdomain == subdomain
-                    ).first()
-                
+                    result = (
+                        db.query(StorefrontConfig)
+                        .join(Tenant)
+                        .filter(StorefrontConfig.subdomain == subdomain)
+                        .first()
+                    )
+
                 if result:
                     # For tests, use the subdomain attribute that's set by the test
-                    subdomain_value = getattr(result, 'subdomain', subdomain)
+                    subdomain_value = getattr(result, "subdomain", subdomain)
                     # Handle mock attributes - if it's a MagicMock, use default values
-                    is_active = getattr(result.tenant, 'is_active', True)
-                    if hasattr(is_active, '_mock_name'):
+                    is_active = getattr(result.tenant, "is_active", True)
+                    if hasattr(is_active, "_mock_name"):
                         is_active = True
                     tenant_context = {
                         "tenant_id": str(result.tenant_id),
                         "subdomain": subdomain_value,
                         "custom_domain": result.custom_domain,
                         "is_active": is_active,
-                        "theme": "default"  # theme configuration is in theme_settings JSON
+                        "theme": "default",  # theme configuration is in theme_settings JSON
                     }
-                    
+
                     # Cache the result
-                    if redis_cache and hasattr(redis_cache, 'is_available') and redis_cache.is_available:
+                    if (
+                        redis_cache
+                        and hasattr(redis_cache, "is_available")
+                        and redis_cache.is_available
+                    ):
                         try:
-                            await redis_cache.set(cache_key, tenant_context, TENANT_CACHE_DURATION)
+                            await redis_cache.set(
+                                cache_key, tenant_context, TENANT_CACHE_DURATION
+                            )
                         except (TypeError, AttributeError):
                             # Handle cases where redis_cache.set is not async (like in tests)
-                            redis_cache.set(cache_key, tenant_context, TENANT_CACHE_DURATION)
-                    
+                            redis_cache.set(
+                                cache_key, tenant_context, TENANT_CACHE_DURATION
+                            )
+
                     return tenant_context
-                
+
                 return None
             finally:
                 db.close()
@@ -198,7 +218,7 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
                     .filter(StorefrontConfig.subdomain_name == subdomain)
                 )
                 row = result.first()
-                
+
                 if row:
                     config, tenant = row
                     tenant_context = {
@@ -206,23 +226,35 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
                         "subdomain": config.subdomain_name,
                         "custom_domain": config.custom_domain,
                         "is_active": tenant.is_active,
-                        "theme": "default"  # theme configuration is in theme_settings JSON
+                        "theme": "default",  # theme configuration is in theme_settings JSON
                     }
-                    
+
                     # Cache the result
-                    if redis_cache and hasattr(redis_cache, 'is_available') and redis_cache.is_available:
-                        await redis_cache.set(cache_key, tenant_context, TENANT_CACHE_DURATION)
-                    
+                    if (
+                        redis_cache
+                        and hasattr(redis_cache, "is_available")
+                        and redis_cache.is_available
+                    ):
+                        await redis_cache.set(
+                            cache_key, tenant_context, TENANT_CACHE_DURATION
+                        )
+
                     return tenant_context
 
                 return None
 
-    async def _get_tenant_by_custom_domain(self, domain: str) -> Optional[Dict[str, Any]]:
+    async def _get_tenant_by_custom_domain(
+        self, domain: str
+    ) -> Optional[Dict[str, Any]]:
         """Get tenant by custom domain."""
         cache_key = f"tenant:domain:{domain}"
-        
+
         # Try cache first
-        if redis_cache and hasattr(redis_cache, 'is_available') and redis_cache.is_available:
+        if (
+            redis_cache
+            and hasattr(redis_cache, "is_available")
+            and redis_cache.is_available
+        ):
             try:
                 cached_result = await redis_cache.get(cache_key)
                 if cached_result:
@@ -238,35 +270,48 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
             db = SessionLocal()
             try:
                 # Query StorefrontConfig and join with Tenant using sync session for tests
-                result = db.query(StorefrontConfig).join(Tenant).filter(
-                    StorefrontConfig.custom_domain == domain
-                ).first()
-                
+                result = (
+                    db.query(StorefrontConfig)
+                    .join(Tenant)
+                    .filter(StorefrontConfig.custom_domain == domain)
+                    .first()
+                )
+
                 if result:
                     # Handle both subdomain_name (new) and subdomain (old/test) attributes
-                    subdomain_value = getattr(result, 'subdomain', None) or getattr(result, 'subdomain_name', None)
+                    subdomain_value = getattr(result, "subdomain", None) or getattr(
+                        result, "subdomain_name", None
+                    )
                     # Handle mock attributes - if it's a MagicMock, use default values
-                    is_active = getattr(result.tenant, 'is_active', True)
-                    if hasattr(is_active, '_mock_name'):
+                    is_active = getattr(result.tenant, "is_active", True)
+                    if hasattr(is_active, "_mock_name"):
                         is_active = True
                     tenant_context = {
                         "tenant_id": str(result.tenant_id),
                         "subdomain": subdomain_value,
                         "custom_domain": result.custom_domain,
                         "is_active": is_active,
-                        "theme": "default"  # theme configuration is in theme_settings JSON
+                        "theme": "default",  # theme configuration is in theme_settings JSON
                     }
-                    
+
                     # Cache the result
-                    if redis_cache and hasattr(redis_cache, 'is_available') and redis_cache.is_available:
+                    if (
+                        redis_cache
+                        and hasattr(redis_cache, "is_available")
+                        and redis_cache.is_available
+                    ):
                         try:
-                            await redis_cache.set(cache_key, tenant_context, TENANT_CACHE_DURATION)
+                            await redis_cache.set(
+                                cache_key, tenant_context, TENANT_CACHE_DURATION
+                            )
                         except (TypeError, AttributeError):
                             # Handle cases where redis_cache.set is not async (like in tests)
-                            redis_cache.set(cache_key, tenant_context, TENANT_CACHE_DURATION)
-                    
+                            redis_cache.set(
+                                cache_key, tenant_context, TENANT_CACHE_DURATION
+                            )
+
                     return tenant_context
-                
+
                 return None
             finally:
                 db.close()
@@ -281,7 +326,7 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
                     .filter(StorefrontConfig.custom_domain == domain)
                 )
                 row = result.first()
-                
+
                 if row:
                     config, tenant = row
                     tenant_context = {
@@ -289,13 +334,19 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
                         "subdomain": config.subdomain_name,
                         "custom_domain": config.custom_domain,
                         "is_active": tenant.is_active,
-                        "theme": "default"  # theme configuration is in theme_settings JSON
+                        "theme": "default",  # theme configuration is in theme_settings JSON
                     }
-                    
+
                     # Cache the result
-                    if redis_cache and hasattr(redis_cache, 'is_available') and redis_cache.is_available:
-                        await redis_cache.set(cache_key, tenant_context, TENANT_CACHE_DURATION)
-                    
+                    if (
+                        redis_cache
+                        and hasattr(redis_cache, "is_available")
+                        and redis_cache.is_available
+                    ):
+                        await redis_cache.set(
+                            cache_key, tenant_context, TENANT_CACHE_DURATION
+                        )
+
                     return tenant_context
 
                 return None
@@ -317,6 +368,7 @@ def get_tenant_context(request: Request) -> Dict[str, Any]:
         Tenant context dictionary
     """
     return getattr(request.state, "tenant_context", {}) or {}
+
 
 # Example async DB access in middleware
 

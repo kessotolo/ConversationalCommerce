@@ -1,11 +1,13 @@
-from sqlalchemy.orm import Session
-from app.models.audit_log import AuditLog
-from fastapi import Request
-from typing import Dict, Any, Optional
-from uuid import UUID
-from datetime import datetime, timezone
 import logging
+from datetime import datetime, timezone
+from typing import Any, Dict, Optional
+from uuid import UUID
+
+from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
+
+from app.models.audit_log import AuditLog
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -13,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 class AuditActionType:
     """Constants for common audit action types"""
+
     CREATE = "create"
     READ = "read"
     UPDATE = "update"
@@ -26,6 +29,7 @@ class AuditActionType:
 
 class AuditResourceType:
     """Constants for common resource types"""
+
     PRODUCT = "product"
     USER = "user"
     ORDER = "order"
@@ -77,7 +81,7 @@ async def create_audit_log(
             ip_address=ip_address,
             user_agent=user_agent,
             details=details,
-            timestamp=datetime.now(timezone.utc)
+            timestamp=datetime.now(timezone.utc),
         )
 
         # Add to database
@@ -99,10 +103,7 @@ async def create_audit_log(
 
 
 def get_resource_audit_logs(
-    db: Session,
-    resource_type: str,
-    resource_id: str,
-    limit: int = 100
+    db: Session, resource_type: str, resource_id: str, limit: int = 100
 ) -> list[AuditLog]:
     """
     Get audit logs for a specific resource.
@@ -116,19 +117,19 @@ def get_resource_audit_logs(
     Returns:
         List of audit logs
     """
-    return db.query(AuditLog).filter(
-        AuditLog.resource_type == resource_type,
-        AuditLog.resource_id == str(resource_id)
-    ).order_by(
-        AuditLog.timestamp.desc()
-    ).limit(limit).all()
+    return (
+        db.query(AuditLog)
+        .filter(
+            AuditLog.resource_type == resource_type,
+            AuditLog.resource_id == str(resource_id),
+        )
+        .order_by(AuditLog.timestamp.desc())
+        .limit(limit)
+        .all()
+    )
 
 
-def get_user_audit_logs(
-    db: Session,
-    user_id: UUID,
-    limit: int = 100
-) -> list[AuditLog]:
+def get_user_audit_logs(db: Session, user_id: UUID, limit: int = 100) -> list[AuditLog]:
     """
     Get audit logs for a specific user.
 
@@ -140,8 +141,10 @@ def get_user_audit_logs(
     Returns:
         List of audit logs
     """
-    return db.query(AuditLog).filter(
-        AuditLog.user_id == user_id
-    ).order_by(
-        AuditLog.timestamp.desc()
-    ).limit(limit).all()
+    return (
+        db.query(AuditLog)
+        .filter(AuditLog.user_id == user_id)
+        .order_by(AuditLog.timestamp.desc())
+        .limit(limit)
+        .all()
+    )

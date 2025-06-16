@@ -1,8 +1,9 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from functools import lru_cache
-from typing import Optional
 import os
 import sys
+from functools import lru_cache
+from typing import Optional
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -41,7 +42,11 @@ class Settings(BaseSettings):
 
     # CORS Settings
     ALLOWED_ORIGINS: list[str] = [
-        "http://localhost", "http://localhost:3000", "http://127.0.0.1", "http://127.0.0.1:3000"]
+        "http://localhost",
+        "http://localhost:3000",
+        "http://127.0.0.1",
+        "http://127.0.0.1:3000",
+    ]
 
     # Redis and Caching Settings
     # IMPORTANT: Set REDIS_URL in your environment for production deployments.
@@ -57,33 +62,34 @@ class Settings(BaseSettings):
     TWILIO_WHATSAPP_FROM: str = ""  # WhatsApp number with country code (no +)
 
     # CORS
-    BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:3000"]
+    BACKEND_CORS_ORIGINS: list[str] = ["https://enwhe.io", "https://*.enwhe.io"]
 
     model_config = SettingsConfigDict(
         env_file=[
-            'backend/.env.test',
-            'backend/.env.local',
-            'backend/.env',
-            '.env.test',
-            '.env.local',
-            '.env',
+            "backend/.env.test",
+            "backend/.env.local",
+            "backend/.env",
+            ".env.test",
+            ".env.local",
+            ".env",
         ],
-        env_file_encoding='utf-8',
+        env_file_encoding="utf-8",
         case_sensitive=True,
-        extra='ignore'  # Ignore extra fields in .env
+        extra="ignore",  # Ignore extra fields in .env
     )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         # Check if we're in a test environment
-        is_test = os.getenv('TESTING', '').lower() in (
-            'true', '1', 't', 'yes', 'y')
+        is_test = os.getenv("TESTING", "").lower() in ("true", "1", "t", "yes", "y")
 
         # If we're in a test environment, use the test database URL
         if is_test:
             test_db_url = os.environ.get(
-                "TEST_DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost/conversational_commerce")
+                "TEST_DATABASE_URL",
+                "postgresql+asyncpg://postgres:postgres@localhost/conversational_commerce",
+            )
             self.DATABASE_URL = test_db_url
 
         # For production deployment, ensure we have a valid DATABASE_URL
@@ -102,7 +108,7 @@ class Settings(BaseSettings):
 
 def is_test_environment() -> bool:
     """Detect if we're running in a test environment"""
-    return 'pytest' in sys.modules
+    return "pytest" in sys.modules
 
 
 @lru_cache()

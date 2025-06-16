@@ -10,7 +10,9 @@ import uuid
 from datetime import datetime
 
 # Set environment variables to ensure we use local PostgreSQL
-os.environ["DATABASE_URL"] = "postgresql://postgres:postgres@localhost/conversational_commerce"
+os.environ["DATABASE_URL"] = (
+    "postgresql://postgres:postgres@localhost/conversational_commerce"
+)
 os.environ["POSTGRES_SERVER"] = "localhost"
 os.environ["POSTGRES_USER"] = "postgres"
 os.environ["POSTGRES_PASSWORD"] = "postgres"
@@ -39,11 +41,8 @@ def test_create_tenant():
     try:
         # Create a test tenant
         from app.models.tenant import Tenant
-        tenant = Tenant(
-            id=uuid.uuid4(),
-            name="Test Tenant",
-            subdomain="test"
-        )
+
+        tenant = Tenant(id=uuid.uuid4(), name="Test Tenant", subdomain="test")
         db.add(tenant)
         db.commit()
         print(f"Tenant created successfully with ID: {tenant.id}")
@@ -62,7 +61,11 @@ def _test_relationships(tenant_id):
     try:
         # Import models explicitly
         from app.models.tenant import Tenant
-        from app.models.behavior_analysis import BehaviorPattern, PatternDetection, Evidence
+        from app.models.behavior_analysis import (
+            BehaviorPattern,
+            PatternDetection,
+            Evidence,
+        )
         from app.models.violation import Violation
 
         # Get the tenant
@@ -79,7 +82,7 @@ def _test_relationships(tenant_id):
             description="Test behavior pattern",
             pattern_type="test",
             threshold=0.5,
-            enabled=True
+            enabled=True,
         )
         db.add(pattern)
 
@@ -91,7 +94,7 @@ def _test_relationships(tenant_id):
             detection_type="test",
             confidence_score=0.8,
             evidence={"test": "data"},
-            status="active"
+            status="active",
         )
         db.add(detection)
 
@@ -103,7 +106,7 @@ def _test_relationships(tenant_id):
             evidence_type="test",
             source="test",
             data={"test": "data"},
-            collected_at=datetime.utcnow()
+            collected_at=datetime.utcnow(),
         )
         db.add(evidence)
 
@@ -117,7 +120,7 @@ def _test_relationships(tenant_id):
             action="warn",
             status="active",
             reason="Testing",
-            details={"test": "data"}
+            details={"test": "data"},
         )
         db.add(violation)
 
@@ -126,10 +129,8 @@ def _test_relationships(tenant_id):
 
         # Verify relationships
         tenant_fresh = db.query(Tenant).filter(Tenant.id == tenant_id).first()
-        print(
-            f"Tenant has {len(tenant_fresh.behavior_patterns)} behavior patterns")
-        print(
-            f"Tenant has {len(tenant_fresh.pattern_detections)} pattern detections")
+        print(f"Tenant has {len(tenant_fresh.behavior_patterns)} behavior patterns")
+        print(f"Tenant has {len(tenant_fresh.pattern_detections)} pattern detections")
         print(f"Tenant has {len(tenant_fresh.evidence)} evidence items")
         print(f"Tenant has {len(tenant_fresh.violations)} violations")
 

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { OrderSource, OrderStatus, PaymentMethod, PaymentStatus } from '../models/order';
+import { OrderSource, OrderStatus, PaymentMethod, PaymentStatus, ShippingMethod } from '../models/order';
 
 /**
  * Address schema validation
@@ -57,11 +57,20 @@ export const orderItemSchema = z.object({
 });
 
 /**
+ * Shipping plugin meta schema
+ */
+export const shippingPluginMetaSchema = z.object({
+  provider: z.string().min(2),
+  pluginData: z.record(z.any()).optional(),
+});
+
+/**
  * Shipping details schema
  */
 export const shippingDetailsSchema = z.object({
   address: addressSchema,
-  method: z.string().min(1),
+  method: z.nativeEnum(ShippingMethod).or(z.string().min(1)),
+  pluginMeta: shippingPluginMetaSchema.optional(),
   tracking_number: z.string().optional(),
   estimated_delivery: z.string().optional(), // ISO date string
   shipping_cost: moneySchema,
@@ -134,6 +143,7 @@ export const createOrderRequestSchema = z.object({
   notes: z.string().optional(),
   metadata: z.record(z.any()).optional(),
   idempotency_key: z.string().uuid(),
+  channel: z.string().min(2), // Required channel field for API consistency
 });
 
 /**

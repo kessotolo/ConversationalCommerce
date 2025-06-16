@@ -1,19 +1,20 @@
-import logging
-import time
-import ssl
-import socket
 import asyncio
-from typing import Dict, Any, List, Optional, Tuple, Callable
+import logging
+import socket
+import ssl
+import time
+import uuid
+from datetime import datetime
+from typing import Any, Callable, Dict, List, Optional, Tuple
+
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
-import uuid
-from datetime import datetime
 
-from app.db.session import get_async_session_local, SessionLocal
-from app.models.storefront import StorefrontConfig
-from app.utils.domain_validator import verify_domain_dns, generate_verification_token
 from app.core.cache.redis_cache import redis_cache
+from app.db.session import SessionLocal, get_async_session_local
+from app.models.storefront import StorefrontConfig
+from app.utils.domain_validator import generate_verification_token, verify_domain_dns
 
 logger = logging.getLogger(__name__)
 
@@ -43,11 +44,15 @@ class DomainVerificationMiddleware(BaseHTTPMiddleware):
         self,
         app: ASGIApp,
         exclude_paths: List[str] = None,
-        verification_interval: int = 86400  # 24 hours
+        verification_interval: int = 86400,  # 24 hours
     ):
         super().__init__(app)
         self.exclude_paths = exclude_paths or [
-            "/api/", "/admin/", "/_next/", "/static/"]
+            "/api/",
+            "/admin/",
+            "/_next/",
+            "/static/",
+        ]
         self.verification_interval = verification_interval
         # Store last verification time for each domain
         self.last_verification = {}
@@ -69,8 +74,9 @@ class DomainVerificationMiddleware(BaseHTTPMiddleware):
 
         # Check if this is a custom domain (not a subdomain of our base domain)
         tenant_context = getattr(request.state, "tenant_context", None)
-        is_custom_domain = tenant_context and tenant_context.get(
-            "custom_domain") == host
+        is_custom_domain = (
+            tenant_context and tenant_context.get("custom_domain") == host
+        )
 
         if is_custom_domain:
             # Get tenant ID from context
@@ -101,8 +107,7 @@ class DomainVerificationMiddleware(BaseHTTPMiddleware):
         self.last_verification[domain] = now
 
         # Perform verification in the background
-        asyncio.create_task(
-            self._perform_domain_verification(domain, tenant_id))
+        asyncio.create_task(self._perform_domain_verification(domain, tenant_id))
 
     async def _perform_domain_verification(self, domain: str, tenant_id: str) -> None:
         """
@@ -125,7 +130,11 @@ class DomainVerificationMiddleware(BaseHTTPMiddleware):
             # Get domain info from database
             db = get_async_session_local()
             try:
-                config = await db.get(StorefrontConfig, uuid.UUID(tenant_id), StorefrontConfig.custom_domain == domain)
+                config = await db.get(
+                    StorefrontConfig,
+                    uuid.UUID(tenant_id),
+                    StorefrontConfig.custom_domain == domain,
+                )
 
                 if config:
                     # Update domain verification status in database if needed
@@ -141,24 +150,28 @@ class DomainVerificationMiddleware(BaseHTTPMiddleware):
                     "dns_error": dns_error,
                     "ssl_status": ssl_status,
                     "ssl_error": ssl_error,
-                    "verified_at": now
+                    "verified_at": now,
                 }
 
                 # Cache the verification result
                 if redis_cache.is_available:
-                    await redis_cache.set(cache_key, result, VERIFICATION_CACHE_DURATION)
+                    await redis_cache.set(
+                        cache_key, result, VERIFICATION_CACHE_DURATION
+                    )
 
                 logger.info(
-                    f"Domain verification for {domain}: DNS={dns_verified}, SSL={ssl_status}")
+                    f"Domain verification for {domain}: DNS={dns_verified}, SSL={ssl_status}"
+                )
 
             finally:
                 await db.close()
 
         except Exception as e:
-            logger.error(
-                f"Error during domain verification for {domain}: {str(e)}")
+            logger.error(f"Error during domain verification for {domain}: {str(e)}")
 
-    async def _verify_dns(self, domain: str, tenant_id: str = None) -> Tuple[bool, Optional[str]]:
+    async def _verify_dns(
+        self, domain: str, tenant_id: str = None
+    ) -> Tuple[bool, Optional[str]]:
         """
         Verify domain DNS records.
 
@@ -209,7 +222,8 @@ class DomainVerificationMiddleware(BaseHTTPMiddleware):
 
                     # Check expiration
                     expires = datetime.strptime(
-                        cert['notAfter'], "%b %d %H:%M:%S %Y %Z")
+                        cert["notAfter"], "%b %d %H:%M:%S %Y %Z"
+                    )
                     now = datetime.utcnow()
 
                     if expires < now:
@@ -251,11 +265,11 @@ class DomainVerificationService:
     async def stop(self):
         if self._running:
             self._running = False
-            if self._task and hasattr(self._task, 'cancel'):
+            if self._task and hasattr(self._task, "cancel"):
                 self._task.cancel()
                 try:
                     # Only await if it's actually a task, not a mock
-                    if hasattr(self._task, '__await__'):
+                    if hasattr(self._task, "__await__"):
                         await self._task
                 except asyncio.CancelledError:
                     pass
@@ -305,7 +319,10 @@ class DomainVerificationService:
                 domain["last_verified"] = datetime.utcnow()
 
                 # Set overall status
-                if all(status == "valid" for status in [dns_status, ssl_status, http_status]):
+                if all(
+                    status == "valid"
+                    for status in [dns_status, ssl_status, http_status]
+                ):
                     domain["status"] = "verified"
                 else:
                     domain["status"] = "pending"
@@ -358,7 +375,7 @@ class DomainVerificationService:
                 "ssl_status": "unknown",
                 "http_status": "unknown",
                 "last_verified": None,
-                "error": None
+                "error": None,
             }
 
             # Start verification if not already running
@@ -385,11 +402,9 @@ class DomainVerificationService:
                     results.append(result)
                 except Exception as e:
                     logger.error(f"Error verifying domain {domain_id}: {e}")
-                    results.append({
-                        "domain_id": domain_id,
-                        "status": "error",
-                        "error": str(e)
-                    })
+                    results.append(
+                        {"domain_id": domain_id, "status": "error", "error": str(e)}
+                    )
             return results
 
     async def _verify_all_domains(self) -> None:
@@ -399,17 +414,23 @@ class DomainVerificationService:
             db = SessionLocal()
             try:
                 # Query all StorefrontConfig with custom domains using sync session for tests
-                configs = db.query(StorefrontConfig).filter(
-                    StorefrontConfig.custom_domain.isnot(None)
-                ).all()
-                
+                configs = (
+                    db.query(StorefrontConfig)
+                    .filter(StorefrontConfig.custom_domain.isnot(None))
+                    .all()
+                )
+
                 for config in configs:
                     if config.custom_domain:
                         # Verify DNS
-                        dns_result, dns_error = await self._verify_dns(config.custom_domain, str(config.tenant_id))
-                        
+                        dns_result, dns_error = await self._verify_dns(
+                            config.custom_domain, str(config.tenant_id)
+                        )
+
                         # Verify SSL
-                        ssl_result, ssl_error = await self._verify_ssl(config.custom_domain)
+                        ssl_result, ssl_error = await self._verify_ssl(
+                            config.custom_domain
+                        )
             finally:
                 db.close()
         except Exception:
@@ -418,20 +439,25 @@ class DomainVerificationService:
             async with sessionmaker() as db:
                 # Query all StorefrontConfig with custom domains
                 from sqlalchemy import select
+
                 result = await db.execute(
                     select(StorefrontConfig).filter(
                         StorefrontConfig.custom_domain.isnot(None)
                     )
                 )
                 configs = result.scalars().all()
-                
+
                 for config in configs:
                     if config.custom_domain:
                         # Verify DNS
-                        dns_result, dns_error = await self._verify_dns(config.custom_domain, str(config.tenant_id))
-                        
+                        dns_result, dns_error = await self._verify_dns(
+                            config.custom_domain, str(config.tenant_id)
+                        )
+
                         # Verify SSL
-                        ssl_result, ssl_error = await self._verify_ssl(config.custom_domain)
+                        ssl_result, ssl_error = await self._verify_ssl(
+                            config.custom_domain
+                        )
 
 
 # Create singleton instance of verification service

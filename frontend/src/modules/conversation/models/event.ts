@@ -1,6 +1,16 @@
 import type { UUID } from '@/modules/core/models/base';
 
 /**
+ * ConversationEvent Pattern
+ * ------------------------
+ * This file defines the ConversationEventType enum and ConversationEvent interface, which are used for analytics and monitoring.
+ *
+ * - When adding a new event type, update both this enum and the backend ConversationEventType (see backend/app/schemas/conversation_event.py and backend/app/models/conversation_event.py).
+ * - All analytics and monitoring should use this pattern for extensibility and consistency.
+ * - See AI_AGENT_CONFIG.md for more details.
+ */
+
+/**
  * Enum of all supported conversation event types.
  */
 export enum ConversationEventType {

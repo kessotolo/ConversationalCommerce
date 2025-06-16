@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { CreditCard, Bell, MessageSquare, Upload, Trash2, Save, Store } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
@@ -60,6 +60,34 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [shippingPlugins, setShippingPlugins] = useState<string[]>([]);
+  const [enabledPlugins, setEnabledPlugins] = useState<string[]>([]);
+  const [pluginError, setPluginError] = useState<string | null>(null);
+  const [pluginSuccess, setPluginSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Fetch available shipping plugins from backend
+    fetch('/api/v1/shipping/providers')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data.providers)) {
+          setShippingPlugins(data.providers);
+          // For demo, enable all by default
+          setEnabledPlugins(data.providers);
+        }
+      })
+      .catch(() => setPluginError('Failed to load shipping providers'));
+  }, []);
+
+  const handleTogglePlugin = (provider: string) => {
+    setEnabledPlugins((prev) =>
+      prev.includes(provider)
+        ? prev.filter((p) => p !== provider)
+        : [...prev, provider]
+    );
+    setPluginSuccess(`Plugin ${provider} ${enabledPlugins.includes(provider) ? 'disabled' : 'enabled'}`);
+    setTimeout(() => setPluginSuccess(null), 2000);
+  };
 
   // Mock save settings with API integration structure
   const saveSettings = async () => {
@@ -429,6 +457,37 @@ export default function SettingsPage() {
               </div>
               <Button className="w-full mt-2">Add Payment Method</Button>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Shipping Plugins Management */}
+        <Card className="md:col-span-1">
+          <CardHeader>
+            <CardTitle>Shipping Plugins</CardTitle>
+            <CardDescription>Enable or disable shipping providers for your store</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {pluginError && (
+              <div className="mb-2 p-2 bg-red-100 text-red-700 rounded">{pluginError}</div>
+            )}
+            {pluginSuccess && (
+              <div className="mb-2 p-2 bg-green-100 text-green-700 rounded">{pluginSuccess}</div>
+            )}
+            <ul className="space-y-2">
+              {shippingPlugins.map((provider) => (
+                <li key={provider} className="flex items-center justify-between">
+                  <span>{provider}</span>
+                  <Button
+                    size="sm"
+                    variant={enabledPlugins.includes(provider) ? 'default' : 'outline'}
+                    onClick={() => handleTogglePlugin(provider)}
+                  >
+                    {enabledPlugins.includes(provider) ? 'Enabled' : 'Enable'}
+                  </Button>
+                </li>
+              ))}
+              {shippingPlugins.length === 0 && <li>No shipping providers found.</li>}
+            </ul>
           </CardContent>
         </Card>
       </div>

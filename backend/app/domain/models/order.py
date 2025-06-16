@@ -1,8 +1,9 @@
 import enum
 import uuid
 from datetime import datetime
-from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field, EmailStr, field_validator, ConfigDict
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 # ============================================================
 # Domain enums
@@ -41,6 +42,7 @@ class PaymentStatus(str, enum.Enum):
     REFUNDED = "REFUNDED"
     PARTIALLY_REFUNDED = "PARTIALLY_REFUNDED"
 
+
 # ============================================================
 # Domain value objects
 # ============================================================
@@ -75,12 +77,13 @@ class CustomerInfo(BaseModel):
     phone: str
     is_guest: bool = True
 
-    @field_validator('phone')
+    @field_validator("phone")
     @classmethod
     def validate_phone(cls, v):
         import re
-        if not re.match(r'^\+?[0-9]{10,15}$', v):
-            raise ValueError('Invalid phone number format')
+
+        if not re.match(r"^\+?[0-9]{10,15}$", v):
+            raise ValueError("Invalid phone number format")
         return v
 
 
@@ -124,6 +127,7 @@ class OrderTimeline(BaseModel):
     note: Optional[str] = None
     created_by: Optional[str] = None
 
+
 # ============================================================
 # Domain model
 # ============================================================
@@ -156,8 +160,11 @@ class Order(BaseModel):
 
     def can_be_refunded(self) -> bool:
         """Check if an order can be refunded"""
-        return (self.status in [OrderStatus.PAID, OrderStatus.PROCESSING, OrderStatus.SHIPPED] and
-                self.payment.status == PaymentStatus.COMPLETED)
+        return (
+            self.status
+            in [OrderStatus.PAID, OrderStatus.PROCESSING, OrderStatus.SHIPPED]
+            and self.payment.status == PaymentStatus.COMPLETED
+        )
 
     def is_complete(self) -> bool:
         """Check if an order has been completed"""
@@ -174,16 +181,18 @@ class Order(BaseModel):
 
         return sorted(self.timeline, key=lambda x: x.timestamp, reverse=True)[0]
 
-    def add_timeline_event(self, status: OrderStatus, note: Optional[str] = None, created_by: Optional[str] = None) -> None:
+    def add_timeline_event(
+        self,
+        status: OrderStatus,
+        note: Optional[str] = None,
+        created_by: Optional[str] = None,
+    ) -> None:
         """Add a new timeline event to the order"""
-        timeline_event = OrderTimeline(
-            status=status,
-            note=note,
-            created_by=created_by
-        )
+        timeline_event = OrderTimeline(status=status, note=note, created_by=created_by)
         self.timeline.append(timeline_event)
         self.status = status
         self.updated_at = datetime.utcnow()
+
 
 # ============================================================
 # Request/Response models
@@ -208,7 +217,7 @@ class CreateOrderRequest(BaseModel):
                     "name": "John Doe",
                     "email": "john@example.com",
                     "phone": "+254712345678",
-                    "is_guest": True
+                    "is_guest": True,
                 },
                 "items": [
                     {
@@ -216,7 +225,7 @@ class CreateOrderRequest(BaseModel):
                         "product_name": "Smartphone",
                         "quantity": 1,
                         "unit_price": {"amount": 45000, "currency": "KES"},
-                        "total_price": {"amount": 45000, "currency": "KES"}
+                        "total_price": {"amount": 45000, "currency": "KES"},
                     }
                 ],
                 "shipping": {
@@ -225,18 +234,18 @@ class CreateOrderRequest(BaseModel):
                         "city": "Nairobi",
                         "state": "Nairobi",
                         "country": "Kenya",
-                        "landmark": "Near Central Park"
+                        "landmark": "Near Central Park",
                     },
                     "method": "Standard Delivery",
-                    "shipping_cost": {"amount": 500, "currency": "KES"}
+                    "shipping_cost": {"amount": 500, "currency": "KES"},
                 },
                 "payment": {
                     "method": "MOBILE_MONEY",
                     "amount_paid": {"amount": 45500, "currency": "KES"},
-                    "phone_number": "+254712345678"
+                    "phone_number": "+254712345678",
                 },
                 "source": "WEBSITE",
-                "tenant_id": "550e8400-e29b-41d4-a716-446655440000"
+                "tenant_id": "550e8400-e29b-41d4-a716-446655440000",
             }
         }
     )

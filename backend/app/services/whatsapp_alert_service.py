@@ -1,4 +1,5 @@
 import os
+
 from twilio.rest import Client
 
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
@@ -13,6 +14,6 @@ def send_whatsapp_alert(to_number: str, message: str):
         raise RuntimeError("Twilio WhatsApp credentials are not set")
     client.messages.create(
         body=message,
-        from_=f'whatsapp:{TWILIO_WHATSAPP_NUMBER}',
-        to=f'whatsapp:{to_number}'
+        from_=f"whatsapp:{TWILIO_WHATSAPP_NUMBER}",
+        to=f"whatsapp:{to_number}",
     )

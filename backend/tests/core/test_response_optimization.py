@@ -9,7 +9,7 @@ from app.core.http.response_optimization import (
     set_cache_headers,
     handle_conditional_request,
     optimize_response,
-    conditional_response
+    conditional_response,
 )
 from email.utils import parsedate_to_datetime
 
@@ -61,7 +61,7 @@ class TestResponseOptimization:
             cache_control="private",
             max_age=600,
             etag="abc123",
-            vary="Accept-Language"
+            vary="Accept-Language",
         )
         assert response.headers["Cache-Control"] == "private, max-age=600"
         assert response.headers["ETag"] == "abc123"
@@ -84,8 +84,10 @@ class TestResponseOptimization:
         # Content-Length may be set to 0 by Starlette
         assert response.headers.get("Content-Length", "0") == "0"
         # Content-Type may be set to application/json by Starlette
-        assert response.headers.get(
-            "Content-Type", "application/json") == "application/json"
+        assert (
+            response.headers.get("Content-Type", "application/json")
+            == "application/json"
+        )
 
     def test_handle_conditional_request_no_match(self):
         """Test handling conditional request with non-matching ETag."""
@@ -182,5 +184,5 @@ class TestResponseOptimization:
 
         # Verify
         assert result is None
-        assert hasattr(response, 'status_code')
+        assert hasattr(response, "status_code")
         assert response.status_code == status.HTTP_304_NOT_MODIFIED

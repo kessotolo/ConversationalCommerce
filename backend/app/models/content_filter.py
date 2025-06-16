@@ -1,8 +1,10 @@
-from sqlalchemy import Column, String, Boolean, JSON, ForeignKey, DateTime
-from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID
-from datetime import datetime
 import uuid
+from datetime import datetime
+
+from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, String
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
+
 from app.db.base_class import Base
 
 
@@ -23,13 +25,11 @@ class ContentFilterRule(Base):
     action = Column(String, nullable=False)  # flag, reject, require_review
     enabled = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow,
-                        onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     tenant = relationship("Tenant", back_populates="content_filter_rules")
-    analysis_results = relationship(
-        "ContentAnalysisResult", back_populates="rule")
+    analysis_results = relationship("ContentAnalysisResult", back_populates="rule")
 
 
 class ContentAnalysisResult(Base):
@@ -50,8 +50,7 @@ class ContentAnalysisResult(Base):
     reviewed_by = Column(UUID(as_uuid=True), ForeignKey("users.id"))
     reviewed_at = Column(DateTime)
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow,
-                        onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     tenant = relationship("Tenant", back_populates="content_analysis_results")

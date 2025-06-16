@@ -1,13 +1,15 @@
-from fastapi import WebSocket, WebSocketDisconnect, Depends
-from typing import Dict, List, Any
-from datetime import datetime, timezone, timedelta
-from uuid import UUID
 import logging
-from app.core.security.dependencies import require_auth
-from app.core.security.clerk import ClerkTokenData
-from app.models.audit_log import AuditLog
-from app.db.session import get_async_session_local
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List
+from uuid import UUID
+
+from fastapi import Depends, WebSocket, WebSocketDisconnect
+
 from app.core.config.settings import get_settings
+from app.core.security.clerk import ClerkTokenData
+from app.core.security.dependencies import require_auth
+from app.db.session import get_async_session_local
+from app.models.audit_log import AuditLog
 
 settings = get_settings()
 logger = logging.getLogger(__name__)
@@ -40,11 +42,10 @@ class ConnectionManager:
         self.connection_metadata[str(websocket)] = {
             "tenant_id": tenant_id,
             "user_id": user_id,
-            "connected_at": datetime.now(timezone.utc)
+            "connected_at": datetime.now(timezone.utc),
         }
 
-        logger.info(
-            f"New WebSocket connection for tenant {tenant_id}, user {user_id}")
+        logger.info(f"New WebSocket connection for tenant {tenant_id}, user {user_id}")
 
     def disconnect(self, websocket: WebSocket):
         """Remove a disconnected WebSocket client"""
@@ -63,8 +64,7 @@ class ConnectionManager:
         if str(websocket) in self.connection_metadata:
             del self.connection_metadata[str(websocket)]
 
-        logger.info(
-            f"WebSocket disconnected for tenant {tenant_id}, user {user_id}")
+        logger.info(f"WebSocket disconnected for tenant {tenant_id}, user {user_id}")
 
     async def broadcast_to_tenant(self, tenant_id: str, message: dict):
         """Broadcast a message to all connections in a tenant"""
@@ -73,8 +73,7 @@ class ConnectionManager:
                 try:
                     await connection.send_json(message)
                 except Exception as e:
-                    logger.error(
-                        f"Error broadcasting to tenant {tenant_id}: {str(e)}")
+                    logger.error(f"Error broadcasting to tenant {tenant_id}: {str(e)}")
                     await self.disconnect(connection)
 
     async def send_to_user(self, user_id: str, message: dict):
@@ -95,12 +94,12 @@ class ActivityMonitor:
         self.alert_thresholds = {
             "high": 5,  # Number of high-severity events before alert
             "medium": 10,  # Number of medium-severity events before alert
-            "low": 20  # Number of low-severity events before alert
+            "low": 20,  # Number of low-severity events before alert
         }
         self.activity_windows = {
             "high": 300,  # 5 minutes
             "medium": 900,  # 15 minutes
-            "low": 3600  # 1 hour
+            "low": 3600,  # 1 hour
         }
 
     async def process_activity(self, activity: dict):
@@ -118,7 +117,7 @@ class ActivityMonitor:
                     ip_address=activity.get("ip_address"),
                     user_agent=activity.get("user_agent"),
                     details=activity.get("details", {}),
-                    timestamp=datetime.now(timezone.utc)
+                    timestamp=datetime.now(timezone.utc),
                 )
                 db.add(audit_log)
                 await db.commit()
@@ -127,11 +126,7 @@ class ActivityMonitor:
 
             # Broadcast to tenant
             await self.connection_manager.broadcast_to_tenant(
-                str(activity["tenant_id"]),
-                {
-                    "type": "activity",
-                    "data": activity
-                }
+                str(activity["tenant_id"]), {"type": "activity", "data": activity}
             )
 
             # Check for alerts
@@ -158,7 +153,7 @@ class ActivityMonitor:
                     "suspicious_activity",
                     f"Suspicious activity detected: {action} on {resource_type}",
                     activity,
-                    "high"
+                    "high",
                 )
 
             # 2. Check for API rate limits (per user)
@@ -173,7 +168,9 @@ class ActivityMonitor:
                     )
 
                     # Check if count exceeds threshold
-                    if recent_count.scalar() >= self.alert_thresholds.get(severity, 100):
+                    if recent_count.scalar() >= self.alert_thresholds.get(
+                        severity, 100
+                    ):
                         await self._send_alert(
                             tenant_id,
                             f"rate_limit_{severity}",
@@ -182,9 +179,9 @@ class ActivityMonitor:
                                 "user_id": user_id,
                                 "count": recent_count.scalar(),
                                 "window": window,
-                                "activity_type": action
+                                "activity_type": action,
                             },
-                            severity
+                            severity,
                         )
 
             # 3. Check for error rates
@@ -194,7 +191,7 @@ class ActivityMonitor:
                     "server_error",
                     f"Server error detected: {activity.get('details', {}).get('status_code')}",
                     activity,
-                    "high"
+                    "high",
                 )
 
             # 4. Check for failed authentication/authorization
@@ -204,7 +201,7 @@ class ActivityMonitor:
                     "auth_failure",
                     "Authentication/Authorization failure",
                     activity,
-                    "medium"
+                    "medium",
                 )
 
         except Exception as e:
@@ -222,7 +219,10 @@ class ActivityMonitor:
 
         # Check for DELETE on sensitive resources
         if activity["action"] == "DELETE" and activity["resource_type"] in [
-            "users", "seller_profiles", "products", "orders"
+            "users",
+            "seller_profiles",
+            "products",
+            "orders",
         ]:
             return True
 
@@ -234,7 +234,14 @@ class ActivityMonitor:
         # More rules can be added here
         return False
 
-    async def _send_alert(self, tenant_id: str, alert_type: str, message: str, details: dict, severity: str):
+    async def _send_alert(
+        self,
+        tenant_id: str,
+        alert_type: str,
+        message: str,
+        details: dict,
+        severity: str,
+    ):
         """Send an alert to connected clients"""
         alert = {
             "type": "alert",
@@ -242,7 +249,7 @@ class ActivityMonitor:
             "message": message,
             "details": details,
             "severity": severity,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
         # Send to all connected clients for this tenant
@@ -272,20 +279,24 @@ activity_monitor = ActivityMonitor(connection_manager)
 async def get_websocket_endpoint(
     websocket: WebSocket,
     tenant_id: str,
-    current_user: ClerkTokenData = Depends(require_auth)
+    current_user: ClerkTokenData = Depends(require_auth),
 ):
     """WebSocket endpoint for real-time monitoring"""
     try:
-        await connection_manager.connect(websocket, tenant_id, str(current_user.user_id))
+        await connection_manager.connect(
+            websocket, tenant_id, str(current_user.user_id)
+        )
 
         # Send initial connection success message
-        await websocket.send_json({
-            "type": "connection_status",
-            "status": "connected",
-            "user_id": str(current_user.user_id),
-            "tenant_id": tenant_id,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        })
+        await websocket.send_json(
+            {
+                "type": "connection_status",
+                "status": "connected",
+                "user_id": str(current_user.user_id),
+                "tenant_id": tenant_id,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
 
         # Keep connection alive and handle incoming messages
         while True:
@@ -304,6 +315,7 @@ async def get_websocket_endpoint(
         logger.error(f"Error in WebSocket connection: {str(e)}")
         if websocket in connection_manager.active_connections.get(tenant_id, []):
             connection_manager.disconnect(websocket)
+
 
 # Example async DB access in websocket monitoring
 

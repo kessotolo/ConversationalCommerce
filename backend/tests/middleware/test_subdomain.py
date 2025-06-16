@@ -27,7 +27,7 @@ class TestSubdomainMiddleware:
         response = await middleware.dispatch(request, call_next)
 
         # Verify that tenant context wasn't set
-        assert not hasattr(request.state, 'tenant_context')
+        assert not hasattr(request.state, "tenant_context")
 
     @pytest.mark.asyncio
     async def test_dispatch_localhost(self):
@@ -49,11 +49,11 @@ class TestSubdomainMiddleware:
         response = await middleware.dispatch(request, call_next)
 
         # Verify default tenant context
-        assert hasattr(request.state, 'tenant_context')
+        assert hasattr(request.state, "tenant_context")
         assert request.state.tenant_context["tenant_id"] is None
 
     @pytest.mark.asyncio
-    @patch('app.middleware.subdomain.SessionLocal')
+    @patch("app.middleware.subdomain.SessionLocal")
     async def test_extract_subdomain(self, mock_session_local):
         """Test subdomain extraction."""
         # Setup
@@ -73,8 +73,8 @@ class TestSubdomainMiddleware:
         assert result is None
 
     @pytest.mark.asyncio
-    @patch('app.middleware.subdomain.SessionLocal')
-    @patch('app.middleware.subdomain.redis_cache')
+    @patch("app.middleware.subdomain.SessionLocal")
+    @patch("app.middleware.subdomain.redis_cache")
     async def test_get_tenant_by_subdomain(self, mock_redis_cache, mock_session_local):
         """Test tenant lookup by subdomain."""
         # Setup
@@ -119,9 +119,11 @@ class TestSubdomainMiddleware:
         mock_db.close.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('app.middleware.subdomain.SessionLocal')
-    @patch('app.middleware.subdomain.redis_cache')
-    async def test_get_tenant_by_custom_domain(self, mock_redis_cache, mock_session_local):
+    @patch("app.middleware.subdomain.SessionLocal")
+    @patch("app.middleware.subdomain.redis_cache")
+    async def test_get_tenant_by_custom_domain(
+        self, mock_redis_cache, mock_session_local
+    ):
         """Test tenant lookup by custom domain."""
         # Setup
         app = AsyncMock()
@@ -173,7 +175,7 @@ class TestSubdomainMiddleware:
         tenant_context = {
             "tenant_id": str(uuid.uuid4()),
             "subdomain": "shop",
-            "is_active": True
+            "is_active": True,
         }
         request.state.tenant_context = tenant_context
 

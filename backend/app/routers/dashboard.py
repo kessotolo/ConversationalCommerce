@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
+from fastapi import APIRouter, HTTPException
 
 router = APIRouter(
     prefix="/api/dashboard",
@@ -24,7 +25,7 @@ async def get_dashboard_stats():
             "total_orders": 0,
             "total_revenue": 0,
             "active_customers": 0,
-            "recent_orders": []
+            "recent_orders": [],
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -37,20 +38,14 @@ async def get_recent_orders(limit: int = 5):
     """
     try:
         # TODO: Implement actual database queries
-        return {
-            "orders": [],
-            "total": 0,
-            "page": 1,
-            "limit": limit
-        }
+        return {"orders": [], "total": 0, "page": 1, "limit": limit}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/sales-analytics")
 async def get_sales_analytics(
-    start_date: Optional[datetime] = None,
-    end_date: Optional[datetime] = None
+    start_date: Optional[datetime] = None, end_date: Optional[datetime] = None
 ):
     """
     Get sales analytics for a given date range
@@ -61,7 +56,7 @@ async def get_sales_analytics(
             "total_sales": 0,
             "average_order_value": 0,
             "sales_by_date": [],
-            "sales_by_product": []
+            "sales_by_product": [],
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

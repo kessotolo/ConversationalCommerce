@@ -4,10 +4,13 @@ Service: Conversation Event to Audit Log Bridge
 This service transforms relevant conversation events into audit log entries for compliance, monitoring, and alerting.
 Follows all Enwhe.io backend standards (type safety, extensibility, modularity).
 """
+
+from typing import Set
+
+from sqlalchemy.orm import Session
+
 from app.models.conversation_event import ConversationEvent
 from app.services.audit_service import create_audit_log
-from sqlalchemy.orm import Session
-from typing import Set
 
 # Define which event types should be audit-logged (extensible)
 AUDIT_EVENT_TYPES: Set[str] = {
@@ -35,5 +38,5 @@ def log_event_to_audit(db: Session, event: ConversationEvent) -> None:
             resource_type="conversation",
             resource_id=event.conversation_id or "unknown",
             details=event.payload,
-            request=None  # Optionally pass request for IP/user agent
+            request=None,  # Optionally pass request for IP/user agent
         )

@@ -1,18 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException
-from typing import List, Optional
-from app.core.monitoring.rules_engine import Rule, RuleSeverity, rules_engine
-from app.core.security.dependencies import get_current_user
-from app.core.security.clerk import ClerkTokenData
-from uuid import uuid4
 from datetime import datetime, timezone
+from typing import List, Optional
+from uuid import uuid4
+
+from fastapi import APIRouter, Depends, HTTPException
+
+from app.core.monitoring.rules_engine import Rule, RuleSeverity, rules_engine
+from app.core.security.clerk import ClerkTokenData
+from app.core.security.dependencies import get_current_user
 
 router = APIRouter()
 
 
 @router.post("/rules", response_model=Rule)
 async def create_rule(
-    rule: Rule,
-    current_user: ClerkTokenData = Depends(get_current_user)
+    rule: Rule, current_user: ClerkTokenData = Depends(get_current_user)
 ):
     """Create a new monitoring rule"""
     # Ensure rule has an ID
@@ -33,7 +34,7 @@ async def create_rule(
 async def list_rules(
     tenant_id: str,
     severity: Optional[RuleSeverity] = None,
-    current_user: ClerkTokenData = Depends(get_current_user)
+    current_user: ClerkTokenData = Depends(get_current_user),
 ):
     """List all rules for a tenant"""
     rules = rules_engine.get_rules(tenant_id)
@@ -46,7 +47,7 @@ async def list_rules(
 async def get_rule(
     rule_id: str,
     tenant_id: str,
-    current_user: ClerkTokenData = Depends(get_current_user)
+    current_user: ClerkTokenData = Depends(get_current_user),
 ):
     """Get a specific rule"""
     rules = rules_engine.get_rules(tenant_id)
@@ -58,9 +59,7 @@ async def get_rule(
 
 @router.put("/rules/{rule_id}", response_model=Rule)
 async def update_rule(
-    rule_id: str,
-    rule: Rule,
-    current_user: ClerkTokenData = Depends(get_current_user)
+    rule_id: str, rule: Rule, current_user: ClerkTokenData = Depends(get_current_user)
 ):
     """Update a rule"""
     if rule.id != rule_id:
@@ -75,7 +74,7 @@ async def update_rule(
 async def delete_rule(
     rule_id: str,
     tenant_id: str,
-    current_user: ClerkTokenData = Depends(get_current_user)
+    current_user: ClerkTokenData = Depends(get_current_user),
 ):
     """Delete a rule"""
     rules_engine.remove_rule(rule_id, tenant_id)

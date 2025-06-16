@@ -1,26 +1,37 @@
-from typing import List, Optional, Dict, Any, Tuple
-import uuid
-import os
-from pathlib import Path
+import io
 import mimetypes
+import os
+import uuid
 from datetime import datetime, timezone
-from sqlalchemy.orm import Session
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+from fastapi import HTTPException, UploadFile, status
+from PIL import Image
 from sqlalchemy import desc, or_
-from fastapi import HTTPException, status, UploadFile
-from app.models.storefront_asset import StorefrontAsset, AssetType
+from sqlalchemy.orm import Session
+
+from app.models.storefront_asset import AssetType, StorefrontAsset
 from app.models.tenant import Tenant
 from app.models.user import User
 from app.services.storefront_permissions_service import has_permission
-from PIL import Image
-import io
 
 # Configuration
 UPLOAD_BASE_DIR = os.getenv("ASSET_UPLOAD_DIR", "/tmp/storefront_assets")
 MAX_UPLOAD_SIZE_MB = int(os.getenv("MAX_UPLOAD_SIZE_MB", "10"))
-ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png",
-                       "image/gif", "image/webp", "image/svg+xml"]
-ALLOWED_DOCUMENT_TYPES = ["application/pdf", "text/plain", "application/msword",
-                          "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]
+ALLOWED_IMAGE_TYPES = [
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+    "image/svg+xml",
+]
+ALLOWED_DOCUMENT_TYPES = [
+    "application/pdf",
+    "text/plain",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+]
 ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/ogg"]
 ALLOWED_AUDIO_TYPES = ["audio/mpeg", "audio/ogg", "audio/wav"]
 # e.g., "https://cdn.yourplatform.com"
@@ -36,7 +47,7 @@ async def upload_asset(
     title: Optional[str] = None,
     alt_text: Optional[str] = None,
     description: Optional[str] = None,
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = None,
 ) -> StorefrontAsset:
     """
     Upload and store a new asset for a tenant.
@@ -64,16 +75,14 @@ async def upload_asset(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Check if user exists
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     # Check permission
@@ -82,13 +91,13 @@ async def upload_asset(
         tenant_id=tenant_id,
         user_id=user_id,
         required_permission="edit",
-        section=None  # For now, using global permission
+        section=None,  # For now, using global permission
     )
 
     if not has_perm:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to upload assets"
+            detail="You don't have permission to upload assets",
         )
 
     # Get file content and size
@@ -100,7 +109,7 @@ async def upload_asset(
     if file_size > max_size_bytes:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"File too large. Maximum size is {MAX_UPLOAD_SIZE_MB}MB"
+            detail=f"File too large. Maximum size is {MAX_UPLOAD_SIZE_MB}MB",
         )
 
     # Detect MIME type
@@ -137,7 +146,7 @@ async def upload_asset(
     if allowed_types and mime_type not in allowed_types:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"File type '{mime_type}' not allowed for asset type {asset_type.value}"
+            detail=f"File type '{mime_type}' not allowed for asset type {asset_type.value}",
         )
 
     # Generate a unique filename
@@ -160,12 +169,14 @@ async def upload_asset(
         try:
             with Image.open(io.BytesIO(file_content)) as img:
                 width, height = img.size
-                additional_metadata.update({
-                    "width": width,
-                    "height": height,
-                    "format": img.format,
-                    "mode": img.mode
-                })
+                additional_metadata.update(
+                    {
+                        "width": width,
+                        "height": height,
+                        "format": img.format,
+                        "mode": img.mode,
+                    }
+                )
         except Exception as e:
             print(f"Error processing image metadata: {e}")
 
@@ -186,7 +197,7 @@ async def upload_asset(
         description=description,
         metadata=additional_metadata,
         is_active=True,
-        is_optimized=False
+        is_optimized=False,
     )
 
     db.add(asset)
@@ -213,7 +224,7 @@ async def get_assets(
     limit: int = 20,
     offset: int = 0,
     sort_by: str = "created_at",
-    sort_desc: bool = True
+    sort_desc: bool = True,
 ) -> Tuple[List[StorefrontAsset], int]:
     """
     Get assets for a tenant with filtering and sorting.
@@ -238,14 +249,12 @@ async def get_assets(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Base query
     query = db.query(StorefrontAsset).filter(
-        StorefrontAsset.tenant_id == tenant_id,
-        StorefrontAsset.is_active
+        StorefrontAsset.tenant_id == tenant_id, StorefrontAsset.is_active
     )
 
     # Apply asset type filter
@@ -260,7 +269,7 @@ async def get_assets(
                 StorefrontAsset.title.ilike(search_terms),
                 StorefrontAsset.description.ilike(search_terms),
                 StorefrontAsset.original_filename.ilike(search_terms),
-                StorefrontAsset.alt_text.ilike(search_terms)
+                StorefrontAsset.alt_text.ilike(search_terms),
             )
         )
 
@@ -269,14 +278,17 @@ async def get_assets(
 
     # Apply sorting
     if sort_by == "created_at":
-        order_by = desc(
-            StorefrontAsset.created_at) if sort_desc else StorefrontAsset.created_at
+        order_by = (
+            desc(StorefrontAsset.created_at)
+            if sort_desc
+            else StorefrontAsset.created_at
+        )
     elif sort_by == "file_size":
-        order_by = desc(
-            StorefrontAsset.file_size) if sort_desc else StorefrontAsset.file_size
+        order_by = (
+            desc(StorefrontAsset.file_size) if sort_desc else StorefrontAsset.file_size
+        )
     elif sort_by == "title":
-        order_by = desc(
-            StorefrontAsset.title) if sort_desc else StorefrontAsset.title
+        order_by = desc(StorefrontAsset.title) if sort_desc else StorefrontAsset.title
     else:
         order_by = desc(StorefrontAsset.created_at)
 
@@ -292,9 +304,7 @@ async def get_assets(
 
 
 async def get_asset(
-    db: Session,
-    tenant_id: uuid.UUID,
-    asset_id: uuid.UUID
+    db: Session, tenant_id: uuid.UUID, asset_id: uuid.UUID
 ) -> Optional[StorefrontAsset]:
     """
     Get a specific asset by ID.
@@ -314,16 +324,19 @@ async def get_asset(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Get the asset
-    asset = db.query(StorefrontAsset).filter(
-        StorefrontAsset.id == asset_id,
-        StorefrontAsset.tenant_id == tenant_id,
-        StorefrontAsset.is_active
-    ).first()
+    asset = (
+        db.query(StorefrontAsset)
+        .filter(
+            StorefrontAsset.id == asset_id,
+            StorefrontAsset.tenant_id == tenant_id,
+            StorefrontAsset.is_active,
+        )
+        .first()
+    )
 
     return asset
 
@@ -337,7 +350,7 @@ async def update_asset(
     title: Optional[str] = None,
     alt_text: Optional[str] = None,
     description: Optional[str] = None,
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = None,
 ) -> Optional[StorefrontAsset]:
     """
     Update asset metadata.
@@ -365,16 +378,14 @@ async def update_asset(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Check if user exists
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     # Check permission
@@ -383,33 +394,36 @@ async def update_asset(
         tenant_id=tenant_id,
         user_id=user_id,
         required_permission="edit",
-        section=None  # For now, using global permission
+        section=None,  # For now, using global permission
     )
 
     if not has_perm:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to update assets"
+            detail="You don't have permission to update assets",
         )
 
     # Get the asset
-    asset = db.query(StorefrontAsset).filter(
-        StorefrontAsset.id == asset_id,
-        StorefrontAsset.tenant_id == tenant_id,
-        StorefrontAsset.is_active
-    ).first()
+    asset = (
+        db.query(StorefrontAsset)
+        .filter(
+            StorefrontAsset.id == asset_id,
+            StorefrontAsset.tenant_id == tenant_id,
+            StorefrontAsset.is_active,
+        )
+        .first()
+    )
 
     if not asset:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Asset not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Asset not found"
         )
 
     # Check version
     if asset.version != version:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Asset was modified by another process. Please refresh and try again."
+            detail="Asset was modified by another process. Please refresh and try again.",
         )
 
     # Update fields if provided
@@ -436,10 +450,7 @@ async def update_asset(
 
 
 async def delete_asset(
-    db: Session,
-    tenant_id: uuid.UUID,
-    asset_id: uuid.UUID,
-    user_id: uuid.UUID
+    db: Session, tenant_id: uuid.UUID, asset_id: uuid.UUID, user_id: uuid.UUID
 ) -> bool:
     """
     Delete an asset (soft delete).
@@ -461,16 +472,14 @@ async def delete_asset(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Check if user exists
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     # Check permission
@@ -479,21 +488,25 @@ async def delete_asset(
         tenant_id=tenant_id,
         user_id=user_id,
         required_permission="delete",
-        section=None  # For now, using global permission
+        section=None,  # For now, using global permission
     )
 
     if not has_perm:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to delete assets"
+            detail="You don't have permission to delete assets",
         )
 
     # Get the asset
-    asset = db.query(StorefrontAsset).filter(
-        StorefrontAsset.id == asset_id,
-        StorefrontAsset.tenant_id == tenant_id,
-        StorefrontAsset.is_active
-    ).first()
+    asset = (
+        db.query(StorefrontAsset)
+        .filter(
+            StorefrontAsset.id == asset_id,
+            StorefrontAsset.tenant_id == tenant_id,
+            StorefrontAsset.is_active,
+        )
+        .first()
+    )
 
     if not asset:
         return False
@@ -507,9 +520,7 @@ async def delete_asset(
 
 
 async def optimize_image(
-    db: Session,
-    tenant_id: uuid.UUID,
-    asset_id: uuid.UUID
+    db: Session, tenant_id: uuid.UUID, asset_id: uuid.UUID
 ) -> Optional[StorefrontAsset]:
     """
     Optimize an image asset by creating multiple resolutions.
@@ -530,28 +541,30 @@ async def optimize_image(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Get the asset
-    asset = db.query(StorefrontAsset).filter(
-        StorefrontAsset.id == asset_id,
-        StorefrontAsset.tenant_id == tenant_id,
-        StorefrontAsset.is_active
-    ).first()
+    asset = (
+        db.query(StorefrontAsset)
+        .filter(
+            StorefrontAsset.id == asset_id,
+            StorefrontAsset.tenant_id == tenant_id,
+            StorefrontAsset.is_active,
+        )
+        .first()
+    )
 
     if not asset:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Asset not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Asset not found"
         )
 
     # Check if asset is an image
     if asset.asset_type != AssetType.IMAGE:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Only image assets can be optimized"
+            detail="Only image assets can be optimized",
         )
 
     # Get the full file path
@@ -581,14 +594,16 @@ async def optimize_image(
                 img_copy.save(optimized_path, optimize=True, quality=85)
 
                 # Store relative path
-                relative_path = f"{tenant_id}/{asset.asset_type.value}/{optimized_filename}"
+                relative_path = (
+                    f"{tenant_id}/{asset.asset_type.value}/{optimized_filename}"
+                )
                 optimized_files[f"{width}x{height}"] = relative_path
 
             # Update asset metadata with optimized versions
             asset.metadata = {
                 **asset.metadata,
                 "optimized": True,
-                "optimized_versions": optimized_files
+                "optimized_versions": optimized_files,
             }
 
             asset.is_optimized = True
@@ -600,14 +615,12 @@ async def optimize_image(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error optimizing image: {str(e)}"
+            detail=f"Error optimizing image: {str(e)}",
         )
 
 
 async def get_asset_url(
-    asset: StorefrontAsset,
-    width: Optional[int] = None,
-    height: Optional[int] = None
+    asset: StorefrontAsset, width: Optional[int] = None, height: Optional[int] = None
 ) -> str:
     """
     Get the URL for an asset, optionally at a specific resolution.
@@ -639,8 +652,7 @@ async def get_asset_url(
         if available_resolutions:
             # Sort by closest area to requested dimensions
             target_area = width * height
-            available_resolutions.sort(
-                key=lambda x: abs(x[0] * x[1] - target_area))
+            available_resolutions.sort(key=lambda x: abs(x[0] * x[1] - target_area))
 
             # Use the closest resolution
             closest_key = available_resolutions[0][2]
@@ -654,9 +666,7 @@ async def get_asset_url(
 
 
 async def track_asset_usage(
-    db: Session,
-    asset_id: uuid.UUID,
-    usage_location: Dict[str, Any]
+    db: Session, asset_id: uuid.UUID, usage_location: Dict[str, Any]
 ) -> StorefrontAsset:
     """
     Track where an asset is being used.
@@ -673,15 +683,15 @@ async def track_asset_usage(
         HTTPException: 404 if asset not found
     """
     # Get the asset
-    asset = db.query(StorefrontAsset).filter(
-        StorefrontAsset.id == asset_id,
-        StorefrontAsset.is_active
-    ).first()
+    asset = (
+        db.query(StorefrontAsset)
+        .filter(StorefrontAsset.id == asset_id, StorefrontAsset.is_active)
+        .first()
+    )
 
     if not asset:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Asset not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Asset not found"
         )
 
     # Update usage locations
@@ -697,7 +707,8 @@ async def track_asset_usage(
     if location_type and location_id:
         # Remove existing entry for this location if it exists
         usage_locations = [
-            loc for loc in usage_locations
+            loc
+            for loc in usage_locations
             if not (loc.get("type") == location_type and loc.get("id") == location_id)
         ]
 
@@ -715,9 +726,7 @@ async def track_asset_usage(
 
 
 async def cleanup_unused_assets(
-    db: Session,
-    tenant_id: uuid.UUID,
-    older_than_days: int = 30
+    db: Session, tenant_id: uuid.UUID, older_than_days: int = 30
 ) -> int:
     """
     Clean up unused assets.
@@ -737,21 +746,23 @@ async def cleanup_unused_assets(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Calculate cutoff date
-    cutoff_date = datetime.now(timezone.utc) - \
-        datetime.timedelta(days=older_than_days)
+    cutoff_date = datetime.now(timezone.utc) - datetime.timedelta(days=older_than_days)
 
     # Find unused assets
-    unused_assets = db.query(StorefrontAsset).filter(
-        StorefrontAsset.tenant_id == tenant_id,
-        StorefrontAsset.is_active,
-        StorefrontAsset.usage_count == 0,
-        StorefrontAsset.created_at < cutoff_date
-    ).all()
+    unused_assets = (
+        db.query(StorefrontAsset)
+        .filter(
+            StorefrontAsset.tenant_id == tenant_id,
+            StorefrontAsset.is_active,
+            StorefrontAsset.usage_count == 0,
+            StorefrontAsset.created_at < cutoff_date,
+        )
+        .all()
+    )
 
     count = 0
     for asset in unused_assets:

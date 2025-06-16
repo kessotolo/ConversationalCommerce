@@ -1,13 +1,13 @@
 from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
-    storefront_editor_drafts,
-    storefront_editor_versions,
-    storefront_editor_permissions,
     storefront_editor_assets,
     storefront_editor_banners,
+    storefront_editor_components,
+    storefront_editor_drafts,
     storefront_editor_logos,
-    storefront_editor_components
+    storefront_editor_permissions,
+    storefront_editor_versions,
 )
 
 router = APIRouter(prefix="/storefronts")

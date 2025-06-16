@@ -1,20 +1,23 @@
-from typing import Optional, Dict, Any, List
-from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class BehaviorPatternBase(BaseModel):
     name: str
     description: Optional[str] = None
-    pattern_type: str = Field(...,
-                              description="Type of pattern (user, system, security)")
-    conditions: List[Dict[str, Any]
-                     ] = Field(..., description="Pattern matching conditions")
-    severity: str = Field(...,
-                          description="Severity level (low, medium, high, critical)")
+    pattern_type: str = Field(
+        ..., description="Type of pattern (user, system, security)"
+    )
+    conditions: List[Dict[str, Any]] = Field(
+        ..., description="Pattern matching conditions"
+    )
+    severity: str = Field(
+        ..., description="Severity level (low, medium, high, critical)"
+    )
     threshold: float = Field(..., description="Threshold for pattern matching")
-    cooldown_minutes: int = Field(
-        default=60, description="Cooldown period in minutes")
+    cooldown_minutes: int = Field(default=60, description="Cooldown period in minutes")
     enabled: bool = True
 
 
@@ -65,8 +68,9 @@ class PatternDetectionResponse(PatternDetectionBase):
 
 
 class DetectionReviewUpdate(BaseModel):
-    status: str = Field(...,
-                        description="New review status (approved/rejected/escalated)")
+    status: str = Field(
+        ..., description="New review status (approved/rejected/escalated)"
+    )
     notes: Optional[str] = Field(None, description="Resolution notes")
 
 

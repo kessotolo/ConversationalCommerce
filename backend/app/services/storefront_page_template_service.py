@@ -1,15 +1,20 @@
-from typing import List, Optional, Dict, Any, Tuple
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy.orm import Session
-from sqlalchemy import desc, or_
+from typing import Any, Dict, List, Optional, Tuple
+
 from fastapi import HTTPException, status
-from app.models.storefront_page_template import StorefrontPageTemplate, PageTemplateType, TemplateStatus
+from sqlalchemy import desc, or_, update
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
+
+from app.models.storefront_page_template import (
+    PageTemplateType,
+    StorefrontPageTemplate,
+    TemplateStatus,
+)
 from app.models.tenant import Tenant
 from app.models.user import User
 from app.services.storefront_permissions_service import has_permission
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import update
 
 
 async def create_page_template(
@@ -22,7 +27,7 @@ async def create_page_template(
     description: Optional[str] = None,
     is_default: bool = False,
     tags: Optional[List[str]] = None,
-    status: TemplateStatus = TemplateStatus.DRAFT
+    status: TemplateStatus = TemplateStatus.DRAFT,
 ) -> StorefrontPageTemplate:
     """
     Create a new page template.
@@ -50,16 +55,14 @@ async def create_page_template(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Check if user exists
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     # Check permission
@@ -68,13 +71,13 @@ async def create_page_template(
         tenant_id=tenant_id,
         user_id=user_id,
         required_permission="edit",
-        section=None  # For now, using global permission
+        section=None,  # For now, using global permission
     )
 
     if not has_perm:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to create page templates"
+            detail="You don't have permission to create page templates",
         )
 
     # Validate template structure
@@ -82,11 +85,15 @@ async def create_page_template(
 
     # If this is set as the default template, clear default flag from other templates of same type
     if is_default:
-        default_templates = db.query(StorefrontPageTemplate).filter(
-            StorefrontPageTemplate.tenant_id == tenant_id,
-            StorefrontPageTemplate.template_type == template_type,
-            StorefrontPageTemplate.is_default
-        ).all()
+        default_templates = (
+            db.query(StorefrontPageTemplate)
+            .filter(
+                StorefrontPageTemplate.tenant_id == tenant_id,
+                StorefrontPageTemplate.template_type == template_type,
+                StorefrontPageTemplate.is_default,
+            )
+            .all()
+        )
 
         for template in default_templates:
             template.is_default = False
@@ -101,7 +108,7 @@ async def create_page_template(
         is_default=is_default,
         tags=tags or [],
         status=status,
-        created_by=user_id
+        created_by=user_id,
     )
 
     db.add(template)
@@ -122,7 +129,7 @@ async def update_page_template(
     description: Optional[str] = None,
     is_default: Optional[bool] = None,
     tags: Optional[List[str]] = None,
-    status: Optional[TemplateStatus] = None
+    status: Optional[TemplateStatus] = None,
 ) -> StorefrontPageTemplate:
     """
     Update an existing page template.
@@ -153,24 +160,21 @@ async def update_page_template(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Check if user exists
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     # Get the template
     template = await db.get(StorefrontPageTemplate, template_id)
     if not template:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Page template not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Page template not found"
         )
 
     # Check permission
@@ -179,13 +183,13 @@ async def update_page_template(
         tenant_id=tenant_id,
         user_id=user_id,
         required_permission="edit",
-        section=None
+        section=None,
     )
 
     if not has_perm:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to update page templates"
+            detail="You don't have permission to update page templates",
         )
 
     # Validate structure if provided
@@ -195,12 +199,16 @@ async def update_page_template(
     # Update is_default flag
     if is_default is not None and is_default and not template.is_default:
         # Clear default flag from other templates of same type
-        default_templates = db.query(StorefrontPageTemplate).filter(
-            StorefrontPageTemplate.tenant_id == tenant_id,
-            StorefrontPageTemplate.template_type == template.template_type,
-            StorefrontPageTemplate.is_default,
-            StorefrontPageTemplate.id != template_id
-        ).all()
+        default_templates = (
+            db.query(StorefrontPageTemplate)
+            .filter(
+                StorefrontPageTemplate.tenant_id == tenant_id,
+                StorefrontPageTemplate.template_type == template.template_type,
+                StorefrontPageTemplate.is_default,
+                StorefrontPageTemplate.id != template_id,
+            )
+            .all()
+        )
 
         for other_template in default_templates:
             other_template.is_default = False
@@ -223,7 +231,10 @@ async def update_page_template(
 
     if status is not None:
         # If transitioning to published, track that
-        if status == TemplateStatus.PUBLISHED and template.status != TemplateStatus.PUBLISHED:
+        if (
+            status == TemplateStatus.PUBLISHED
+            and template.status != TemplateStatus.PUBLISHED
+        ):
             template.published_at = datetime.now(timezone.utc)
             template.published_by = user_id
 
@@ -236,19 +247,24 @@ async def update_page_template(
     current_version = template.version
     update_data = {
         "version": current_version + 1,
-        "modified_at": datetime.now(timezone.utc)
+        "modified_at": datetime.now(timezone.utc),
     }
 
     result = await db.execute(
         update(StorefrontPageTemplate)
-        .where(StorefrontPageTemplate.id == template_id, StorefrontPageTemplate.version == version)
+        .where(
+            StorefrontPageTemplate.id == template_id,
+            StorefrontPageTemplate.version == version,
+        )
         .values(**update_data)
     )
     await db.commit()
     if result.rowcount == 0:
         await db.rollback()
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
-                            detail="Page template was modified by another process. Please refresh and try again.")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Page template was modified by another process. Please refresh and try again.",
+        )
 
     await db.refresh(template)
 
@@ -256,9 +272,7 @@ async def update_page_template(
 
 
 async def get_page_template(
-    db: Session,
-    tenant_id: uuid.UUID,
-    template_id: uuid.UUID
+    db: Session, tenant_id: uuid.UUID, template_id: uuid.UUID
 ) -> Optional[StorefrontPageTemplate]:
     """
     Get a specific page template by ID.
@@ -278,15 +292,18 @@ async def get_page_template(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Get the template
-    template = db.query(StorefrontPageTemplate).filter(
-        StorefrontPageTemplate.id == template_id,
-        StorefrontPageTemplate.tenant_id == tenant_id
-    ).first()
+    template = (
+        db.query(StorefrontPageTemplate)
+        .filter(
+            StorefrontPageTemplate.id == template_id,
+            StorefrontPageTemplate.tenant_id == tenant_id,
+        )
+        .first()
+    )
 
     return template
 
@@ -300,7 +317,7 @@ async def list_page_templates(
     search_query: Optional[str] = None,
     only_defaults: bool = False,
     limit: int = 20,
-    offset: int = 0
+    offset: int = 0,
 ) -> Tuple[List[StorefrontPageTemplate], int]:
     """
     List page templates for a tenant with filtering.
@@ -326,8 +343,7 @@ async def list_page_templates(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Base query
@@ -337,8 +353,7 @@ async def list_page_templates(
 
     # Apply template type filter
     if template_type:
-        query = query.filter(
-            StorefrontPageTemplate.template_type == template_type)
+        query = query.filter(StorefrontPageTemplate.template_type == template_type)
 
     # Apply status filter
     if status:
@@ -360,7 +375,7 @@ async def list_page_templates(
         query = query.filter(
             or_(
                 StorefrontPageTemplate.name.ilike(search_terms),
-                StorefrontPageTemplate.description.ilike(search_terms)
+                StorefrontPageTemplate.description.ilike(search_terms),
             )
         )
 
@@ -378,10 +393,7 @@ async def list_page_templates(
 
 
 async def delete_page_template(
-    db: Session,
-    tenant_id: uuid.UUID,
-    template_id: uuid.UUID,
-    user_id: uuid.UUID
+    db: Session, tenant_id: uuid.UUID, template_id: uuid.UUID, user_id: uuid.UUID
 ) -> bool:
     """
     Delete a page template.
@@ -404,23 +416,25 @@ async def delete_page_template(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Check if user exists
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     # Get the template
-    template = db.query(StorefrontPageTemplate).filter(
-        StorefrontPageTemplate.id == template_id,
-        StorefrontPageTemplate.tenant_id == tenant_id
-    ).first()
+    template = (
+        db.query(StorefrontPageTemplate)
+        .filter(
+            StorefrontPageTemplate.id == template_id,
+            StorefrontPageTemplate.tenant_id == tenant_id,
+        )
+        .first()
+    )
 
     if not template:
         return False
@@ -431,27 +445,31 @@ async def delete_page_template(
         tenant_id=tenant_id,
         user_id=user_id,
         required_permission="delete",
-        section=None
+        section=None,
     )
 
     if not has_perm:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to delete page templates"
+            detail="You don't have permission to delete page templates",
         )
 
     # Check if this is the only default template for its type
     if template.is_default:
-        default_count = db.query(StorefrontPageTemplate).filter(
-            StorefrontPageTemplate.tenant_id == tenant_id,
-            StorefrontPageTemplate.template_type == template.template_type,
-            StorefrontPageTemplate.is_default
-        ).count()
+        default_count = (
+            db.query(StorefrontPageTemplate)
+            .filter(
+                StorefrontPageTemplate.tenant_id == tenant_id,
+                StorefrontPageTemplate.template_type == template.template_type,
+                StorefrontPageTemplate.is_default,
+            )
+            .count()
+        )
 
         if default_count <= 1:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Cannot delete the only default template for this page type"
+                detail="Cannot delete the only default template for this page type",
             )
 
     # TODO: Check if template is in use before deleting
@@ -466,10 +484,7 @@ async def delete_page_template(
 
 
 async def publish_page_template(
-    db: Session,
-    tenant_id: uuid.UUID,
-    template_id: uuid.UUID,
-    user_id: uuid.UUID
+    db: Session, tenant_id: uuid.UUID, template_id: uuid.UUID, user_id: uuid.UUID
 ) -> StorefrontPageTemplate:
     """
     Publish a page template.
@@ -491,28 +506,29 @@ async def publish_page_template(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Check if user exists
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     # Get the template
-    template = db.query(StorefrontPageTemplate).filter(
-        StorefrontPageTemplate.id == template_id,
-        StorefrontPageTemplate.tenant_id == tenant_id
-    ).first()
+    template = (
+        db.query(StorefrontPageTemplate)
+        .filter(
+            StorefrontPageTemplate.id == template_id,
+            StorefrontPageTemplate.tenant_id == tenant_id,
+        )
+        .first()
+    )
 
     if not template:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Page template not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Page template not found"
         )
 
     # Check permission
@@ -521,13 +537,13 @@ async def publish_page_template(
         tenant_id=tenant_id,
         user_id=user_id,
         required_permission="publish",
-        section=None
+        section=None,
     )
 
     if not has_perm:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to publish page templates"
+            detail="You don't have permission to publish page templates",
         )
 
     # Update status to published
@@ -548,7 +564,7 @@ async def duplicate_page_template(
     tenant_id: uuid.UUID,
     template_id: uuid.UUID,
     user_id: uuid.UUID,
-    new_name: Optional[str] = None
+    new_name: Optional[str] = None,
 ) -> StorefrontPageTemplate:
     """
     Duplicate an existing page template.
@@ -571,28 +587,29 @@ async def duplicate_page_template(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Check if user exists
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     # Get the source template
-    source_template = db.query(StorefrontPageTemplate).filter(
-        StorefrontPageTemplate.id == template_id,
-        StorefrontPageTemplate.tenant_id == tenant_id
-    ).first()
+    source_template = (
+        db.query(StorefrontPageTemplate)
+        .filter(
+            StorefrontPageTemplate.id == template_id,
+            StorefrontPageTemplate.tenant_id == tenant_id,
+        )
+        .first()
+    )
 
     if not source_template:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Page template not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Page template not found"
         )
 
     # Check permission
@@ -601,13 +618,13 @@ async def duplicate_page_template(
         tenant_id=tenant_id,
         user_id=user_id,
         required_permission="edit",
-        section=None
+        section=None,
     )
 
     if not has_perm:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to duplicate page templates"
+            detail="You don't have permission to duplicate page templates",
         )
 
     # Create a new name if not provided
@@ -625,7 +642,7 @@ async def duplicate_page_template(
         tags=source_template.tags,
         status=TemplateStatus.DRAFT,  # Always start as draft
         created_by=user_id,
-        duplicated_from=source_template.id
+        duplicated_from=source_template.id,
     )
 
     db.add(duplicate)
@@ -636,9 +653,7 @@ async def duplicate_page_template(
 
 
 async def get_default_template(
-    db: Session,
-    tenant_id: uuid.UUID,
-    template_type: PageTemplateType
+    db: Session, tenant_id: uuid.UUID, template_type: PageTemplateType
 ) -> Optional[StorefrontPageTemplate]:
     """
     Get the default template for a specific page type.
@@ -658,24 +673,26 @@ async def get_default_template(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Get the default template
-    template = db.query(StorefrontPageTemplate).filter(
-        StorefrontPageTemplate.tenant_id == tenant_id,
-        StorefrontPageTemplate.template_type == template_type,
-        StorefrontPageTemplate.is_default,
-        StorefrontPageTemplate.status == TemplateStatus.PUBLISHED
-    ).first()
+    template = (
+        db.query(StorefrontPageTemplate)
+        .filter(
+            StorefrontPageTemplate.tenant_id == tenant_id,
+            StorefrontPageTemplate.template_type == template_type,
+            StorefrontPageTemplate.is_default,
+            StorefrontPageTemplate.status == TemplateStatus.PUBLISHED,
+        )
+        .first()
+    )
 
     return template
 
 
 async def validate_template_structure(
-    template_type: PageTemplateType,
-    structure: Dict[str, Any]
+    template_type: PageTemplateType, structure: Dict[str, Any]
 ) -> None:
     """
     Validate template structure based on its type.
@@ -694,14 +711,14 @@ async def validate_template_structure(
     if "sections" not in structure:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Template structure must have a 'sections' field"
+            detail="Template structure must have a 'sections' field",
         )
 
     sections = structure["sections"]
     if not isinstance(sections, list) or len(sections) == 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Template structure 'sections' must be a non-empty list"
+            detail="Template structure 'sections' must be a non-empty list",
         )
 
     # Validate each section
@@ -709,13 +726,13 @@ async def validate_template_structure(
         if "id" not in section:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Section at index {i} must have an 'id'"
+                detail=f"Section at index {i} must have an 'id'",
             )
 
         if "type" not in section:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Section at index {i} must have a 'type'"
+                detail=f"Section at index {i} must have a 'type'",
             )
 
         # If section has slots, validate them
@@ -724,14 +741,14 @@ async def validate_template_structure(
             if not isinstance(slots, list):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Section 'slots' at index {i} must be a list"
+                    detail=f"Section 'slots' at index {i} must be a list",
                 )
 
             for j, slot in enumerate(slots):
                 if "id" not in slot:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"Slot at index {j} in section {i} must have an 'id'"
+                        detail=f"Slot at index {j} in section {i} must have an 'id'",
                     )
 
     # Type-specific validation
@@ -741,25 +758,27 @@ async def validate_template_structure(
         if not has_hero:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Home page template must have a hero section"
+                detail="Home page template must have a hero section",
             )
 
     elif template_type == PageTemplateType.PRODUCT:
         # Check for product details section
-        has_product_details = any(section.get(
-            "type") == "product_details" for section in sections)
+        has_product_details = any(
+            section.get("type") == "product_details" for section in sections
+        )
         if not has_product_details:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Product page template must have a product details section"
+                detail="Product page template must have a product details section",
             )
 
     elif template_type == PageTemplateType.CATEGORY:
         # Check for product list section
-        has_product_list = any(section.get("type") ==
-                               "product_list" for section in sections)
+        has_product_list = any(
+            section.get("type") == "product_list" for section in sections
+        )
         if not has_product_list:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Category page template must have a product list section"
+                detail="Category page template must have a product list section",
             )

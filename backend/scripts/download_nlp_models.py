@@ -12,7 +12,7 @@ import argparse
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
+    handlers=[logging.StreamHandler(sys.stdout)],
 )
 
 
@@ -24,7 +24,7 @@ def download_spacy_model():
             [sys.executable, "-m", "spacy", "download", "en_core_web_sm"],
             capture_output=True,
             text=True,
-            check=True
+            check=True,
         )
         logging.info("SpaCy model downloaded successfully")
         logging.debug(result.stdout)
@@ -44,9 +44,9 @@ def download_nltk_data():
         import nltk
 
         logging.info("Downloading NLTK data...")
-        nltk.download('punkt')
-        nltk.download('stopwords')
-        nltk.download('averaged_perceptron_tagger')
+        nltk.download("punkt")
+        nltk.download("stopwords")
+        nltk.download("averaged_perceptron_tagger")
         logging.info("NLTK data downloaded successfully")
         return True
     except Exception as e:
@@ -58,9 +58,11 @@ def verify_detoxify():
     """Verify Detoxify package is installed properly"""
     try:
         import importlib.util
+
         if importlib.util.find_spec("detoxify") is None:
             logging.warning(
-                "Detoxify package not found. Toxicity analysis will be limited.")
+                "Detoxify package not found. Toxicity analysis will be limited."
+            )
             logging.info("To install Detoxify: pip install detoxify")
             return False
 
@@ -75,10 +77,10 @@ def verify_spacy_model():
     """Verify if the spaCy model is installed without downloading"""
     try:
         import spacy
+
         try:
             nlp = spacy.load("en_core_web_sm")
-            logging.info(
-                "✅ spaCy model 'en_core_web_sm' is installed and working")
+            logging.info("✅ spaCy model 'en_core_web_sm' is installed and working")
             return True
         except OSError:
             logging.error("❌ spaCy model 'en_core_web_sm' is not installed")
@@ -97,16 +99,12 @@ def main():
     parser.add_argument(
         "--verify",
         action="store_true",
-        help="Verify model installation without downloading"
+        help="Verify model installation without downloading",
     )
     args = parser.parse_args()
 
     # Create a status tracking dictionary
-    status = {
-        "spacy": False,
-        "nltk": False,
-        "detoxify": False
-    }
+    status = {"spacy": False, "nltk": False, "detoxify": False}
 
     if args.verify:
         logging.info("Verifying NLP model installation...")

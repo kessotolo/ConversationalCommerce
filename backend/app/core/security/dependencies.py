@@ -1,14 +1,16 @@
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from typing import Optional
 import os
-from app.core.security.clerk import verify_clerk_token, ClerkTokenData
+from typing import Optional
+
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+from app.core.security.clerk import ClerkTokenData, verify_clerk_token
 
 security = HTTPBearer()
 
 
 async def require_auth(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> ClerkTokenData:
     """
     Dependency to require authentication for protected routes.
@@ -28,7 +30,7 @@ async def require_auth(
             sub="test-user",
             email="test@example.com",
             roles=["test"],
-            tenant_id="test-tenant-id"
+            tenant_id="test-tenant-id",
         )
 
     # Get token from authorization header
@@ -41,11 +43,13 @@ async def require_auth(
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials"
+            detail="Invalid authentication credentials",
         )
 
 
-async def require_role(role: str, token_data: ClerkTokenData = Depends(require_auth)) -> ClerkTokenData:
+async def require_role(
+    role: str, token_data: ClerkTokenData = Depends(require_auth)
+) -> ClerkTokenData:
     """
     Dependency to require a specific role for protected routes.
 
@@ -61,15 +65,13 @@ async def require_role(role: str, token_data: ClerkTokenData = Depends(require_a
     """
     if not token_data.has_role(role):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Insufficient permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
         )
     return token_data
 
 
 async def require_any_role(
-    roles: list[str],
-    token_data: ClerkTokenData = Depends(require_auth)
+    roles: list[str], token_data: ClerkTokenData = Depends(require_auth)
 ) -> ClerkTokenData:
     """
     Dependency to require any of the specified roles for protected routes.
@@ -86,15 +88,13 @@ async def require_any_role(
     """
     if not token_data.has_any_role(roles):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Insufficient permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
         )
     return token_data
 
 
 async def require_all_roles(
-    roles: list[str],
-    token_data: ClerkTokenData = Depends(require_auth)
+    roles: list[str], token_data: ClerkTokenData = Depends(require_auth)
 ) -> ClerkTokenData:
     """
     Dependency to require all of the specified roles for protected routes.
@@ -111,14 +111,13 @@ async def require_all_roles(
     """
     if not token_data.has_all_roles(roles):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Insufficient permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
         )
     return token_data
 
 
 async def optional_auth(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> Optional[ClerkTokenData]:
     """
     Dependency for routes that can be accessed with or without authentication.

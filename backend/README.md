@@ -1038,3 +1038,44 @@ This will drop, recreate, and migrate your local DB using Alembic.
 ## 🧪 Testing Best Practices
 - Always use async fixtures and set tenant context for any test that touches tenant data.
 - Use the `test_tenant`
+
+# Backend Modules Overview
+
+## core
+**Purpose:** Base types, utilities, and cross-cutting concerns.
+**Allowed Imports:** None (cannot import from other modules).
+**Forbidden Imports:** All other modules.
+**Example Import Patterns:**
+// ✅ Correct
+import type { UUID } from '@/modules/core/models/base';
+// ❌ Incorrect
+import { TenantService } from '@/modules/tenant/services/TenantService';
+**Analytics/Event Logging:** Not applicable.
+**Testing:** See /core/tests/unit and /core/tests/integration.
+
+## conversation
+**Purpose:** Messaging system and conversational flows.
+**Allowed Imports:** core, tenant.
+**Forbidden Imports:** product, order, storefront, theme, monitoring.
+**Example Import Patterns:**
+// ✅ Correct
+import { Message } from '@/modules/conversation/models/message';
+// ❌ Incorrect
+import { ProductService } from '@/modules/product/services/ProductService';
+**Analytics/Event Logging:** Use ConversationEvent pattern for all analytics and monitoring.
+**Testing:** See /conversation/tests/unit and /conversation/tests/integration.
+
+## services
+**Purpose:** Business logic for various modules (order, product, etc.).
+**Allowed Imports:** core, tenant, product (depending on service).
+**Forbidden Imports:** Should not import from unrelated modules.
+**Example Import Patterns:**
+// ✅ Correct
+from app.core.utils import some_util
+// ❌ Incorrect
+from app.theme.models import Theme
+**Analytics/Event Logging:** Use ConversationEvent pattern where applicable.
+**Testing:** See /services/tests/unit and /services/tests/integration.
+
+---
+For more details, see AI_AGENT_CONFIG.md.

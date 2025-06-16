@@ -1,8 +1,10 @@
-from sqlalchemy import Column, String, JSON, ForeignKey, DateTime
+import uuid
+from datetime import datetime
+
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from datetime import datetime
-import uuid
+
 from app.db.base_class import Base
 
 
@@ -12,21 +14,20 @@ class Violation(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
-    detection_id = Column(UUID(as_uuid=True), ForeignKey(
-        "pattern_detections.id"), nullable=True)
+    detection_id = Column(
+        UUID(as_uuid=True), ForeignKey("pattern_detections.id"), nullable=True
+    )
     type = Column(String, nullable=False)  # e.g., content, behavior, security
     severity = Column(String, nullable=False)  # low, medium, high, critical
     # warning, temp_ban, perm_ban, restrict
     action = Column(String, nullable=False)
-    status = Column(String, nullable=False,
-                    default="active")  # active, resolved
+    status = Column(String, nullable=False, default="active")  # active, resolved
     reason = Column(String, nullable=True)
     details = Column(JSON, nullable=True)
     start_at = Column(DateTime, default=datetime.utcnow)
     end_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow,
-                        onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     tenant = relationship("Tenant", back_populates="violations")

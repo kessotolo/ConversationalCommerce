@@ -1,17 +1,19 @@
-from typing import Dict, Any, List, Optional
-from datetime import datetime, timedelta
 import logging
+import re
+import uuid
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
 from sqlalchemy.orm import Session
-from app.models.behavior_analysis import BehaviorPattern, PatternDetection
+
+from app.core.enforcement.violation_service import violation_service
 from app.core.notifications.notification_service import (
     Notification,
-    NotificationPriority,
     NotificationChannel,
-    notification_service
+    NotificationPriority,
+    notification_service,
 )
-import uuid
-import re
-from app.core.enforcement.violation_service import violation_service
+from app.models.behavior_analysis import BehaviorPattern, PatternDetection
 
 logger = logging.getLogger(__name__)
 
@@ -25,12 +27,11 @@ class BehaviorAnalysisService:
         db: Session,
         tenant_id: str,
         user_id: Optional[str],
-        activity_data: Dict[str, Any]
+        activity_data: Dict[str, Any],
     ) -> List[PatternDetection]:
         """Analyze behavior against patterns and return detections"""
         # Get applicable patterns
-        patterns = self._get_patterns(
-            db, tenant_id, activity_data.get('type', 'user'))
+        patterns = self._get_patterns(db, tenant_id, activity_data.get("type", "user"))
 
         detections = []
         for pattern in patterns:
@@ -54,23 +55,21 @@ class BehaviorAnalysisService:
         return detections
 
     def _get_patterns(
-        self,
-        db: Session,
-        tenant_id: str,
-        pattern_type: str
+        self, db: Session, tenant_id: str, pattern_type: str
     ) -> List[BehaviorPattern]:
         """Get applicable patterns for the tenant and type"""
-        return db.query(BehaviorPattern).filter(
-            BehaviorPattern.tenant_id == tenant_id,
-            BehaviorPattern.pattern_type == pattern_type,
-            BehaviorPattern.enabled
-        ).all()
+        return (
+            db.query(BehaviorPattern)
+            .filter(
+                BehaviorPattern.tenant_id == tenant_id,
+                BehaviorPattern.pattern_type == pattern_type,
+                BehaviorPattern.enabled,
+            )
+            .all()
+        )
 
     def _is_in_cooldown(
-        self,
-        db: Session,
-        pattern_id: str,
-        user_id: Optional[str]
+        self, db: Session, pattern_id: str, user_id: Optional[str]
     ) -> bool:
         """Check if pattern is in cooldown period"""
         pattern = db.query(BehaviorPattern).get(pattern_id)
@@ -78,10 +77,15 @@ class BehaviorAnalysisService:
             return False
 
         # Get last detection
-        last_detection = db.query(PatternDetection).filter(
-            PatternDetection.pattern_id == pattern_id,
-            PatternDetection.user_id == user_id
-        ).order_by(PatternDetection.created_at.desc()).first()
+        last_detection = (
+            db.query(PatternDetection)
+            .filter(
+                PatternDetection.pattern_id == pattern_id,
+                PatternDetection.user_id == user_id,
+            )
+            .order_by(PatternDetection.created_at.desc())
+            .first()
+        )
 
         if not last_detection:
             return False
@@ -97,24 +101,20 @@ class BehaviorAnalysisService:
         db: Session,
         pattern: BehaviorPattern,
         user_id: Optional[str],
-        activity_data: Dict[str, Any]
+        activity_data: Dict[str, Any],
     ) -> Optional[PatternDetection]:
         """Evaluate a pattern against activity data"""
         try:
             # Calculate confidence score
             confidence_score = self._calculate_confidence(
-                pattern.conditions,
-                activity_data
+                pattern.conditions, activity_data
             )
 
             # Check if pattern is triggered
             if confidence_score >= pattern.threshold:
                 # Collect evidence
                 evidence = await self._collect_evidence(
-                    db,
-                    pattern.tenant_id,
-                    user_id,
-                    activity_data
+                    db, pattern.tenant_id, user_id, activity_data
                 )
 
                 # Create detection
@@ -125,7 +125,7 @@ class BehaviorAnalysisService:
                     detection_type=pattern.pattern_type,
                     confidence_score=confidence_score,
                     evidence=evidence,
-                    status='pending'
+                    status="pending",
                 )
                 db.add(detection)
                 db.commit()
@@ -143,25 +143,22 @@ class BehaviorAnalysisService:
                         severity=pattern.severity,
                         reason=reason,
                         details={
-                            'pattern_id': pattern.id,
-                            'pattern_name': pattern.name,
-                            'confidence_score': confidence_score,
-                            'evidence': evidence
-                        }
+                            "pattern_id": pattern.id,
+                            "pattern_name": pattern.name,
+                            "confidence_score": confidence_score,
+                            "evidence": evidence,
+                        },
                     )
                 # --- End integration ---
 
                 return detection
 
         except Exception as e:
-            logger.error(
-                f"Error evaluating pattern {pattern.id}: {str(e)}")
+            logger.error(f"Error evaluating pattern {pattern.id}: {str(e)}")
         return None
 
     def _calculate_confidence(
-        self,
-        conditions: Dict[str, Any],
-        activity_data: Dict[str, Any]
+        self, conditions: Dict[str, Any], activity_data: Dict[str, Any]
     ) -> float:
         """Calculate confidence score for pattern matching"""
         try:
@@ -170,7 +167,7 @@ class BehaviorAnalysisService:
 
             for condition in conditions:
                 if self._evaluate_condition(condition, activity_data):
-                    total_score += condition.get('weight', 1.0)
+                    total_score += condition.get("weight", 1.0)
                     matched_conditions += 1
 
             if matched_conditions == 0:
@@ -183,15 +180,13 @@ class BehaviorAnalysisService:
             return 0.0
 
     def _evaluate_condition(
-        self,
-        condition: Dict[str, Any],
-        activity_data: Dict[str, Any]
+        self, condition: Dict[str, Any], activity_data: Dict[str, Any]
     ) -> bool:
         """Evaluate a single condition against activity data"""
         try:
-            field = condition.get('field')
-            operator = condition.get('operator')
-            value = condition.get('value')
+            field = condition.get("field")
+            operator = condition.get("operator")
+            value = condition.get("value")
 
             if not all([field, operator, value]):
                 return False
@@ -200,17 +195,17 @@ class BehaviorAnalysisService:
             if data_value is None:
                 return False
 
-            if operator == 'equals':
+            if operator == "equals":
                 return data_value == value
-            elif operator == 'contains':
+            elif operator == "contains":
                 return value in data_value
-            elif operator == 'greater_than':
+            elif operator == "greater_than":
                 return data_value > value
-            elif operator == 'less_than':
+            elif operator == "less_than":
                 return data_value < value
-            elif operator == 'matches':
+            elif operator == "matches":
                 return bool(re.match(value, str(data_value)))
-            elif operator == 'in':
+            elif operator == "in":
                 return data_value in value
 
             return False
@@ -224,62 +219,55 @@ class BehaviorAnalysisService:
         db: Session,
         tenant_id: str,
         user_id: Optional[str],
-        activity_data: Dict[str, Any]
+        activity_data: Dict[str, Any],
     ) -> Dict[str, Any]:
         """Collect evidence for pattern detection"""
         evidence = {
-            'activity': activity_data,
-            'timestamp': datetime.utcnow().isoformat(),
-            'user_id': user_id,
-            'sources': []
+            "activity": activity_data,
+            "timestamp": datetime.utcnow().isoformat(),
+            "user_id": user_id,
+            "sources": [],
         }
 
         # Add system metrics
         system_metrics = await self._get_system_metrics()
-        evidence['sources'].append({
-            'type': 'system',
-            'data': system_metrics
-        })
+        evidence["sources"].append({"type": "system", "data": system_metrics})
 
         # Add user history if applicable
         if user_id:
             user_history = self._get_user_history(db, tenant_id, user_id)
-            evidence['sources'].append({
-                'type': 'user_history',
-                'data': user_history
-            })
+            evidence["sources"].append({"type": "user_history", "data": user_history})
 
         return evidence
 
     async def _get_system_metrics(self) -> Dict[str, Any]:
         """Get current system metrics"""
         # TODO: Implement system metrics collection
-        return {
-            'cpu_usage': 0.0,
-            'memory_usage': 0.0,
-            'active_connections': 0
-        }
+        return {"cpu_usage": 0.0, "memory_usage": 0.0, "active_connections": 0}
 
     def _get_user_history(
-        self,
-        db: Session,
-        tenant_id: str,
-        user_id: str
+        self, db: Session, tenant_id: str, user_id: str
     ) -> Dict[str, Any]:
         """Get user activity history"""
         # Get recent detections
-        recent_detections = db.query(PatternDetection).filter(
-            PatternDetection.tenant_id == tenant_id,
-            PatternDetection.user_id == user_id
-        ).order_by(PatternDetection.created_at.desc()).limit(10).all()
+        recent_detections = (
+            db.query(PatternDetection)
+            .filter(
+                PatternDetection.tenant_id == tenant_id,
+                PatternDetection.user_id == user_id,
+            )
+            .order_by(PatternDetection.created_at.desc())
+            .limit(10)
+            .all()
+        )
 
         return {
-            'recent_detections': [
+            "recent_detections": [
                 {
-                    'id': d.id,
-                    'pattern_id': d.pattern_id,
-                    'confidence_score': d.confidence_score,
-                    'created_at': d.created_at.isoformat()
+                    "id": d.id,
+                    "pattern_id": d.pattern_id,
+                    "confidence_score": d.confidence_score,
+                    "created_at": d.created_at.isoformat(),
                 }
                 for d in recent_detections
             ]
@@ -290,17 +278,17 @@ class BehaviorAnalysisService:
         notification = Notification(
             id=str(uuid.uuid4()),
             tenant_id=detection.tenant_id,
-            user_id=detection.user_id or 'system',
+            user_id=detection.user_id or "system",
             title=f"Behavior Pattern Detected: {detection.pattern.name}",
             message=self._format_notification_message(detection),
             priority=self._get_notification_priority(detection),
             channels=[NotificationChannel.IN_APP],
             metadata={
-                'detection_id': detection.id,
-                'pattern_id': detection.pattern_id,
-                'confidence_score': detection.confidence_score,
-                'detection_type': detection.detection_type
-            }
+                "detection_id": detection.id,
+                "pattern_id": detection.pattern_id,
+                "confidence_score": detection.confidence_score,
+                "detection_type": detection.detection_type,
+            },
         )
         await notification_service.send_notification(notification)
 
@@ -319,18 +307,17 @@ Evidence Summary:
 Please review this detection and take appropriate action.
 """
 
-    def _get_notification_priority(self, detection: PatternDetection) -> NotificationPriority:
+    def _get_notification_priority(
+        self, detection: PatternDetection
+    ) -> NotificationPriority:
         """Determine notification priority based on pattern severity"""
         severity_map = {
-            'low': NotificationPriority.LOW,
-            'medium': NotificationPriority.MEDIUM,
-            'high': NotificationPriority.HIGH,
-            'critical': NotificationPriority.URGENT
+            "low": NotificationPriority.LOW,
+            "medium": NotificationPriority.MEDIUM,
+            "high": NotificationPriority.HIGH,
+            "critical": NotificationPriority.URGENT,
         }
-        return severity_map.get(
-            detection.pattern.severity,
-            NotificationPriority.MEDIUM
-        )
+        return severity_map.get(detection.pattern.severity, NotificationPriority.MEDIUM)
 
 
 # Create global instance

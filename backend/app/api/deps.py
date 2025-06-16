@@ -1,17 +1,19 @@
 """
 Dependencies for API endpoints.
 """
-from fastapi import Depends, Request, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
+
 import uuid
 from functools import lru_cache
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
-from app.db.session import get_db as async_get_db
-from app.core.security.dependencies import require_auth
+from fastapi import Depends, HTTPException, Request, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.security.clerk import ClerkTokenData
-from app.models.tenant import Tenant
+from app.core.security.dependencies import require_auth
+from app.db.session import get_db as async_get_db
 from app.models.storefront import StorefrontConfig
+from app.models.tenant import Tenant
 
 
 async def get_db() -> AsyncSession:
@@ -69,7 +71,7 @@ def get_tenant_context(request: Request) -> Dict[str, Any]:
         "storefront_id": None,
         "subdomain": None,
         "custom_domain": None,
-        "theme_settings": {}
+        "theme_settings": {},
     }
 
 
@@ -92,13 +94,15 @@ def get_current_tenant_id(request: Request) -> uuid.UUID:
     if not tenant_context["tenant_id"]:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found in request context"
+            detail="Tenant not found in request context",
         )
 
     return uuid.UUID(tenant_context["tenant_id"])
 
 
-def get_current_storefront_config(db: AsyncSession, tenant_id: uuid.UUID = Depends(get_current_tenant_id)) -> StorefrontConfig:
+def get_current_storefront_config(
+    db: AsyncSession, tenant_id: uuid.UUID = Depends(get_current_tenant_id)
+) -> StorefrontConfig:
     """
     Get the current storefront configuration for the tenant.
 
@@ -112,13 +116,16 @@ def get_current_storefront_config(db: AsyncSession, tenant_id: uuid.UUID = Depen
     Raises:
         HTTPException: If no storefront config is found
     """
-    config = db.query(StorefrontConfig).filter(
-        StorefrontConfig.tenant_id == tenant_id).first()
+    config = (
+        db.query(StorefrontConfig)
+        .filter(StorefrontConfig.tenant_id == tenant_id)
+        .first()
+    )
 
     if not config:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Storefront configuration not found"
+            detail="Storefront configuration not found",
         )
 
     return config

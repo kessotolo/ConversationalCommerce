@@ -1,12 +1,14 @@
+import re
+from datetime import datetime
+
+import redis.asyncio as redis
 from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime
-import re
-import redis.asyncio as redis
-from app.core.config import settings
-from app.db.session import get_db
-from app.core.logging import logger
+
 from app.core.auth import get_current_active_user
+from app.core.config import settings
+from app.core.logging import logger
+from app.db.session import get_db
 
 # Redis client for distributed rate limiting
 redis_client = redis.from_url(settings.REDIS_URL)
@@ -22,7 +24,7 @@ RATE_LIMIT_CONFIG = {
     # 20 requests per minute
     "payment:settings": {"limit": 20, "window": 60},
     # Default 50 requests per minute
-    "default": {"limit": 50, "window": 60}
+    "default": {"limit": 50, "window": 60},
 }
 
 # IP blacklist (normally this would be in a database or cache)
@@ -30,28 +32,26 @@ IP_BLACKLIST = set()
 
 # Sensitive parameter patterns to redact from logs
 SENSITIVE_PARAMS = [
-    re.compile(r'card[_-]?number', re.I),
-    re.compile(r'cvv|cvc|cv[cv]2', re.I),
-    re.compile(r'expir[ey]', re.I),
-    re.compile(r'secret[_-]?key', re.I),
-    re.compile(r'password', re.I),
-    re.compile(r'authorization', re.I),
-    re.compile(r'api[_-]?key', re.I),
-    re.compile(r'account[_-]?number', re.I),
-    re.compile(r'token', re.I),
-    re.compile(r'private[_-]?key', re.I),
-    re.compile(r'access[_-]?token', re.I),
-    re.compile(r'refresh[_-]?token', re.I),
-    re.compile(r'client[_-]?secret', re.I),
-    re.compile(r'encryption[_-]?key', re.I),
-    re.compile(r'signature', re.I)
+    re.compile(r"card[_-]?number", re.I),
+    re.compile(r"cvv|cvc|cv[cv]2", re.I),
+    re.compile(r"expir[ey]", re.I),
+    re.compile(r"secret[_-]?key", re.I),
+    re.compile(r"password", re.I),
+    re.compile(r"authorization", re.I),
+    re.compile(r"api[_-]?key", re.I),
+    re.compile(r"account[_-]?number", re.I),
+    re.compile(r"token", re.I),
+    re.compile(r"private[_-]?key", re.I),
+    re.compile(r"access[_-]?token", re.I),
+    re.compile(r"refresh[_-]?token", re.I),
+    re.compile(r"client[_-]?secret", re.I),
+    re.compile(r"encryption[_-]?key", re.I),
+    re.compile(r"signature", re.I),
 ]
 
 
 async def verify_payment_api_key(
-    api_key: str = None,
-    request: Request = None,
-    db: AsyncSession = Depends(get_db)
+    api_key: str = None, request: Request = None, db: AsyncSession = Depends(get_db)
 ):
     """Verify a payment API key for external services (e.g. webhooks)"""
     if request and not api_key:
@@ -72,7 +72,9 @@ async def verify_payment_api_key(
     if api_key != valid_api_key:
         # Log potential API key abuse attempts
         logger.warning(
-            f"Invalid API key attempt from IP: {request.client.host if request else 'unknown'}")
+            f"Invalid API key attempt from IP: "
+            f"{request.client.host if request else 'unknown'}"
+        )
 
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -90,8 +92,7 @@ async def check_ip_blacklist(request: Request):
     if client_ip in IP_BLACKLIST:
         logger.warning(f"Blocked request from blacklisted IP: {client_ip}")
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Access denied"
         )
 
     # Check if IP is suspicious (e.g., Tor exit nodes, known proxy IPs)
@@ -101,12 +102,10 @@ async def check_ip_blacklist(request: Request):
 
 
 async def check_rate_limit(
-    request: Request,
-    endpoint_key: str,
-    db: AsyncSession = Depends(get_db)
+    request: Request, endpoint_key: str, db: AsyncSession = Depends(get_db)
 ) -> bool:
     """
-    Check if the request exceeds rate limits using distributed Redis-based rate limiting.
+    Check if the request exceeds rate limits using Redis-based rate limiting.
 
     Args:
         request: FastAPI request object
@@ -132,8 +131,7 @@ async def check_rate_limit(
     if is_blacklisted:
         logger.warning(f"Blocked request from blacklisted IP: {client_ip}")
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Access denied"
         )
 
     # Create rate limit key
@@ -153,8 +151,7 @@ async def check_rate_limit(
                 await redis_client.sadd("ip_blacklist", client_ip)
                 # 1 hour blacklist
                 await redis_client.expire("ip_blacklist", 3600)
-                logger.warning(
-                    f"IP blacklisted due to excessive requests: {client_ip}")
+                logger.warning(f"IP blacklisted due to excessive requests: {client_ip}")
 
             logger.warning(
                 f"Rate limit exceeded for {endpoint_key}: "
@@ -163,7 +160,7 @@ async def check_rate_limit(
 
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail=f"Rate limit exceeded. Try again in {window} seconds."
+                detail=f"Rate limit exceeded. Try again in {window} seconds.",
             )
 
         # Increment counter
@@ -175,10 +172,7 @@ async def check_rate_limit(
 def payment_security_checks(endpoint_key: str):
     """Combines multiple security checks for payment endpoints"""
 
-    def security_dependency(
-        request: Request,
-        db: AsyncSession = Depends(get_db)
-    ):
+    def security_dependency(request: Request, db: AsyncSession = Depends(get_db)):
         # Run security checks
         check_ip_blacklist(request)
         check_rate_limit(request, endpoint_key, db)
@@ -201,7 +195,7 @@ def log_payment_request(request: Request, endpoint_key: str):
             "path": request.url.path,
             "ip": request.client.host,
             "user_agent": request.headers.get("user-agent", ""),
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
         # Redact sensitive headers
@@ -234,7 +228,7 @@ def verify_payment_signature(provider: str):
     """Verify webhook signature based on provider"""
 
     async def signature_check(request: Request):
-        payload = await request.body()
+        # payload = await request.body()  # Uncomment when implementing verification
         signature = None
 
         if provider.lower() == "paystack":
@@ -249,7 +243,7 @@ def verify_payment_signature(provider: str):
             logger.warning(f"Missing signature in {provider} webhook")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Missing webhook signature"
+                detail="Missing webhook signature",
             )
 
         # In actual implementation, call provider-specific verification
@@ -268,6 +262,6 @@ def requires_payment_admin(current_user=Depends(get_current_active_user)):
     if not current_user.is_superuser and "payment_admin" not in current_user.roles:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Insufficient permissions for payment administration"
+            detail="Insufficient permissions for payment administration",
         )
     return current_user

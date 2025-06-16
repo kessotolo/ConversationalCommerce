@@ -1,25 +1,27 @@
-from typing import List, Optional, Tuple, Dict, Any, AsyncGenerator
-from uuid import UUID
 import os
-from sqlalchemy import and_, or_, desc, func, select, update, text
-from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime, timedelta
 from contextlib import asynccontextmanager
-from tenacity import AsyncRetrying, stop_after_attempt, wait_fixed
-from app.domain.events.order_events import OrderEventFactory
-from app.domain.events.event_bus import EventBus
-import sentry_sdk
-from app.main import order_failures, payment_failures
+from datetime import datetime, timedelta
+from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
+from uuid import UUID
 
-from app.models.order import Order, OrderStatus, OrderSource
+import sentry_sdk
+from sqlalchemy import and_, desc, func, or_, select, text, update
+from sqlalchemy.ext.asyncio import AsyncSession
+from tenacity import AsyncRetrying, stop_after_attempt, wait_fixed
+
+from app.domain.events.event_bus import EventBus
+from app.domain.events.order_events import OrderEventFactory
+from app.main import order_failures, payment_failures
+from app.models.cart import Cart, CartItem
+from app.models.conversation_history import ChannelType
+from app.models.order import Order, OrderSource, OrderStatus
+from app.models.order_channel_meta import OrderChannelMeta
 from app.models.order_item import OrderItem
 from app.models.product import Product
-from app.services.audit_service import create_audit_log, AuditActionType
-from app.models.order_channel_meta import OrderChannelMeta
-from app.models.conversation_history import ChannelType
-# WhatsAppOrderDetails has been replaced by OrderChannelMeta
-from app.schemas.order import OrderCreate, WhatsAppOrderCreate, OrderStatusUpdate
 
+# WhatsAppOrderDetails has been replaced by OrderChannelMeta
+from app.schemas.order import OrderCreate, OrderStatusUpdate, WhatsAppOrderCreate
+from app.services.audit_service import AuditActionType, create_audit_log
 
 """
 Order Management Service
@@ -48,16 +50,19 @@ for compliance and traceability of all significant order events.
 # Custom exceptions
 class OrderError(Exception):
     """Base exception for order-related errors"""
+
     pass
 
 
 class OrderNotFoundError(OrderError):
     """Raised when an order is not found"""
+
     pass
 
 
 class OrderValidationError(OrderError):
     """Raised when order validation fails"""
+
     pass
 
 
@@ -104,11 +109,16 @@ class OrderService:
             raise
 
     async def create_order(self, order_in: OrderCreate, seller_id: UUID) -> Order:
-        items = [{
-            'product_id': order_in.product_id,
-            'price': order_in.total_amount / order_in.quantity,
-            'quantity': order_in.quantity
-        }]
+        """
+        Create a new order using the unified API, requiring and persisting the 'channel' field.
+        """
+        items = [
+            {
+                "product_id": order_in.product_id,
+                "price": order_in.total_amount / order_in.quantity,
+                "quantity": order_in.quantity,
+            }
+        ]
         try:
             order = await self._create_order(
                 product_id=order_in.product_id,
@@ -120,7 +130,7 @@ class OrderService:
                 buyer_email=order_in.buyer_email,
                 buyer_address=order_in.buyer_address,
                 notes=order_in.notes,
-                channel_data={}
+                channel_data={"channel": order_in.channel},
             )
             order_failures.inc()
             return order
@@ -144,73 +154,54 @@ class OrderService:
         message_id: Optional[str] = None,
         conversation_id: Optional[str] = None,
         items: Optional[List[Dict[str, Any]]] = None,
-        channel_data: Optional[Dict[str, Any]] = None
+        channel_data: Optional[Dict[str, Any]] = None,
     ) -> Order:
         """
-        Create a new order with the given details.
-
-        Args:
-            product_id: UUID of the product
-            seller_id: UUID of the seller
-            buyer_name: Name of the buyer
-            buyer_phone: Phone number of the buyer
-            quantity: Quantity of the product (optional)
-            total_amount: Total amount of the order (optional)
-            order_source: Source of the order (default: whatsapp)
-            buyer_email: Email of the buyer (optional)
-            buyer_address: Address of the buyer (optional)
-            notes: Additional notes for the order (optional)
-            whatsapp_number: WhatsApp number for the order (optional)
-            message_id: Message ID for the order (optional)
-            conversation_id: Conversation ID for the order (optional)
-            items: List of order items (optional)
-            channel_data: Channel-specific metadata (optional)
-
-        Returns:
-            Created order
-
-        Raises:
-            OrderNotFoundError: If the product is not found
-            OrderValidationError: If there's a database constraint violation
+        Create a new order with the given details, including channel metadata.
         """
         # Debug: Print out tenant context and product lookup parameters
         # Get current tenant context from DB session
         current_tenant = None
-        from sqlalchemy.exc import ProgrammingError, DBAPIError
+        from sqlalchemy.exc import DBAPIError, ProgrammingError
+
         try:
             tenant_debug_stmt = text("SHOW my.tenant_id")
             tenant_debug_result = await self.db.execute(tenant_debug_stmt)
             current_tenant = tenant_debug_result.scalar_one_or_none()
         except (ProgrammingError, DBAPIError) as e:
             import logging
+
             logging.warning(
-                f"SHOW my.tenant_id failed (likely missing in test DB): {e}")
+                f"SHOW my.tenant_id failed (likely missing in test DB): {e}"
+            )
             # Rollback the session if the transaction is aborted
             try:
                 await self.db.rollback()
             except Exception as rollback_exc:
                 logging.error(
-                    f"Rollback after SHOW my.tenant_id failure also failed: {rollback_exc}")
+                    f"Rollback after SHOW my.tenant_id failure also failed: {rollback_exc}"
+                )
             current_tenant = None
         except Exception as e:
             import logging
+
             logging.warning(f"SHOW my.tenant_id failed (unknown error): {e}")
             try:
                 await self.db.rollback()
             except Exception as rollback_exc:
                 logging.error(
-                    f"Rollback after SHOW my.tenant_id failure also failed: {rollback_exc}")
+                    f"Rollback after SHOW my.tenant_id failure also failed: {rollback_exc}"
+                )
             current_tenant = None
         print(
-            f"DEBUG - OrderService._create_order: Current tenant context is '{current_tenant}'")
-        print(
-            f"DEBUG - Looking up product with id={product_id}, seller_id={seller_id}")
+            f"DEBUG - OrderService._create_order: Current tenant context is '{current_tenant}'"
+        )
+        print(f"DEBUG - Looking up product with id={product_id}, seller_id={seller_id}")
 
         # In test mode, query all products first to debug what's available
-        if os.environ.get('TESTING') == 'true':
+        if os.environ.get("TESTING") == "true":
             print("DEBUG - Test mode: Querying all products")
-            all_products_stmt = select(
-                Product.id, Product.seller_id, Product.tenant_id)
+            all_products_stmt = select(Product.id, Product.seller_id, Product.tenant_id)
             all_products_result = await self.db.execute(all_products_stmt)
             all_products = all_products_result.fetchall()
             print(f"DEBUG - Available products in DB: {all_products}")
@@ -224,7 +215,7 @@ class OrderService:
         stmt = select(Product).where(
             and_(
                 Product.id == product_id,
-                Product.seller_id == seller_id
+                Product.seller_id == seller_id,
                 # Product may need a soft delete feature in the future
             )
         )
@@ -232,14 +223,15 @@ class OrderService:
         product = result.scalar_one_or_none()
 
         # Debug the result
-        print(
-            f"DEBUG - Product lookup result: {'Found' if product else 'Not found'}")
+        print(f"DEBUG - Product lookup result: {'Found' if product else 'Not found'}")
         if product:
             print(
-                f"DEBUG - Found product: id={product.id}, seller_id={product.seller_id}, tenant_id={product.tenant_id}")
+                f"DEBUG - Found product: id={product.id}, seller_id={product.seller_id}, tenant_id={product.tenant_id}"
+            )
 
         if not product:
             import logging
+
             tenant_context = None
             try:
                 tenant_context = await self.db.execute(text("SHOW my.tenant_id"))
@@ -247,19 +239,24 @@ class OrderService:
             except Exception:
                 tenant_context = None
             logging.warning(
-                f"OrderService: Product not found (product_id={product_id}, seller_id={seller_id}, tenant_context={tenant_context})")
+                f"OrderService: Product not found (product_id={product_id}, seller_id={seller_id}, tenant_context={tenant_context})"
+            )
             from fastapi import HTTPException
+
             raise HTTPException(
-                status_code=404, detail=f"Product not found with id={product_id} and seller_id={seller_id}")
+                status_code=404,
+                detail=f"Product not found with id={product_id} and seller_id={seller_id}",
+            )
 
         # Calculate totals from items if provided
         if items:
             # Ensure quantity and total_amount are calculated from items if not provided directly
             if quantity is None:
-                quantity = sum(item.get('quantity', 0) for item in items)
+                quantity = sum(item.get("quantity", 0) for item in items)
             if total_amount is None:
-                total_amount = sum(item.get('price', 0) *
-                                   item.get('quantity', 0) for item in items)
+                total_amount = sum(
+                    item.get("price", 0) * item.get("quantity", 0) for item in items
+                )
 
         order = Order(
             product_id=product_id,
@@ -271,7 +268,7 @@ class OrderService:
             quantity=quantity,
             total_amount=total_amount,
             order_source=order_source,
-            notes=notes
+            notes=notes,
         )
         self.db.add(order)
         await self.db.flush()
@@ -282,10 +279,10 @@ class OrderService:
             for item in items:
                 order_item = OrderItem(
                     order_id=order.id,
-                    product_id=item.get('product_id', product_id),
-                    quantity=item.get('quantity', 1),
-                    price=item.get('price', 0),
-                    subtotal=item.get('price', 0) * item.get('quantity', 1)
+                    product_id=item.get("product_id", product_id),
+                    quantity=item.get("quantity", 1),
+                    price=item.get("price", 0),
+                    subtotal=item.get("price", 0) * item.get("quantity", 1),
                 )
                 self.db.add(order_item)
                 order_items.append(order_item)
@@ -296,23 +293,29 @@ class OrderService:
         if channel_data:
             channel_meta = OrderChannelMeta(
                 order_id=order.id,
-                channel=ChannelType.whatsapp if order_source == OrderSource.whatsapp else ChannelType.other,
-                message_id=channel_data.get('message_id'),
-                chat_session_id=channel_data.get('conversation_id'),
-                user_response_log=channel_data.get('whatsapp_number'),
-                metadata=channel_data
+                channel=(
+                    ChannelType.whatsapp
+                    if order_source == OrderSource.whatsapp
+                    else ChannelType.other
+                ),
+                message_id=channel_data.get("message_id"),
+                chat_session_id=channel_data.get("conversation_id"),
+                user_response_log=channel_data.get("whatsapp_number"),
+                metadata=channel_data,
             )
             self.db.add(channel_meta)
             await self.db.flush()
             order.channel_metadata = [channel_meta]
         # Fall back to the individual parameters if channel_data is not provided
-        elif order_source == OrderSource.whatsapp and (whatsapp_number or message_id or conversation_id):
+        elif order_source == OrderSource.whatsapp and (
+            whatsapp_number or message_id or conversation_id
+        ):
             channel_meta = OrderChannelMeta(
                 order_id=order.id,
                 channel=ChannelType.whatsapp,
                 message_id=message_id,
                 chat_session_id=conversation_id,
-                user_response_log=whatsapp_number
+                user_response_log=whatsapp_number,
             )
             self.db.add(channel_meta)
             await self.db.flush()
@@ -325,11 +328,15 @@ class OrderService:
             action=AuditActionType.CREATE,
             resource_type="Order",
             resource_id=str(order.id),
-            details=f"Created order for product {product_id}"
+            details=f"Created order for product {product_id}",
         )
+        await self.db.commit()
+        await self.db.refresh(order)
         return order
 
-    async def validate_order(self, product_id: UUID, seller_id: UUID, quantity: int, items: list) -> None:
+    async def validate_order(
+        self, product_id: UUID, seller_id: UUID, quantity: int, items: list
+    ) -> None:
         """
         Validate order fields, stock, and pricing. Raises OrderValidationError if validation fails.
         """
@@ -338,26 +345,30 @@ class OrderService:
         if quantity <= 0:
             raise OrderValidationError("Quantity must be positive.")
         for item in items:
-            if item.get('quantity', 0) <= 0:
-                raise OrderValidationError(
-                    "Each item quantity must be positive.")
-            if item.get('price', 0) < 0:
+            if item.get("quantity", 0) <= 0:
+                raise OrderValidationError("Each item quantity must be positive.")
+            if item.get("price", 0) < 0:
                 raise OrderValidationError("Item price must be non-negative.")
         product = await self.db.execute(
             select(Product).where(
-                Product.id == product_id,
-                Product.is_deleted.is_(False)
+                Product.id == product_id, Product.is_deleted.is_(False)
             )
         )
         product = product.scalar_one_or_none()
         if not product:
             raise OrderValidationError("Product not found.")
-        if hasattr(product, 'inventory_quantity') and product.inventory_quantity is not None:
+        if (
+            hasattr(product, "inventory_quantity")
+            and product.inventory_quantity is not None
+        ):
             if product.inventory_quantity < quantity:
                 raise OrderValidationError(
-                    f"Insufficient stock for product {product.id}.")
+                    f"Insufficient stock for product {product.id}."
+                )
 
-    def calculate_totals(self, items: list, shipping_cost: float = 500, tax_rate: float = 0.16) -> dict:
+    def calculate_totals(
+        self, items: list, shipping_cost: float = 500, tax_rate: float = 0.16
+    ) -> dict:
         """
         Calculate subtotal, tax, shipping, and total for the order.
         Args:
@@ -367,29 +378,33 @@ class OrderService:
         Returns:
             dict: subtotal, tax_amount, shipping_cost, total_amount
         """
-        subtotal = sum(item.get('price', 0) * item.get('quantity', 0)
-                       for item in items)
+        subtotal = sum(item.get("price", 0) * item.get("quantity", 0) for item in items)
         tax_amount = subtotal * tax_rate
         total_amount = subtotal + shipping_cost + tax_amount
         return {
-            'subtotal': subtotal,
-            'tax_amount': tax_amount,
-            'shipping_cost': shipping_cost,
-            'total_amount': total_amount
+            "subtotal": subtotal,
+            "tax_amount": tax_amount,
+            "shipping_cost": shipping_cost,
+            "total_amount": total_amount,
         }
 
     async def assign_channel_metadata(self, order: Order, channel_data: dict) -> None:
         """
         Assign channel-specific metadata (WhatsApp, Instagram, SMS, etc.) to the order.
         """
-        if channel_data.get('whatsapp_number') or channel_data.get('message_id') or channel_data.get('conversation_id'):
+        if (
+            channel_data.get("whatsapp_number")
+            or channel_data.get("message_id")
+            or channel_data.get("conversation_id")
+        ):
             channel_meta = OrderChannelMeta(
                 order_id=order.id,
                 channel=ChannelType.whatsapp,
-                message_id=channel_data.get('message_id'),
-                chat_session_id=channel_data.get('conversation_id'),
+                message_id=channel_data.get("message_id"),
+                chat_session_id=channel_data.get("conversation_id"),
                 user_response_log=channel_data.get(
-                    'whatsapp_number')  # Store phone number
+                    "whatsapp_number"
+                ),  # Store phone number
             )
             self.db.add(channel_meta)
             await self.db.flush()
@@ -400,54 +415,31 @@ class OrderService:
         Process payment for the order using PaymentService. Updates order/payment status.
         """
         from app.services.payment.payment_service import PaymentService
+
         payment_service = PaymentService(self.db)
         try:
             payment_response = await payment_service.initialize_payment(payment_data)
-            if not payment_response or not getattr(payment_response, 'success', True):
-                raise OrderValidationError(
-                    "Payment failed or was not successful.")
+            if not payment_response or not getattr(payment_response, "success", True):
+                raise OrderValidationError("Payment failed or was not successful.")
 
             # Use the centralized status update method to ensure events are emitted
             await self._update_order_status(
-                order_id=order.id,
-                seller_id=order.seller_id,
-                status=OrderStatus.PAID
+                order_id=order.id, seller_id=order.seller_id, status=OrderStatus.PAID
             )
         except Exception as e:
             sentry_sdk.capture_exception(e)
             raise
 
-    async def create_order(self, order_in: OrderCreate, seller_id: UUID) -> Order:
-        items = [{
-            'product_id': order_in.product_id,
-            'price': order_in.total_amount / order_in.quantity,
-            'quantity': order_in.quantity
-        }]
-        try:
-            order = await self._create_order(
-                product_id=order_in.product_id,
-                seller_id=seller_id,
-                buyer_name=order_in.buyer_name,
-                buyer_phone=order_in.buyer_phone,
-                items=items,
-                order_source=order_in.order_source,
-                buyer_email=order_in.buyer_email,
-                buyer_address=order_in.buyer_address,
-                notes=order_in.notes,
-                channel_data={}
-            )
-            order_failures.inc()
-            return order
-        except Exception as e:
-            sentry_sdk.capture_exception(e)
-            raise
-
-    async def create_whatsapp_order(self, order_in: WhatsAppOrderCreate, seller_id: UUID) -> Order:
-        items = [{
-            'product_id': order_in.product_id,
-            'price': order_in.total_amount / order_in.quantity,
-            'quantity': order_in.quantity
-        }]
+    async def create_whatsapp_order(
+        self, order_in: WhatsAppOrderCreate, seller_id: UUID
+    ) -> Order:
+        items = [
+            {
+                "product_id": order_in.product_id,
+                "price": order_in.total_amount / order_in.quantity,
+                "quantity": order_in.quantity,
+            }
+        ]
         return await self._create_order(
             product_id=order_in.product_id,
             seller_id=seller_id,
@@ -459,18 +451,17 @@ class OrderService:
             buyer_address=order_in.buyer_address,
             notes=order_in.notes,
             channel_data={
-                'whatsapp_number': order_in.whatsapp_number,
-                'message_id': order_in.message_id,
-                'conversation_id': order_in.conversation_id
-            }
+                "whatsapp_number": order_in.whatsapp_number,
+                "message_id": order_in.message_id,
+                "conversation_id": order_in.conversation_id,
+            },
         )
 
-    async def get_order(self, order_id: UUID, seller_id: UUID = None) -> Optional[Order]:
+    async def get_order(
+        self, order_id: UUID, seller_id: UUID = None
+    ) -> Optional[Order]:
         result = await self.db.execute(
-            select(Order).where(
-                Order.id == order_id,
-                Order.is_deleted.is_(False)
-            )
+            select(Order).where(Order.id == order_id, Order.is_deleted.is_(False))
         )
         return result.scalar_one_or_none()
 
@@ -483,7 +474,7 @@ class OrderService:
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
         limit: int = 100,
-        offset: int = 0
+        offset: int = 0,
     ) -> Tuple[List[Order], int]:
         query = select(Order).where(Order.is_deleted.is_(False))
         if status:
@@ -496,27 +487,28 @@ class OrderService:
                 or_(
                     Order.buyer_name.ilike(search_term),
                     Order.buyer_phone.ilike(search_term),
-                    Order.buyer_email.ilike(search_term)
+                    Order.buyer_email.ilike(search_term),
                 )
             )
         if start_date:
             query = query.where(Order.created_at >= start_date)
         if end_date:
             query = query.where(Order.created_at <= end_date)
-        query = query.order_by(desc(Order.created_at)
-                               ).offset(offset).limit(limit)
+        query = query.order_by(desc(Order.created_at)).offset(offset).limit(limit)
         result = await self.db.execute(query)
         orders = result.scalars().all()
         total_count = len(orders)  # For async, count separately if needed
         return orders, total_count
 
-    async def update_order_status(self, order_id: UUID, status_update: OrderStatusUpdate, seller_id: UUID) -> Optional[Order]:
+    async def update_order_status(
+        self, order_id: UUID, status_update: OrderStatusUpdate, seller_id: UUID
+    ) -> Optional[Order]:
         return await self._update_order_status(
             order_id=order_id,
             seller_id=seller_id,
             status=status_update.status,
             tracking_number=status_update.tracking_number,
-            shipping_carrier=status_update.shipping_carrier
+            shipping_carrier=status_update.shipping_carrier,
         )
 
     async def _update_order_status(
@@ -525,7 +517,7 @@ class OrderService:
         seller_id: UUID,
         status: OrderStatus,
         tracking_number: Optional[str] = None,
-        shipping_carrier: Optional[str] = None
+        shipping_carrier: Optional[str] = None,
     ) -> Optional[Order]:
         """
         Update the status of an order with comprehensive business rule validation and event emission.
@@ -568,14 +560,15 @@ class OrderService:
             proper validation, event emission, and audit logging.
         """
         # Try up to 3 times with retries for optimistic locking conflicts
-        async for attempt in AsyncRetrying(stop=stop_after_attempt(3), wait=wait_fixed(0.5)):
+        async for attempt in AsyncRetrying(
+            stop=stop_after_attempt(3), wait=wait_fixed(0.5)
+        ):
             with attempt:
                 async with self.db.begin():
                     # Get the current order with a lock for update
                     order = await self.get_order(order_id)
                     if not order:
-                        raise OrderNotFoundError(
-                            f"Order with ID {order_id} not found")
+                        raise OrderNotFoundError(f"Order with ID {order_id} not found")
 
                     # Store values for event emission
                     previous_status = order.status
@@ -602,7 +595,7 @@ class OrderService:
                     update_values = {
                         "status": status,
                         "updated_at": datetime.utcnow(),
-                        "version": current_version + 1
+                        "version": current_version + 1,
                     }
 
                     # Add tracking info if provided
@@ -614,10 +607,7 @@ class OrderService:
                     # Execute update with optimistic locking
                     result = await self.db.execute(
                         update(Order)
-                        .where(
-                            Order.id == order_id,
-                            Order.version == current_version
-                        )
+                        .where(Order.id == order_id, Order.version == current_version)
                         .values(**update_values)
                     )
 
@@ -635,7 +625,7 @@ class OrderService:
                         action=AuditActionType.UPDATE,
                         resource_type="Order",
                         resource_id=str(order_id),
-                        details=f"Updated order status from {previous_status.value} to {status.value}"
+                        details=f"Updated order status from {previous_status.value} to {status.value}",
                     )
 
                     # Get updated order to return and use for event emission
@@ -646,11 +636,14 @@ class OrderService:
                     event = event_factory.create_status_changed_event(
                         order=updated_order,
                         previous_status=previous_status,
-                        current_status=status
+                        current_status=status,
                     )
 
                     # Special events for specific transitions
-                    if previous_status == OrderStatus.PENDING and status == OrderStatus.PAID:
+                    if (
+                        previous_status == OrderStatus.PENDING
+                        and status == OrderStatus.PAID
+                    ):
                         payment_event = event_factory.create_payment_processed_event(
                             order=updated_order
                         )
@@ -667,8 +660,8 @@ class OrderService:
                             order=updated_order,
                             tracking_info={
                                 "tracking_number": tracking_number,
-                                "carrier": shipping_carrier
-                            }
+                                "carrier": shipping_carrier,
+                            },
                         )
                         await EventBus().publish(shipped_event)
 
@@ -683,7 +676,9 @@ class OrderService:
 
                     return updated_order
 
-    def _is_valid_transition(self, current_status: OrderStatus, new_status: OrderStatus) -> bool:
+    def _is_valid_transition(
+        self, current_status: OrderStatus, new_status: OrderStatus
+    ) -> bool:
         """
         Validate if a status transition is allowed based on business rules.
 
@@ -701,23 +696,23 @@ class OrderService:
         # Define valid transitions for each status
         valid_transitions = {
             OrderStatus.PENDING: [OrderStatus.PAID, OrderStatus.CANCELLED],
-            OrderStatus.PAID: [OrderStatus.PROCESSING, OrderStatus.CANCELLED, OrderStatus.REFUNDED],
+            OrderStatus.PAID: [
+                OrderStatus.PROCESSING,
+                OrderStatus.CANCELLED,
+                OrderStatus.REFUNDED,
+            ],
             OrderStatus.PROCESSING: [OrderStatus.SHIPPED, OrderStatus.CANCELLED],
             OrderStatus.SHIPPED: [OrderStatus.DELIVERED, OrderStatus.RETURNED],
             OrderStatus.DELIVERED: [OrderStatus.RETURNED],
             # Terminal states cannot transition except to themselves (handled above)
             OrderStatus.CANCELLED: [],
             OrderStatus.REFUNDED: [],
-            OrderStatus.RETURNED: []
+            OrderStatus.RETURNED: [],
         }
 
         return new_status in valid_transitions.get(current_status, [])
 
-    async def delete_order(
-        self,
-        order_id: UUID,
-        seller_id: UUID
-    ) -> bool:
+    async def delete_order(self, order_id: UUID, seller_id: UUID) -> bool:
         """
         Soft delete an order by marking it as deleted rather than removing from database.
 
@@ -739,7 +734,9 @@ class OrderService:
             OrderNotFoundError: If order doesn't exist or doesn't belong to the seller
             OrderValidationError: If the order cannot be deleted due to its current status
         """
-        async for attempt in AsyncRetrying(stop=stop_after_attempt(3), wait=wait_fixed(0.5)):
+        async for attempt in AsyncRetrying(
+            stop=stop_after_attempt(3), wait=wait_fixed(0.5)
+        ):
             with attempt:
                 async with self.db.begin():
                     order = await self.get_order(order_id)
@@ -748,14 +745,11 @@ class OrderService:
                     current_version = order.version
                     result = await self.db.execute(
                         update(Order)
-                        .where(
-                            Order.id == order_id,
-                            Order.version == current_version
-                        )
+                        .where(Order.id == order_id, Order.version == current_version)
                         .values(
                             is_deleted=True,
                             updated_at=datetime.utcnow(),
-                            version=current_version + 1
+                            version=current_version + 1,
                         )
                     )
                     if result.rowcount == 0:
@@ -768,14 +762,12 @@ class OrderService:
                         action=AuditActionType.DELETE,
                         resource_type="Order",
                         resource_id=str(order_id),
-                        details="Soft deleted order"
+                        details="Soft deleted order",
                     )
         return True
 
     def get_seller_dashboard_stats(
-        self,
-        seller_id: UUID,
-        days: int = 30
+        self, seller_id: UUID, days: int = 30
     ) -> Dict[str, Any]:
         """
         Calculate comprehensive dashboard statistics for a seller's business performance.
@@ -810,60 +802,65 @@ class OrderService:
         # Get total orders and total revenue
         orders_query = self.db.query(
             func.count(Order.id).label("total_orders"),
-            func.sum(Order.total_amount).label("total_revenue")
+            func.sum(Order.total_amount).label("total_revenue"),
         ).filter(
             and_(
                 Order.seller_id == seller_id,
                 Order.is_deleted.is_(False),
-                Order.created_at >= start_date
+                Order.created_at >= start_date,
             )
         )
 
         orders_result = orders_query.first()
 
         # Get orders by status
-        status_counts = self.db.query(
-            Order.status,
-            func.count(Order.id)
-        ).filter(
-            and_(
-                Order.seller_id == seller_id,
-                Order.is_deleted.is_(False),
-                Order.created_at >= start_date
+        status_counts = (
+            self.db.query(Order.status, func.count(Order.id))
+            .filter(
+                and_(
+                    Order.seller_id == seller_id,
+                    Order.is_deleted.is_(False),
+                    Order.created_at >= start_date,
+                )
             )
-        ).group_by(Order.status).all()
+            .group_by(Order.status)
+            .all()
+        )
 
         # Get orders by source
-        source_counts = self.db.query(
-            Order.order_source,
-            func.count(Order.id)
-        ).filter(
-            and_(
-                Order.seller_id == seller_id,
-                Order.is_deleted.is_(False),
-                Order.created_at >= start_date
+        source_counts = (
+            self.db.query(Order.order_source, func.count(Order.id))
+            .filter(
+                and_(
+                    Order.seller_id == seller_id,
+                    Order.is_deleted.is_(False),
+                    Order.created_at >= start_date,
+                )
             )
-        ).group_by(Order.order_source).all()
+            .group_by(Order.order_source)
+            .all()
+        )
 
         # Get top products
-        top_products_query = self.db.query(
-            Product.id,
-            Product.name,
-            func.count(Order.id).label("order_count"),
-            func.sum(Order.total_amount).label("total_revenue")
-        ).join(
-            Order, Order.product_id == Product.id
-        ).filter(
-            and_(
-                Order.seller_id == seller_id,
-                Order.is_deleted.is_(False),
-                Order.created_at >= start_date
+        top_products_query = (
+            self.db.query(
+                Product.id,
+                Product.name,
+                func.count(Order.id).label("order_count"),
+                func.sum(Order.total_amount).label("total_revenue"),
             )
-        ).group_by(
-            Product.id, Product.name
-        ).order_by(
-            desc("order_count")
-        ).limit(5)
+            .join(Order, Order.product_id == Product.id)
+            .filter(
+                and_(
+                    Order.seller_id == seller_id,
+                    Order.is_deleted.is_(False),
+                    Order.created_at >= start_date,
+                )
+            )
+            .group_by(Product.id, Product.name)
+            .order_by(desc("order_count"))
+            .limit(5)
+        )
 
         top_products = top_products_query.all()
 
@@ -871,27 +868,27 @@ class OrderService:
         stats = {
             "total_orders": orders_result.total_orders or 0,
             "total_revenue": float(orders_result.total_revenue or 0),
-            "orders_by_status": {status.value: count for status, count in status_counts},
-            "orders_by_source": {source.value: count for source, count in source_counts},
+            "orders_by_status": {
+                status.value: count for status, count in status_counts
+            },
+            "orders_by_source": {
+                source.value: count for source, count in source_counts
+            },
             "top_products": [
                 {
                     "id": str(product.id),
                     "name": product.name,
                     "order_count": product.order_count,
-                    "revenue": float(product.total_revenue or 0)
+                    "revenue": float(product.total_revenue or 0),
                 }
                 for product in top_products
             ],
-            "time_period_days": days
+            "time_period_days": days,
         }
 
         return stats
 
-    def mark_notification_sent(
-        self,
-        order_id: UUID,
-        seller_id: UUID
-    ) -> bool:
+    def mark_notification_sent(self, order_id: UUID, seller_id: UUID) -> bool:
         """
         Mark an order as having had notifications sent to prevent duplicate notifications.
 
@@ -927,13 +924,13 @@ class OrderService:
                 and_(
                     Order.id == order_id,
                     Order.seller_id == seller_id,
-                    Order.version == current_version
+                    Order.version == current_version,
                 )
             )
             .values(
                 notification_sent=True,
                 updated_at=datetime.utcnow(),
-                version=current_version + 1
+                version=current_version + 1,
             )
         )
 
@@ -944,16 +941,72 @@ class OrderService:
         self.db.commit()
         return True
 
-    async def get_order_by_number(self, order_number: str, seller_id: UUID = None) -> Optional[Order]:
+    async def get_order_by_number(
+        self, order_number: str, seller_id: UUID = None
+    ) -> Optional[Order]:
         result = await self.db.execute(
             select(Order).where(
-                Order.order_number == order_number,
-                Order.is_deleted.is_(False)
+                Order.order_number == order_number, Order.is_deleted.is_(False)
             )
         )
         return result.scalar_one_or_none()
 
+    def create_order_from_chat(
+        self, chat_data: dict, tenant_id: str, phone_number: str
+    ):
+        """
+        Create an order from chat-collected data using the user's cart.
+        Fetches the cart by phone_number and tenant_id, uses all items, and clears the cart after order creation.
+        """
+        import logging
+
+        from app.models.order import Order, OrderSource
+
+        # Fetch the user's cart
+        cart = (
+            self.db.query(Cart)
+            .filter_by(tenant_id=tenant_id, phone_number=phone_number)
+            .first()
+        )
+        if not cart or not cart.items:
+            logging.error(
+                f"No items in cart for phone {phone_number} and tenant {tenant_id}"
+            )
+            raise Exception("No items in cart.")
+        # Prepare order items and totals
+        items = []
+        total_amount = 0
+        for item in cart.items:
+            items.append(
+                {
+                    "product_id": item.product_id,
+                    "quantity": item.quantity,
+                    "price": float(item.price_at_add),
+                }
+            )
+            total_amount += float(item.price_at_add) * item.quantity
+        # Create the order
+        order = Order(
+            product_id=items[0]["product_id"],
+            seller_id=cart.tenant_id,  # Or use a mapping if needed
+            buyer_name=chat_data.get("name"),
+            buyer_phone=chat_data.get("phone", phone_number),
+            buyer_address=chat_data.get("address"),
+            quantity=sum(i["quantity"] for i in items),
+            total_amount=total_amount,
+            order_source=OrderSource.whatsapp,
+            status="pending",
+        )
+        self.db.add(order)
+        self.db.commit()
+        self.db.refresh(order)
+        # Clear the cart
+        for item in cart.items:
+            self.db.delete(item)
+        self.db.delete(cart)
+        self.db.commit()
+        return order
+
 
 # Export only the class and exceptions
-__all__ = ["OrderService", "OrderError",
-           "OrderNotFoundError", "OrderValidationError"]
+__all__ = ["OrderService", "OrderError", "OrderNotFoundError", "OrderValidationError"]

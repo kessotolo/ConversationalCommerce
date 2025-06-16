@@ -1,5 +1,5 @@
 import asyncio
-from typing import Callable, Any, Tuple, Type
+from typing import Any, Callable, Tuple, Type
 
 
 async def with_retry(

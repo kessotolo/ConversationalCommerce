@@ -1,7 +1,8 @@
-from pydantic_settings import BaseSettings
-from functools import lru_cache
-from pydantic import ConfigDict
 import os
+from functools import lru_cache
+
+from pydantic import ConfigDict
+from pydantic_settings import BaseSettings
 
 
 class TestSettings(BaseSettings):
@@ -12,8 +13,12 @@ class TestSettings(BaseSettings):
     POSTGRES_DB: str = "conversational_commerce_test"
 
     # Explicitly set both sync and async URLs
-    DATABASE_URL: str = f"postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}/{POSTGRES_DB}"
-    DATABASE_URL_SYNC: str = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}/{POSTGRES_DB}"
+    DATABASE_URL: str = (
+        f"postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}/{POSTGRES_DB}"
+    )
+    DATABASE_URL_SYNC: str = (
+        f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}/{POSTGRES_DB}"
+    )
 
     # Override any other settings needed for testing
     API_V1_STR: str = "/api/v1"
@@ -27,7 +32,7 @@ class TestSettings(BaseSettings):
     model_config = ConfigDict(
         case_sensitive=True,
         env_file=".env.test",
-        extra="ignore"  # Ignore extra fields like TEST_DATABASE_URL in environment
+        extra="ignore",  # Ignore extra fields like TEST_DATABASE_URL in environment
     )
 
     def __init__(self, **kwargs):
@@ -39,7 +44,8 @@ class TestSettings(BaseSettings):
             # Also update sync URL if it's an async URL
             if test_db_url.startswith("postgresql+asyncpg"):
                 self.DATABASE_URL_SYNC = test_db_url.replace(
-                    "postgresql+asyncpg", "postgresql")
+                    "postgresql+asyncpg", "postgresql"
+                )
 
 
 @lru_cache()

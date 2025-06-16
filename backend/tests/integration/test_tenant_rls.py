@@ -2,6 +2,7 @@
 Integration tests for tenant Row-Level Security (RLS) implementation.
 Tests that tenant isolation is correctly enforced at the database level.
 """
+
 import pytest
 import uuid
 from sqlalchemy.orm import Session
@@ -23,14 +24,8 @@ def db():
 
 def test_create_tenants(db: Session):
     """Test creating two separate tenants."""
-    tenant1 = Tenant(
-        name="Tenant One",
-        subdomain=f"tenant-one-{uuid.uuid4()}"
-    )
-    tenant2 = Tenant(
-        name="Tenant Two",
-        subdomain=f"tenant-two-{uuid.uuid4()}"
-    )
+    tenant1 = Tenant(name="Tenant One", subdomain=f"tenant-one-{uuid.uuid4()}")
+    tenant2 = Tenant(name="Tenant Two", subdomain=f"tenant-two-{uuid.uuid4()}")
 
     db.add(tenant1)
     db.add(tenant2)
@@ -51,18 +46,14 @@ def test_tenant_isolation(db: Session):
     tenant1_id, tenant2_id = test_create_tenants(db)
 
     # Create a user in tenant 1
-    user1 = User(
-        email="user1@tenant1.com"
-    )
+    user1 = User(email="user1@tenant1.com")
     user1.tenant_id = tenant1_id
     db.add(user1)
     db.commit()
     db.refresh(user1)
 
     # Create a user in tenant 2
-    user2 = User(
-        email="user2@tenant2.com"
-    )
+    user2 = User(email="user2@tenant2.com")
     user2.tenant_id = tenant2_id
     db.add(user2)
     db.commit()
@@ -73,7 +64,7 @@ def test_tenant_isolation(db: Session):
         name="Tenant 1 Product",
         description="Test product for tenant 1",
         price=10.0,
-        seller_id=user1.id
+        seller_id=user1.id,
     )
     product1.tenant_id = tenant1_id
     db.add(product1)
@@ -85,7 +76,7 @@ def test_tenant_isolation(db: Session):
         name="Tenant 2 Product",
         description="Test product for tenant 2",
         price=20.0,
-        seller_id=user2.id
+        seller_id=user2.id,
     )
     product2.tenant_id = tenant2_id
     db.add(product2)

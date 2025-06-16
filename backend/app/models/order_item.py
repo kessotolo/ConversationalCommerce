@@ -1,8 +1,10 @@
-from sqlalchemy import Column, String, Integer, Float, ForeignKey, UUID
-from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
-from app.db import Base
 import uuid
+
+from sqlalchemy import UUID, Column, Float, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+
+from app.db import Base
 
 
 class OrderItem(Base):
@@ -11,6 +13,7 @@ class OrderItem(Base):
     This model matches the relationship used in the order_service.py
     and creates the appropriate database structure.
     """
+
     __tablename__ = "order_items"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -19,7 +22,7 @@ class OrderItem(Base):
     quantity = Column(Integer, nullable=False, default=1)
     price = Column(Float, nullable=False)
     subtotal = Column(Float, nullable=False)
-    
+
     # Relationships
     order = relationship("Order", back_populates="items")
     product = relationship("Product")

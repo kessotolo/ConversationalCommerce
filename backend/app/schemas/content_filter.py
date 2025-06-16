@@ -1,6 +1,7 @@
-from typing import Optional, Dict, Any
-from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
+from typing import Any, Dict, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ContentFilterRuleBase(BaseModel):
@@ -64,5 +65,4 @@ class ContentAnalysisResultResponse(ContentAnalysisResultBase):
 
 
 class ContentReviewUpdate(BaseModel):
-    status: str = Field(...,
-                        description="New review status (approved/rejected)")
+    status: str = Field(..., description="New review status (approved/rejected)")

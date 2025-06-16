@@ -1,22 +1,31 @@
 from typing import List, Optional
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+
 from app.api import deps
+from app.api.auth import ClerkTokenData, require_auth
 from app.schemas.complaint import (
     ComplaintCreate,
-    ComplaintUpdate,
     ComplaintEscalate,
-    ComplaintResponse
+    ComplaintResponse,
+    ComplaintUpdate,
 )
 from app.services.complaint_service import complaint_service
-from uuid import UUID
-from app.services.exceptions import ComplaintNotFoundError, ComplaintPermissionError, ComplaintValidationError, DatabaseError
-from app.api.auth import ClerkTokenData, require_auth
+from app.services.exceptions import (
+    ComplaintNotFoundError,
+    ComplaintPermissionError,
+    ComplaintValidationError,
+    DatabaseError,
+)
 
 router = APIRouter()
 
 
-@router.post("/complaints", response_model=ComplaintResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/complaints", response_model=ComplaintResponse, status_code=status.HTTP_201_CREATED
+)
 def create_complaint(
     *,
     db: Session = Depends(deps.get_db),
@@ -24,7 +33,8 @@ def create_complaint(
     current_user=Depends(deps.get_current_user)
 ):
     complaint = complaint_service.create_complaint(
-        db, current_user.tenant_id, current_user.id, complaint_in)
+        db, current_user.tenant_id, current_user.id, complaint_in
+    )
     return complaint
 
 
@@ -38,7 +48,8 @@ def list_complaints(
     current_user=Depends(deps.get_current_user)
 ):
     complaints = complaint_service.list_complaints(
-        db, current_user.tenant_id, status, tier, type)
+        db, current_user.tenant_id, status, tier, type
+    )
     return complaints
 
 
@@ -50,7 +61,8 @@ def get_complaint(
     current_user=Depends(deps.get_current_user)
 ):
     complaint = complaint_service.get_complaint(
-        db, current_user.tenant_id, complaint_id)
+        db, current_user.tenant_id, complaint_id
+    )
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")
     return complaint
@@ -67,7 +79,9 @@ async def update_complaint(
     Update a complaint by its ID. Only the owner or admin can update.
     """
     try:
-        complaint = await complaint_service.update_complaint(db, complaint_id, complaint_update)
+        complaint = await complaint_service.update_complaint(
+            db, complaint_id, complaint_update
+        )
         return complaint
     except ComplaintNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -88,7 +102,8 @@ def escalate_complaint(
     current_user=Depends(deps.get_current_user)
 ):
     complaint = complaint_service.escalate_complaint(
-        db, current_user.tenant_id, complaint_id, escalation)
+        db, current_user.tenant_id, complaint_id, escalation
+    )
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")
     return complaint
@@ -103,7 +118,8 @@ def resolve_complaint(
     current_user=Depends(deps.get_current_user)
 ):
     complaint = complaint_service.resolve_complaint(
-        db, current_user.tenant_id, complaint_id, resolution)
+        db, current_user.tenant_id, complaint_id, resolution
+    )
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")
     return complaint

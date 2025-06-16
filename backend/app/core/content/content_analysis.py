@@ -1,30 +1,32 @@
-from typing import Dict, Any, List, Optional
-import re
-import os
 import logging
+import os
+import re
+from typing import Any, Dict, List, Optional
 from unittest.mock import MagicMock
-from textblob import TextBlob
+
 import nltk
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
 import spacy
-from app.db.session import get_async_session_local
-from app.models.content_filter import ContentFilterRule, ContentAnalysisResult
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from textblob import TextBlob
+
 from app.core.notifications.notification_service import (
     Notification,
-    NotificationPriority,
     NotificationChannel,
-    notification_service
+    NotificationPriority,
+    notification_service,
 )
+from app.db.session import get_async_session_local
+from app.models.content_filter import ContentAnalysisResult, ContentFilterRule
 
 # Skip heavy downloads in test mode
-IS_TESTING = os.environ.get('TESTING', 'false').lower() == 'true'
+IS_TESTING = os.environ.get("TESTING", "false").lower() == "true"
 
 # Download required NLTK data only if not in testing mode
 if not IS_TESTING:
-    nltk.download('punkt')
-    nltk.download('stopwords')
-    nltk.download('averaged_perceptron_tagger')
+    nltk.download("punkt")
+    nltk.download("stopwords")
+    nltk.download("averaged_perceptron_tagger")
 
 # Conditionally import Detoxify (very heavy model - 418MB)
 if IS_TESTING:
@@ -32,7 +34,7 @@ if IS_TESTING:
     class MockDetoxify(MagicMock):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
-        
+
         def predict(self, text):
             return {
                 "toxicity": 0.01,
@@ -41,9 +43,9 @@ if IS_TESTING:
                 "identity_attack": 0.01,
                 "insult": 0.01,
                 "threat": 0.01,
-                "sexual_explicit": 0.01
+                "sexual_explicit": 0.01,
             }
-    
+
     # Use the mock instead of importing the real Detoxify
     Detoxify = MockDetoxify
     logging.info("Using MockDetoxify for testing")
@@ -51,13 +53,16 @@ else:
     try:
         # Only import the heavy model in production
         from detoxify import Detoxify
+
         logging.info("Imported Detoxify successfully")
     except ImportError:
         logging.error("Failed to import Detoxify; toxicity analysis will be limited")
+
         # Fallback mock if import fails
         class FallbackDetoxify(MagicMock):
             def predict(self, text):
                 return {"toxicity": 0.5}
+
         Detoxify = FallbackDetoxify
 
 # SpaCy model initialization with proper error handling
@@ -69,7 +74,7 @@ def initialize_spacy():
     if IS_TESTING:
         logging.info("TESTING mode: Returning dummy spaCy model")
         return MagicMock()
-        
+
     try:
         # Try to load the model directly
         nlp = spacy.load("en_core_web_sm")
@@ -77,7 +82,8 @@ def initialize_spacy():
         return nlp
     except OSError:
         logging.warning(
-            "SpaCy model 'en_core_web_sm' not found. Attempting to download...")
+            "SpaCy model 'en_core_web_sm' not found. Attempting to download..."
+        )
         try:
             # Try to download the model - proper way using Python API instead of CLI
             import subprocess
@@ -87,7 +93,7 @@ def initialize_spacy():
             result = subprocess.run(
                 [sys.executable, "-m", "spacy", "download", "en_core_web_sm"],
                 capture_output=True,
-                text=True
+                text=True,
             )
 
             if result.returncode == 0:
@@ -96,11 +102,9 @@ def initialize_spacy():
                 logging.info("Successfully loaded spaCy model after download")
                 return nlp
             else:
-                logging.error(
-                    f"Failed to download spaCy model: {result.stderr}")
+                logging.error(f"Failed to download spaCy model: {result.stderr}")
         except Exception as download_error:
-            logging.error(
-                f"Error during spaCy model download: {str(download_error)}")
+            logging.error(f"Error during spaCy model download: {str(download_error)}")
     except Exception as e:
         logging.error(f"Unknown error loading spaCy model: {str(e)}")
 
@@ -124,11 +128,13 @@ detoxify_model = None
 if not IS_TESTING:
     try:
         from detoxify import Detoxify
-        detoxify_model = Detoxify('original')
+
+        detoxify_model = Detoxify("original")
         logging.info("Loaded Detoxify model successfully")
     except Exception as e:
         logging.warning(
-            f"Detoxify not loaded properly. Toxicity detection will be disabled. Error: {e}")
+            f"Detoxify not loaded properly. Toxicity detection will be disabled. Error: {e}"
+        )
 else:
     # In testing mode, use our mock
     detoxify_model = MockDetoxify()
@@ -137,7 +143,7 @@ else:
 
 class ContentAnalysisService:
     def __init__(self):
-        self.stop_words = set(stopwords.words('english'))
+        self.stop_words = set(stopwords.words("english"))
 
     async def analyze_content(
         self,
@@ -146,7 +152,7 @@ class ContentAnalysisService:
         content_id: str,
         field: str,
         content: str,
-        rules: Optional[List[ContentFilterRule]] = None
+        rules: Optional[List[ContentFilterRule]] = None,
     ) -> List[ContentAnalysisResult]:
         """Analyze content against filter rules and return results"""
         if not rules:
@@ -162,12 +168,14 @@ class ContentAnalysisService:
                 results.append(analysis_result)
 
                 # Create notification if content is flagged or rejected
-                if analysis_result.status in ['flagged', 'rejected']:
+                if analysis_result.status in ["flagged", "rejected"]:
                     await self._create_notification(analysis_result)
 
         return results
 
-    async def _get_rules(self, tenant_id: str, content_type: str) -> List[ContentFilterRule]:
+    async def _get_rules(
+        self, tenant_id: str, content_type: str
+    ) -> List[ContentFilterRule]:
         """Get applicable filter rules for the tenant and content type"""
         db = get_async_session_local()
         try:
@@ -175,16 +183,14 @@ class ContentAnalysisService:
                 ContentFilterRule.filter(
                     ContentFilterRule.tenant_id == tenant_id,
                     ContentFilterRule.content_type == content_type,
-                    ContentFilterRule.enabled
+                    ContentFilterRule.enabled,
                 )
             )
         finally:
             await db.close()
 
     async def _analyze_rule(
-        self,
-        rule: ContentFilterRule,
-        content: str
+        self, rule: ContentFilterRule, content: str
     ) -> Optional[ContentAnalysisResult]:
         """Analyze content against a specific rule"""
         try:
@@ -201,54 +207,55 @@ class ContentAnalysisService:
                     analysis_type=analysis_type,
                     result=result,
                     status=self._determine_status(result, rule),
-                    review_status='pending' if rule.action == 'require_review' else None
+                    review_status=(
+                        "pending" if rule.action == "require_review" else None
+                    ),
                 )
         except Exception as e:
-            logger.error(
-                f"Error analyzing content with rule {rule.id}: {str(e)}")
+            logger.error(f"Error analyzing content with rule {rule.id}: {str(e)}")
         return None
 
     def _get_analysis_type(self, condition: str) -> str:
         """Determine the type of analysis needed based on the condition"""
-        if condition in ['contains', 'regex']:
-            return 'text'
-        elif condition == 'sentiment':
-            return 'sentiment'
-        elif condition == 'language':
-            return 'language'
-        elif condition == 'toxicity':
-            return 'toxicity'
-        return 'text'
+        if condition in ["contains", "regex"]:
+            return "text"
+        elif condition == "sentiment":
+            return "sentiment"
+        elif condition == "language":
+            return "language"
+        elif condition == "toxicity":
+            return "toxicity"
+        return "text"
 
     async def _perform_analysis(
-        self,
-        analysis_type: str,
-        content: str,
-        value: str
+        self, analysis_type: str, content: str, value: str
     ) -> Dict[str, Any]:
         """Perform the specified type of analysis on the content"""
         try:
-            if analysis_type == 'contains':
+            if analysis_type == "contains":
                 return self._analyze_text(content, value)
-            elif analysis_type == 'regex':
+            elif analysis_type == "regex":
                 return self._analyze_text(content, f"/{value}/")
-            elif analysis_type == 'sentiment':
+            elif analysis_type == "sentiment":
                 return self._analyze_sentiment(content)
-            elif analysis_type == 'language':
+            elif analysis_type == "language":
                 result = self._analyze_language(content)
                 # If analysis was limited due to missing spaCy, log it
-                if result.get('limited_analysis'):
+                if result.get("limited_analysis"):
                     logger.info(
-                        "Performed limited language analysis due to missing spaCy model")
+                        "Performed limited language analysis due to missing spaCy model"
+                    )
                 return result
-            elif analysis_type == 'toxicity':
+            elif analysis_type == "toxicity":
                 return self._analyze_toxicity(content)
             else:
-                return {'error': f'Unknown analysis type: {analysis_type}'}
+                return {"error": f"Unknown analysis type: {analysis_type}"}
         except Exception as e:
-            logger.error(
-                f"Error performing {analysis_type} analysis: {str(e)}")
-            return {'error': f"Analysis failed: {str(e)}", 'analysis_type': analysis_type}
+            logger.error(f"Error performing {analysis_type} analysis: {str(e)}")
+            return {
+                "error": f"Analysis failed: {str(e)}",
+                "analysis_type": analysis_type,
+            }
 
     def _analyze_text(self, content: str, pattern: str) -> Dict[str, Any]:
         """Analyze text content for patterns"""
@@ -258,133 +265,126 @@ class ContentAnalysisService:
             tokens = [t for t in tokens if t not in self.stop_words]
 
             # Check for pattern match
-            if pattern.startswith('/') and pattern.endswith('/'):
+            if pattern.startswith("/") and pattern.endswith("/"):
                 # Regex pattern
                 regex = pattern[1:-1]
                 matches = re.findall(regex, content, re.IGNORECASE)
             else:
                 # Simple contains
-                matches = [pattern] if pattern.lower(
-                ) in content.lower() else []
+                matches = [pattern] if pattern.lower() in content.lower() else []
 
             return {
-                'matches': matches,
-                'token_count': len(tokens),
-                'unique_tokens': len(set(tokens))
+                "matches": matches,
+                "token_count": len(tokens),
+                "unique_tokens": len(set(tokens)),
             }
         except Exception as e:
             logger.error(f"Error in text analysis: {str(e)}")
-            return {'error': str(e)}
+            return {"error": str(e)}
 
     def _analyze_sentiment(self, content: str) -> Dict[str, Any]:
         """Analyze sentiment of content"""
         try:
             blob = TextBlob(content)
             return {
-                'polarity': blob.sentiment.polarity,
-                'subjectivity': blob.sentiment.subjectivity
+                "polarity": blob.sentiment.polarity,
+                "subjectivity": blob.sentiment.subjectivity,
             }
         except Exception as e:
             logger.error(f"Error in sentiment analysis: {str(e)}")
-            return {'error': str(e)}
+            return {"error": str(e)}
 
     def _analyze_language(self, content: str) -> Dict[str, Any]:
         """Analyze language and linguistic features"""
         # If spaCy model is not available, use basic analysis instead
         if nlp is None:
             logger.warning(
-                "SpaCy model not available for language analysis, using basic analysis")
+                "SpaCy model not available for language analysis, using basic analysis"
+            )
             # Fallback to basic TextBlob analysis
             try:
                 blob = TextBlob(content)
                 return {
-                    'entities': [],  # Empty as we can't do NER without spaCy
-                    'noun_phrases': blob.noun_phrases,  # TextBlob can extract some noun phrases
-                    'pos_tags': blob.tags,  # TextBlob provides basic POS tagging
-                    'limited_analysis': True  # Flag indicating limited analysis
+                    "entities": [],  # Empty as we can't do NER without spaCy
+                    "noun_phrases": blob.noun_phrases,  # TextBlob can extract some noun phrases
+                    "pos_tags": blob.tags,  # TextBlob provides basic POS tagging
+                    "limited_analysis": True,  # Flag indicating limited analysis
                 }
             except Exception as e:
                 logger.error(f"Error in fallback language analysis: {str(e)}")
-                return {'error': str(e), 'limited_analysis': True}
+                return {"error": str(e), "limited_analysis": True}
 
         # If spaCy is available, use full analysis
         try:
             doc = nlp(content)
             return {
-                'entities': [ent.text for ent in doc.ents],
-                'noun_phrases': [chunk.text for chunk in doc.noun_chunks],
-                'pos_tags': [(token.text, token.pos_) for token in doc]
+                "entities": [ent.text for ent in doc.ents],
+                "noun_phrases": [chunk.text for chunk in doc.noun_chunks],
+                "pos_tags": [(token.text, token.pos_) for token in doc],
             }
         except Exception as e:
             logger.error(f"Error in language analysis: {str(e)}")
-            return {'error': str(e)}
+            return {"error": str(e)}
 
     def _analyze_toxicity(self, content: str) -> Dict[str, Any]:
         """Analyze content for toxic language using Detoxify"""
         if not detoxify_model:
             return {
-                'toxicity_score': 0.0,
-                'categories': {},
-                'error': 'Detoxify not installed'
+                "toxicity_score": 0.0,
+                "categories": {},
+                "error": "Detoxify not installed",
             }
         try:
             results = detoxify_model.predict(content)
-            toxicity_score = results.get('toxicity', 0.0)
-            return {
-                'toxicity_score': toxicity_score,
-                'categories': results
-            }
+            toxicity_score = results.get("toxicity", 0.0)
+            return {"toxicity_score": toxicity_score, "categories": results}
         except Exception as e:
             logger.error(f"Error in toxicity analysis: {str(e)}")
-            return {
-                'toxicity_score': 0.0,
-                'categories': {},
-                'error': str(e)
-            }
+            return {"toxicity_score": 0.0, "categories": {}, "error": str(e)}
 
-    def _determine_status(
-        self,
-        result: Dict[str, Any],
-        rule: ContentFilterRule
-    ) -> str:
+    def _determine_status(self, result: Dict[str, Any], rule: ContentFilterRule) -> str:
         """Determine the status based on analysis result and rule"""
-        if 'error' in result:
-            return 'error'
+        if "error" in result:
+            return "error"
 
-        if rule.condition == 'sentiment':
+        if rule.condition == "sentiment":
             threshold = float(rule.value)
-            if abs(result['polarity']) > threshold:
-                return 'flagged'
-        elif rule.condition in ['contains', 'regex']:
-            if result['matches']:
-                return 'flagged'
-        elif rule.condition == 'toxicity':
-            if result['toxicity_score'] > float(rule.value):
-                return 'flagged'
+            if abs(result["polarity"]) > threshold:
+                return "flagged"
+        elif rule.condition in ["contains", "regex"]:
+            if result["matches"]:
+                return "flagged"
+        elif rule.condition == "toxicity":
+            if result["toxicity_score"] > float(rule.value):
+                return "flagged"
 
-        return 'passed'
+        return "passed"
 
-    async def _create_notification(self, analysis_result: ContentAnalysisResult) -> None:
+    async def _create_notification(
+        self, analysis_result: ContentAnalysisResult
+    ) -> None:
         """Create notification for flagged or rejected content"""
         notification = Notification(
             id=str(uuid.uuid4()),
             tenant_id=analysis_result.tenant_id,
-            user_id=analysis_result.reviewed_by or 'system',
+            user_id=analysis_result.reviewed_by or "system",
             title=f"Content {analysis_result.status.title()}: {analysis_result.content_type}",
             message=self._format_notification_message(analysis_result),
             priority=self._get_notification_priority(analysis_result),
             channels=[NotificationChannel.IN_APP],
             metadata={
-                'content_type': analysis_result.content_type,
-                'content_id': analysis_result.content_id,
-                'field': analysis_result.field,
-                'rule_id': analysis_result.rule_id,
-                'analysis_type': analysis_result.analysis_type
-            }
+                "content_type": analysis_result.content_type,
+                "content_id": analysis_result.content_id,
+                "field": analysis_result.field,
+                "rule_id": analysis_result.rule_id,
+                "analysis_type": analysis_result.analysis_type,
+            },
         )
         await notification_service.send_notification(notification)
 
-    def _format_notification_message(self, analysis_result: ContentAnalysisResult) -> str:
+    def _format_notification_message(
+        self, analysis_result: ContentAnalysisResult
+    ) -> str:
         """Format notification message for content analysis result"""
         return f"""
 Content Analysis Result:
@@ -402,9 +402,11 @@ Analysis Results:
 Please review this content and take appropriate action.
 """
 
-    def _get_notification_priority(self, analysis_result: ContentAnalysisResult) -> NotificationPriority:
+    def _get_notification_priority(
+        self, analysis_result: ContentAnalysisResult
+    ) -> NotificationPriority:
         """Determine notification priority based on analysis result"""
-        if analysis_result.status == 'rejected':
+        if analysis_result.status == "rejected":
             return NotificationPriority.HIGH
         return NotificationPriority.MEDIUM
 

@@ -1,6 +1,6 @@
-import { TenantScoped } from '@/modules/core/models/base/entity';
-import { Money } from '@/modules/core/models/base/money';
-import { Address } from '@/modules/core/models/base/address';
+import type { TenantScoped } from '@/modules/core/models/base/entity';
+import type { Money } from '@/modules/core/models/base/money';
+import type { Address } from '@/modules/core/models/base/address';
 
 /**
  * Order status enum representing the order lifecycle
@@ -48,6 +48,19 @@ export enum PaymentStatus {
 }
 
 /**
+ * Shipping method enum for different shipping options
+ */
+export enum ShippingMethod {
+  RIDER = 'rider',
+  COURIER = 'courier',
+  PICKUP = 'pickup',
+  BODA = 'boda',
+  BUS_PARCEL = 'bus_parcel',
+  IN_PERSON = 'in_person',
+  OTHER = 'other',
+}
+
+/**
  * Order item representing a product in an order
  */
 export interface OrderItem {
@@ -63,11 +76,20 @@ export interface OrderItem {
 }
 
 /**
+ * Shipping plugin meta information
+ */
+export interface ShippingPluginMeta {
+  provider: string; // e.g. 'Sendy', 'DHL', 'CustomPluginName'
+  pluginData?: Record<string, any>;
+}
+
+/**
  * Shipping details for an order
  */
 export interface ShippingDetails {
   address: Address;
-  method: string;
+  method: ShippingMethod | string;
+  pluginMeta?: ShippingPluginMeta;
   tracking_number?: string;
   estimated_delivery?: string;
   shipping_cost: Money;

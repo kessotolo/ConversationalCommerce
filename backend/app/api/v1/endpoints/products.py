@@ -1,44 +1,47 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy.orm import Session
 from uuid import UUID
-from app.core.security.dependencies import require_auth
-from app.core.security.clerk import ClerkTokenData
-from app.db.session import get_db
-from app.schemas.product import (
-    ProductCreate,
-    ProductUpdate,
-    ProductResponse,
-    ProductSearchParams,
-    PaginatedResponse
-)
-from app.services.product_service import (
-    create_product,
-    get_product,
-    get_products,
-    update_product,
-    delete_product,
-)
+
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from sqlalchemy.orm import Session
+
 from app.core.exceptions import (
+    DatabaseError,
     ProductNotFoundError,
     ProductPermissionError,
     ProductValidationError,
-    DatabaseError
+)
+from app.core.security.clerk import ClerkTokenData
+from app.core.security.dependencies import require_auth
+from app.db.session import get_db
+from app.schemas.product import (
+    PaginatedResponse,
+    ProductCreate,
+    ProductResponse,
+    ProductSearchParams,
+    ProductUpdate,
+)
+from app.services.product_service import (
+    create_product,
+    delete_product,
+    get_product,
+    get_products,
+    update_product,
 )
 
 router = APIRouter()
 
 
-@router.post("/products",
-             response_model=ProductResponse,
-             status_code=status.HTTP_201_CREATED,
-             summary="Create a new product",
-             responses={
-                 201: {"description": "Product created successfully"},
-                 400: {"description": "Invalid input data"},
-                 401: {"description": "Not authenticated"},
-                 500: {"description": "Internal server error"}
-             }
-             )
+@router.post(
+    "/products",
+    response_model=ProductResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new product",
+    responses={
+        201: {"description": "Product created successfully"},
+        400: {"description": "Invalid input data"},
+        401: {"description": "Not authenticated"},
+        500: {"description": "Internal server error"},
+    },
+)
 async def create_product_endpoint(
     product_in: ProductCreate,
     request: Request,
@@ -56,26 +59,24 @@ async def create_product_endpoint(
         product = await create_product(db, product_in, request)
         return product
     except ProductValidationError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except DatabaseError:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error creating product"
+            detail="Error creating product",
         )
 
 
-@router.get("/products",
-            response_model=PaginatedResponse,
-            summary="List all products",
-            responses={
-                200: {"description": "List of products retrieved successfully"},
-                401: {"description": "Not authenticated"},
-                500: {"description": "Internal server error"}
-            }
-            )
+@router.get(
+    "/products",
+    response_model=PaginatedResponse,
+    summary="List all products",
+    responses={
+        200: {"description": "List of products retrieved successfully"},
+        401: {"description": "Not authenticated"},
+        500: {"description": "Internal server error"},
+    },
+)
 async def list_products_endpoint(
     search_params: ProductSearchParams = Depends(),
     db: Session = Depends(get_db),
@@ -95,25 +96,26 @@ async def list_products_endpoint(
             items=products,
             total=total,
             limit=search_params.limit,
-            offset=search_params.offset
+            offset=search_params.offset,
         )
     except DatabaseError:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error fetching products"
+            detail="Error fetching products",
         )
 
 
-@router.get("/products/{product_id}",
-            response_model=ProductResponse,
-            summary="Get a single product by ID",
-            responses={
-                200: {"description": "Product retrieved successfully"},
-                401: {"description": "Not authenticated"},
-                404: {"description": "Product not found"},
-                500: {"description": "Internal server error"}
-            }
-            )
+@router.get(
+    "/products/{product_id}",
+    response_model=ProductResponse,
+    summary="Get a single product by ID",
+    responses={
+        200: {"description": "Product retrieved successfully"},
+        401: {"description": "Not authenticated"},
+        404: {"description": "Product not found"},
+        500: {"description": "Internal server error"},
+    },
+)
 async def get_product_endpoint(
     product_id: UUID,
     db: Session = Depends(get_db),
@@ -129,33 +131,30 @@ async def get_product_endpoint(
     try:
         product = get_product(db, product_id)
         if not product:
-            raise ProductNotFoundError(
-                f"Product with ID {product_id} not found")
+            raise ProductNotFoundError(f"Product with ID {product_id} not found")
         return product
     except ProductNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except DatabaseError:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error fetching product"
+            detail="Error fetching product",
         )
 
 
-@router.patch("/products/{product_id}",
-              response_model=ProductResponse,
-              summary="Update a product by ID",
-              responses={
-                  200: {"description": "Product updated successfully"},
-                  400: {"description": "Invalid input data"},
-                  401: {"description": "Not authenticated"},
-                  403: {"description": "Not authorized to update this product"},
-                  404: {"description": "Product not found"},
-                  500: {"description": "Internal server error"}
-              }
-              )
+@router.patch(
+    "/products/{product_id}",
+    response_model=ProductResponse,
+    summary="Update a product by ID",
+    responses={
+        200: {"description": "Product updated successfully"},
+        400: {"description": "Invalid input data"},
+        401: {"description": "Not authenticated"},
+        403: {"description": "Not authorized to update this product"},
+        404: {"description": "Product not found"},
+        500: {"description": "Internal server error"},
+    },
+)
 async def update_product_endpoint(
     product_id: UUID,
     product_in: ProductUpdate,
@@ -174,38 +173,32 @@ async def update_product_endpoint(
         product = await update_product(db, product_id, product_in, user.sub)
         return product
     except ProductNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except ProductPermissionError as e:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
     except ProductValidationError as e:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=str(e)
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
         )
     except DatabaseError:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error updating product"
+            detail="Error updating product",
         )
 
 
-@router.delete("/products/{product_id}",
-               status_code=status.HTTP_204_NO_CONTENT,
-               summary="Delete a product by ID",
-               responses={
-                   204: {"description": "Product deleted successfully"},
-                   401: {"description": "Not authenticated"},
-                   403: {"description": "Not authorized to delete this product"},
-                   404: {"description": "Product not found"},
-                   500: {"description": "Internal server error"}
-               }
-               )
+@router.delete(
+    "/products/{product_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a product by ID",
+    responses={
+        204: {"description": "Product deleted successfully"},
+        401: {"description": "Not authenticated"},
+        403: {"description": "Not authorized to delete this product"},
+        404: {"description": "Product not found"},
+        500: {"description": "Internal server error"},
+    },
+)
 async def delete_product_endpoint(
     product_id: UUID,
     db: Session = Depends(get_db),
@@ -223,17 +216,11 @@ async def delete_product_endpoint(
         await delete_product(db, product_id, user.sub)
         return None
     except ProductNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except ProductPermissionError as e:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
     except DatabaseError:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error deleting product"
+            detail="Error deleting product",
         )

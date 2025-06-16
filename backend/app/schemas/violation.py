@@ -1,6 +1,7 @@
-from typing import Optional, Dict, Any
-from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
+from typing import Any, Dict, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ViolationBase(BaseModel):
@@ -27,4 +28,5 @@ class ViolationResponse(ViolationBase):
 
 class ViolationResolveUpdate(BaseModel):
     notes: Optional[str] = Field(
-        None, description="Resolution notes for resolving the violation.")
+        None, description="Resolution notes for resolving the violation."
+    )

@@ -1,7 +1,8 @@
-from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, ConfigDict
 import uuid
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, ConfigDict
 
 
 class ProductBase(BaseModel):
@@ -16,7 +17,7 @@ class ProductBase(BaseModel):
     tags: Optional[List[str]] = None
     images: Optional[List[str]] = None
     is_featured: bool
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -30,7 +31,7 @@ class ProductDetail(ProductBase):
 class RelatedProducts(BaseModel):
     product: ProductDetail
     related_products: List[ProductBase]
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -46,7 +47,7 @@ class PaginatedProducts(BaseModel):
     page: int
     page_size: int
     total_pages: int
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -62,7 +63,7 @@ class StorefrontMetadata(BaseModel):
 
 class StorefrontLayout(BaseModel):
     layout_config: Dict[str, Any]
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -70,7 +71,7 @@ class MenuItem(BaseModel):
     label: str
     url: str
     type: str
-    items: Optional[List['MenuItem']] = None
+    items: Optional[List["MenuItem"]] = None
 
 
 class NavigationMenu(BaseModel):

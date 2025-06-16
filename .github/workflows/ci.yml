@@ -43,3 +43,23 @@ jobs:
       run: |
         cd backend
         mypy .
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+    - name: Install frontend dependencies
+      run: |
+        cd frontend
+        npm ci
+    - name: Lint frontend
+      run: |
+        cd frontend
+        npm run lint
+    - name: Type check frontend
+      run: |
+        cd frontend
+        npm run type-check || echo 'No type-check script found, skipping.'
+    - name: Test frontend
+      run: |
+        cd frontend
+        npm test

@@ -1,7 +1,9 @@
-from pydantic import BaseModel, ConfigDict
+from datetime import datetime
 from typing import Optional
 from uuid import UUID
-from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict
+
 from app.models.conversation_history import ChannelType
 
 

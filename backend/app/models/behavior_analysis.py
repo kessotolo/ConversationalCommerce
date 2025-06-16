@@ -1,8 +1,19 @@
-from sqlalchemy import Column, String, Integer, Boolean, JSON, ForeignKey, DateTime, Float
+import uuid
+from datetime import datetime
+
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from datetime import datetime
-import uuid
+
 from app.db.base_class import Base
 
 
@@ -20,8 +31,7 @@ class BehaviorPattern(Base):
     cooldown_minutes = Column(Integer, default=60)  # cooldown period
     enabled = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow,
-                        onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     tenant = relationship("Tenant", back_populates="behavior_patterns")
@@ -33,8 +43,9 @@ class PatternDetection(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
-    pattern_id = Column(UUID(as_uuid=True), ForeignKey(
-        "behavior_patterns.id"), nullable=False)
+    pattern_id = Column(
+        UUID(as_uuid=True), ForeignKey("behavior_patterns.id"), nullable=False
+    )
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     detection_type = Column(String, nullable=False)  # user, system, security
     confidence_score = Column(Float, nullable=False)
@@ -45,8 +56,7 @@ class PatternDetection(Base):
     reviewed_at = Column(DateTime)
     resolution_notes = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow,
-                        onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     tenant = relationship("Tenant", back_populates="pattern_detections")
@@ -62,15 +72,15 @@ class Evidence(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
-    detection_id = Column(UUID(as_uuid=True), ForeignKey(
-        "pattern_detections.id"), nullable=False)
+    detection_id = Column(
+        UUID(as_uuid=True), ForeignKey("pattern_detections.id"), nullable=False
+    )
     evidence_type = Column(String, nullable=False)  # log, activity, metric
     source = Column(String, nullable=False)  # system, user, security
     data = Column(JSON, nullable=False)  # evidence data
     collected_at = Column(DateTime, default=datetime.utcnow)
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow,
-                        onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     tenant = relationship("Tenant", back_populates="evidence")

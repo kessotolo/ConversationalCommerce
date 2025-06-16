@@ -13,6 +13,7 @@ def test_products(db_session, test_user, test_tenant):
     """Create multiple test products for order testing"""
     # Set tenant context for the session
     from sqlalchemy import text
+
     tenant_id = str(test_tenant.id)
     db_session.execute(text(f"SET LOCAL my.tenant_id = '{tenant_id}'"))
 
@@ -22,7 +23,7 @@ def test_products(db_session, test_user, test_tenant):
             name="Test Product",
             description="Test product for order operations",
             price=10.0,
-            seller_id=test_user.id
+            seller_id=test_user.id,
         )
         # If needed, set tenant_id after creation
         # product.tenant_id = test_tenant.id
@@ -51,7 +52,7 @@ def test_orders(db_session, test_user, test_products):
         quantity=1,
         total_amount=Decimal("10.99"),
         status=OrderStatus.pending,
-        order_source=OrderSource.website
+        order_source=OrderSource.website,
     )
     orders.append(web_order)
     db_session.add(web_order)  # Explicitly add to session
@@ -65,7 +66,7 @@ def test_orders(db_session, test_user, test_products):
         quantity=1,
         total_amount=Decimal("20.99"),
         status=OrderStatus.confirmed,
-        order_source=OrderSource.whatsapp
+        order_source=OrderSource.whatsapp,
     )
     orders.append(whatsapp_order)
     db_session.add(whatsapp_order)
@@ -81,7 +82,7 @@ def test_orders(db_session, test_user, test_products):
         quantity=2,
         total_amount=Decimal("61.98"),
         status=OrderStatus.delivered,
-        order_source=OrderSource.instagram
+        order_source=OrderSource.instagram,
     )
     orders.append(instagram_order)
     db_session.add(instagram_order)  # Explicitly add to session
@@ -92,7 +93,7 @@ def test_orders(db_session, test_user, test_products):
         channel=ChannelType.whatsapp,
         message_id="test_message_id",
         chat_session_id="test_conversation_id",
-        user_response_log="Test response log"
+        user_response_log="Test response log",
     )
     db_session.add(whatsapp_metadata)
 
@@ -118,59 +119,56 @@ def test_get_orders_list(client, db_session, test_user, auth_headers, test_tenan
     assert len(data["items"]) == 3
 
 
-def test_get_orders_with_status_filter(client, db_session, test_user, auth_headers, test_tenant):
+def test_get_orders_with_status_filter(
+    client, db_session, test_user, auth_headers, test_tenant
+):
     """Test filtering orders by status"""
     # Filter by pending status
-    response = client.get("/api/v1/orders?status=pending",
-                          headers=auth_headers)
+    response = client.get("/api/v1/orders?status=pending", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert data["total"] == 1
     assert data["items"][0]["status"] == "pending"
 
     # Filter by confirmed status
-    response = client.get(
-        "/api/v1/orders?status=confirmed", headers=auth_headers)
+    response = client.get("/api/v1/orders?status=confirmed", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert data["total"] == 1
     assert data["items"][0]["status"] == "confirmed"
 
     # Filter by delivered status
-    response = client.get(
-        "/api/v1/orders?status=delivered", headers=auth_headers)
+    response = client.get("/api/v1/orders?status=delivered", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert data["total"] == 1
     assert data["items"][0]["status"] == "delivered"
 
     # Filter by nonexistent status
-    response = client.get(
-        "/api/v1/orders?status=nonexistent", headers=auth_headers)
+    response = client.get("/api/v1/orders?status=nonexistent", headers=auth_headers)
     assert response.status_code == 422  # Should return validation error
 
 
-def test_get_orders_with_source_filter(client, db_session, test_user, auth_headers, test_tenant):
+def test_get_orders_with_source_filter(
+    client, db_session, test_user, auth_headers, test_tenant
+):
     """Test filtering orders by source"""
     # Filter by website source
-    response = client.get(
-        "/api/v1/orders?order_source=website", headers=auth_headers)
+    response = client.get("/api/v1/orders?order_source=website", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert data["total"] == 1
     assert data["items"][0]["order_source"] == "website"
 
     # Filter by whatsapp source
-    response = client.get(
-        "/api/v1/orders?order_source=whatsapp", headers=auth_headers)
+    response = client.get("/api/v1/orders?order_source=whatsapp", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert data["total"] == 1
     assert data["items"][0]["order_source"] == "whatsapp"
 
     # Filter by instagram source
-    response = client.get(
-        "/api/v1/orders?order_source=instagram", headers=auth_headers)
+    response = client.get("/api/v1/orders?order_source=instagram", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert data["total"] == 1
@@ -178,22 +176,27 @@ def test_get_orders_with_source_filter(client, db_session, test_user, auth_heade
 
     # Filter by nonexistent source
     response = client.get(
-        "/api/v1/orders?order_source=nonexistent", headers=auth_headers)
+        "/api/v1/orders?order_source=nonexistent", headers=auth_headers
+    )
     assert response.status_code == 422  # Should return validation error
 
 
-def test_get_orders_with_combined_filters(client, db_session, test_user, auth_headers, test_tenant):
+def test_get_orders_with_combined_filters(
+    client, db_session, test_user, auth_headers, test_tenant
+):
     """Test combining multiple filters"""
     # No results expected with this combination
     response = client.get(
-        "/api/v1/orders?status=pending&order_source=whatsapp", headers=auth_headers)
+        "/api/v1/orders?status=pending&order_source=whatsapp", headers=auth_headers
+    )
     assert response.status_code == 200
     data = response.json()
     assert data["total"] == 0
 
     # Should return one result
     response = client.get(
-        "/api/v1/orders?status=confirmed&order_source=whatsapp", headers=auth_headers)
+        "/api/v1/orders?status=confirmed&order_source=whatsapp", headers=auth_headers
+    )
     assert response.status_code == 200
     data = response.json()
     assert data["total"] == 1
@@ -201,11 +204,12 @@ def test_get_orders_with_combined_filters(client, db_session, test_user, auth_he
     assert data["items"][0]["order_source"] == "whatsapp"
 
 
-def test_get_orders_with_search(client, db_session, test_user, auth_headers, test_tenant):
+def test_get_orders_with_search(
+    client, db_session, test_user, auth_headers, test_tenant
+):
     """Test search functionality in orders list"""
     # Search by buyer name
-    response = client.get(
-        "/api/v1/orders?search=WhatsApp+Buyer", headers=auth_headers)
+    response = client.get("/api/v1/orders?search=WhatsApp+Buyer", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert data["total"] == 1
@@ -218,7 +222,9 @@ def test_get_orders_with_search(client, db_session, test_user, auth_headers, tes
     assert data["total"] >= 1  # Should match at least one order
 
 
-def test_get_orders_with_pagination(client, db_session, test_user, auth_headers, test_tenant):
+def test_get_orders_with_pagination(
+    client, db_session, test_user, auth_headers, test_tenant
+):
     """Test pagination for orders list"""
     # Create 10 orders for pagination testing
     orders = []
@@ -231,7 +237,7 @@ def test_get_orders_with_pagination(client, db_session, test_user, auth_headers,
             quantity=1,
             total_amount=Decimal("10.99"),
             status=OrderStatus.pending,
-            order_source=OrderSource.website
+            order_source=OrderSource.website,
         )
         orders.append(order)
 
@@ -251,10 +257,10 @@ def test_get_orders_with_pagination(client, db_session, test_user, auth_headers,
     assert len(data["items"]) == 5
 
     # Test with skip
-    first_page = client.get("/api/v1/orders?limit=3",
-                            headers=auth_headers).json()
+    first_page = client.get("/api/v1/orders?limit=3", headers=auth_headers).json()
     second_page = client.get(
-        "/api/v1/orders?limit=3&skip=3", headers=auth_headers).json()
+        "/api/v1/orders?limit=3&skip=3", headers=auth_headers
+    ).json()
 
     # Verify pages contain different items
     first_ids = [item["id"] for item in first_page["items"]]
@@ -277,19 +283,19 @@ def test_get_order_by_id(client, db_session, test_user, auth_headers, test_tenan
     assert data["status"] == test_orders[0].status.value
 
 
-def test_get_nonexistent_order(client, db_session, test_user, auth_headers, test_tenant):
+def test_get_nonexistent_order(
+    client, db_session, test_user, auth_headers, test_tenant
+):
     """Test getting a non-existent order ID"""
     nonexistent_id = str(uuid4())
-    response = client.get(
-        f"/api/v1/orders/{nonexistent_id}", headers=auth_headers)
+    response = client.get(f"/api/v1/orders/{nonexistent_id}", headers=auth_headers)
     assert response.status_code == 404
     assert "Order not found" in response.json()["detail"]
 
 
 def test_get_order_invalid_uuid(client, auth_headers):
     """Test getting an order with invalid UUID format"""
-    response = client.get(
-        "/api/v1/orders/not-a-valid-uuid", headers=auth_headers)
+    response = client.get("/api/v1/orders/not-a-valid-uuid", headers=auth_headers)
     assert response.status_code == 422  # Validation error for invalid UUID
 
 
@@ -301,7 +307,8 @@ def test_update_order_status(client, db_session, test_user, auth_headers, test_t
 
     # Update the order
     response = client.put(
-        f"/api/v1/orders/{order_id}", headers=auth_headers, json=update_data)
+        f"/api/v1/orders/{order_id}", headers=auth_headers, json=update_data
+    )
 
     # Check response
     assert response.status_code == 200
@@ -314,7 +321,9 @@ def test_update_order_status(client, db_session, test_user, auth_headers, test_t
     assert test_orders[0].status == OrderStatus.confirmed
 
 
-def test_update_order_multiple_fields(client, db_session, test_user, auth_headers, test_tenant):
+def test_update_order_multiple_fields(
+    client, db_session, test_user, auth_headers, test_tenant
+):
     """Test updating multiple fields of an order"""
     order_id = str(test_orders[1].id)
     update_data = {
@@ -322,11 +331,12 @@ def test_update_order_multiple_fields(client, db_session, test_user, auth_header
         "buyer_phone": "+9876543210",
         "quantity": 3,
         "total_amount": 62.97,
-        "notes": "Updated notes"
+        "notes": "Updated notes",
     }
 
     response = client.put(
-        f"/api/v1/orders/{order_id}", headers=auth_headers, json=update_data)
+        f"/api/v1/orders/{order_id}", headers=auth_headers, json=update_data
+    )
 
     # Check response
     assert response.status_code == 200
@@ -338,13 +348,16 @@ def test_update_order_multiple_fields(client, db_session, test_user, auth_header
     assert data["notes"] == update_data["notes"]
 
 
-def test_update_nonexistent_order(client, db_session, test_user, auth_headers, test_tenant):
+def test_update_nonexistent_order(
+    client, db_session, test_user, auth_headers, test_tenant
+):
     """Test updating a non-existent order"""
     nonexistent_id = str(uuid4())
     update_data = {"status": "confirmed"}
 
     response = client.put(
-        f"/api/v1/orders/{nonexistent_id}", headers=auth_headers, json=update_data)
+        f"/api/v1/orders/{nonexistent_id}", headers=auth_headers, json=update_data
+    )
     assert response.status_code == 404
     assert "Order not found" in response.json()["detail"]
 
@@ -355,7 +368,8 @@ def test_update_order_invalid_status(client, auth_headers, test_orders):
     update_data = {"status": "invalid_status"}
 
     response = client.put(
-        f"/api/v1/orders/{order_id}", headers=auth_headers, json=update_data)
+        f"/api/v1/orders/{order_id}", headers=auth_headers, json=update_data
+    )
     assert response.status_code == 422  # Validation error
 
 
@@ -365,8 +379,7 @@ def test_delete_order(client, db_session, test_user, auth_headers, test_tenant):
     order_id = str(test_orders[0].id)
 
     # Delete the order
-    response = client.delete(
-        f"/api/v1/orders/{order_id}", headers=auth_headers)
+    response = client.delete(f"/api/v1/orders/{order_id}", headers=auth_headers)
 
     # Check response
     assert response.status_code == 200
@@ -376,22 +389,24 @@ def test_delete_order(client, db_session, test_user, auth_headers, test_tenant):
     assert test_orders[0].is_deleted
 
     # Attempt to get the deleted order
-    get_response = client.get(
-        f"/api/v1/orders/{order_id}", headers=auth_headers)
+    get_response = client.get(f"/api/v1/orders/{order_id}", headers=auth_headers)
     assert get_response.status_code == 404  # Should not be found
 
 
-def test_delete_nonexistent_order(client, db_session, test_user, auth_headers, test_tenant):
+def test_delete_nonexistent_order(
+    client, db_session, test_user, auth_headers, test_tenant
+):
     """Test deleting a non-existent order"""
     nonexistent_id = str(uuid4())
 
-    response = client.delete(
-        f"/api/v1/orders/{nonexistent_id}", headers=auth_headers)
+    response = client.delete(f"/api/v1/orders/{nonexistent_id}", headers=auth_headers)
     assert response.status_code == 404
     assert "Order not found" in response.json()["detail"]
 
 
-def test_delete_already_deleted_order(client, db_session, test_user, auth_headers, test_tenant):
+def test_delete_already_deleted_order(
+    client, db_session, test_user, auth_headers, test_tenant
+):
     """Test deleting an already deleted order"""
     order_id = str(test_orders[2].id)
 
@@ -400,8 +415,7 @@ def test_delete_already_deleted_order(client, db_session, test_user, auth_header
     db_session.commit()
 
     # Try deleting again
-    response = client.delete(
-        f"/api/v1/orders/{order_id}", headers=auth_headers)
+    response = client.delete(f"/api/v1/orders/{order_id}", headers=auth_headers)
     assert response.status_code == 404
     assert "Order not found" in response.json()["detail"]
 
@@ -419,8 +433,7 @@ def test_authentication_required(client, test_orders):
     assert response.status_code in (401, 403)
 
     # Test update endpoint
-    response = client.put(
-        f"/api/v1/orders/{order_id}", json={"status": "confirmed"})
+    response = client.put(f"/api/v1/orders/{order_id}", json={"status": "confirmed"})
     assert response.status_code in (401, 403)
 
     # Test delete endpoint

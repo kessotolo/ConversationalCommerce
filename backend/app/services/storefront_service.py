@@ -1,20 +1,25 @@
-from typing import Optional, Dict, Any, Tuple
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy.orm import Session
+from typing import Any, Dict, Optional, Tuple
+
 from fastapi import HTTPException, status
+from sqlalchemy.orm import Session
+from sqlalchemy.sql import update
+
 from app.models.storefront import StorefrontConfig, StorefrontStatus
 from app.models.storefront_draft import StorefrontDraft
 from app.models.tenant import Tenant
 from app.models.user import User
-from app.utils.storefront_defaults import create_default_storefront_config, get_theme_variations
 from app.utils.domain_validator import (
-    validate_subdomain,
+    generate_verification_token,
     validate_domain,
+    validate_subdomain,
     verify_domain_dns,
-    generate_verification_token
 )
-from sqlalchemy.sql import update
+from app.utils.storefront_defaults import (
+    create_default_storefront_config,
+    get_theme_variations,
+)
 
 """
 Storefront Configuration Service
@@ -49,7 +54,7 @@ async def create_storefront_config(
     meta_description: Optional[str] = None,
     theme_settings: Optional[Dict[str, Any]] = None,
     layout_config: Optional[Dict[str, Any]] = None,
-    social_links: Optional[Dict[str, str]] = None
+    social_links: Optional[Dict[str, str]] = None,
 ) -> StorefrontConfig:
     """
     Create a new StorefrontConfig for a tenant with comprehensive validation and defaults.
@@ -92,66 +97,63 @@ async def create_storefront_config(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Check if storefront config already exists
-    existing_config = db.query(StorefrontConfig).filter(
-        StorefrontConfig.tenant_id == tenant_id
-    ).first()
+    existing_config = (
+        db.query(StorefrontConfig)
+        .filter(StorefrontConfig.tenant_id == tenant_id)
+        .first()
+    )
 
     if existing_config:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Storefront configuration already exists for this tenant"
+            detail="Storefront configuration already exists for this tenant",
         )
 
     # Validate subdomain if provided
     if subdomain:
         is_valid, error = validate_subdomain(subdomain)
         if not is_valid:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=error
-            )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)
 
         # Check if subdomain is already in use
-        existing_subdomain = db.query(StorefrontConfig).filter(
-            StorefrontConfig.subdomain_name == subdomain
-        ).first()
+        existing_subdomain = (
+            db.query(StorefrontConfig)
+            .filter(StorefrontConfig.subdomain_name == subdomain)
+            .first()
+        )
 
         if existing_subdomain:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=f"Subdomain '{subdomain}' is already in use"
+                detail=f"Subdomain '{subdomain}' is already in use",
             )
 
     # Validate custom domain if provided
     if custom_domain:
         is_valid, error = validate_domain(custom_domain)
         if not is_valid:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=error
-            )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)
 
         # Check if domain is already in use
-        existing_domain = db.query(StorefrontConfig).filter(
-            StorefrontConfig.custom_domain == custom_domain
-        ).first()
+        existing_domain = (
+            db.query(StorefrontConfig)
+            .filter(StorefrontConfig.custom_domain == custom_domain)
+            .first()
+        )
 
         if existing_domain:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=f"Domain '{custom_domain}' is already in use"
+                detail=f"Domain '{custom_domain}' is already in use",
             )
 
     # Create default config
     config = create_default_storefront_config(
-        tenant_id=tenant_id,
-        tenant_name=tenant.name,
-        custom_subdomain=subdomain
+        tenant_id=tenant_id, tenant_name=tenant.name, custom_subdomain=subdomain
     )
 
     # Override defaults with provided values if any
@@ -182,8 +184,7 @@ async def create_storefront_config(
 
 
 async def get_storefront_config(
-    db: Session,
-    tenant_id: uuid.UUID
+    db: Session, tenant_id: uuid.UUID
 ) -> Optional[StorefrontConfig]:
     """
     Get StorefrontConfig for a specific tenant.
@@ -195,14 +196,15 @@ async def get_storefront_config(
     Returns:
         StorefrontConfig or None if not found
     """
-    return db.query(StorefrontConfig).filter(
-        StorefrontConfig.tenant_id == tenant_id
-    ).first()
+    return (
+        db.query(StorefrontConfig)
+        .filter(StorefrontConfig.tenant_id == tenant_id)
+        .first()
+    )
 
 
 async def get_storefront_by_subdomain(
-    db: Session,
-    subdomain: str
+    db: Session, subdomain: str
 ) -> Optional[StorefrontConfig]:
     """
     Get StorefrontConfig by subdomain.
@@ -214,14 +216,15 @@ async def get_storefront_by_subdomain(
     Returns:
         StorefrontConfig or None if not found
     """
-    return db.query(StorefrontConfig).filter(
-        StorefrontConfig.subdomain_name == subdomain
-    ).first()
+    return (
+        db.query(StorefrontConfig)
+        .filter(StorefrontConfig.subdomain_name == subdomain)
+        .first()
+    )
 
 
 async def get_storefront_by_domain(
-    db: Session,
-    domain: str
+    db: Session, domain: str
 ) -> Optional[StorefrontConfig]:
     """
     Get StorefrontConfig by custom domain.
@@ -233,10 +236,13 @@ async def get_storefront_by_domain(
     Returns:
         StorefrontConfig or None if not found
     """
-    return db.query(StorefrontConfig).filter(
-        StorefrontConfig.custom_domain == domain,
-        StorefrontConfig.domain_verified
-    ).first()
+    return (
+        db.query(StorefrontConfig)
+        .filter(
+            StorefrontConfig.custom_domain == domain, StorefrontConfig.domain_verified
+        )
+        .first()
+    )
 
 
 async def update_storefront_config(
@@ -249,7 +255,7 @@ async def update_storefront_config(
     meta_description: Optional[str] = None,
     theme_settings: Optional[Dict[str, Any]] = None,
     layout_config: Optional[Dict[str, Any]] = None,
-    social_links: Optional[Dict[str, str]] = None
+    social_links: Optional[Dict[str, str]] = None,
 ) -> StorefrontConfig:
     """
     Update StorefrontConfig for a tenant with optimistic locking.
@@ -257,7 +263,8 @@ async def update_storefront_config(
     config = await get_storefront_config(db, tenant_id)
     if not config:
         raise HTTPException(
-            status_code=404, detail="Storefront configuration not found")
+            status_code=404, detail="Storefront configuration not found"
+        )
     # ... existing validation ...
     current_version = config.version
     update_data = {}
@@ -266,22 +273,23 @@ async def update_storefront_config(
     update_data["updated_at"] = datetime.now(timezone.utc)
     result = await db.execute(
         update(StorefrontConfig)
-        .where(StorefrontConfig.tenant_id == tenant_id, StorefrontConfig.version == version)
+        .where(
+            StorefrontConfig.tenant_id == tenant_id, StorefrontConfig.version == version
+        )
         .values(**update_data)
     )
     await db.commit()
     if result.rowcount == 0:
         await db.rollback()
         raise HTTPException(
-            status_code=409, detail="Storefront config was modified by another process. Please refresh and try again.")
+            status_code=409,
+            detail="Storefront config was modified by another process. Please refresh and try again.",
+        )
     await db.refresh(config)
     return config
 
 
-async def verify_custom_domain(
-    db: Session,
-    tenant_id: uuid.UUID
-) -> Tuple[str, str]:
+async def verify_custom_domain(db: Session, tenant_id: uuid.UUID) -> Tuple[str, str]:
     """
     Generate verification instructions for a custom domain through DNS TXT record validation.
 
@@ -316,13 +324,13 @@ async def verify_custom_domain(
     if not config:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Storefront configuration not found"
+            detail="Storefront configuration not found",
         )
 
     if not config.custom_domain:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No custom domain configured"
+            detail="No custom domain configured",
         )
 
     # Generate verification token
@@ -343,10 +351,7 @@ async def verify_custom_domain(
     return token, instructions
 
 
-async def check_domain_verification(
-    db: Session,
-    tenant_id: uuid.UUID
-) -> bool:
+async def check_domain_verification(db: Session, tenant_id: uuid.UUID) -> bool:
     """
     Check if a domain's DNS verification is complete by querying DNS records.
 
@@ -397,10 +402,7 @@ async def check_domain_verification(
     return is_verified
 
 
-async def disable_storefront(
-    db: Session,
-    tenant_id: uuid.UUID
-) -> Tenant:
+async def disable_storefront(db: Session, tenant_id: uuid.UUID) -> Tenant:
     """
     Disable storefront for a tenant.
 
@@ -415,8 +417,7 @@ async def disable_storefront(
 
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     tenant.storefront_enabled = False
@@ -426,10 +427,7 @@ async def disable_storefront(
     return tenant
 
 
-async def enable_storefront(
-    db: Session,
-    tenant_id: uuid.UUID
-) -> Tenant:
+async def enable_storefront(db: Session, tenant_id: uuid.UUID) -> Tenant:
     """
     Enable storefront for a tenant.
 
@@ -444,8 +442,7 @@ async def enable_storefront(
 
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Check if a storefront config exists
@@ -453,8 +450,7 @@ async def enable_storefront(
     if not config:
         # Create default config if none exists
         config = create_default_storefront_config(
-            tenant_id=tenant_id,
-            tenant_name=tenant.name
+            tenant_id=tenant_id, tenant_name=tenant.name
         )
         db.add(config)
 
@@ -466,8 +462,7 @@ async def enable_storefront(
 
 
 async def get_available_themes(
-    db: Session,
-    tenant_id: uuid.UUID
+    db: Session, tenant_id: uuid.UUID
 ) -> Dict[str, Dict[str, Any]]:
     """
     Get available theme variations for a tenant.
@@ -484,8 +479,7 @@ async def get_available_themes(
 
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Return theme variations
@@ -496,12 +490,13 @@ async def get_available_themes(
 # Draft and Publishing Workflow Functions
 # ============================================================================
 
+
 async def create_draft(
     db: Session,
     tenant_id: uuid.UUID,
     user_id: uuid.UUID,
     name: Optional[str] = None,
-    expires_at: Optional[datetime] = None
+    expires_at: Optional[datetime] = None,
 ) -> StorefrontDraft:
     """
     Create a working draft copy of a storefront configuration.
@@ -528,36 +523,39 @@ async def create_draft(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Check if user exists
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     # Get the storefront config
-    config = db.query(StorefrontConfig).filter(
-        StorefrontConfig.tenant_id == tenant_id).first()
+    config = (
+        db.query(StorefrontConfig)
+        .filter(StorefrontConfig.tenant_id == tenant_id)
+        .first()
+    )
     if not config:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Storefront configuration not found"
+            detail="Storefront configuration not found",
         )
 
     # Check if there's already an active draft
-    existing_draft = db.query(StorefrontDraft).filter(
-        StorefrontDraft.storefront_config_id == config.id
-    ).first()
+    existing_draft = (
+        db.query(StorefrontDraft)
+        .filter(StorefrontDraft.storefront_config_id == config.id)
+        .first()
+    )
 
     if existing_draft:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="An active draft already exists for this storefront"
+            detail="An active draft already exists for this storefront",
         )
 
     # Create a new draft from the current config
@@ -573,7 +571,7 @@ async def create_draft(
         meta_description=config.meta_description,
         theme_settings=config.theme_settings,
         layout_config=config.layout_config,
-        social_links=config.social_links
+        social_links=config.social_links,
     )
 
     db.add(draft)
@@ -583,10 +581,7 @@ async def create_draft(
     return draft
 
 
-async def get_draft(
-    db: Session,
-    tenant_id: uuid.UUID
-) -> Optional[StorefrontDraft]:
+async def get_draft(db: Session, tenant_id: uuid.UUID) -> Optional[StorefrontDraft]:
     """
     Get the active draft for a tenant's storefront configuration.
 
@@ -598,24 +593,26 @@ async def get_draft(
         StorefrontDraft object or None if no draft exists
     """
     # Get the storefront config
-    config = db.query(StorefrontConfig).filter(
-        StorefrontConfig.tenant_id == tenant_id).first()
+    config = (
+        db.query(StorefrontConfig)
+        .filter(StorefrontConfig.tenant_id == tenant_id)
+        .first()
+    )
     if not config:
         return None
 
     # Get the draft
-    draft = db.query(StorefrontDraft).filter(
-        StorefrontDraft.storefront_config_id == config.id
-    ).first()
+    draft = (
+        db.query(StorefrontDraft)
+        .filter(StorefrontDraft.storefront_config_id == config.id)
+        .first()
+    )
 
     return draft
 
 
 async def update_draft(
-    db: Session,
-    tenant_id: uuid.UUID,
-    user_id: uuid.UUID,
-    updates: Dict[str, Any]
+    db: Session, tenant_id: uuid.UUID, user_id: uuid.UUID, updates: Dict[str, Any]
 ) -> Optional[StorefrontDraft]:
     """
     Update an existing draft with new configuration values.
@@ -636,43 +633,52 @@ async def update_draft(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Check if user exists
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     # Get the storefront config
-    config = db.query(StorefrontConfig).filter(
-        StorefrontConfig.tenant_id == tenant_id).first()
+    config = (
+        db.query(StorefrontConfig)
+        .filter(StorefrontConfig.tenant_id == tenant_id)
+        .first()
+    )
     if not config:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Storefront configuration not found"
+            detail="Storefront configuration not found",
         )
 
     # Get the draft
-    draft = db.query(StorefrontDraft).filter(
-        StorefrontDraft.storefront_config_id == config.id
-    ).first()
+    draft = (
+        db.query(StorefrontDraft)
+        .filter(StorefrontDraft.storefront_config_id == config.id)
+        .first()
+    )
 
     if not draft:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="No active draft found for this storefront"
+            detail="No active draft found for this storefront",
         )
 
     # Update the draft with the provided values
     allowed_fields = {
-        'name', 'expires_at', 'subdomain_name', 'custom_domain',
-        'meta_title', 'meta_description', 'theme_settings',
-        'layout_config', 'social_links'
+        "name",
+        "expires_at",
+        "subdomain_name",
+        "custom_domain",
+        "meta_title",
+        "meta_description",
+        "theme_settings",
+        "layout_config",
+        "social_links",
     }
 
     for key, value in updates.items():
@@ -686,9 +692,7 @@ async def update_draft(
 
 
 async def publish_draft(
-    db: Session,
-    tenant_id: uuid.UUID,
-    user_id: uuid.UUID
+    db: Session, tenant_id: uuid.UUID, user_id: uuid.UUID
 ) -> StorefrontConfig:
     """
     Publish a draft to make it the active storefront configuration.
@@ -711,36 +715,39 @@ async def publish_draft(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Check if user exists
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     # Get the storefront config
-    config = db.query(StorefrontConfig).filter(
-        StorefrontConfig.tenant_id == tenant_id).first()
+    config = (
+        db.query(StorefrontConfig)
+        .filter(StorefrontConfig.tenant_id == tenant_id)
+        .first()
+    )
     if not config:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Storefront configuration not found"
+            detail="Storefront configuration not found",
         )
 
     # Get the draft
-    draft = db.query(StorefrontDraft).filter(
-        StorefrontDraft.storefront_config_id == config.id
-    ).first()
+    draft = (
+        db.query(StorefrontDraft)
+        .filter(StorefrontDraft.storefront_config_id == config.id)
+        .first()
+    )
 
     if not draft:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="No active draft found for this storefront"
+            detail="No active draft found for this storefront",
         )
 
     # Update the storefront config with the draft data
@@ -768,10 +775,7 @@ async def publish_draft(
     return config
 
 
-async def discard_draft(
-    db: Session,
-    tenant_id: uuid.UUID
-) -> bool:
+async def discard_draft(db: Session, tenant_id: uuid.UUID) -> bool:
     """
     Discard an active draft without publishing it.
 
@@ -789,20 +793,24 @@ async def discard_draft(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Get the storefront config
-    config = db.query(StorefrontConfig).filter(
-        StorefrontConfig.tenant_id == tenant_id).first()
+    config = (
+        db.query(StorefrontConfig)
+        .filter(StorefrontConfig.tenant_id == tenant_id)
+        .first()
+    )
     if not config:
         return False
 
     # Get the draft
-    draft = db.query(StorefrontDraft).filter(
-        StorefrontDraft.storefront_config_id == config.id
-    ).first()
+    draft = (
+        db.query(StorefrontDraft)
+        .filter(StorefrontDraft.storefront_config_id == config.id)
+        .first()
+    )
 
     if not draft:
         return False
@@ -815,10 +823,7 @@ async def discard_draft(
 
 
 async def schedule_publish(
-    db: Session,
-    tenant_id: uuid.UUID,
-    user_id: uuid.UUID,
-    publish_date: datetime
+    db: Session, tenant_id: uuid.UUID, user_id: uuid.UUID, publish_date: datetime
 ) -> StorefrontConfig:
     """
     Schedule a draft to be published at a future date.
@@ -841,43 +846,46 @@ async def schedule_publish(
     if publish_date <= now:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Publish date must be in the future"
+            detail="Publish date must be in the future",
         )
 
     # Check if tenant exists
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Check if user exists
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     # Get the storefront config
-    config = db.query(StorefrontConfig).filter(
-        StorefrontConfig.tenant_id == tenant_id).first()
+    config = (
+        db.query(StorefrontConfig)
+        .filter(StorefrontConfig.tenant_id == tenant_id)
+        .first()
+    )
     if not config:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Storefront configuration not found"
+            detail="Storefront configuration not found",
         )
 
     # Get the draft
-    draft = db.query(StorefrontDraft).filter(
-        StorefrontDraft.storefront_config_id == config.id
-    ).first()
+    draft = (
+        db.query(StorefrontDraft)
+        .filter(StorefrontDraft.storefront_config_id == config.id)
+        .first()
+    )
 
     if not draft:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="No active draft found for this storefront"
+            detail="No active draft found for this storefront",
         )
 
     # Set the status to scheduled and store the scheduled publish date

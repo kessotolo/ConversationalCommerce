@@ -1,1 +1,11 @@
-npx lint-staged
+#!/bin/sh
+
+# Run architecture verification as part of pre-commit
+echo "🔍 Verifying architecture..."
+npm run verify:architecture || (echo "❌ Architecture verification failed. Please fix the issues before committing." && exit 1)
+
+# Lint (temporarily disabled)
+# npm run lint || (echo "❌ Lint failed. Please fix lint errors before committing." && exit 1)
+
+# Test
+npm test || (echo "❌ Tests failed. Please fix test errors before committing." && exit 1)

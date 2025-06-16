@@ -1,23 +1,24 @@
-from typing import Callable, Optional, Dict, Any
+import logging
+import time
+import uuid
+from typing import Any, Callable, Dict, Optional
+from urllib.parse import urlparse
+
 from fastapi import Request, Response
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
-import uuid
-import logging
-import time
-from urllib.parse import urlparse
-from sqlalchemy import select
 
 from app.db.session import get_async_session_local
+from app.middleware.storefront_errors import (
+    InactiveTenantError,
+    InvalidSubdomainError,
+    MaintenanceModeError,
+    handle_storefront_error,
+)
 from app.models.storefront import StorefrontConfig
 from app.models.tenant import Tenant
-from app.middleware.storefront_errors import (
-    InvalidSubdomainError,
-    InactiveTenantError,
-    MaintenanceModeError,
-    handle_storefront_error
-)
 
 logger = logging.getLogger(__name__)
 
@@ -36,21 +37,25 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
         app: ASGIApp,
         base_domain: str = "example.com",
         exclude_paths: list = None,
-        cache_ttl: int = 300  # Cache TTL in seconds (5 minutes default)
+        cache_ttl: int = 300,  # Cache TTL in seconds (5 minutes default)
     ):
         super().__init__(app)
         self.base_domain = base_domain
         self.exclude_paths = exclude_paths or [
-            "/api/", "/admin/", "/_next/", "/static/", "/docs/", "/redoc/"]
+            "/api/",
+            "/admin/",
+            "/_next/",
+            "/static/",
+            "/docs/",
+            "/redoc/",
+        ]
         self.cache_ttl = cache_ttl
         self.tenant_cache = {}
         self.cache_timestamp = {}
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         # Always allow public endpoints (docs, openapi, favicon, test-env) to pass with default context
-        public_paths = [
-            "/docs", "/redoc", "/openapi.json", "/favicon.ico", "/test-env"
-        ]
+        public_paths = ["/docs", "/redoc", "/openapi.json", "/favicon.ico", "/test-env"]
         if any(request.url.path.startswith(path) for path in public_paths):
             request.state.tenant_context = {
                 "tenant_id": None,
@@ -58,7 +63,7 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
                 "storefront_id": None,
                 "subdomain": None,
                 "custom_domain": None,
-                "theme_settings": None
+                "theme_settings": None,
             }
             return await call_next(request)
 
@@ -92,7 +97,9 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
 
                             # Only process if the domain matches our base domain
                             if domain == self.base_domain:
-                                config = await self._get_storefront_by_subdomain(db, subdomain)
+                                config = await self._get_storefront_by_subdomain(
+                                    db, subdomain
+                                )
 
                     # If we found a storefront config, get the tenant
                     if config:
@@ -113,7 +120,7 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
                             "storefront_id": str(config.id),
                             "subdomain": config.subdomain_name,
                             "custom_domain": config.custom_domain,
-                            "theme_settings": config.theme_settings
+                            "theme_settings": config.theme_settings,
                         }
 
                         # Cache the tenant context
@@ -128,37 +135,50 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
                     uuid.UUID(tenant_context["tenant_id"])
                 except Exception as e:
                     logger.error(
-                        f"Invalid tenant_id in tenant_context: {tenant_context.get('tenant_id')}, error: {e}")
-                    return await handle_storefront_error(request, InvalidSubdomainError(subdomain or host))
+                        f"Invalid tenant_id in tenant_context: {tenant_context.get('tenant_id')}, error: {e}"
+                    )
+                    return await handle_storefront_error(
+                        request, InvalidSubdomainError(subdomain or host)
+                    )
                 request.state.tenant_context = tenant_context
                 logger.info(
-                    f"Resolved tenant: {tenant_context['tenant_name']} for host: {host}")
+                    f"Resolved tenant: {tenant_context['tenant_name']} for host: {host}"
+                )
                 return await call_next(request)
             else:
                 # No tenant found for this domain/subdomain
                 logger.error(
-                    f"No tenant found for host: {host}, subdomain: {subdomain}")
-                return await handle_storefront_error(request, InvalidSubdomainError(subdomain or host))
+                    f"No tenant found for host: {host}, subdomain: {subdomain}"
+                )
+                return await handle_storefront_error(
+                    request, InvalidSubdomainError(subdomain or host)
+                )
 
-        except (InvalidSubdomainError, InactiveTenantError, MaintenanceModeError) as exc:
+        except (
+            InvalidSubdomainError,
+            InactiveTenantError,
+            MaintenanceModeError,
+        ) as exc:
             return await handle_storefront_error(request, exc)
         except Exception as e:
             # If the error is a DNS resolution error, return a default context and proceed
             if "nodename nor servname provided" in str(e):
                 logger.warning(
-                    f"Host '{host}' could not be resolved. Using default tenant context for this request.")
+                    f"Host '{host}' could not be resolved. Using default tenant context for this request."
+                )
                 request.state.tenant_context = {
                     "tenant_id": None,
                     "tenant_name": None,
                     "storefront_id": None,
                     "subdomain": None,
                     "custom_domain": None,
-                    "theme_settings": None
+                    "theme_settings": None,
                 }
                 return await call_next(request)
             else:
                 logger.error(
-                    f"Error in subdomain middleware for Host '{host}': {str(e)}")
+                    f"Error in subdomain middleware for Host '{host}': {str(e)}"
+                )
                 return await call_next(request)
 
     def _get_from_cache(self, key: str) -> Optional[Dict[str, Any]]:
@@ -197,13 +217,14 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
 
         # Simple cache cleanup - remove oldest entries if cache gets too large
         if len(self.tenant_cache) > 1000:  # Arbitrary limit
-            oldest_key = min(self.cache_timestamp,
-                             key=self.cache_timestamp.get)
+            oldest_key = min(self.cache_timestamp, key=self.cache_timestamp.get)
             if oldest_key:
                 del self.tenant_cache[oldest_key]
                 del self.cache_timestamp[oldest_key]
 
-    async def _get_storefront_by_domain(self, db: Session, domain: str) -> Optional[StorefrontConfig]:
+    async def _get_storefront_by_domain(
+        self, db: Session, domain: str
+    ) -> Optional[StorefrontConfig]:
         """
         Get StorefrontConfig by domain.
         """
@@ -212,19 +233,19 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
         result = await db.execute(
             select(StorefrontConfig).where(
                 StorefrontConfig.custom_domain == clean_domain,
-                StorefrontConfig.domain_verified
+                StorefrontConfig.domain_verified,
             )
         )
         return result.scalars().first()
 
-    async def _get_storefront_by_subdomain(self, db: Session, subdomain: str) -> Optional[StorefrontConfig]:
+    async def _get_storefront_by_subdomain(
+        self, db: Session, subdomain: str
+    ) -> Optional[StorefrontConfig]:
         """
         Get StorefrontConfig by subdomain.
         """
         result = await db.execute(
-            select(StorefrontConfig).where(
-                StorefrontConfig.subdomain_name == subdomain
-            )
+            select(StorefrontConfig).where(StorefrontConfig.subdomain_name == subdomain)
         )
         return result.scalars().first()
 
@@ -233,12 +254,10 @@ class SubdomainMiddleware(BaseHTTPMiddleware):
         Get Tenant by ID.
         """
         result = await db.execute(
-            select(Tenant).where(
-                Tenant.id == tenant_id,
-                Tenant.storefront_enabled
-            )
+            select(Tenant).where(Tenant.id == tenant_id, Tenant.storefront_enabled)
         )
         return result.scalars().first()
+
 
 # Example async DB access in subdomain middleware
 

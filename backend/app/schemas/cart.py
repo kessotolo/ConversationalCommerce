@@ -1,8 +1,8 @@
-from pydantic import BaseModel
-from typing import Optional, List
-from uuid import UUID
 from datetime import datetime
-from pydantic import ConfigDict
+from typing import List, Optional
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict
 
 
 class CartItemBase(BaseModel):

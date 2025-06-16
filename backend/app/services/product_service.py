@@ -1,28 +1,33 @@
-from sqlalchemy.orm import Session
-from app.models.product import Product as ProductModel
-from app.schemas.product import ProductCreate, ProductUpdate, ProductSearchParams
-from uuid import UUID
-from fastapi import Request
-from typing import List, Optional, Tuple, Dict, Any
 from datetime import datetime, timezone
-from sqlalchemy import or_, desc, and_, update
+from typing import Any, Dict, List, Optional, Tuple
+from uuid import UUID
+
+from fastapi import Request
+from sqlalchemy import and_, desc, or_, update
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
+
 from app.core.exceptions import (
+    DatabaseError,
     ProductNotFoundError,
     ProductPermissionError,
     ProductValidationError,
-    DatabaseError
 )
-from sqlalchemy.ext.asyncio import AsyncSession
+from app.models.product import Product as ProductModel
+from app.schemas.product import ProductCreate, ProductSearchParams, ProductUpdate
 
 # Add a new exception for optimistic locking conflicts
 
 
 class ConcurrentModificationError(Exception):
     """Raised when a concurrent modification is detected via optimistic locking"""
+
     pass
 
 
-async def create_product(db: AsyncSession, product_in: ProductCreate, request: Request = None) -> ProductModel:
+async def create_product(
+    db: AsyncSession, product_in: ProductCreate, request: Request = None
+) -> ProductModel:
     """
     Create a new product with text and image validation.
 
@@ -67,17 +72,17 @@ def get_product(db: Session, product_id: UUID) -> Optional[ProductModel]:
         DatabaseError: If database operation fails
     """
     try:
-        return db.query(ProductModel).filter(
-            ProductModel.id == product_id,
-            not ProductModel.is_deleted
-        ).first()
+        return (
+            db.query(ProductModel)
+            .filter(ProductModel.id == product_id, not ProductModel.is_deleted)
+            .first()
+        )
     except Exception as e:
         raise DatabaseError(f"Error fetching product: {str(e)}")
 
 
 def get_products(
-    db: Session,
-    search_params: ProductSearchParams
+    db: Session, search_params: ProductSearchParams
 ) -> Tuple[List[ProductModel], int]:
     """
     Get products with filtering and traditional offset pagination.
@@ -101,7 +106,7 @@ def get_products(
             query = query.filter(
                 or_(
                     ProductModel.name.ilike(search_term),
-                    ProductModel.description.ilike(search_term)
+                    ProductModel.description.ilike(search_term),
                 )
             )
 
@@ -112,8 +117,7 @@ def get_products(
             query = query.filter(ProductModel.price <= search_params.max_price)
 
         if search_params.featured is not None:
-            query = query.filter(ProductModel.is_featured ==
-                                 search_params.featured)
+            query = query.filter(ProductModel.is_featured == search_params.featured)
 
         if search_params.show_on_storefront is not None:
             query = query.filter(
@@ -138,7 +142,7 @@ def get_products_keyset(
     db: Session,
     search_params: ProductSearchParams,
     last_id: Optional[UUID] = None,
-    last_updated: Optional[datetime] = None
+    last_updated: Optional[datetime] = None,
 ) -> Tuple[List[ProductModel], bool]:
     """
     Get products with filtering and efficient keyset pagination.
@@ -165,7 +169,7 @@ def get_products_keyset(
             query = query.filter(
                 or_(
                     ProductModel.name.ilike(search_term),
-                    ProductModel.description.ilike(search_term)
+                    ProductModel.description.ilike(search_term),
                 )
             )
 
@@ -176,8 +180,7 @@ def get_products_keyset(
             query = query.filter(ProductModel.price <= search_params.max_price)
 
         if search_params.featured is not None:
-            query = query.filter(ProductModel.is_featured ==
-                                 search_params.featured)
+            query = query.filter(ProductModel.is_featured == search_params.featured)
 
         if search_params.show_on_storefront is not None:
             query = query.filter(
@@ -191,14 +194,13 @@ def get_products_keyset(
                     ProductModel.updated_at < last_updated,
                     and_(
                         ProductModel.updated_at == last_updated,
-                        ProductModel.id < last_id
-                    )
+                        ProductModel.id < last_id,
+                    ),
                 )
             )
 
         # Order by updated_at and id for consistent keyset pagination
-        query = query.order_by(
-            desc(ProductModel.updated_at), desc(ProductModel.id))
+        query = query.order_by(desc(ProductModel.updated_at), desc(ProductModel.id))
 
         # Get one more item than requested to determine if there are more items
         limit_plus_one = search_params.limit + 1
@@ -211,18 +213,14 @@ def get_products_keyset(
         has_more = len(products) > search_params.limit
 
         # Return only the requested number of items
-        return products[:search_params.limit], has_more
+        return products[: search_params.limit], has_more
 
     except Exception as e:
-        raise DatabaseError(
-            f"Error fetching products with keyset pagination: {str(e)}")
+        raise DatabaseError(f"Error fetching products with keyset pagination: {str(e)}")
 
 
 async def update_product(
-    db: AsyncSession,
-    product_id: UUID,
-    product_in: ProductUpdate,
-    seller_id: UUID
+    db: AsyncSession, product_id: UUID, product_in: ProductUpdate, seller_id: UUID
 ) -> ProductModel:
     """
     Update a product with optimistic locking to prevent concurrent modifications.
@@ -246,13 +244,11 @@ async def update_product(
     try:
         product = await get_product(db, product_id)
         if not product:
-            raise ProductNotFoundError(
-                f"Product with ID {product_id} not found")
+            raise ProductNotFoundError(f"Product with ID {product_id} not found")
 
         # Permission check
         if str(product.seller_id).lower() != str(seller_id).lower():
-            raise ProductPermissionError(
-                "Not authorized to update this product.")
+            raise ProductPermissionError("Not authorized to update this product.")
 
         current_version = product.version
         update_data = product_in.dict(exclude_unset=True)
@@ -263,7 +259,7 @@ async def update_product(
             .where(
                 and_(
                     ProductModel.id == product_id,
-                    ProductModel.version == current_version
+                    ProductModel.version == current_version,
                 )
             )
             .values(**update_data)
@@ -272,10 +268,16 @@ async def update_product(
         if result.rowcount == 0:
             await db.rollback()
             raise ConcurrentModificationError(
-                f"Product with ID {product_id} was modified concurrently")
+                f"Product with ID {product_id} was modified concurrently"
+            )
         await db.refresh(product)
         return product
-    except (ProductNotFoundError, ProductPermissionError, ProductValidationError, ConcurrentModificationError):
+    except (
+        ProductNotFoundError,
+        ProductPermissionError,
+        ProductValidationError,
+        ConcurrentModificationError,
+    ):
         await db.rollback()
         raise
     except Exception as e:
@@ -287,7 +289,7 @@ async def batch_update_products(
     db: AsyncSession,
     product_ids: List[UUID],
     update_data: Dict[str, Any],
-    seller_id: UUID
+    seller_id: UUID,
 ) -> int:
     """
     Batch update multiple products at once for better performance.
@@ -308,17 +310,17 @@ async def batch_update_products(
     try:
         # First, verify the seller has permission to update all products
         authorized_products = await db.execute(
-            select(ProductModel.id)
-            .filter(
+            select(ProductModel.id).filter(
                 ProductModel.id.in_(product_ids),
                 ProductModel.seller_id == seller_id,
-                not ProductModel.is_deleted
+                not ProductModel.is_deleted,
             )
         )
 
         authorized_ids = [str(p.id) for p in authorized_products.scalars()]
-        unauthorized_ids = [str(pid) for pid in product_ids if str(
-            pid) not in authorized_ids]
+        unauthorized_ids = [
+            str(pid) for pid in product_ids if str(pid) not in authorized_ids
+        ]
 
         if unauthorized_ids:
             raise ProductPermissionError(
@@ -334,7 +336,7 @@ async def batch_update_products(
             .where(
                 and_(
                     ProductModel.id.in_(product_ids),
-                    ProductModel.seller_id == seller_id
+                    ProductModel.seller_id == seller_id,
                 )
             )
             .values(**update_data)
@@ -370,8 +372,7 @@ async def delete_product(db: AsyncSession, product_id: UUID, seller_id: UUID) ->
     try:
         product = await get_product(db, product_id)
         if not product:
-            raise ProductNotFoundError(
-                f"Product with ID {product_id} not found")
+            raise ProductNotFoundError(f"Product with ID {product_id} not found")
 
         # Convert both to strings and compare to handle UUID vs string comparison properly
         product_seller_id = str(product.seller_id).lower()
@@ -379,7 +380,8 @@ async def delete_product(db: AsyncSession, product_id: UUID, seller_id: UUID) ->
 
         if product_seller_id != current_user_id:
             raise ProductPermissionError(
-                f"Not authorized to delete this product. Owner: {product_seller_id}, Current user: {current_user_id}")
+                f"Not authorized to delete this product. Owner: {product_seller_id}, Current user: {current_user_id}"
+            )
 
         product.is_deleted = True
         product.updated_at = datetime.now(timezone.utc)
@@ -392,7 +394,9 @@ async def delete_product(db: AsyncSession, product_id: UUID, seller_id: UUID) ->
         raise DatabaseError(f"Error deleting product: {str(e)}")
 
 
-async def restore_product(db: AsyncSession, product_id: UUID, seller_id: UUID) -> ProductModel:
+async def restore_product(
+    db: AsyncSession, product_id: UUID, seller_id: UUID
+) -> ProductModel:
     """
     Restore a soft-deleted product.
 
@@ -411,22 +415,18 @@ async def restore_product(db: AsyncSession, product_id: UUID, seller_id: UUID) -
     """
     try:
         product = await db.execute(
-            select(ProductModel)
-            .filter(
-                ProductModel.id == product_id,
-                ProductModel.is_deleted
+            select(ProductModel).filter(
+                ProductModel.id == product_id, ProductModel.is_deleted
             )
         )
 
         product = product.scalars().first()
 
         if not product:
-            raise ProductNotFoundError(
-                f"Product with ID {product_id} not found")
+            raise ProductNotFoundError(f"Product with ID {product_id} not found")
 
         if product.seller_id != seller_id:
-            raise ProductPermissionError(
-                "Not authorized to restore this product")
+            raise ProductPermissionError("Not authorized to restore this product")
 
         product.is_deleted = False
         product.updated_at = datetime.now(timezone.utc)

@@ -1,9 +1,10 @@
-import cloudinary.uploader
-import cloudinary.api
-from typing import Optional, Dict, Any
-from fastapi import UploadFile
-import aiofiles
 import os
+from typing import Any, Dict, Optional
+
+import aiofiles
+import cloudinary.api
+import cloudinary.uploader
+from fastapi import UploadFile
 
 
 class CloudinaryClient:
@@ -12,7 +13,7 @@ class CloudinaryClient:
         file: UploadFile,
         folder: str = "conversational_commerce",
         resource_type: str = "auto",
-        **options: Dict[str, Any]
+        **options: Dict[str, Any],
     ) -> Dict[str, Any]:
         """
         Upload a file to Cloudinary.
@@ -30,16 +31,13 @@ class CloudinaryClient:
         temp_file = f"/tmp/{file.filename}"
         try:
             # Save the uploaded file temporarily
-            async with aiofiles.open(temp_file, 'wb') as out_file:
+            async with aiofiles.open(temp_file, "wb") as out_file:
                 content = await file.read()
                 await out_file.write(content)
 
             # Upload to Cloudinary
             result = cloudinary.uploader.upload(
-                temp_file,
-                folder=folder,
-                resource_type=resource_type,
-                **options
+                temp_file, folder=folder, resource_type=resource_type, **options
             )
 
             return result
@@ -50,8 +48,7 @@ class CloudinaryClient:
 
     @staticmethod
     def get_image_url(
-        public_id: str,
-        transformation: Optional[Dict[str, Any]] = None
+        public_id: str, transformation: Optional[Dict[str, Any]] = None
     ) -> str:
         """
         Get a Cloudinary URL for an image with optional transformations.
@@ -64,8 +61,7 @@ class CloudinaryClient:
             The URL of the transformed image
         """
         return cloudinary.utils.cloudinary_url(
-            public_id,
-            transformation=transformation
+            public_id, transformation=transformation
         )[0]
 
     @staticmethod

@@ -1,10 +1,16 @@
-from typing import List, Optional, Dict, Any, Tuple
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy.orm import Session
-from sqlalchemy import desc, or_
+from typing import Any, Dict, List, Optional, Tuple
+
 from fastapi import HTTPException, status
-from app.models.storefront_component import StorefrontComponent, ComponentType, ComponentStatus
+from sqlalchemy import desc, or_
+from sqlalchemy.orm import Session
+
+from app.models.storefront_component import (
+    ComponentStatus,
+    ComponentType,
+    StorefrontComponent,
+)
 from app.models.tenant import Tenant
 from app.models.user import User
 from app.services.storefront_permissions_service import has_permission
@@ -20,7 +26,7 @@ async def create_component(
     description: Optional[str] = None,
     is_global: bool = False,
     tags: Optional[List[str]] = None,
-    status: ComponentStatus = ComponentStatus.DRAFT
+    status: ComponentStatus = ComponentStatus.DRAFT,
 ) -> StorefrontComponent:
     """
     Create a new reusable UI component.
@@ -48,16 +54,14 @@ async def create_component(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Check if user exists
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     # Check permission
@@ -66,13 +70,13 @@ async def create_component(
         tenant_id=tenant_id,
         user_id=user_id,
         required_permission="edit",
-        section=None  # For now, using global permission
+        section=None,  # For now, using global permission
     )
 
     if not has_perm:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to create components"
+            detail="You don't have permission to create components",
         )
 
     # Validate component configuration based on type
@@ -89,7 +93,7 @@ async def create_component(
         is_global=is_global,
         tags=tags or [],
         status=status,
-        created_by=user_id
+        created_by=user_id,
     )
 
     db.add(component)
@@ -110,7 +114,7 @@ async def update_component(
     description: Optional[str] = None,
     is_global: Optional[bool] = None,
     tags: Optional[List[str]] = None,
-    status: Optional[ComponentStatus] = None
+    status: Optional[ComponentStatus] = None,
 ) -> StorefrontComponent:
     """
     Update an existing component.
@@ -141,28 +145,29 @@ async def update_component(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Check if user exists
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     # Get the component
-    component = db.query(StorefrontComponent).filter(
-        StorefrontComponent.id == component_id,
-        StorefrontComponent.tenant_id == tenant_id
-    ).first()
+    component = (
+        db.query(StorefrontComponent)
+        .filter(
+            StorefrontComponent.id == component_id,
+            StorefrontComponent.tenant_id == tenant_id,
+        )
+        .first()
+    )
 
     if not component:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Component not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Component not found"
         )
 
     # Check permission
@@ -172,13 +177,13 @@ async def update_component(
         user_id=user_id,
         required_permission="edit",
         section=None,
-        component_id=component_id
+        component_id=component_id,
     )
 
     if not has_perm:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to update this component"
+            detail="You don't have permission to update this component",
         )
 
     # Validate configuration if provided
@@ -203,7 +208,10 @@ async def update_component(
 
     if status is not None:
         # If transitioning to published, track that
-        if status == ComponentStatus.PUBLISHED and component.status != ComponentStatus.PUBLISHED:
+        if (
+            status == ComponentStatus.PUBLISHED
+            and component.status != ComponentStatus.PUBLISHED
+        ):
             component.published_at = datetime.now(timezone.utc)
             component.published_by = user_id
 
@@ -225,9 +233,7 @@ async def update_component(
 
 
 async def get_component(
-    db: Session,
-    tenant_id: uuid.UUID,
-    component_id: uuid.UUID
+    db: Session, tenant_id: uuid.UUID, component_id: uuid.UUID
 ) -> Optional[StorefrontComponent]:
     """
     Get a specific component by ID.
@@ -247,15 +253,18 @@ async def get_component(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Get the component
-    component = db.query(StorefrontComponent).filter(
-        StorefrontComponent.id == component_id,
-        StorefrontComponent.tenant_id == tenant_id
-    ).first()
+    component = (
+        db.query(StorefrontComponent)
+        .filter(
+            StorefrontComponent.id == component_id,
+            StorefrontComponent.tenant_id == tenant_id,
+        )
+        .first()
+    )
 
     return component
 
@@ -269,7 +278,7 @@ async def list_components(
     search_query: Optional[str] = None,
     only_global: bool = False,
     limit: int = 20,
-    offset: int = 0
+    offset: int = 0,
 ) -> Tuple[List[StorefrontComponent], int]:
     """
     List components for a tenant with filtering.
@@ -295,8 +304,7 @@ async def list_components(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Base query
@@ -306,8 +314,7 @@ async def list_components(
 
     # Apply component type filter
     if component_type:
-        query = query.filter(
-            StorefrontComponent.component_type == component_type)
+        query = query.filter(StorefrontComponent.component_type == component_type)
 
     # Apply status filter
     if status:
@@ -329,7 +336,7 @@ async def list_components(
         query = query.filter(
             or_(
                 StorefrontComponent.name.ilike(search_terms),
-                StorefrontComponent.description.ilike(search_terms)
+                StorefrontComponent.description.ilike(search_terms),
             )
         )
 
@@ -347,10 +354,7 @@ async def list_components(
 
 
 async def delete_component(
-    db: Session,
-    tenant_id: uuid.UUID,
-    component_id: uuid.UUID,
-    user_id: uuid.UUID
+    db: Session, tenant_id: uuid.UUID, component_id: uuid.UUID, user_id: uuid.UUID
 ) -> bool:
     """
     Delete a component.
@@ -372,23 +376,25 @@ async def delete_component(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Check if user exists
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     # Get the component
-    component = db.query(StorefrontComponent).filter(
-        StorefrontComponent.id == component_id,
-        StorefrontComponent.tenant_id == tenant_id
-    ).first()
+    component = (
+        db.query(StorefrontComponent)
+        .filter(
+            StorefrontComponent.id == component_id,
+            StorefrontComponent.tenant_id == tenant_id,
+        )
+        .first()
+    )
 
     if not component:
         return False
@@ -400,13 +406,13 @@ async def delete_component(
         user_id=user_id,
         required_permission="delete",
         section=None,
-        component_id=component_id
+        component_id=component_id,
     )
 
     if not has_perm:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to delete this component"
+            detail="You don't have permission to delete this component",
         )
 
     # TODO: Check if component is in use before deleting
@@ -421,10 +427,7 @@ async def delete_component(
 
 
 async def publish_component(
-    db: Session,
-    tenant_id: uuid.UUID,
-    component_id: uuid.UUID,
-    user_id: uuid.UUID
+    db: Session, tenant_id: uuid.UUID, component_id: uuid.UUID, user_id: uuid.UUID
 ) -> StorefrontComponent:
     """
     Publish a component.
@@ -446,28 +449,29 @@ async def publish_component(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Check if user exists
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     # Get the component
-    component = db.query(StorefrontComponent).filter(
-        StorefrontComponent.id == component_id,
-        StorefrontComponent.tenant_id == tenant_id
-    ).first()
+    component = (
+        db.query(StorefrontComponent)
+        .filter(
+            StorefrontComponent.id == component_id,
+            StorefrontComponent.tenant_id == tenant_id,
+        )
+        .first()
+    )
 
     if not component:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Component not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Component not found"
         )
 
     # Check permission
@@ -477,13 +481,13 @@ async def publish_component(
         user_id=user_id,
         required_permission="publish",
         section=None,
-        component_id=component_id
+        component_id=component_id,
     )
 
     if not has_perm:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to publish this component"
+            detail="You don't have permission to publish this component",
         )
 
     # Update status to published
@@ -504,7 +508,7 @@ async def duplicate_component(
     tenant_id: uuid.UUID,
     component_id: uuid.UUID,
     user_id: uuid.UUID,
-    new_name: Optional[str] = None
+    new_name: Optional[str] = None,
 ) -> StorefrontComponent:
     """
     Duplicate an existing component.
@@ -527,28 +531,29 @@ async def duplicate_component(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Check if user exists
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     # Get the source component
-    source_component = db.query(StorefrontComponent).filter(
-        StorefrontComponent.id == component_id,
-        StorefrontComponent.tenant_id == tenant_id
-    ).first()
+    source_component = (
+        db.query(StorefrontComponent)
+        .filter(
+            StorefrontComponent.id == component_id,
+            StorefrontComponent.tenant_id == tenant_id,
+        )
+        .first()
+    )
 
     if not source_component:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Component not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Component not found"
         )
 
     # Check permission
@@ -557,13 +562,13 @@ async def duplicate_component(
         tenant_id=tenant_id,
         user_id=user_id,
         required_permission="edit",
-        section=None
+        section=None,
     )
 
     if not has_perm:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to duplicate components"
+            detail="You don't have permission to duplicate components",
         )
 
     # Create a new name if not provided
@@ -581,7 +586,7 @@ async def duplicate_component(
         tags=source_component.tags,
         status=ComponentStatus.DRAFT,  # Always start as draft
         created_by=user_id,
-        duplicated_from=source_component.id
+        duplicated_from=source_component.id,
     )
 
     db.add(duplicate)
@@ -592,8 +597,7 @@ async def duplicate_component(
 
 
 async def validate_component_configuration(
-    component_type: ComponentType,
-    configuration: Dict[str, Any]
+    component_type: ComponentType, configuration: Dict[str, Any]
 ) -> None:
     """
     Validate component configuration based on its type.
@@ -611,7 +615,10 @@ async def validate_component_configuration(
     # Basic validation for required fields based on component type
     if component_type == ComponentType.HERO:
         required_fields = ["headline", "background_type"]
-        if "background_type" in configuration and configuration["background_type"] == "image":
+        if (
+            "background_type" in configuration
+            and configuration["background_type"] == "image"
+        ):
             required_fields.append("image_id")
 
     elif component_type == ComponentType.PRODUCT_CARD:
@@ -648,7 +655,7 @@ async def validate_component_configuration(
         if field not in configuration:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Missing required field '{field}' for {component_type.value} component"
+                detail=f"Missing required field '{field}' for {component_type.value} component",
             )
 
     # Additional type-specific validations could go here
@@ -657,9 +664,7 @@ async def validate_component_configuration(
 
 
 async def get_component_usage(
-    db: Session,
-    tenant_id: uuid.UUID,
-    component_id: uuid.UUID
+    db: Session, tenant_id: uuid.UUID, component_id: uuid.UUID
 ) -> List[Dict[str, Any]]:
     """
     Get information about where a component is being used.
@@ -679,20 +684,22 @@ async def get_component_usage(
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Tenant not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
         )
 
     # Get the component
-    component = db.query(StorefrontComponent).filter(
-        StorefrontComponent.id == component_id,
-        StorefrontComponent.tenant_id == tenant_id
-    ).first()
+    component = (
+        db.query(StorefrontComponent)
+        .filter(
+            StorefrontComponent.id == component_id,
+            StorefrontComponent.tenant_id == tenant_id,
+        )
+        .first()
+    )
 
     if not component:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Component not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Component not found"
         )
 
     # In a real implementation, this would query various tables

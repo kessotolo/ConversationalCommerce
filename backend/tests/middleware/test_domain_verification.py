@@ -7,7 +7,7 @@ from app.middleware.domain_verification import (
     DomainVerificationMiddleware,
     DomainVerificationService,
     SSL_STATUS_VALID,
-    SSL_STATUS_UNKNOWN
+    SSL_STATUS_UNKNOWN,
 )
 
 
@@ -60,7 +60,7 @@ class TestDomainVerificationMiddleware:
         app.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch.object(DomainVerificationMiddleware, '_verify_domain_if_needed')
+    @patch.object(DomainVerificationMiddleware, "_verify_domain_if_needed")
     async def test_dispatch_custom_domain(self, mock_verify):
         """Test that middleware verifies custom domains."""
         # Setup
@@ -73,7 +73,7 @@ class TestDomainVerificationMiddleware:
         request.headers = {"host": "shop.example.com"}
         request.state.tenant_context = {
             "tenant_id": str(uuid.uuid4()),
-            "custom_domain": "shop.example.com"
+            "custom_domain": "shop.example.com",
         }
 
         # Create mock call_next function
@@ -85,10 +85,11 @@ class TestDomainVerificationMiddleware:
 
         # Verify domain verification was triggered
         mock_verify.assert_called_once_with(
-            "shop.example.com", request.state.tenant_context["tenant_id"])
+            "shop.example.com", request.state.tenant_context["tenant_id"]
+        )
 
     @pytest.mark.asyncio
-    @patch('app.middleware.domain_verification.verify_domain_dns')
+    @patch("app.middleware.domain_verification.verify_domain_dns")
     async def test_verify_dns(self, mock_verify_dns):
         """Test DNS verification."""
         # Setup
@@ -104,8 +105,8 @@ class TestDomainVerificationMiddleware:
         mock_verify_dns.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('socket.create_connection')
-    @patch('ssl.create_default_context')
+    @patch("socket.create_connection")
+    @patch("ssl.create_default_context")
     async def test_verify_ssl_valid(self, mock_create_context, mock_create_connection):
         """Test valid SSL verification."""
         # Setup
@@ -121,8 +122,10 @@ class TestDomainVerificationMiddleware:
 
         # Mock certificate with future expiration
         import datetime
-        future_date = datetime.datetime.now(
-            datetime.timezone.utc) + datetime.timedelta(days=30)
+
+        future_date = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
+            days=30
+        )
         mock_ssock.getpeercert.return_value = {
             "notAfter": future_date.strftime("%b %d %H:%M:%S %Y %Z")
         }
@@ -137,7 +140,7 @@ class TestDomainVerificationMiddleware:
         mock_context.wrap_socket.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('socket.create_connection')
+    @patch("socket.create_connection")
     async def test_verify_ssl_connection_error(self, mock_create_connection):
         """Test SSL verification with connection error."""
         # Setup
@@ -157,7 +160,7 @@ class TestDomainVerificationService:
     """Test suite for the domain verification service."""
 
     @pytest.mark.asyncio
-    @patch('asyncio.create_task')
+    @patch("asyncio.create_task")
     async def test_start(self, mock_create_task):
         """Test starting the verification service."""
         # Setup
@@ -171,7 +174,7 @@ class TestDomainVerificationService:
         mock_create_task.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('asyncio.sleep', return_value=None)
+    @patch("asyncio.sleep", return_value=None)
     async def test_stop(self, mock_sleep):
         """Test stopping the verification service."""
         # Setup
@@ -188,10 +191,12 @@ class TestDomainVerificationService:
         service._task.cancel.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('app.middleware.domain_verification.SessionLocal')
-    @patch.object(DomainVerificationService, '_verify_dns')
-    @patch.object(DomainVerificationService, '_verify_ssl')
-    async def test_verify_all_domains(self, mock_verify_ssl, mock_verify_dns, mock_session_local):
+    @patch("app.middleware.domain_verification.SessionLocal")
+    @patch.object(DomainVerificationService, "_verify_dns")
+    @patch.object(DomainVerificationService, "_verify_ssl")
+    async def test_verify_all_domains(
+        self, mock_verify_ssl, mock_verify_dns, mock_session_local
+    ):
         """Test verifying all domains."""
         # Setup
         service = DomainVerificationService()
@@ -211,7 +216,9 @@ class TestDomainVerificationService:
         mock_config2.tenant_id = uuid.uuid4()
 
         mock_db.query.return_value.filter.return_value.all.return_value = [
-            mock_config1, mock_config2]
+            mock_config1,
+            mock_config2,
+        ]
 
         # Mock verification results
         mock_verify_dns.return_value = (True, None)

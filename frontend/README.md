@@ -755,3 +755,60 @@ import NotificationCenter from 'src/components/monitoring/NotificationCenter';
 - `/api/v2/orders/` and other v2 endpoints are available for new or breaking changes.
 - Frontend should consume v2 endpoints for new features or breaking changes.
 - See backend/README.md for details.
+
+## 💬 Conversational Checkout & WhatsApp Integration (2025-06)
+
+The primary buyer experience is chat-driven, powered by the backend chat flow engine and WhatsApp integration. The frontend is a complement for sellers/admins and can be extended to simulate chat for testing.
+
+### How It Works
+- Buyers interact via WhatsApp (or SMS/Telegram) and are guided through a step-by-step checkout: name → phone → address → payment method → confirm.
+- The backend validates input, manages state, and generates real payment links.
+- All chat state and order/payment events are logged for analytics and audit.
+
+### Extending the Frontend
+- If needed, a minimal chat simulator UI can be built to POST messages to the backend WhatsApp webhook for local testing.
+- All seller/admin dashboards and analytics reflect chat-driven orders/payments in real time.
+
+### Key Backend Files
+- See backend `app/conversation/chat_flow_engine.py` and `app/api/v1/endpoints/whatsapp.py` for chat flow and WhatsApp integration logic.
+
+# Frontend Modules Overview
+
+## core
+**Purpose:** Base types, utilities, and cross-cutting concerns for the frontend.
+**Allowed Imports:** None (cannot import from other modules).
+**Forbidden Imports:** All other modules.
+**Example Import Patterns:**
+// ✅ Correct
+import type { UUID } from '@/modules/core/models/base';
+// ❌ Incorrect
+import { OrderService } from '@/modules/order/services/OrderService';
+**Analytics/Event Logging:** Not applicable.
+**Testing:** See /core/tests/unit and /core/tests/integration.
+
+## conversation
+**Purpose:** Messaging UI and conversational flows.
+**Allowed Imports:** core, tenant.
+**Forbidden Imports:** product, order, storefront, theme, monitoring.
+**Example Import Patterns:**
+// ✅ Correct
+import { ConversationEventType } from '@/modules/conversation/models/event';
+// ❌ Incorrect
+import { ProductService } from '@/modules/product/services/ProductService';
+**Analytics/Event Logging:** Use ConversationEvent pattern for all analytics and monitoring.
+**Testing:** See /conversation/tests/unit and /conversation/tests/integration.
+
+## order
+**Purpose:** Order processing and transaction flows.
+**Allowed Imports:** core, tenant, product.
+**Forbidden Imports:** Should not import from unrelated modules.
+**Example Import Patterns:**
+// ✅ Correct
+import { Order } from '@/modules/order/models/order';
+// ❌ Incorrect
+import { ThemeService } from '@/modules/theme/services/ThemeService';
+**Analytics/Event Logging:** Use ConversationEvent pattern where applicable.
+**Testing:** See /order/tests/unit and /order/tests/integration.
+
+---
+For more details, see AI_AGENT_CONFIG.md.

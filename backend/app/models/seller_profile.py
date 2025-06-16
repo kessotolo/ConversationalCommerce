@@ -1,7 +1,10 @@
-from sqlalchemy import Column, String, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
-from app.db import Base
 import uuid
+
+from sqlalchemy import Column, ForeignKey, String
+from sqlalchemy.dialects.postgresql import UUID
+
+from app.db import Base
+
 
 class SellerProfile(Base):
     __tablename__ = "seller_profiles"

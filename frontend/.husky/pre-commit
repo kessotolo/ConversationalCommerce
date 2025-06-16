@@ -10,4 +10,6 @@ echo "🔄 Checking for circular dependencies..."
 npm run check:circular || (echo "❌ Circular dependencies detected. Please fix the cycles before committing." && exit 1)
 
 # Continue with other pre-commit checks
-npm run lint
+npm run lint || (echo "❌ Lint failed. Please fix lint errors before committing." && exit 1)
+
+npm test || (echo "❌ Tests failed. Please fix test errors before committing." && exit 1)
