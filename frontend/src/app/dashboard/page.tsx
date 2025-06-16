@@ -22,6 +22,9 @@ import {
   User,
   Users,
 } from 'lucide-react';
+import OnboardingPromptCard from '@/components/dashboard/OnboardingPromptCard';
+import { useUser } from '@clerk/nextjs';
+import OnboardingWizard from '@/modules/tenant/components/OnboardingWizard';
 
 // Define types to match component requirements
 type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
@@ -287,6 +290,9 @@ function OnboardingChecklist({ onOpenSettings }: { onOpenSettings: (section: str
 export default function Dashboard() {
   const [period, setPeriod] = useState<'7days' | '30days' | '90days'>('7days');
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [showOnboardingPrompt, setShowOnboardingPrompt] = useState(true);
+  const [showWizard, setShowWizard] = useState(false);
+  const { user } = useUser();
 
   // Optionally, track which section to open in settings
   // const [settingsSection, setSettingsSection] = useState<string | null>(null);
@@ -308,8 +314,38 @@ export default function Dashboard() {
     return null;
   }
 
+  // TODO: Replace with real onboarding status API
+  const stepsComplete = 2;
+  const totalSteps = 5;
+  const onboardingIncomplete = stepsComplete < totalSteps;
+
   return (
     <>
+      {/* Onboarding Prompt Card (web & mobile) */}
+      {showOnboardingPrompt && onboardingIncomplete && (
+        <OnboardingPromptCard
+          stepsComplete={stepsComplete}
+          totalSteps={totalSteps}
+          userName={user?.firstName || user?.primaryEmailAddress?.emailAddress}
+          onContinue={() => setShowWizard(true)}
+          onDismiss={() => setShowOnboardingPrompt(false)}
+        />
+      )}
+      {/* Onboarding Wizard Modal (placeholder) */}
+      {showWizard && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl p-4 w-full max-w-lg mx-auto relative animate-fade-in max-h-[90vh] overflow-y-auto">
+            <button
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 transition-colors"
+              onClick={() => setShowWizard(false)}
+              aria-label="Close onboarding wizard"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+            </button>
+            <OnboardingWizard />
+          </div>
+        </div>
+      )}
       <div className="min-h-screen bg-[#fdfcf7] py-6 px-2 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
