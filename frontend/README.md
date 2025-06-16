@@ -71,6 +71,7 @@ Each module contains its own:
 - **Services**: Business logic and data access
 - **Components**: UI components specific to the module
 - **Utils**: Helper functions for the module
+- **API**: For modules that interact with backend APIs, API functions are placed in an `api/` subdirectory. For example, all onboarding-related API calls (startOnboarding, submitKYC, setDomain, inviteTeam, uploadKYCFile) are implemented in `src/modules/tenant/api/onboardingApi.ts`. Components and tests should import onboarding API functions from this module. This enables clean separation of concerns, testability, and strict adherence to module boundaries.
 
 ### Module Boundaries
 
@@ -162,11 +163,14 @@ To maintain code quality and prevent runtime errors, we follow strict type safet
 
 #### Core Type Safety Principles
 
-- **No `any` types**: Avoid using `any` across the codebase
-- **Module boundary types**: Every module boundary must use explicit interface definitions
-- **Type-driven development**: Design types first, then implement functionality
-- **Tagged unions**: Use discriminated unions for state management and API responses
-- **Branded types**: Use branded types for IDs and special string values to prevent type confusion
+- **No `any` types**: The use of `any` is strictly prohibited. Use explicit interfaces, types, or `unknown` with type guards for dynamic data. All module boundaries must use explicit interfaces. Use generics with constraints for flexible APIs. For record types, use `Record<string, unknown>` instead of `{[key: string]: any}`.
+
+#### Async/Await and Asynchronous Code
+
+- **All asynchronous code must use async/await**: Do not use callbacks or mix sync and async logic in the same function.
+- **Error handling is required for all async flows**: Use try/catch around all await calls that can throw.
+- **All async functions must be fully typed**: Never use `any` in async function signatures or return types.
+- **Async flows must be documented and tested**: All async logic must have corresponding tests and inline comments for complex flows.
 
 #### Type Safety Automation
 

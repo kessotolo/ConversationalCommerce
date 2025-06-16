@@ -82,6 +82,8 @@ Our codebase is organized into these modules:
 | **Theme**        | Theming engine and configuration              | Core, Tenant                 |
 | **Monitoring**   | System monitoring and alerts                  | Core                         |
 
++**API Placement:** All onboarding-related API calls (startOnboarding, submitKYC, setDomain, inviteTeam, uploadKYCFile) are implemented in `src/modules/tenant/api/onboardingApi.ts`. Components and tests should import onboarding API functions from this module. This enables clean separation of concerns, testability, and strict adherence to module boundaries.
+
 ## Import Guidelines
 
 ### ✅ DO: Use direct module imports
@@ -231,3 +233,11 @@ If you use React hooks (like `useState`, `useEffect`, `useParams`, etc.) in a fi
 ### Analytics, Fulfillment, and Alerting (2024-06)
 - Analytics logging is now structured (JSON), fulfillment is event-driven, and alerting is actionable and ready for real integration.
 - See backend/README.md and MONITORING.md for details.
+
+## Type Safety and Async/Await Standards
+
+- **No `any` types**: The use of `any` is strictly prohibited. Use explicit interfaces, types, or `unknown` with type guards for dynamic data. All module boundaries must use explicit interfaces. Use generics with constraints for flexible APIs. For record types, use `Record<string, unknown>` instead of `{[key: string]: any}`.
+- **All asynchronous code must use async/await**: Do not use callbacks or mix sync and async logic in the same function.
+- **Error handling is required for all async flows**: Use try/catch around all await calls that can throw.
+- **All async functions must be fully typed**: Never use `any` in async function signatures or return types.
+- **Async flows must be documented and tested**: All async logic must have corresponding tests and inline comments for complex flows.
