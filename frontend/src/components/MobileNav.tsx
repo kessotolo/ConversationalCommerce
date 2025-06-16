@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 const menuItems = [
     { label: 'Sign In', action: 'signin' },
@@ -48,7 +49,9 @@ export default function MobileNav() {
 
     return (
         <nav className="w-full flex items-center justify-between px-4 py-3 bg-white shadow-sm sticky top-0 z-50">
-            <span className="text-lg font-bold tracking-tight text-gray-800">enwhe.io</span>
+            <Link href="/" className="text-lg font-bold tracking-tight text-gray-800 hover:text-[#6C9A8B] focus:outline-none focus:ring-2 focus:ring-[#A8D5BA] rounded transition-colors" aria-label="Go to homepage">
+                enwhe.io
+            </Link>
             {/* Desktop (md+) Sign In/Sign Up */}
             {!isSignedIn && (
                 <div className="hidden md:flex gap-2">
