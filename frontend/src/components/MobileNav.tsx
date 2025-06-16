@@ -49,8 +49,26 @@ export default function MobileNav() {
     return (
         <nav className="w-full flex items-center justify-between px-4 py-3 bg-white shadow-sm sticky top-0 z-50">
             <span className="text-lg font-bold tracking-tight text-gray-800">enwhe.io</span>
+            {/* Desktop (md+) Sign In/Sign Up */}
+            {!isSignedIn && (
+                <div className="hidden md:flex gap-2">
+                    <button
+                        className="px-5 py-2 rounded-md font-semibold border text-[#6C9A8B] bg-white border-[#A8D5BA] hover:bg-[#A8D5BA]/30 transition"
+                        onClick={() => router.push('/sign-in')}
+                    >
+                        Sign In
+                    </button>
+                    <button
+                        className="px-5 py-2 rounded-md font-semibold text-white bg-[#A8D5BA] hover:bg-[#6C9A8B] hover:text-white transition"
+                        onClick={() => router.push('/sign-up')}
+                    >
+                        Sign Up
+                    </button>
+                </div>
+            )}
+            {/* Hamburger menu (mobile only) */}
             <button
-                className="flex flex-col justify-center items-center w-10 h-10 rounded focus:outline-none"
+                className="flex flex-col justify-center items-center w-10 h-10 rounded focus:outline-none md:hidden"
                 aria-label={open ? 'Close menu' : 'Open menu'}
                 onClick={() => setOpen((v) => !v)}
             >
