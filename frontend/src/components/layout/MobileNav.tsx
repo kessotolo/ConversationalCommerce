@@ -1,9 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import { useUser } from '@clerk/nextjs';
 import {
   Home,
   Package,
@@ -15,7 +12,11 @@ import {
   User,
   LogOut,
 } from 'lucide-react';
-import { useUser } from '@clerk/nextjs';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import React, { useState } from 'react';
+
+import { cn } from '@/lib/utils';
 
 // Bottom navigation items - limited to 5 for mobile best practices
 const bottomNavItems = [
@@ -66,8 +67,11 @@ export function MobileNav() {
   // Handle sign out
   const handleSignOut = () => {
     setShowMenu(false);
-    if (typeof window !== 'undefined' && (window as any).Clerk?.signOut) {
-      (window as any).Clerk.signOut();
+    if (
+      typeof window !== 'undefined' &&
+      (window as unknown as { Clerk?: { signOut?: () => void } }).Clerk?.signOut
+    ) {
+      (window as unknown as { Clerk?: { signOut?: () => void } }).Clerk?.signOut();
     } else {
       router.push('/');
     }
@@ -83,7 +87,7 @@ export function MobileNav() {
         >
           <div
             className="w-full bg-white rounded-t-2xl shadow-2xl p-6 pb-8 animate-slide-up"
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
           >
@@ -157,7 +161,9 @@ export function MobileNav() {
                       showMenu ? 'text-[#6C9A8B]' : 'text-gray-500',
                     )}
                   >
-                    <Icon className={cn('h-6 w-6 mb-1', showMenu ? 'text-[#6C9A8B]' : 'text-gray-500')} />
+                    <Icon
+                      className={cn('h-6 w-6 mb-1', showMenu ? 'text-[#6C9A8B]' : 'text-gray-500')}
+                    />
                     <span className="text-xs font-medium">{item.name}</span>
                   </div>
                   {showMenu && (
@@ -179,7 +185,9 @@ export function MobileNav() {
                     isActive ? 'text-[#6C9A8B]' : 'text-gray-500',
                   )}
                 >
-                  <Icon className={cn('h-6 w-6 mb-1', isActive ? 'text-[#6C9A8B]' : 'text-gray-500')} />
+                  <Icon
+                    className={cn('h-6 w-6 mb-1', isActive ? 'text-[#6C9A8B]' : 'text-gray-500')}
+                  />
                   <span className="text-xs font-medium">{item.name}</span>
                 </div>
                 {isActive && (

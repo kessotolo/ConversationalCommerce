@@ -1,25 +1,26 @@
 // DEPRECATED: This Navbar is replaced by MobileNav.tsx for all new and existing layouts. Use <MobileNav /> instead for modern, mobile-first navigation.
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { usePathname, useParams } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { ShoppingCart } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { usePathname, useParams } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 
-const API_BASE = process.env['NEXT_PUBLIC_API_BASE'] || '';
+const API_BASE = process.env['NEXT_PUBLIC_API_BASE'] ?? '';
 
 export default function Navbar() {
   const { isSignedIn, user } = useUser();
   const pathname = usePathname();
   const params = useParams();
   const { merchantId } = params as { merchantId?: string };
-  const [cart, setCart] = useState<any>(null);
+  const [cart, setCart] = useState<Cart | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const session_id = typeof window !== 'undefined' ? localStorage.getItem('session_id') || '' : '';
+  const session_id =
+    typeof window !== 'undefined' ? (localStorage.getItem('session_id') ?? '') : '';
 
   useEffect(() => {
     if (merchantId) fetchCart();
@@ -35,17 +36,20 @@ export default function Navbar() {
       );
       if (!res.ok) throw new Error('Failed to fetch cart');
       setCart(await res.json());
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
   }
 
-  const itemCount = cart?.items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
+  const itemCount =
+    cart?.items?.reduce((sum: number, item: CartItem) => sum + item.quantity, 0) ?? 0;
   const subtotal =
-    cart?.items?.reduce((sum: number, item: any) => sum + item.price_at_add * item.quantity, 0) ||
-    0;
+    cart?.items?.reduce(
+      (sum: number, item: CartItem) => sum + item.price_at_add * item.quantity,
+      0,
+    ) ?? 0;
 
   // Only show navbar on public pages, not on dashboard
   if (pathname?.startsWith('/dashboard')) {
@@ -128,12 +132,12 @@ export default function Navbar() {
               <div className="text-center py-8">Loading...</div>
             ) : error ? (
               <div className="text-center text-red-500 py-8">{error}</div>
-            ) : !cart || !cart.items || cart.items.length === 0 ? (
+            ) : !cart?.items || cart.items.length === 0 ? (
               <div className="text-center py-8">Your cart is empty.</div>
             ) : (
               <>
                 <div className="flex-1 overflow-y-auto flex flex-col gap-4">
-                  {cart.items.map((item: any) => (
+                  {cart.items.map((item: CartItem) => (
                     <div key={item.id} className="flex items-center gap-3 border-b pb-3">
                       <div className="w-14 h-14 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative">
                         {item.image_url ? (

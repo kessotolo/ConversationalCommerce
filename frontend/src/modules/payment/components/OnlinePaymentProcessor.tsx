@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
 import { Box, Button, CircularProgress, Typography, Alert, Card, CardContent } from '@mui/material';
-import { PaymentProvider, PaymentInitializeRequest } from '../models/payment';
-import { HttpPaymentService } from '../services/PaymentService';
-import { PaystackProvider } from '../services/providers/PaystackProvider';
-import { FlutterwaveProvider } from '../services/providers/FlutterwaveProvider';
-import { Order } from '@/modules/order/models/order';
-import { Money } from '@/modules/core/models/base/money';
+import React, { useState, useEffect } from 'react';
+
+import type { Money } from '@/modules/core/models/base/money';
+
+import type { Order } from '@/modules/order/models/order';
+import { PaymentProvider } from '@/modules/payment/models/payment';
+import type { PaymentInitializeRequest } from '@/modules/payment/models/payment';
+import { HttpPaymentService } from '@/modules/payment/services/PaymentService';
+import { FlutterwaveProvider } from '@/modules/payment/services/providers/FlutterwaveProvider';
+import { PaystackProvider } from '@/modules/payment/services/providers/PaystackProvider';
 
 interface OnlinePaymentProcessorProps {
   order: Order;
@@ -73,8 +76,10 @@ export const OnlinePaymentProcessor: React.FC<OnlinePaymentProcessorProps> = ({
             'Failed to initialize payment. Please try again or choose a different payment method.',
           );
         }
-      } catch (err: any) {
-        setError(`Payment initialization error: ${err.message || 'Unknown error'}`);
+      } catch (err: unknown) {
+        setError(
+          `Payment initialization error: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        );
       } finally {
         setLoading(false);
       }
@@ -113,7 +118,7 @@ export const OnlinePaymentProcessor: React.FC<OnlinePaymentProcessorProps> = ({
 
     return (
       <Box>
-        <div id="paystack-payment-container"></div>
+        <div id="paystack-payment-container" />
         <Button
           variant="contained"
           color="primary"

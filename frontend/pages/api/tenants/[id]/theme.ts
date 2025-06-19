@@ -1,5 +1,6 @@
+import type { Theme } from '@/modules/theme/models/theme';
+
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { Theme } from '@/modules/theme/models/theme';
 
 type ErrorResponse = {
   error: string;

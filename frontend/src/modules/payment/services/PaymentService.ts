@@ -1,13 +1,15 @@
+import type { Result } from '@/modules/core/models/base/result';
+
 import type {
+  PaymentProvider,
   PaymentInitializeRequest,
   PaymentInitializeResponse,
-  PaymentProvider,
   PaymentVerificationResponse,
   ManualPaymentProof,
   PaymentSettings,
-} from '../models/payment';
+} from '@/modules/payment/models/payment';
+
 import { StripeProvider } from './providers/StripeProvider';
-import type { Result } from '@/modules/core/models/base/result';
 
 /**
  * Payment service interface for handling payments across different providers
@@ -74,7 +76,7 @@ export class HttpPaymentService implements PaymentService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to initialize payment');
+        throw new Error(errorData.message ?? 'Failed to initialize payment');
       }
 
       const data = await response.json();
@@ -108,7 +110,7 @@ export class HttpPaymentService implements PaymentService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to verify payment');
+        throw new Error(errorData.message ?? 'Failed to verify payment');
       }
 
       const data = await response.json();
@@ -140,7 +142,7 @@ export class HttpPaymentService implements PaymentService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to submit payment proof');
+        throw new Error(errorData.message ?? 'Failed to submit payment proof');
       }
 
       return {
@@ -167,7 +169,7 @@ export class HttpPaymentService implements PaymentService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to get payment settings');
+        throw new Error(errorData.message ?? 'Failed to get payment settings');
       }
 
       const data = await response.json();
@@ -200,7 +202,7 @@ export class HttpPaymentService implements PaymentService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update payment settings');
+        throw new Error(errorData.message ?? 'Failed to update payment settings');
       }
 
       const data = await response.json();
@@ -220,3 +222,9 @@ export class HttpPaymentService implements PaymentService {
 
 // Document: To use Stripe, instantiate StripeProvider with your public key and use initializePayment and createPaymentWidget.
 // For sandbox/testing, use test keys for Paystack, Flutterwave, and Stripe.
+
+// Add type guards for global objects
+// Example: typeof window !== 'undefined' before using window
+// Example: typeof fetch !== 'undefined' before using fetch
+// Example: typeof document !== 'undefined' before using document
+// Example: typeof console !== 'undefined' before using console

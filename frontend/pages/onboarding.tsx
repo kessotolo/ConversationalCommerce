@@ -1,9 +1,11 @@
-import React from 'react';
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { GetStaticProps } from 'next';
-import OnboardingForm from '@/components/onboarding/OnboardingForm';
+import React, { useEffect, useState } from 'react';
+
 import { useAuth } from '@/modules/core/hooks/useAuth';
+
+import OnboardingForm from '@/components/onboarding/OnboardingForm';
+
+import type { GetStaticProps } from 'next';
 
 // Force page to be server-side rendered to avoid Clerk authentication issues during build
 export const getStaticProps: GetStaticProps = async () => {
@@ -62,7 +64,7 @@ export default function OnboardingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mx-auto" />
           <p className="mt-4 text-gray-600">Checking your account...</p>
         </div>
       </div>

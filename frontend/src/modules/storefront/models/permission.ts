@@ -1,5 +1,5 @@
-import { UUID } from '@/modules/core/models/base';
-import { PaginatedResult } from '@/modules/core/models/pagination';
+import type { UUID } from '@/modules/core/models/base';
+import type { PaginatedResult } from '@/modules/core/models/pagination';
 
 export enum StorefrontRole {
   VIEWER = 'viewer',

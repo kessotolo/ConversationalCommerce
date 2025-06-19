@@ -1,29 +1,22 @@
+import Alert from '@mui/material/Alert';
+import Box from '@mui/material/Box';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Divider from '@mui/material/Divider';
+import FormHelperText from '@mui/material/FormHelperText';
+import Grid from '@mui/material/Grid';
+import InputAdornment from '@mui/material/InputAdornment';
+import Switch from '@mui/material/Switch';
+import Typography from '@mui/material/Typography';
 import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Switch,
-  FormControlLabel,
-  TextField,
-  Button,
-  Grid,
-  Divider,
-  FormHelperText,
-  Alert,
-  Tabs,
-  Tab,
-  InputAdornment,
-} from '@mui/material';
-import {
-  PaymentSettings,
-  PaymentProvider,
-  BankAccountDetails,
-  PaymentProviderConfig,
-} from '../models/payment';
-import { HttpPaymentService } from '../services/PaymentService';
+
+import { PaymentProvider } from '@/modules/payment/models/payment';
+import type { PaymentSettings } from '@/modules/payment/models/payment';
+import { HttpPaymentService } from '@/modules/payment/services/PaymentService';
 
 interface PaymentSettingsFormProps {
   tenantId: string;
@@ -129,10 +122,10 @@ export const PaymentSettingsForm: React.FC<PaymentSettingsFormProps> = ({ tenant
         setSuccess(true);
         if (onSaved) onSaved();
       } else {
-        setError('Failed to save settings: ' + (result.error?.message || 'Unknown error'));
+        setError(`Failed to save settings: ${result.error?.message || 'Unknown error'}`);
       }
-    } catch (err: any) {
-      setError('Error saving settings: ' + (err.message || 'Unknown error'));
+    } catch (err: unknown) {
+      setError(`Error saving settings: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -247,8 +240,8 @@ export const PaymentSettingsForm: React.FC<PaymentSettingsFormProps> = ({ tenant
                 Select Payment Provider(s)
               </Typography>
 
-              <Grid container spacing={3} mb={4}>
-                <Grid item xs={12} md={6}>
+              <Grid sx={{ display: 'flex', gap: 3, mb: 4 }}>
+                <Grid sx={{ flex: 1 }}>
                   <Card variant="outlined">
                     <CardContent>
                       <FormControlLabel
@@ -298,7 +291,7 @@ export const PaymentSettingsForm: React.FC<PaymentSettingsFormProps> = ({ tenant
                   </Card>
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid sx={{ flex: 1 }}>
                   <Card variant="outlined">
                     <CardContent>
                       <FormControlLabel

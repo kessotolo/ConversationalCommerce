@@ -1,6 +1,6 @@
+import type { Address } from '@/modules/core/models/base/address';
 import type { TenantScoped } from '@/modules/core/models/base/entity';
 import type { Money } from '@/modules/core/models/base/money';
-import type { Address } from '@/modules/core/models/base/address';
 
 /**
  * Order status enum representing the order lifecycle

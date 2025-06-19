@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import { ArrowLeft, Camera, Upload, Trash2, MessageSquare, Globe, Check, Save } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { ArrowLeft, Camera, Upload, Trash2, MessageSquare, Globe, Check, Save } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { CardContent } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 
 interface NewProduct {
   name: string;
@@ -64,7 +64,7 @@ export default function AddProductPage() {
   // Handle camera capture
   const handleCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsCapturing(false);
-    if (e.target.files && e.target.files[0]) {
+    if (e.target.files?.[0]) {
       const file = e.target.files[0];
       processImageFile(file);
     }
@@ -72,7 +72,7 @@ export default function AddProductPage() {
 
   // Handle file upload
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
+    if (e.target.files?.[0]) {
       const file = e.target.files[0];
       processImageFile(file);
     }
@@ -136,7 +136,7 @@ export default function AddProductPage() {
         <Button onClick={handleSave} disabled={isSaving} className="flex items-center">
           {isSaving ? (
             <span className="flex items-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2" />
               Saving...
             </span>
           ) : (
@@ -153,9 +153,7 @@ export default function AddProductPage() {
         <CardContent className="p-4 space-y-6 pt-6">
           {/* Channel Visibility */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Sell this product on:
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Sell this product on:</label>
             <div className="flex flex-wrap gap-3">
               <button
                 type="button"
@@ -169,9 +167,7 @@ export default function AddProductPage() {
               >
                 <MessageSquare className="mr-2 h-4 w-4" />
                 WhatsApp
-                {product?.channels.whatsapp && (
-                  <Check size={16} className="ml-2 text-green-600" />
-                )}
+                {product?.channels.whatsapp && <Check size={16} className="ml-2 text-green-600" />}
               </button>
 
               <button
@@ -251,8 +247,8 @@ export default function AddProductPage() {
                 </div>
 
                 <p className="text-xs text-gray-500">
-                  Upload a clear photo of your product. For best results, use natural lighting and
-                  a plain background.
+                  Upload a clear photo of your product. For best results, use natural lighting and a
+                  plain background.
                 </p>
               </div>
             </div>

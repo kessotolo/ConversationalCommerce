@@ -1,9 +1,9 @@
 import { ChevronRight, Copy, Trash2, X } from 'lucide-react';
-'use client';
-
-import React, { useState, useRef } from 'react';
 import Link from 'next/link';
+import React, { useState, useRef } from 'react';
+
 import { formatCurrency } from '@/lib/utils';
+('use client');
 
 interface Product {
   id: string;

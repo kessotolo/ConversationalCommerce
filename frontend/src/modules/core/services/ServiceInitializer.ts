@@ -1,4 +1,4 @@
-import { ServiceRegistry } from './ServiceRegistry';
+import type { ServiceRegistry } from './ServiceRegistry';
 
 /**
  * Interface for service initializers

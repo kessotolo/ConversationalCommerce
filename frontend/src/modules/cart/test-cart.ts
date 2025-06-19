@@ -11,7 +11,7 @@ import { useCartStore } from '@/modules/cart/services/useCartStore';
  * Test the CartService implementation
  */
 function testCartService() {
-  console.log('Testing CartService implementation...');
+  if (typeof console !== 'undefined') console.log('Testing CartService implementation...');
 
   // Create a new CartService instance with a test storage key
   const cartService = new LocalStorageCartService('test_cart');
@@ -59,7 +59,10 @@ function testCartService() {
  * Here we demonstrate the API, but actual state updates won't be visible
  */
 function testCartStore() {
-  console.log('Demonstrating CartStore API (actual state management requires browser environment)');
+  if (typeof console !== 'undefined')
+    console.log(
+      'Demonstrating CartStore API (actual state management requires browser environment)',
+    );
 
   // Get initial state from the store
   const initialItems = useCartStore.getState().items;
@@ -91,7 +94,7 @@ function testCartStore() {
 
 // Run the tests
 function runTests() {
-  console.log('=== STARTING CART MODULE TESTS ===');
+  if (typeof console !== 'undefined') console.log('=== STARTING CART MODULE TESTS ===');
 
   const serviceResult = testCartService();
   console.log(serviceResult);
@@ -101,7 +104,7 @@ function runTests() {
   const storeResult = testCartStore();
   console.log(storeResult);
 
-  console.log('=== CART MODULE TESTS COMPLETED ===');
+  if (typeof console !== 'undefined') console.log('=== CART MODULE TESTS COMPLETED ===');
 }
 
 // Export the test functions

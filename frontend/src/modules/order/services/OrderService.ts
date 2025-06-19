@@ -1,7 +1,8 @@
 /// <reference lib="dom" />
-import { Order } from '../models/order';
-import { CreateOrderRequest } from '../validation/orderSchema';
-import { Result } from '@/modules/core/models/base/result';
+import type { Result } from '@/modules/core/models/base/result';
+
+import type { Order } from '@/modules/order/models/order';
+import type { CreateOrderRequest } from '@/modules/order/validation/orderSchema';
 
 /**
  * Service interface for order management
@@ -46,7 +47,11 @@ export interface OrderService {
   /**
    * Add payment details to an order
    */
-  addPayment(orderId: string, tenantId: string, paymentDetails: any): Promise<Result<Order, Error>>;
+  addPayment(
+    orderId: string,
+    tenantId: string,
+    paymentDetails: unknown,
+  ): Promise<Result<Order, Error>>;
 
   /**
    * Add shipping details to an order
@@ -54,13 +59,13 @@ export interface OrderService {
   updateShipping(
     orderId: string,
     tenantId: string,
-    shippingDetails: any,
+    shippingDetails: unknown,
   ): Promise<Result<Order, Error>>;
 
   /**
    * Get order timeline history
    */
-  getOrderTimeline(orderId: string, tenantId: string): Promise<Result<any[], Error>>;
+  getOrderTimeline(orderId: string, tenantId: string): Promise<Result<unknown[], Error>>;
 }
 
 /**
@@ -100,7 +105,8 @@ export class HttpOrderService implements OrderService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create order');
+        if (typeof console !== 'undefined')
+          throw new Error(errorData.message ?? 'Failed to create order');
       }
 
       const data = await response.json();
@@ -127,7 +133,8 @@ export class HttpOrderService implements OrderService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to get order');
+        if (typeof console !== 'undefined')
+          throw new Error(errorData.message ?? 'Failed to get order');
       }
 
       const data = await response.json();
@@ -157,7 +164,8 @@ export class HttpOrderService implements OrderService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to get orders by phone');
+        if (typeof console !== 'undefined')
+          throw new Error(errorData.message ?? 'Failed to get orders by phone');
       }
 
       const data = await response.json();
@@ -190,7 +198,8 @@ export class HttpOrderService implements OrderService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to get orders by customer');
+        if (typeof console !== 'undefined')
+          throw new Error(errorData.message ?? 'Failed to get orders by customer');
       }
 
       const data = await response.json();
@@ -229,7 +238,8 @@ export class HttpOrderService implements OrderService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update order status');
+        if (typeof console !== 'undefined')
+          throw new Error(errorData.message ?? 'Failed to update order status');
       }
 
       const data = await response.json();
@@ -267,7 +277,8 @@ export class HttpOrderService implements OrderService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to cancel order');
+        if (typeof console !== 'undefined')
+          throw new Error(errorData.message ?? 'Failed to cancel order');
       }
 
       const data = await response.json();
@@ -287,7 +298,7 @@ export class HttpOrderService implements OrderService {
   async addPayment(
     orderId: string,
     tenantId: string,
-    paymentDetails: any,
+    paymentDetails: unknown,
   ): Promise<Result<Order, Error>> {
     try {
       const response = await this.makeNetworkRequest(
@@ -305,7 +316,8 @@ export class HttpOrderService implements OrderService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to add payment details');
+        if (typeof console !== 'undefined')
+          throw new Error(errorData.message ?? 'Failed to add payment details');
       }
 
       const data = await response.json();
@@ -325,7 +337,7 @@ export class HttpOrderService implements OrderService {
   async updateShipping(
     orderId: string,
     tenantId: string,
-    shippingDetails: any,
+    shippingDetails: unknown,
   ): Promise<Result<Order, Error>> {
     try {
       const response = await this.makeNetworkRequest(
@@ -343,7 +355,8 @@ export class HttpOrderService implements OrderService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update shipping details');
+        if (typeof console !== 'undefined')
+          throw new Error(errorData.message ?? 'Failed to update shipping details');
       }
 
       const data = await response.json();
@@ -360,7 +373,7 @@ export class HttpOrderService implements OrderService {
     }
   }
 
-  async getOrderTimeline(orderId: string, tenantId: string): Promise<Result<any[], Error>> {
+  async getOrderTimeline(orderId: string, tenantId: string): Promise<Result<unknown[], Error>> {
     try {
       const response = await fetch(`${this.apiUrl}/orders/${orderId}/timeline`, {
         headers: {
@@ -370,7 +383,8 @@ export class HttpOrderService implements OrderService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to get order timeline');
+        if (typeof console !== 'undefined')
+          throw new Error(errorData.message ?? 'Failed to get order timeline');
       }
 
       const data = await response.json();
@@ -417,7 +431,10 @@ export class HttpOrderService implements OrderService {
 
     try {
       // Get existing queue
-      const queueString = localStorage.getItem('order_request_queue') || '[]';
+      const queueString =
+        typeof localStorage !== 'undefined'
+          ? (localStorage.getItem('order_request_queue') ?? '[]')
+          : '[]';
       const queue = JSON.parse(queueString);
 
       // Add this request to the queue
@@ -451,7 +468,10 @@ export class HttpOrderService implements OrderService {
 
     try {
       // Get existing queue
-      const queueString = localStorage.getItem('order_request_queue') || '[]';
+      const queueString =
+        typeof localStorage !== 'undefined'
+          ? (localStorage.getItem('order_request_queue') ?? '[]')
+          : '[]';
       const queue = JSON.parse(queueString);
 
       if (queue.length === 0) return;
@@ -466,7 +486,6 @@ export class HttpOrderService implements OrderService {
             body: item.options.body,
           });
         } catch (_error) {
-          // eslint-disable-line @typescript-eslint/no-unused-vars
           // If still failing, keep in queue for next retry
           newQueue.push(item);
         }

@@ -1,7 +1,9 @@
-import React from 'react';
 import { Search as MagnifyingGlassIcon, Filter as FunnelIcon } from 'lucide-react';
-import type { UserPermission } from '@/modules/storefront/models/permission';
+import React from 'react';
+
 import type { UUID } from '@/modules/core/models';
+
+import type { UserPermission } from '@/modules/storefront/models/permission';
 import { StorefrontRole } from '@/modules/storefront/models/permission';
 
 interface PermissionListProps {
@@ -44,7 +46,7 @@ const PermissionList: React.FC<PermissionListProps> = ({
   if (loading) {
     return (
       <div className="p-4 flex justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700" />
       </div>
     );
   }

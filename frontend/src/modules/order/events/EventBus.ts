@@ -1,4 +1,4 @@
-import { DomainEvent, OrderEventUnion } from '../models/events/orderEvents';
+import type { DomainEvent, OrderEventUnion } from '@/modules/order/models/events/orderEvents';
 
 /**
  * Event handler type definition

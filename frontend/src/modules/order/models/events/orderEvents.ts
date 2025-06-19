@@ -1,4 +1,4 @@
-import { Order, OrderStatus, PaymentStatus } from '../order';
+import type { Order, OrderStatus, PaymentStatus } from '@/modules/order/models/order';
 
 /**
  * Base interface for all domain events

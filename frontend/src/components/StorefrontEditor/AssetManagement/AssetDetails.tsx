@@ -1,5 +1,3 @@
-import React, { useState } from 'react';
-
 import {
   XMarkIcon,
   PencilIcon,
@@ -13,11 +11,14 @@ import {
   DocumentIcon,
   CheckCircleIcon,
 } from '@heroicons/react/24/outline';
+import React, { useState } from 'react';
+
+import type { UUID } from '@/modules/core/models/base';
+
+import { updateAsset, deleteAsset, optimizeAsset } from '@/lib/api/storefrontEditor';
+import type { Asset } from '@/modules/storefront/models/asset';
 
 import type { InputChangeEvent } from '@core/models/events';
-import type { UUID } from '@/modules/core/models/base';
-import type { Asset } from '@/modules/storefront/models/asset';
-import { updateAsset, deleteAsset, optimizeAsset } from '@/lib/api/storefrontEditor';
 
 interface AssetDetailsProps {
   asset: Asset;
@@ -49,7 +50,7 @@ const AssetDetails: React.FC<AssetDetailsProps> = ({ asset, _tenantId, onUpdate,
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   };
 
   // Get asset icon based on type

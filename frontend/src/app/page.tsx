@@ -1,10 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useUser, SignIn, SignUp } from '@clerk/nextjs';
+import {
+  ArrowDown,
+  MessageCircle,
+  Smartphone,
+  LayoutDashboard,
+  Star,
+  Twitter,
+  Linkedin,
+  X,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useUser, SignIn, SignUp } from '@clerk/nextjs';
-import { ArrowDown, MessageCircle, Smartphone, LayoutDashboard, Star, Twitter, Linkedin, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 export default function Home() {
   const [email, setEmail] = useState('');
@@ -50,7 +59,10 @@ export default function Home() {
         <div className="absolute inset-0 -z-10 flex items-center justify-center">
           <div className="w-[600px] h-[400px] bg-gradient-to-tr from-[#6C9A8B] via-[#A8D5BA] to-white opacity-30 rounded-full blur-3xl" />
         </div>
-        <h1 className="text-5xl sm:text-6xl font-extrabold text-gray-900 text-center leading-tight mb-4 tracking-tight drop-shadow-lg" style={{ fontFamily: 'Inter, DM Sans, Poppins, sans-serif' }}>
+        <h1
+          className="text-5xl sm:text-6xl font-extrabold text-gray-900 text-center leading-tight mb-4 tracking-tight drop-shadow-lg"
+          style={{ fontFamily: 'Inter, DM Sans, Poppins, sans-serif' }}
+        >
           Welcome to <span className="text-[#6C9A8B]">enwhe.io</span>
         </h1>
         <p className="text-[#6C9A8B] text-xl font-semibold text-center mb-6 tracking-wide">
@@ -59,7 +71,13 @@ export default function Home() {
         <p className="text-gray-500 text-lg text-center mb-10 italic max-w-md">
           Where commerce begins with a conversation.
         </p>
-        <form onSubmit={e => { e.preventDefault(); setModal('signup'); }} className="w-full flex flex-col sm:flex-row gap-3 mb-8">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            setModal('signup');
+          }}
+          className="w-full flex flex-col sm:flex-row gap-3 mb-8"
+        >
           <input
             type="email"
             placeholder="Enter your email"
@@ -99,20 +117,27 @@ export default function Home() {
       </section>
 
       {/* Feature Grid */}
-      <section id="features" className="w-full max-w-3xl mx-auto px-4 py-14 grid grid-cols-1 sm:grid-cols-3 gap-10">
+      <section
+        id="features"
+        className="w-full max-w-3xl mx-auto px-4 py-14 grid grid-cols-1 sm:grid-cols-3 gap-10"
+      >
         <div className="flex flex-col items-center text-center">
           <div className="w-14 h-14 rounded-full bg-[#A8D5BA]/30 flex items-center justify-center mb-3 border-2 border-[#FFD700]">
             <Smartphone className="w-7 h-7 text-[#6C9A8B]" />
           </div>
           <h3 className="font-semibold text-gray-900 mb-1">Mobile-First</h3>
-          <p className="text-gray-500 text-sm">Run your business from your phone—no laptop needed.</p>
+          <p className="text-gray-500 text-sm">
+            Run your business from your phone—no laptop needed.
+          </p>
         </div>
         <div className="flex flex-col items-center text-center">
           <div className="w-14 h-14 rounded-full bg-[#A8D5BA]/30 flex items-center justify-center mb-3 border-2 border-[#FFD700]">
             <MessageCircle className="w-7 h-7 text-[#6C9A8B]" />
           </div>
           <h3 className="font-semibold text-gray-900 mb-1">Messaging Commerce</h3>
-          <p className="text-gray-500 text-sm">Sell where your customers chat. WhatsApp, Messenger, and more.</p>
+          <p className="text-gray-500 text-sm">
+            Sell where your customers chat. WhatsApp, Messenger, and more.
+          </p>
         </div>
         <div className="flex flex-col items-center text-center">
           <div className="w-14 h-14 rounded-full bg-[#A8D5BA]/30 flex items-center justify-center mb-3 border-2 border-[#FFD700]">
@@ -140,10 +165,20 @@ export default function Home() {
       {/* Minimal Footer with Social Icons */}
       <footer className="w-full max-w-2xl mx-auto px-4 py-10 text-center text-gray-400 text-sm flex flex-col items-center gap-2 border-t border-gray-100 mt-8">
         <div className="flex gap-5 justify-center mb-2">
-          <a href="https://twitter.com/" target="_blank" rel="noopener noreferrer" className="hover:text-[#6C9A8B] transition-colors">
+          <a
+            href="https://twitter.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-[#6C9A8B] transition-colors"
+          >
             <Twitter className="w-6 h-6" />
           </a>
-          <a href="https://linkedin.com/" target="_blank" rel="noopener noreferrer" className="hover:text-[#6C9A8B] transition-colors">
+          <a
+            href="https://linkedin.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-[#6C9A8B] transition-colors"
+          >
             <Linkedin className="w-6 h-6" />
           </a>
         </div>

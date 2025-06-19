@@ -1,7 +1,17 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Tooltip,
+  Legend,
+  Filler,
+} from 'chart.js';
 import {
   ShoppingBag,
   ArrowUpRight,
@@ -15,23 +25,13 @@ import {
   Truck,
   MessageSquare,
 } from 'lucide-react';
+import Link from 'next/link';
+import React, { useState, useEffect, useRef } from 'react';
 import { Line, Pie, Bar } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Tooltip,
-  Legend,
-  Filler,
-} from 'chart.js';
-import { CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+
 import { StatCard } from '@/components/dashboard/StatCard';
-import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { CardContent, CardHeader, CardTitle, Card } from '@/components/ui/Card';
 
 ChartJS.register(
   CategoryScale,
@@ -129,7 +129,6 @@ export default function AnalyticsPage() {
         const data = await res.json();
         setConvAnalytics(data);
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.warn('Failed to fetch conversation analytics', err);
       } finally {
         setLoadingConv(false);
@@ -153,12 +152,10 @@ export default function AnalyticsPage() {
           setEventFeed((prev) => [data, ...prev.slice(0, 49)]); // Keep last 50
         }
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.warn('WebSocket message parse error', err);
       }
     };
     ws.onerror = (err) => {
-      // eslint-disable-next-line no-console
       console.warn('WebSocket error', err);
     };
     return () => {
@@ -176,7 +173,6 @@ export default function AnalyticsPage() {
         const data = await res.json();
         setQualityLeaderboard(data);
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.warn('Failed to fetch conversation quality', err);
       } finally {
         setLoadingQuality(false);

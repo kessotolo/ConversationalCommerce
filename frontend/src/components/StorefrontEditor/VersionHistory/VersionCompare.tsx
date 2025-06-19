@@ -1,10 +1,13 @@
+import { ArrowRightLeft, AlertTriangle } from 'lucide-react';
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { JSX } from 'react';
+
 // Using direct module imports instead of bridge files
-import { ArrowRightLeft, AlertTriangle } from 'lucide-react';
-import type { Version, VersionDiff } from '@/modules/storefront/models/version';
 import type { UUID } from '@/modules/core/models/base';
+
+import type { Version, VersionDiff } from '@/modules/storefront/models/version';
+
+import type { JSX } from 'react';
 
 interface VersionCompareProps {
   version1: Version;
@@ -139,7 +142,7 @@ const VersionCompare: React.FC<VersionCompareProps> = ({ version1, version2, ten
       <div className="p-4 overflow-y-auto flex-1">
         {loading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700" />
           </div>
         ) : error ? (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
@@ -152,15 +155,15 @@ const VersionCompare: React.FC<VersionCompareProps> = ({ version1, version2, ten
           <div className="space-y-6">
             <div className="flex space-x-4">
               <div className="flex items-center">
-                <span className="inline-block w-3 h-3 bg-green-100 border border-green-800 rounded mr-1"></span>
+                <span className="inline-block w-3 h-3 bg-green-100 border border-green-800 rounded mr-1" />
                 <span className="text-xs text-gray-600">Added in Version B</span>
               </div>
               <div className="flex items-center">
-                <span className="inline-block w-3 h-3 bg-red-100 border border-red-800 rounded mr-1"></span>
+                <span className="inline-block w-3 h-3 bg-red-100 border border-red-800 rounded mr-1" />
                 <span className="text-xs text-gray-600">Removed in Version B</span>
               </div>
               <div className="flex items-center">
-                <span className="inline-block w-3 h-3 bg-yellow-100 border border-yellow-800 rounded mr-1"></span>
+                <span className="inline-block w-3 h-3 bg-yellow-100 border border-yellow-800 rounded mr-1" />
                 <span className="text-xs text-gray-600">Changed in Version B</span>
               </div>
             </div>

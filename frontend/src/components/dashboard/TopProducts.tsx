@@ -1,7 +1,8 @@
-import React from 'react';
 import Image from 'next/image';
-import { formatCurrency } from '@/lib/utils';
+import React from 'react';
+
 import { CardHeader, CardTitle, CardContent, Card } from '@/components/ui/Card';
+import { formatCurrency } from '@/lib/utils';
 
 interface Product {
   id: string;
@@ -28,10 +29,10 @@ export function TopProducts({ products, isLoading = false }: TopProductsProps) {
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="flex items-center space-x-4">
-                <div className="h-10 w-10 rounded-md bg-gray-200 animate-pulse"></div>
+                <div className="h-10 w-10 rounded-md bg-gray-200 animate-pulse" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
-                  <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2"></div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
+                  <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2" />
                 </div>
               </div>
             ))}

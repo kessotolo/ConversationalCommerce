@@ -1,6 +1,9 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
+
 import { MobileNav } from '@/components/layout/MobileNav';
 import { Sidebar } from '@/components/layout/Sidebar';
+
+import type { ReactNode } from 'react';
 
 interface DashboardLayoutProps {
   children: ReactNode;

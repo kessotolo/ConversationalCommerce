@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import React, { useState, useEffect } from 'react';
 
 interface OptimizedImageProps {
   src: string;
@@ -34,7 +34,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   onLoad,
   onError,
 }) => {
-  const [imageSrc, setImageSrc] = useState<string>(lowQualitySrc || src);
+  const [imageSrc, setImageSrc] = useState<string>(lowQualitySrc ?? src);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
   const [retries, setRetries] = useState<number>(0);
@@ -45,7 +45,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
     setIsLoaded(false);
     setError(false);
     setRetries(0);
-    setImageSrc(lowQualitySrc || src);
+    setImageSrc(lowQualitySrc ?? src);
   }, [src, lowQualitySrc]);
 
   useEffect(() => {
@@ -99,7 +99,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       if (error) {
         setError(false);
         setRetries(0);
-        setImageSrc(lowQualitySrc || src);
+        setImageSrc(lowQualitySrc ?? src);
       }
     };
 
@@ -134,7 +134,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       {/* Loading indicator */}
       {!isLoaded && !error && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-40">
-          <div className="w-8 h-8 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
         </div>
       )}
     </div>

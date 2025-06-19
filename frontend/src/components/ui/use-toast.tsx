@@ -1,5 +1,7 @@
 import * as React from 'react';
-import { Toast, ToastProps } from '@/components/ui/toast';
+
+import type { ToastProps } from '@/components/ui/toast';
+import { Toast } from '@/components/ui/toast';
 
 type ToastActionElement = React.ReactElement;
 

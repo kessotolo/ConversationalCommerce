@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
 import { RefreshCw as ArrowPathIcon } from 'lucide-react';
-import type { Version } from '@/modules/storefront/models/version';
+import React, { useState, useEffect } from 'react';
+
 import type { UUID } from '@/modules/core/models';
-import { getVersions, restoreVersion } from '@/lib/api/storefrontEditor';
-import VersionList from '@/components/StorefrontEditor/VersionHistory/VersionList';
-import VersionDetail from '@/components/StorefrontEditor/VersionHistory/VersionDetail';
+
 import VersionCompare from '@/components/StorefrontEditor/VersionHistory/VersionCompare';
+import VersionDetail from '@/components/StorefrontEditor/VersionHistory/VersionDetail';
+import VersionList from '@/components/StorefrontEditor/VersionHistory/VersionList';
+import { getVersions, restoreVersion } from '@/lib/api/storefrontEditor';
+import type { Version } from '@/modules/storefront/models/version';
 
 export interface VersionHistoryProps {
   tenantId: UUID;

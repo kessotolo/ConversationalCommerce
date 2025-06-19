@@ -1,11 +1,12 @@
 'use client';
 
 // TODO: Fix any types below (ESLint @typescript-eslint/no-explicit-any)
-import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Trash2, Camera, Upload, Save, AlertTriangle } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { ArrowLeft, Trash2, Camera, Upload, Save, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+
 import { Button } from '@/components/ui/Button';
 // DashboardLayout now provided by layout.tsx
 

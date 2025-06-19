@@ -1,8 +1,8 @@
-import {
+import { PaymentProvider } from '@/modules/payment/models/payment';
+import type {
   PaymentInitializeRequest,
   PaymentInitializeResponse,
-  PaymentProvider,
-} from '../../models/payment';
+} from '@/modules/payment/models/payment';
 
 /**
  * Flutterwave provider implementation
@@ -21,6 +21,7 @@ export class FlutterwaveProvider {
    * Initialize a payment with Flutterwave
    */
   async initializePayment(request: PaymentInitializeRequest): Promise<PaymentInitializeResponse> {
+    if (typeof fetch === 'undefined') throw new Error('fetch is not available');
     try {
       const response = await fetch('https://api.flutterwave.com/v3/payments', {
         method: 'POST',
@@ -29,18 +30,28 @@ export class FlutterwaveProvider {
           Authorization: `Bearer ${this.publicKey}`,
         },
         body: JSON.stringify({
-          tx_ref: `order_${request.order_id}_${Date.now()}`,
-          amount: request.amount.value,
-          currency: request.amount.currency,
-          redirect_url: request.redirect_url || window.location.origin + '/checkout/confirmation',
+          tx_ref: `order_${typeof request.order_id === 'string' ? request.order_id : ''}_${Date.now()}`,
+          amount: String(typeof request.amount?.amount === 'number' ? request.amount.amount : 0),
+          currency: String(
+            typeof request.amount?.currency === 'string' ? request.amount.currency : '',
+          ),
+          redirect_url: String(
+            typeof request.redirect_url === 'string'
+              ? request.redirect_url
+              : typeof window !== 'undefined'
+                ? `${window.location.origin}/checkout/confirmation`
+                : '',
+          ),
           customer: {
-            email: request.customer_email,
-            name: request.customer_name,
-            phonenumber: request.customer_phone,
+            email: String(typeof request.customer_email === 'string' ? request.customer_email : ''),
+            name: String(typeof request.customer_name === 'string' ? request.customer_name : ''),
+            phonenumber: String(
+              typeof request.customer_phone === 'string' ? request.customer_phone : '',
+            ),
           },
           meta: {
-            order_id: request.order_id,
-            provider: PaymentProvider.FLUTTERWAVE,
+            order_id: String(typeof request.order_id === 'string' ? request.order_id : ''),
+            provider: String(PaymentProvider.FLUTTERWAVE),
             ...request.metadata,
           },
         }),
@@ -48,7 +59,7 @@ export class FlutterwaveProvider {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to initialize Flutterwave payment');
+        throw new Error(errorData.message ?? 'Failed to initialize Flutterwave payment');
       }
 
       const data = await response.json();
@@ -59,7 +70,7 @@ export class FlutterwaveProvider {
         payment_link: data.data.link,
       };
     } catch (error) {
-      console.error('Flutterwave initialization error:', error);
+      if (typeof console !== 'undefined') console.error('Flutterwave initialization error:', error);
       throw error;
     }
   }
@@ -77,7 +88,10 @@ export class FlutterwaveProvider {
     onSuccess: (reference: string, transactionId: string) => void,
     onClose: () => void,
   ) {
-    if (typeof window === 'undefined' || !(window as any).FlutterwaveCheckout) {
+    if (
+      typeof window === 'undefined' ||
+      typeof (window as any).FlutterwaveCheckout !== 'function'
+    ) {
       this.loadFlutterwaveScript();
     }
 
@@ -96,18 +110,41 @@ export class FlutterwaveProvider {
         customizations: {
           title: 'Payment for your order',
           description: 'Complete your purchase',
-          logo: window.location.origin + '/logo.png',
+          logo: typeof window !== 'undefined' ? `${window.location.origin}/logo.png` : '',
         },
-        callback: (response: any) => {
-          onSuccess(response.tx_ref, response.transaction_id);
+        callback: (response: unknown) => {
+          if (
+            typeof response === 'object' &&
+            response !== null &&
+            'tx_ref' in response &&
+            typeof (response as { tx_ref: unknown }).tx_ref === 'string' &&
+            'transaction_id' in response &&
+            typeof (response as { transaction_id: unknown }).transaction_id === 'string'
+          ) {
+            onSuccess(
+              (response as { tx_ref: string }).tx_ref,
+              (response as { transaction_id: string }).transaction_id,
+            );
+          } else {
+            if (typeof console !== 'undefined')
+              console.error(
+                'Flutterwave callback response missing tx_ref or transaction_id:',
+                response,
+              );
+          }
         },
         onclose: onClose,
       };
 
-      // @ts-ignore
-      window.FlutterwaveCheckout(config);
+      if (
+        typeof window !== 'undefined' &&
+        typeof (window as any).FlutterwaveCheckout === 'function'
+      ) {
+        (window as any).FlutterwaveCheckout(config);
+      }
     } catch (error) {
-      console.error('Error creating Flutterwave widget:', error);
+      if (typeof console !== 'undefined')
+        console.error('Error creating Flutterwave widget:', error);
       throw error;
     }
   }
@@ -116,18 +153,21 @@ export class FlutterwaveProvider {
    * Load Flutterwave script dynamically
    */
   private loadFlutterwaveScript() {
-    if (typeof window !== 'undefined' && !(window as any).FlutterwaveCheckout) {
-      const script = document.createElement('script');
-      script.src = 'https://checkout.flutterwave.com/v3.js';
-      script.async = true;
-      document.body.appendChild(script);
+    if (
+      typeof window !== 'undefined' &&
+      typeof (window as any).FlutterwaveCheckout !== 'function'
+    ) {
+      const script = typeof document !== 'undefined' ? document.createElement('script') : undefined;
+      if (typeof document !== 'undefined' && script) {
+        document.body.appendChild(script);
+      }
     }
   }
 
   /**
    * Encrypt payload with encryption key (optional security enhancement)
    */
-  private encryptPayload(payload: any): string | undefined {
+  private encryptPayload(payload: unknown): string | undefined {
     if (!this.encryptionKey || typeof window === 'undefined') {
       return undefined;
     }
@@ -138,8 +178,13 @@ export class FlutterwaveProvider {
       // For the sake of this example, we'll return undefined
       return undefined;
     } catch (error) {
-      console.error('Encryption error:', error);
+      if (typeof console !== 'undefined') console.error('Encryption error:', error);
       return undefined;
     }
   }
+}
+
+// Define a type for window with FlutterwaveCheckout
+interface FlutterwaveWindow extends Window {
+  FlutterwaveCheckout?: (config: unknown) => void;
 }

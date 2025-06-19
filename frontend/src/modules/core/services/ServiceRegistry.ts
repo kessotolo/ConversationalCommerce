@@ -8,7 +8,7 @@ export type CleanupFunction = () => void;
  * Provides dependency injection for the modular monolith architecture
  */
 export class ServiceRegistry {
-  private services: Map<string, any>;
+  private services: Map<string, unknown>;
   private cleanupFunctions: Map<string, CleanupFunction>;
 
   constructor() {

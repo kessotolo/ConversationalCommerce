@@ -1,14 +1,17 @@
 import { useState, useCallback } from 'react';
-import {
+
+import type { Result } from '@/modules/core/models/base/result';
+
+import type { Order } from '@/modules/order/models/order';
+import type {
   PaymentProvider,
   PaymentInitializeRequest,
   PaymentInitializeResponse,
   PaymentVerificationResponse,
   ManualPaymentProof,
-} from '../models/payment';
-import { HttpPaymentService } from '../services/PaymentService';
-import { Order } from '@/modules/order/models/order';
-import { Result } from '@/modules/core/models/base/result';
+  PaymentSettings,
+} from '@/modules/payment/models/payment';
+import { HttpPaymentService } from '@/modules/payment/services/PaymentService';
 
 /**
  * Hook for managing payment operations
@@ -42,7 +45,7 @@ export const usePayment = () => {
           customer_name: order.customer.name,
           customer_phone: order.customer.phone,
           provider,
-          redirect_url: redirectUrl,
+          ...(redirectUrl ? { redirect_url: redirectUrl } : {}),
           metadata: {
             order_id: order.order_number,
             source: order.source,
@@ -58,8 +61,8 @@ export const usePayment = () => {
         }
 
         return result;
-      } catch (err: any) {
-        const errorMessage = `Payment initialization error: ${err.message || 'Unknown error'}`;
+      } catch (err: unknown) {
+        const errorMessage = `Payment initialization error: ${err instanceof Error ? err.message : 'Unknown error'}`;
         setError(errorMessage);
         return {
           success: false,
@@ -93,8 +96,8 @@ export const usePayment = () => {
         }
 
         return result;
-      } catch (err: any) {
-        const errorMessage = `Payment verification error: ${err.message || 'Unknown error'}`;
+      } catch (err: unknown) {
+        const errorMessage = `Payment verification error: ${err instanceof Error ? err.message : 'Unknown error'}`;
         setError(errorMessage);
         return {
           success: false,
@@ -123,8 +126,8 @@ export const usePayment = () => {
         }
 
         return result;
-      } catch (err: any) {
-        const errorMessage = `Payment proof submission error: ${err.message || 'Unknown error'}`;
+      } catch (err: unknown) {
+        const errorMessage = `Payment proof submission error: ${err instanceof Error ? err.message : 'Unknown error'}`;
         setError(errorMessage);
         return {
           success: false,

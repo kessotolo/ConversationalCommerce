@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Image as PhotoIcon,
   Film as FilmIcon,
@@ -6,6 +5,8 @@ import {
   Music as MusicalNoteIcon,
   File as DocumentIcon,
 } from 'lucide-react';
+import React from 'react';
+
 import type { Asset } from '@/modules/storefront/models/asset';
 
 interface AssetGridProps {
@@ -37,7 +38,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ assets, selectedAssetId, onAssetS
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   };
 
   // Generate preview URL for the asset

@@ -1,22 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import { formatDistanceToNow } from 'date-fns';
-import IconButton from '@mui/material/IconButton';
+import SuccessIcon from '@mui/icons-material/CheckCircle';
+import CloseIcon from '@mui/icons-material/Close';
+import ErrorIcon from '@mui/icons-material/Error';
+import InfoIcon from '@mui/icons-material/Info';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import WarningIcon from '@mui/icons-material/Warning';
 import Badge from '@mui/material/Badge';
-import Drawer from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
+import Drawer from '@mui/material/Drawer';
+import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import ErrorIcon from '@mui/icons-material/Error';
-import WarningIcon from '@mui/icons-material/Warning';
-import InfoIcon from '@mui/icons-material/Info';
-import SuccessIcon from '@mui/icons-material/CheckCircle';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import CloseIcon from '@mui/icons-material/Close';
+import Typography from '@mui/material/Typography';
+import { formatDistanceToNow } from 'date-fns';
+import React, { useEffect, useState } from 'react';
+
 import { useWebSocket } from '@/hooks/useWebSocket';
 
 type NotificationPayload = {
@@ -58,19 +59,19 @@ const NotificationCenter: React.FC = () => {
 
   // Get tenant ID from localStorage (client-side only)
   useEffect(() => {
-    setTenantId(localStorage.getItem('tenant_id') || '');
+    setTenantId(localStorage.getItem('tenant_id') ?? '');
   }, []);
 
   // WebSocket connection - only establish when tenantId is available
   const { lastMessage } = useWebSocket(
     tenantId
-      ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/ws/monitoring/${tenantId}`
+      ? `${process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:8080'}/ws/monitoring/${tenantId}`
       : '',
   );
 
   useEffect(() => {
     if (lastMessage && isNotification(lastMessage.payload)) {
-      const payload = lastMessage.payload as NotificationPayload;
+      const { payload } = lastMessage;
       const newNotification: Notification = {
         id: payload.id,
         title: `New alert: ${payload.message}`,
@@ -204,7 +205,7 @@ const NotificationCenter: React.FC = () => {
                       {notification.message}
                     </Typography>
                     <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-                      {String(notification.metadata.source || 'system')}
+                      {String(notification.metadata['source'] ?? 'system')}
                     </Typography>
                     <Typography component="span" variant="caption" color="text.secondary">
                       {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}

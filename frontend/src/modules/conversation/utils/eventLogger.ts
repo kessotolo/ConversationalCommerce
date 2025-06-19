@@ -1,5 +1,5 @@
-import type { ConversationEvent, ConversationEventType } from '@/modules/conversation/models/event';
 import { logConversationEvent } from '@/lib/api/conversationEvent';
+import type { ConversationEvent, ConversationEventType } from '@/modules/conversation/models/event';
 
 /**
  * Utility for logging conversation events from the frontend.
@@ -14,7 +14,7 @@ export class ConversationEventLogger {
       await logConversationEvent(event);
     } catch (err) {
       // Optionally, report to monitoring or show a non-blocking error
-      // eslint-disable-next-line no-console
+
       console.warn('Failed to log conversation event', err);
     }
   }

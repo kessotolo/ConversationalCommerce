@@ -1,7 +1,8 @@
 import Image from 'next/image';
-
 import React, { useState } from 'react';
+
 import { productService } from '@/lib/api';
+
 import ImageUploader from './ImageUploader';
 
 interface ProductFormProps {

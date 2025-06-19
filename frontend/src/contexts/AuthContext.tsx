@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+
 import { useTenant } from '@/contexts/TenantContext';
 
 // Interface for auth with UUID tenant connection
@@ -86,7 +87,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // IMPORTANT: The UUID tenant system requires proper joining here
       const userWithTenant: AuthUser = {
-        id: 'user_' + Math.random().toString(36).substring(2, 11),
+        id: `user_${Math.random().toString(36).substring(2, 11)}`,
         email,
         firstName: 'Demo',
         lastName: 'User',

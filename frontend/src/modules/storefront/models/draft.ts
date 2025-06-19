@@ -1,5 +1,5 @@
-import { Draftable } from '@/modules/core/models/base';
-import { PaginatedResult } from '@/modules/core/models/pagination';
+import type { Draftable } from '@/modules/core/models/base';
+import type { PaginatedResult } from '@/modules/core/models/pagination';
 
 export interface Draft extends Draftable {
   name: string;

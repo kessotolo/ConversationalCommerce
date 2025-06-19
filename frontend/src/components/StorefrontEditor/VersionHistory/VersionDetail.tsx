@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import {
   Check as CheckIcon,
   AlertTriangle as ExclamationTriangleIcon,
@@ -8,7 +7,10 @@ import {
   ClipboardCopy as ClipboardDocumentIcon,
   Undo as ArrowUturnLeftIcon,
 } from 'lucide-react';
+import React, { useState } from 'react';
+
 import type { UUID } from '@/modules/core/models/base';
+
 import type { Version } from '@/modules/storefront/models/version';
 
 interface VersionDetailProps {

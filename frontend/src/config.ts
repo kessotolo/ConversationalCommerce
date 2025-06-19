@@ -8,7 +8,7 @@
  */
 
 // API Configuration
-export const API_BASE_URL = process.env['NEXT_PUBLIC_API_URL'] || 'https://api.enwhe.io';
+export const API_BASE_URL = process.env['NEXT_PUBLIC_API_URL'] ?? 'https://api.enwhe.io';
 export const API_TIMEOUT = 15000; // 15 seconds - optimized for slower connections
 export const RETRY_ATTEMPTS = 3; // Retry failed requests for better resilience
 

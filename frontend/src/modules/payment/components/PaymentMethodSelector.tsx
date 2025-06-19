@@ -1,4 +1,3 @@
-import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -13,8 +12,11 @@ import {
   Stack,
   Alert,
 } from '@mui/material';
-import { PaymentSettings, PaymentProvider } from '../models/payment';
-import { HttpPaymentService } from '../services/PaymentService';
+import React, { useState, useEffect } from 'react';
+
+import { PaymentProvider } from '@/modules/payment/models/payment';
+import type { PaymentSettings } from '@/modules/payment/models/payment';
+import { HttpPaymentService } from '@/modules/payment/services/PaymentService';
 
 interface PaymentMethodSelectorProps {
   tenantId: string;
@@ -60,8 +62,10 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
         } else {
           setError('Failed to load payment settings');
         }
-      } catch (err: any) {
-        setError(`Error loading payment settings: ${err.message || 'Unknown error'}`);
+      } catch (err: unknown) {
+        setError(
+          `Error loading payment settings: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        );
       } finally {
         setLoading(false);
       }
@@ -71,15 +75,17 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   }, [tenantId]);
 
   const handleMethodChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value;
+    const { value } = event.target;
     setSelectedMethod(value);
 
     if (value === 'online') {
-      // If online is selected, select the first available provider
-      const availableProviders = settings?.providers.filter((p) => p.enabled) || [];
-      if (availableProviders.length > 0) {
-        setSelectedProvider(availableProviders[0].provider);
-        onMethodSelected('online', availableProviders[0].provider);
+      if (settings && settings.providers) {
+        const availableProviders = settings.providers.filter((p) => p.enabled);
+        const [firstProvider] = availableProviders;
+        if (firstProvider) {
+          setSelectedProvider(firstProvider.provider);
+          onMethodSelected('online', firstProvider.provider);
+        }
       }
     } else if (value === 'bank_transfer') {
       setSelectedProvider(null);

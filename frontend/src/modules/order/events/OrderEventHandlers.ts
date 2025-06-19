@@ -1,11 +1,12 @@
-import {
+import type {
   OrderCreatedEvent,
   OrderStatusChangedEvent,
   PaymentProcessedEvent,
   OrderShippedEvent,
   OrderDeliveredEvent,
   OrderCancelledEvent,
-} from '../models/events/orderEvents';
+} from '@/modules/order/models/events/orderEvents';
+
 import { getEventBus } from './EventBus';
 
 /**
@@ -270,7 +271,7 @@ function showNotification(title: string, message: string): void {
  * Track order events for analytics
  * Implements offline resilience for African markets
  */
-function trackOrderEvent(eventName: string, properties: Record<string, any>): void {
+function trackOrderEvent(eventName: string, properties: Record<string, unknown>): void {
   try {
     // If analytics is available, track the event
     if (typeof window !== 'undefined' && window.analytics) {
@@ -328,7 +329,7 @@ function processOfflineAnalytics(): void {
 declare global {
   interface Window {
     analytics?: {
-      track: (event: string, properties?: Record<string, any>) => void;
+      track: (event: string, properties?: Record<string, unknown>) => void;
     };
     __analyticsOnlineListener?: boolean;
   }

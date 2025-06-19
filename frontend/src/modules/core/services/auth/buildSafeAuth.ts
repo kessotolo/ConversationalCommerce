@@ -5,7 +5,7 @@
 import { useAuth as useClerkAuth, useUser as useClerkUser } from '@clerk/nextjs';
 
 // Types from core module
-import type { Result } from '../../models/base';
+import type { Result } from '@/modules/core/models/base';
 
 // Type definitions
 export interface AuthUser {
@@ -32,8 +32,8 @@ export function useAuthService(): AuthService {
   // Check if we're in a build environment where auth should be bypassed
   const isBuildEnv =
     typeof window === 'undefined' &&
-    (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
-      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY === '');
+    (!process.env['NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY'] ||
+      process.env['NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY'] === '');
 
   // If in build environment, return safe defaults that won't cause build errors
   if (isBuildEnv) {
@@ -77,8 +77,8 @@ export async function checkAuth(): Promise<Result<AuthUser | null>> {
     // In build environment, return success with null user
     if (
       typeof window === 'undefined' &&
-      (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
-        process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY === '')
+      (!process.env['NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY'] ||
+        process.env['NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY'] === '')
     ) {
       return {
         success: true,

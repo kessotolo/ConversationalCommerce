@@ -1,15 +1,14 @@
 'use client';
+import { Check, RefreshCcw, Search, Eye, MessageSquare, Package, Truck } from 'lucide-react';
 import Image from 'next/image';
-
-import React, { useState } from 'react';
 import Link from 'next/link';
-import { CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import React, { useState } from 'react';
+
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';
+import { CardContent, CardHeader, CardTitle, Card } from '@/components/ui/Card';
 import { orderService } from '@/lib/api';
-import { Check, RefreshCcw, Search, Eye, MessageSquare, Package, Truck } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
+import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';
 
 // Define order types to match component requirements
 type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
@@ -123,7 +122,7 @@ export default function OrdersPage() {
       }, 1000);
     } catch (err: unknown) {
       if (err instanceof Error) {
-        setError(err.message || 'Failed to fetch orders');
+        setError(err.message ?? 'Failed to fetch orders');
       }
       setIsLoading(false);
     }
@@ -158,7 +157,7 @@ export default function OrdersPage() {
       }, 500);
     } catch (err: unknown) {
       if (err instanceof Error) {
-        setError(err.message || 'Failed to update order status');
+        setError(err.message ?? 'Failed to update order status');
       }
       setIsLoading(false);
     }
@@ -167,7 +166,8 @@ export default function OrdersPage() {
   // Function to message customer via WhatsApp
   const messageCustomer = (phone: string) => {
     // In production, this would use the Twilio API
-    window.open(`https://wa.me/${phone.replace(/[^0-9]/g, '')}`, '_blank');
+    if (typeof window !== 'undefined')
+      window.open(`https://wa.me/${phone.replace(/[^0-9]/g, '')}`, '_blank');
   };
 
   // Bulk selection handlers
@@ -206,6 +206,7 @@ export default function OrdersPage() {
   const handleBulkDelete = () => {
     if (selectedOrders.length === 0) return;
     if (
+      typeof window !== 'undefined' &&
       window.confirm(
         `Are you sure you want to delete ${selectedOrders.length} orders? This cannot be undone.`,
       )
@@ -363,7 +364,7 @@ export default function OrdersPage() {
         <CardContent>
           {isLoading ? (
             <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900" />
             </div>
           ) : filteredOrders.length > 0 ? (
             <div className="overflow-x-auto">
@@ -422,9 +423,7 @@ export default function OrdersPage() {
                       <td className="py-3 px-4">{formatDate(order?.date)}</td>
                       <td className="py-3 px-4 font-medium">{formatCurrency(order?.amount)}</td>
                       <td className="py-3 px-4">
-                        <Badge
-                          className={statusStyles[order?.status as keyof typeof statusStyles]}
-                        >
+                        <Badge className={statusStyles[order?.status as keyof typeof statusStyles]}>
                           {order?.status.charAt(0).toUpperCase() + order?.status.slice(1)}
                         </Badge>
                       </td>
@@ -480,7 +479,13 @@ export default function OrdersPage() {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-24">
-              <Image src="/empty-box.svg" alt="No orders" width={500} height={300} className="w-32 h-32 mb-6 opacity-80" />
+              <Image
+                src="/empty-box.svg"
+                alt="No orders"
+                width={500}
+                height={300}
+                className="w-32 h-32 mb-6 opacity-80"
+              />
               <h2 className="text-xl font-semibold mb-2">No orders found</h2>
               <p className="text-gray-500 mb-6">
                 Orders will appear here as customers make purchases.

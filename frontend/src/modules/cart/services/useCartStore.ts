@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { LocalStorageCartService } from '@/modules/cart/services/CartService';
+
 import type { CartItem } from '@/modules/cart/models/cart';
+import { LocalStorageCartService } from '@/modules/cart/services/CartService';
 
 // Define 'type UUID = string;' locally at the top of the file
 type UUID = string;

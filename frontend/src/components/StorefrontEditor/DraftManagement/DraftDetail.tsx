@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import {
   ClockIcon,
   TrashIcon,
@@ -7,10 +6,13 @@ import {
   ExclamationTriangleIcon,
   CheckIcon,
 } from '@heroicons/react/24/outline';
+import React, { useState } from 'react';
+
 import type { UUID, InputChangeEvent, FormSubmitEvent } from '@/modules/core/models';
+
 import { updateDraft } from '@/lib/api/storefrontEditor';
-import type { Draft } from '@/modules/storefront/models/draft';
 import type { UpdateDraftRequest } from '@/modules/storefront/models';
+import type { Draft } from '@/modules/storefront/models/draft';
 
 interface DraftDetailProps {
   draft: Draft;

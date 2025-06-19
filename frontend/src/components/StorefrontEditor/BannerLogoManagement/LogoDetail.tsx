@@ -1,4 +1,3 @@
-import React, { useState, useEffect } from 'react';
 import {
   TrashIcon,
   PencilIcon,
@@ -6,11 +5,13 @@ import {
   CheckIcon,
   PhotoIcon,
 } from '@heroicons/react/24/outline';
-import type { Logo } from '@/modules/storefront/models/logo';
-import type { Asset } from '@/modules/storefront/models/asset';
-import type { UUID } from '@/modules/core/models';
+import React, { useState, useEffect } from 'react';
+
+import type { UUID, InputChangeEvent } from '@/modules/core/models';
+
 import { updateLogo, getAssets } from '@/lib/api/storefrontEditor';
-import type { InputChangeEvent } from '@/modules/core/models';
+import type { Asset } from '@/modules/storefront/models/asset';
+import type { Logo } from '@/modules/storefront/models/logo';
 
 interface LogoDetailProps {
   logo: Logo;
@@ -301,7 +302,7 @@ const LogoDetail: React.FC<LogoDetailProps> = ({
 
               {loadingAssets ? (
                 <div className="mt-1 p-4 flex justify-center items-center border border-gray-300 border-dashed rounded-md">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-700"></div>
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-700" />
                 </div>
               ) : assetList.length === 0 ? (
                 <div className="mt-1 p-4 flex flex-col items-center justify-center border border-gray-300 border-dashed rounded-md">

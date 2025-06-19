@@ -1,6 +1,8 @@
 import './globals.css';
 import { Inter } from 'next/font/google';
+
 import ClientLayoutShell from '@/components/layout/ClientLayoutShell';
+
 import { Providers } from './providers';
 
 const inter = Inter({

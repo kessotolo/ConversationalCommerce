@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
-import { useDrag, useDrop } from 'react-dnd';
 import {
   Menu as Bars3Icon,
   Search as MagnifyingGlassIcon,
   Filter as FunnelIcon,
 } from 'lucide-react';
-import type { Banner } from '@/modules/storefront/models/banner';
+import React, { useState } from 'react';
+import { useDrag, useDrop } from 'react-dnd';
+
 import type { FormSubmitEvent } from '@/modules/core/models';
+
+import type { Banner } from '@/modules/storefront/models/banner';
 import { BannerStatus } from '@/modules/storefront/models/banner';
 
 // Item type for drag and drop
@@ -232,7 +234,7 @@ const BannerList: React.FC<BannerListProps> = ({
   if (loading) {
     return (
       <div className="p-4 flex justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700" />
       </div>
     );
   }

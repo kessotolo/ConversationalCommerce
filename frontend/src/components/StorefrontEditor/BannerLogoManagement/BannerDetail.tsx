@@ -1,5 +1,3 @@
-import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
 import {
   TrashIcon,
   PencilIcon,
@@ -11,11 +9,15 @@ import {
   LinkIcon,
   UserGroupIcon,
 } from '@heroicons/react/24/outline';
-import type { Banner } from '@/modules/storefront/models/banner';
-import type { Asset } from '@/modules/storefront/models/asset';
-import type { UUID } from '@/modules/core/models/base';
-import { updateBanner, getAssets } from '@/lib/api/storefrontEditor';
+import Image from 'next/image';
+import React, { useState, useEffect } from 'react';
+
 import type { InputChangeEvent, FormSubmitEvent } from '@/modules/core/models';
+import type { UUID } from '@/modules/core/models/base';
+
+import { updateBanner, getAssets } from '@/lib/api/storefrontEditor';
+import type { Asset } from '@/modules/storefront/models/asset';
+import type { Banner } from '@/modules/storefront/models/banner';
 import { TargetAudience, BannerStatus } from '@/modules/storefront/models/banner';
 
 interface BannerDetailProps {

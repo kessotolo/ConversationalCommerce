@@ -1,10 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
-import SettingsDrawer from '@/components/dashboard/SettingsDrawer';
+import { useUser } from '@clerk/nextjs';
 import {
   Home,
   ShoppingBag,
@@ -16,8 +12,12 @@ import {
   Store,
   User,
 } from 'lucide-react';
-import { useUser } from '@clerk/nextjs';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import React, { useState } from 'react';
+
+import SettingsDrawer from '@/components/dashboard/SettingsDrawer';
+import { cn } from '@/lib/utils';
 
 const navItems = [
   {
@@ -170,8 +170,11 @@ export function Sidebar() {
                   className="text-xs text-gray-500 hover:underline mt-1"
                   onClick={() => {
                     // Use Clerk global signOut if available
-                    if (typeof window !== 'undefined' && (window as any).Clerk?.signOut) {
-                      (window as any).Clerk.signOut();
+                    if (
+                      typeof window !== 'undefined' &&
+                      (window as unknown as { Clerk?: { signOut?: () => void } }).Clerk?.signOut
+                    ) {
+                      (window as unknown as { Clerk?: { signOut?: () => void } }).Clerk?.signOut();
                     } else {
                       router.push('/');
                     }

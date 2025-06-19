@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
 import { XMarkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import React, { useState } from 'react';
+
 import type { UUID } from '@/modules/core/models/base';
-import { StorefrontRole } from '@/modules/storefront/models/permission';
+
 import { assignRole } from '@/lib/api/storefrontEditor';
+import { StorefrontRole } from '@/modules/storefront/models/permission';
 
 interface AddUserPermissionProps {
   tenantId: UUID;

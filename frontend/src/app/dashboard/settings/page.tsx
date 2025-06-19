@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { CreditCard, Bell, MessageSquare, Upload, Trash2, Save, Store } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
+import Image from 'next/image';
+import React, { useState, useEffect } from 'react';
+
 import type { InputChangeEvent } from '@/modules/core/models';
+
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 
 // Mock store settings
 const mockStoreSettings = {
@@ -68,8 +70,8 @@ export default function SettingsPage() {
   useEffect(() => {
     // Fetch available shipping plugins from backend
     fetch('/api/v1/shipping/providers')
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (Array.isArray(data.providers)) {
           setShippingPlugins(data.providers);
           // For demo, enable all by default
@@ -81,11 +83,11 @@ export default function SettingsPage() {
 
   const handleTogglePlugin = (provider: string) => {
     setEnabledPlugins((prev) =>
-      prev.includes(provider)
-        ? prev.filter((p) => p !== provider)
-        : [...prev, provider]
+      prev.includes(provider) ? prev.filter((p) => p !== provider) : [...prev, provider],
     );
-    setPluginSuccess(`Plugin ${provider} ${enabledPlugins.includes(provider) ? 'disabled' : 'enabled'}`);
+    setPluginSuccess(
+      `Plugin ${provider} ${enabledPlugins.includes(provider) ? 'disabled' : 'enabled'}`,
+    );
     setTimeout(() => setPluginSuccess(null), 2000);
   };
 
@@ -497,7 +499,7 @@ export default function SettingsPage() {
         <Button onClick={saveSettings} disabled={isLoading}>
           {isLoading ? (
             <>
-              <div className="animate-spin mr-2 h-4 w-4 border-2 border-b-transparent rounded-full"></div>
+              <div className="animate-spin mr-2 h-4 w-4 border-2 border-b-transparent rounded-full" />
               Saving...
             </>
           ) : (

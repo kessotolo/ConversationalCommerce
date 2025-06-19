@@ -4,7 +4,7 @@ const TestComponent: React.FC = () => {
   return (
     <div>
       <h1>Test ESLint Rules</h1>
-      <p>Draft Status: {'DRAFT'}</p>
+      <p>Draft Status: DRAFT</p>
     </div>
   );
 };

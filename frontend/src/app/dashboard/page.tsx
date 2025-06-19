@@ -1,14 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useAuth } from '@/utils/auth-utils';
-import { StatCard } from '@/components/dashboard/StatCard';
-import { SalesChart } from '@/components/dashboard/SalesChart';
-import { RecentOrders } from '@/components/dashboard/RecentOrders';
-import { TopProducts } from '@/components/dashboard/TopProducts';
-import { ChannelPerformance } from '@/components/dashboard/ChannelPerformance';
-import SettingsDrawer from '@/components/dashboard/SettingsDrawer';
+import { useUser } from '@clerk/nextjs';
 import {
   ShoppingBag,
   DollarSign,
@@ -22,8 +14,17 @@ import {
   User,
   Users,
 } from 'lucide-react';
+import Link from 'next/link';
+import { useState } from 'react';
+
+import { ChannelPerformance } from '@/components/dashboard/ChannelPerformance';
+import { RecentOrders } from '@/components/dashboard/RecentOrders';
+import { SalesChart } from '@/components/dashboard/SalesChart';
+import SettingsDrawer from '@/components/dashboard/SettingsDrawer';
+import { StatCard } from '@/components/dashboard/StatCard';
+import { TopProducts } from '@/components/dashboard/TopProducts';
 import OnboardingWizard from '@/modules/tenant/components/OnboardingWizard';
-import { useUser } from '@clerk/nextjs';
+import { useAuth } from '@/utils/auth-utils';
 
 // Define types to match component requirements
 type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
@@ -148,7 +149,15 @@ const mockMessages = [
 ];
 
 // --- SmartNudgeCard component ---
-function SmartNudgeCard({ steps, onAction, onOpenWizard }: { steps: any[]; onAction: (key: string) => void; onOpenWizard: () => void }) {
+function SmartNudgeCard({
+  steps,
+  onAction,
+  onOpenWizard,
+}: {
+  steps: any[];
+  onAction: (key: string) => void;
+  onOpenWizard: () => void;
+}) {
   // Prioritize by logical order/impact
   const priority = [
     'addProduct',
@@ -159,7 +168,9 @@ function SmartNudgeCard({ steps, onAction, onOpenWizard }: { steps: any[]; onAct
     'storeDetails',
     'logo',
   ];
-  const nextStep = priority.map((key) => steps.find((s) => s.key === key && !s.complete)).find(Boolean);
+  const nextStep = priority
+    .map((key) => steps.find((s) => s.key === key && !s.complete))
+    .find(Boolean);
   if (!nextStep) return null;
   return (
     <div className="bg-white rounded-2xl border border-[#e6f0eb] shadow-sm p-6 mb-8 w-full max-w-sm hidden lg:block">
@@ -168,19 +179,16 @@ function SmartNudgeCard({ steps, onAction, onOpenWizard }: { steps: any[]; onAct
         {nextStep.label === 'Add your first product' && 'Add your first product to start selling!'}
         {nextStep.label === 'Configure payments' && 'Set up payments to get paid faster.'}
         {nextStep.label === 'Connect a domain' && 'Connect your domain to build trust with buyers.'}
-        {nextStep.label === 'Set up notifications' && 'Enable notifications to stay updated on orders.'}
+        {nextStep.label === 'Set up notifications' &&
+          'Enable notifications to stay updated on orders.'}
         {nextStep.label === 'Invite team members' && 'Invite your team to help manage your store.'}
-        {nextStep.label === 'Set up store details' && 'Complete your store details for a professional look.'}
+        {nextStep.label === 'Set up store details' &&
+          'Complete your store details for a professional look.'}
         {nextStep.label === 'Add a store logo' && 'Upload a logo to personalize your store.'}
       </p>
       <div className="flex gap-2">
-        {nextStep.action && (
-          <div>{nextStep.action}</div>
-        )}
-        <button
-          className="text-xs text-[#6C9A8B] underline ml-2"
-          onClick={onOpenWizard}
-        >
+        {nextStep.action && <div>{nextStep.action}</div>}
+        <button className="text-xs text-[#6C9A8B] underline ml-2" onClick={onOpenWizard}>
           Open Onboarding Wizard
         </button>
       </div>
@@ -188,7 +196,13 @@ function SmartNudgeCard({ steps, onAction, onOpenWizard }: { steps: any[]; onAct
   );
 }
 
-function OnboardingChecklist({ onOpenSettings, onOpenWizard }: { onOpenSettings: (section: string) => void, onOpenWizard: () => void }) {
+function OnboardingChecklist({
+  onOpenSettings,
+  onOpenWizard,
+}: {
+  onOpenSettings: (section: string) => void;
+  onOpenWizard: () => void;
+}) {
   // Mock completion state
   const steps = [
     {
@@ -348,7 +362,7 @@ export default function Dashboard() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#fdfcf7]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#6C9A8B]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#6C9A8B]" />
       </div>
     );
   }
@@ -470,7 +484,13 @@ export default function Dashboard() {
               onClick={() => setShowWizard(false)}
               aria-label="Close onboarding wizard"
             >
-              <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+              <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                <path
+                  fillRule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
             </button>
             <OnboardingWizard />
           </div>
@@ -507,8 +527,15 @@ export default function Dashboard() {
         </div>
         {/* Unified Onboarding Section */}
         <div className="flex flex-col lg:flex-row gap-6 mb-8">
-          <SmartNudgeCard steps={steps} onAction={() => { }} onOpenWizard={() => setShowWizard(true)} />
-          <OnboardingChecklist onOpenSettings={() => setSettingsOpen(true)} onOpenWizard={() => setShowWizard(true)} />
+          <SmartNudgeCard
+            steps={steps}
+            onAction={() => {}}
+            onOpenWizard={() => setShowWizard(true)}
+          />
+          <OnboardingChecklist
+            onOpenSettings={() => setSettingsOpen(true)}
+            onOpenWizard={() => setShowWizard(true)}
+          />
         </div>
         {/* Quick Action Buttons */}
         <div className="flex flex-wrap gap-3 mb-8 relative">

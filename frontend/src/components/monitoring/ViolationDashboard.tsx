@@ -1,21 +1,22 @@
-import React, { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Paper from '@mui/material/Paper';
+import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
-import Select from '@mui/material/Select';
+import CircularProgress from '@mui/material/CircularProgress';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import MenuItem from '@mui/material/MenuItem';
+import Paper from '@mui/material/Paper';
+import Select from '@mui/material/Select';
 import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import TableCell from '@mui/material/TableCell';
-import TableBody from '@mui/material/TableBody';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import CircularProgress from '@mui/material/CircularProgress';
+import Typography from '@mui/material/Typography';
+import React, { useEffect, useState } from 'react';
+
 import type { ChipProps } from '@mui/material/Chip';
 
 interface Violation {
@@ -84,9 +85,9 @@ const ViolationDashboard: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const tenantId = localStorage.getItem('tenant_id') || '';
+        const tenantId = localStorage.getItem('tenant_id') ?? '';
         const query = new URLSearchParams(filters as Record<string, string>).toString();
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+        const baseUrl = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:8080';
 
         const [violationsRes, statsRes, trendsRes] = await Promise.all([
           fetch(`${baseUrl}/api/v1/monitoring/violations?tenant_id=${tenantId}&${query}`).then(
@@ -173,11 +174,11 @@ const ViolationDashboard: React.FC = () => {
           </Paper>
           <Paper sx={{ p: 2, flexGrow: 1 }}>
             <Typography variant="subtitle1">Active</Typography>
-            <Typography variant="h4">{stats.by_status.active || 0}</Typography>
+            <Typography variant="h4">{stats.by_status['active'] ?? 0}</Typography>
           </Paper>
           <Paper sx={{ p: 2, flexGrow: 1 }}>
             <Typography variant="subtitle1">Critical</Typography>
-            <Typography variant="h4">{stats.by_severity.critical || 0}</Typography>
+            <Typography variant="h4">{stats.by_severity['critical'] ?? 0}</Typography>
           </Paper>
         </Box>
       )}
@@ -285,7 +286,7 @@ const ViolationDashboard: React.FC = () => {
                       color={toChipColor(getStatusColor(v.status))}
                     />
                   </TableCell>
-                  <TableCell>{v.user_id || 'N/A'}</TableCell>
+                  <TableCell>{v.user_id ?? 'N/A'}</TableCell>
                   <TableCell>{new Date(v.created_at).toLocaleString()}</TableCell>
                   <TableCell>
                     <Button size="small" variant="outlined" onClick={() => handleViewDetails(v)}>

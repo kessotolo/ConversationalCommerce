@@ -1,7 +1,9 @@
 import React from 'react';
-import { ThemeProvider } from './ThemeProvider';
+
 import { AuthProvider } from '@/contexts/AuthContext';
 import { TenantProvider } from '@/contexts/TenantContext';
+
+import { ThemeProvider } from './ThemeProvider';
 
 /**
  * Root provider that wraps the application with all context providers

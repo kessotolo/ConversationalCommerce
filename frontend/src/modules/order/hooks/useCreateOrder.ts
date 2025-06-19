@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { CreateOrderRequest } from '../validation/orderSchema';
-import { Order } from '../models/order';
-import { OrderEventFactory } from '../models/events/orderEvents';
-import { getEventBus } from '../events/EventBus';
+
+import { getEventBus } from '@/modules/order/events/EventBus';
+import { OrderEventFactory } from '@/modules/order/models/events/orderEvents';
+import type { Order } from '@/modules/order/models/order';
+import type { CreateOrderRequest } from '@/modules/order/validation/orderSchema';
+
 import { useOrderService } from './useOrderService';
 
 interface CreateOrderOptions {

@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
 import Image from 'next/image';
+import { useParams } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
+const API_BASE = typeof process !== 'undefined' ? (process.env['NEXT_PUBLIC_API_BASE'] ?? '') : '';
 
 export default function ProductDetailPage() {
   const params = useParams();

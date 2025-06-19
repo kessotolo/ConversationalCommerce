@@ -1,6 +1,8 @@
-import { ServiceRegistry } from './ServiceRegistry';
-import { ServiceInitializer } from './ServiceInitializer';
 import { getOrderServiceInitializer } from '@/modules/order/services/initialization/orderServiceInitializer';
+
+import { ServiceRegistry } from './ServiceRegistry';
+
+import type { ServiceInitializer } from './ServiceInitializer';
 
 /**
  * ApplicationInitializer sets up all services across the application

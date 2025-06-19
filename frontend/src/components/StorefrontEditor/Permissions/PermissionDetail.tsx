@@ -1,8 +1,3 @@
-import React, { useState } from 'react';
-import type { UserPermission } from '@/modules/storefront/models/permission';
-import { StorefrontRole, StorefrontSectionType } from '@/modules/storefront/models/permission';
-import type { UUID } from '@/modules/core/models/base';
-import { assignRole, setSectionPermission, removePermission } from '@/lib/api/storefrontEditor';
 import {
   ShieldCheckIcon,
   TrashIcon,
@@ -11,6 +6,13 @@ import {
   XMarkIcon,
   CheckIcon,
 } from '@heroicons/react/24/outline';
+import React, { useState } from 'react';
+
+import type { UUID } from '@/modules/core/models/base';
+
+import { assignRole, setSectionPermission, removePermission } from '@/lib/api/storefrontEditor';
+import type { UserPermission } from '@/modules/storefront/models/permission';
+import { StorefrontRole, StorefrontSectionType } from '@/modules/storefront/models/permission';
 
 interface PermissionDetailProps {
   user: UserPermission;
@@ -249,10 +251,11 @@ const PermissionDetail: React.FC<PermissionDetailProps> = ({ user, tenantId, onU
                       <div
                         key={role}
                         onClick={() => setSelectedRole(role)}
-                        className={`p-2 border rounded-md cursor-pointer transition-colors ${selectedRole === role
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-300 hover:bg-gray-50'
-                          }`}
+                        className={`p-2 border rounded-md cursor-pointer transition-colors ${
+                          selectedRole === role
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-300 hover:bg-gray-50'
+                        }`}
                       >
                         <div className="flex items-center">
                           {selectedRole === role && (
@@ -358,10 +361,11 @@ const PermissionDetail: React.FC<PermissionDetailProps> = ({ user, tenantId, onU
                               <button
                                 key={permission}
                                 onClick={() => togglePermission(sectionType, permission)}
-                                className={`px-3 py-1 text-sm rounded-full ${permissions.includes(permission)
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                                  }`}
+                                className={`px-3 py-1 text-sm rounded-full ${
+                                  permissions.includes(permission)
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                                }`}
                               >
                                 {permission}
                                 {permissions.includes(permission) && (

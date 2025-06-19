@@ -1,4 +1,4 @@
-import { Money } from '@/modules/core/models/base/money';
+import type { Money } from '@/modules/core/models/base/money';
 
 /**
  * Payment provider enum
@@ -95,7 +95,7 @@ export interface PaymentInitializeRequest {
   customer_phone?: string;
   provider: PaymentProvider;
   redirect_url?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -126,7 +126,7 @@ export interface ManualPaymentProof {
 export interface PaymentWebhookEvent {
   provider: PaymentProvider;
   event_type: string;
-  data: any;
+  data: unknown;
   signature?: string; // For validation
 }
 
@@ -140,7 +140,7 @@ export interface PaymentVerificationResponse {
   provider: PaymentProvider;
   provider_reference?: string;
   transaction_date: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   customer?: {
     email: string;
     name?: string;

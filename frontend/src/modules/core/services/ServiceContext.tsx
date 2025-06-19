@@ -1,7 +1,9 @@
 'use client';
 
-import { createContext, useEffect, useState, ReactNode } from 'react';
-import { ServiceRegistry } from './ServiceRegistry';
+import { createContext, useEffect, useState } from 'react';
+
+import type { ServiceRegistry } from './ServiceRegistry';
+import type { ReactNode } from 'react';
 
 /**
  * React context for accessing services

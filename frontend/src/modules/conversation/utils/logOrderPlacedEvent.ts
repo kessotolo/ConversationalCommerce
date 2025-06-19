@@ -1,5 +1,7 @@
 import { useUser, useOrganization } from '@clerk/nextjs';
-import { ConversationEventType } from '../models/event';
+
+import { ConversationEventType } from '@/modules/conversation/models/event';
+
 import { ConversationEventLogger } from './eventLogger';
 
 /**

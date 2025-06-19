@@ -5,16 +5,24 @@
  * Centralized here to ensure consistency across components.
  */
 
-import React from 'react';
+import type React from 'react';
 
 // Form Event Types
-export type InputChangeEvent = React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>;
+export type InputChangeEvent = React.ChangeEvent<
+  HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+>;
 export type FormSubmitEvent = React.FormEvent<HTMLFormElement>;
 export type ButtonClickEvent = React.MouseEvent<HTMLButtonElement>;
 export type LinkClickEvent = React.MouseEvent<HTMLAnchorElement>;
-export type FocusEvent = React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>;
-export type BlurEvent = React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>;
-export type KeyboardEvent = React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement | HTMLDivElement>;
+export type FocusEvent = React.FocusEvent<
+  HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+>;
+export type BlurEvent = React.FocusEvent<
+  HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+>;
+export type KeyboardEvent = React.KeyboardEvent<
+  HTMLInputElement | HTMLTextAreaElement | HTMLDivElement
+>;
 
 // File Input Event Types
 export type FileInputChangeEvent = React.ChangeEvent<HTMLInputElement>;

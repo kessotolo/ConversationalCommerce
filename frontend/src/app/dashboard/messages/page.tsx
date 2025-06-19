@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
+import { useUser, useOrganization } from '@clerk/nextjs';
 import {
   Check,
   Phone,
@@ -14,11 +13,13 @@ import {
   Send,
   MessageCircle,
 } from 'lucide-react';
-import { useUser, useOrganization } from '@clerk/nextjs';
+import Image from 'next/image';
+import React, { useState, useRef, useEffect } from 'react';
+
 import { Button } from '@/components/ui/Button';
 import { formatDate } from '@/lib/utils';
-import { ConversationEventLogger } from '@/modules/conversation/utils/eventLogger';
 import { ConversationEventType } from '@/modules/conversation/models/event';
+import { ConversationEventLogger } from '@/modules/conversation/utils/eventLogger';
 
 // Mock conversations
 const mockConversations = [
@@ -364,7 +365,7 @@ export default function MessagesPage() {
           <div className="flex-1 overflow-y-auto">
             {isLoading ? (
               <div className="flex justify-center items-center h-32">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
               </div>
             ) : filteredConversations.length > 0 ? (
               filteredConversations.map((conv: (typeof mockConversations)[0]) => (
@@ -532,7 +533,7 @@ export default function MessagesPage() {
                         onClick={() => insertQuickReply(reply)}
                         className="bg-[#f0f7f4] hover:bg-[#e8f6f1] text-[#6C9A8B] text-xs px-3 py-1 rounded-full"
                       >
-                        {reply.length > 30 ? reply.substring(0, 30) + '...' : reply}
+                        {reply.length > 30 ? `${reply.substring(0, 30)}...` : reply}
                       </button>
                     ))}
                   </div>

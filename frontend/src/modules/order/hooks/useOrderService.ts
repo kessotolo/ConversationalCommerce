@@ -1,8 +1,10 @@
 'use client';
 
 import { useContext } from 'react';
-import { OrderService } from '../services/OrderService';
+
 import { ServiceContext } from '@/modules/core/services/ServiceContext';
+
+import type { OrderService } from '@/modules/order/services/OrderService';
 
 /**
  * Hook to access the OrderService instance

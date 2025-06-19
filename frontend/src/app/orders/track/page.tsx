@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Order } from '@/modules/order/models/order';
+import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState, Suspense } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+
 import { OrderTracking } from '@/modules/order/components/OrderTracking';
+import type { Order } from '@/modules/order/models/order';
 
 // Define gtag for analytics tracking
 declare global {

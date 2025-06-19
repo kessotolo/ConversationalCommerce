@@ -1,19 +1,5 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import Link from 'next/link';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardFooter,
-  CardDescription,
-} from '@/components/ui/Card';
 import {
   ArrowLeft,
   Package,
@@ -30,6 +16,21 @@ import {
   User,
   Phone,
 } from 'lucide-react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+  CardDescription,
+} from '@/components/ui/Card';
+import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';
 
 // Define types
 type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
@@ -62,7 +63,7 @@ interface Order {
 export default function OrderPage() {
   // const router = useRouter(); // removed as unused
   const params = useParams() as Record<string, string>;
-  const id = params.id;
+  const { id } = params;
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   // Removed unused variables: setError, hasError, status, setIsLoading, isLoadingIndicator
@@ -149,7 +150,7 @@ export default function OrderPage() {
   if (loading) {
     return (
       <div className="p-4 flex flex-col items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-4"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-4" />
         <p>Loading order information...</p>
       </div>
     );
@@ -228,7 +229,7 @@ export default function OrderPage() {
                                 ? 'bg-purple-500 w-3/4'
                                 : 'bg-green-500 w-full'
                       }`}
-                    ></div>
+                    />
                   </div>
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>Pending</span>

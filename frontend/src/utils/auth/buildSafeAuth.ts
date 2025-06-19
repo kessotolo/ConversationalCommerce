@@ -10,7 +10,10 @@ import { useAuth as useClerkAuth, useUser as useClerkUser } from '@clerk/nextjs'
  */
 export function useAuth() {
   // During build time (detected via env variable), return safe defaults
-  if (process.env.IS_BUILD_TIME === 'true' || !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+  if (
+    typeof process !== 'undefined' &&
+    (process.env['IS_BUILD_TIME'] === 'true' || !process.env['NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY'])
+  ) {
     return {
       isLoaded: true,
       userId: null,
@@ -29,7 +32,10 @@ export function useAuth() {
  */
 export function useUser() {
   // During build time, return safe defaults
-  if (process.env.IS_BUILD_TIME === 'true' || !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+  if (
+    typeof process !== 'undefined' &&
+    (process.env['IS_BUILD_TIME'] === 'true' || !process.env['NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY'])
+  ) {
     return {
       isLoaded: true,
       isSignedIn: false,

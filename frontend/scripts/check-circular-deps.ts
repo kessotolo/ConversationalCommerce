@@ -14,8 +14,8 @@
  */
 
 import { exec } from 'child_process';
-import { fileURLToPath } from 'url';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Get the current file path and directory
 const __filename = fileURLToPath(import.meta.url);

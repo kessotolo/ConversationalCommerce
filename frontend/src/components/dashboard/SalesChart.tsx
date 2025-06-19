@@ -1,7 +1,3 @@
-import React from 'react';
-import { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Card } from '@/components/ui/Card';
-import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -12,9 +8,13 @@ import {
   Tooltip,
   Legend,
   Filler,
-  ChartOptions,
 } from 'chart.js';
-import type { TooltipItem } from 'chart.js';
+import React from 'react';
+import { Line } from 'react-chartjs-2';
+
+import { CardHeader, CardTitle, CardContent, Card } from '@/components/ui/Card';
+
+import type { TooltipItem, ChartOptions } from 'chart.js';
 
 // Register ChartJS components
 ChartJS.register(
@@ -75,7 +75,7 @@ export function SalesChart({ data, period, isLoading = false }: SalesChartProps)
               label += ': ';
             }
             if (context.parsed.y !== null) {
-              label += '₦' + context.parsed.y.toLocaleString();
+              label += `₦${context.parsed.y.toLocaleString()}`;
             }
             return label;
           },
@@ -98,7 +98,7 @@ export function SalesChart({ data, period, isLoading = false }: SalesChartProps)
         ticks: {
           callback: function (tickValue: string | number) {
             if (typeof tickValue === 'number') {
-              return '₦' + tickValue.toLocaleString();
+              return `₦${tickValue.toLocaleString()}`;
             }
             return tickValue;
           },
@@ -127,8 +127,8 @@ export function SalesChart({ data, period, isLoading = false }: SalesChartProps)
         <CardContent>
           <div className="h-[300px] w-full flex items-center justify-center bg-muted/10 rounded-md">
             <div className="animate-pulse flex flex-col items-center">
-              <div className="h-4 bg-gray-200 rounded w-24 mb-2.5"></div>
-              <div className="h-2 bg-gray-200 rounded w-16"></div>
+              <div className="h-4 bg-gray-200 rounded w-24 mb-2.5" />
+              <div className="h-2 bg-gray-200 rounded w-16" />
             </div>
           </div>
         </CardContent>

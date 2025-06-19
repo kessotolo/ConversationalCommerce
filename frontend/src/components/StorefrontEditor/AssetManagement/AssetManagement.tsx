@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
+import React, { useState, useEffect } from 'react';
 
-import { getAssets } from '@/lib/api/storefrontEditor';
+import AssetDetails from '@/components/StorefrontEditor/AssetManagement/AssetDetails';
+import AssetFilterBar from '@/components/StorefrontEditor/AssetManagement/AssetFilterBar';
 import AssetGrid from '@/components/StorefrontEditor/AssetManagement/AssetGrid';
 import AssetUploader from '@/components/StorefrontEditor/AssetManagement/AssetUploader';
-import AssetFilterBar from '@/components/StorefrontEditor/AssetManagement/AssetFilterBar';
-import AssetDetails from '@/components/StorefrontEditor/AssetManagement/AssetDetails';
-
+import { getAssets } from '@/lib/api/storefrontEditor';
 import type { Asset } from '@/modules/storefront/models/asset';
 interface AssetManagementProps {
   _tenantId: string;
@@ -110,7 +109,7 @@ const AssetManagement: React.FC<AssetManagementProps> = ({ _tenantId }) => {
         <div className={`${selectedAsset ? 'w-2/3' : 'w-full'} overflow-hidden`}>
           {loading ? (
             <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700" />
             </div>
           ) : error ? (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">

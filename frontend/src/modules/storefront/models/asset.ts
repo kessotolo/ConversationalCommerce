@@ -1,5 +1,5 @@
-import { TenantScoped } from '@/modules/core/models/base';
-import { PaginatedResult } from '@/modules/core/models/pagination';
+import type { TenantScoped } from '@/modules/core/models/base';
+import type { PaginatedResult } from '@/modules/core/models/pagination';
 
 export enum AssetType {
   IMAGE = 'image',

@@ -4,9 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useCreateOrder } from '../hooks/useCreateOrder';
-import type { CreateOrderRequest } from '../validation/orderSchema';
-import { OrderSource, PaymentMethod, PaymentStatus, ShippingMethod } from '../models/order';
+import { useCreateOrder } from '@/modules/order/hooks/useCreateOrder';
+import type { CreateOrderRequest } from '@/modules/order/validation/orderSchema';
+import { OrderSource, PaymentMethod, PaymentStatus, ShippingMethod } from '@/modules/order/models/order';
 
 // Define checkout form schema using Zod
 const checkoutFormSchema = z.object({

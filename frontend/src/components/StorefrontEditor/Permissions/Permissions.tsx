@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
 import { RefreshCw as ArrowPathIcon, Plus as PlusIcon } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+
 import type { UUID } from '@/modules/core/models/base';
-import type { UserPermission } from '@/modules/storefront/models/permission';
-import { StorefrontRole } from '@/modules/storefront/models/permission';
-import { getPermissions } from '@/lib/api/storefrontEditor';
-import PermissionList from '@/components/StorefrontEditor/Permissions/PermissionList';
-import PermissionDetail from '@/components/StorefrontEditor/Permissions/PermissionDetail';
+
 import AddUserPermission from '@/components/StorefrontEditor/Permissions/AddUserPermission';
+import PermissionDetail from '@/components/StorefrontEditor/Permissions/PermissionDetail';
+import PermissionList from '@/components/StorefrontEditor/Permissions/PermissionList';
+import { getPermissions } from '@/lib/api/storefrontEditor';
+import type { UserPermission, StorefrontRole } from '@/modules/storefront/models/permission';
 
 interface PermissionsProps {
   tenantId: UUID;

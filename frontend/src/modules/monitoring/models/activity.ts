@@ -1,4 +1,4 @@
-import { TenantScoped, UUID } from '@/modules/core/models/base';
+import type { TenantScoped, UUID } from '@/modules/core/models/base';
 
 export interface Activity extends TenantScoped {
   user_id: UUID;

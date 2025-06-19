@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Trash2, Camera, Upload, Save, AlertTriangle } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { ArrowLeft, Trash2, Camera, Upload, Save, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+
 import { Button } from '@/components/ui/Button';
 
 // Product type definition following our core domain model patterns
@@ -88,7 +89,7 @@ export default function ProductPage() {
         }
       } catch (err) {
         setError('Failed to load product');
-        console.error(err);
+        if (typeof console !== 'undefined') console.error(err);
       } finally {
         setIsLoading(false);
       }
@@ -104,7 +105,7 @@ export default function ProductPage() {
     const { name, value, type } = e.target;
 
     if (type === 'checkbox') {
-      const checked = (e.target as HTMLInputElement).checked;
+      const { checked } = e.target as HTMLInputElement;
       setProduct((prev) => ({
         ...prev,
         [name]: checked,
@@ -142,7 +143,7 @@ export default function ProductPage() {
       router.push('/dashboard/products');
     } catch (err) {
       setError('Failed to save product');
-      console.error(err);
+      if (typeof console !== 'undefined') console.error(err);
     } finally {
       setIsSaving(false);
     }
@@ -162,7 +163,7 @@ export default function ProductPage() {
       router.push('/dashboard/products');
     } catch (err) {
       setError('Failed to delete product');
-      console.error(err);
+      if (typeof console !== 'undefined') console.error(err);
     }
   };
 
@@ -191,7 +192,7 @@ export default function ProductPage() {
 
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500" />
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">

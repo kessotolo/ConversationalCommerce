@@ -3,8 +3,8 @@
  * This component wraps Clerk's ClerkProvider with logic to safely handle build time
  * without requiring any file modifications or hacky build-override scripts
  */
-import React from 'react';
 import { ClerkProvider } from '@clerk/nextjs';
+import React from 'react';
 
 // Get props type from ClerkProvider component
 type ClerkProviderProps = React.ComponentProps<typeof ClerkProvider>;

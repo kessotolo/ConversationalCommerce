@@ -1,6 +1,6 @@
-import React from 'react';
-import { useMemo } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
+
+import type React, { useMemo } from 'react';
 
 /**
  * Button style properties

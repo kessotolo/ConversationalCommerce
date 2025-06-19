@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { XMarkIcon, ExclamationTriangleIcon, PhotoIcon } from '@heroicons/react/24/outline';
+import Image from 'next/image';
+import React, { useState, useEffect } from 'react';
+
 import type { UUID, InputChangeEvent, FormSubmitEvent } from '@/modules/core/models';
+
 import { createLogo, getAssets } from '@/lib/api/storefrontEditor';
+import type { Asset } from '@/modules/storefront/models/asset';
 import type { CreateLogoRequest } from '@/modules/storefront/models/logo';
 import { LogoType } from '@/modules/storefront/models/logo';
-import type { Asset } from '@/modules/storefront/models/asset';
 
 interface CreateLogoModalProps {
   tenantId: UUID;
@@ -77,7 +79,7 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ tenantId, onClose, on
     <div className="fixed inset-0 overflow-y-auto z-50">
       <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-          <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+          <div className="absolute inset-0 bg-gray-500 opacity-75" />
         </div>
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
           &#8203;
@@ -157,7 +159,7 @@ const CreateLogoModal: React.FC<CreateLogoModalProps> = ({ tenantId, onClose, on
                 </label>
                 {loadingAssets ? (
                   <div className="mt-1 p-4 flex justify-center items-center border border-gray-300 border-dashed rounded-md">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-700"></div>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-700" />
                   </div>
                 ) : assets.length === 0 ? (
                   <div className="mt-1 p-4 flex flex-col items-center justify-center border border-gray-300 border-dashed rounded-md">

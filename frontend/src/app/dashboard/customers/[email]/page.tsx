@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { ChevronLeft, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ChevronLeft, ShoppingBag } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+
 import { useAuth } from '@/utils/auth-utils';
 
 // Mock orders data (should match main customers page)
@@ -45,7 +46,7 @@ export default function CustomerDetailPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#fdfcf7]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#6C9A8B]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#6C9A8B]" />
       </div>
     );
   }
@@ -60,10 +61,7 @@ export default function CustomerDetailPage() {
   if (customerOrders.length === 0) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-12 text-center">
-        <Link
-          href="/dashboard/customers"
-          className="inline-flex items-center text-[#6C9A8B] mb-6"
-        >
+        <Link href="/dashboard/customers" className="inline-flex items-center text-[#6C9A8B] mb-6">
           <ChevronLeft className="h-4 w-4 mr-1" /> Back to Customers
         </Link>
         <h2 className="text-xl font-bold mb-2">Customer not found</h2>

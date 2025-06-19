@@ -1,6 +1,7 @@
+import { ExternalLink, Eye, QrCode, Settings, Edit } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
-import { ExternalLink, Eye, QrCode, Settings, Edit } from 'lucide-react';
+
 import { useTenant } from '@/contexts/TenantContext';
 
 interface StorefrontLinksProps {
@@ -13,8 +14,8 @@ export default function StorefrontLinks({ className }: StorefrontLinksProps) {
   if (isLoading || !tenant) {
     return (
       <div className={`animate-pulse ${className}`}>
-        <div className="h-10 bg-gray-200 rounded w-full max-w-xs mb-2"></div>
-        <div className="h-10 bg-gray-200 rounded w-full max-w-md"></div>
+        <div className="h-10 bg-gray-200 rounded w-full max-w-xs mb-2" />
+        <div className="h-10 bg-gray-200 rounded w-full max-w-md" />
       </div>
     );
   }

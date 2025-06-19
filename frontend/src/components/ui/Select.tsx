@@ -1,5 +1,6 @@
-import * as React from 'react';
 import { ChevronDown } from 'lucide-react';
+import * as React from 'react';
+
 import { cn } from '@/lib/utils';
 
 export interface SelectProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -164,7 +165,7 @@ export function SelectItem({ className, value, children, ...props }: SelectItemP
               fill="currentColor"
               fillRule="evenodd"
               clipRule="evenodd"
-            ></path>
+            />
           </svg>
         </span>
       )}

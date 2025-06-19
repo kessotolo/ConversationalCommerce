@@ -1,12 +1,16 @@
-import React, { useState, ReactNode } from 'react';
 import { Tab } from '@headlessui/react';
+import React, { useState } from 'react';
+
 import type { UUID } from '@/modules/core/models/base';
-import DraftManagement from '@/components/StorefrontEditor/DraftManagement/DraftManagement';
-import VersionHistory from '@/components/StorefrontEditor/VersionHistory/VersionHistory';
-import Permissions from '@/components/StorefrontEditor/Permissions/Permissions';
+
 import AssetManagement from '@/components/StorefrontEditor/AssetManagement/AssetManagement';
 import BannerLogoManagement from '@/components/StorefrontEditor/BannerLogoManagement/BannerLogoManagement';
+import DraftManagement from '@/components/StorefrontEditor/DraftManagement/DraftManagement';
 import LayoutEditor from '@/components/StorefrontEditor/LayoutEditor/LayoutEditor';
+import Permissions from '@/components/StorefrontEditor/Permissions/Permissions';
+import VersionHistory from '@/components/StorefrontEditor/VersionHistory/VersionHistory';
+
+import type { ReactNode } from 'react';
 
 // Define a category type for our tab structure
 interface Category {

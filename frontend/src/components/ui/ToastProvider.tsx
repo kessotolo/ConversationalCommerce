@@ -1,5 +1,7 @@
 import React, { createContext, useState, useContext } from 'react';
-import { Toast, ToastProps } from '@/components/ui/toast';
+
+import type { ToastProps } from '@/components/ui/toast';
+import { Toast } from '@/components/ui/toast';
 
 type ToastContextType = {
   toast: (props: ToastProps) => void;

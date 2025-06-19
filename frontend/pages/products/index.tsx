@@ -1,5 +1,5 @@
-import React from 'react';
-import { useState } from 'react';
+import React, { useState } from 'react';
+
 import ProductCard from '@/components/storefront/ProductCard';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -127,7 +127,7 @@ function ThemedProductListing() {
 
       <footer
         style={{
-          backgroundColor: theme.colors.primary + '10',
+          backgroundColor: `${theme.colors.primary}10`,
           padding: theme.layout.spacing.lg,
           marginTop: theme.layout.spacing.xl,
           borderTop: `1px solid ${theme.colors.primary}20`,

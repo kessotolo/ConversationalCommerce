@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
 import { XMarkIcon, ExclamationTriangleIcon, PhotoIcon } from '@heroicons/react/24/outline';
+import React, { useState, useEffect } from 'react';
+
 import type { InputChangeEvent, UUID } from '@/modules/core/models';
+
+import { createBanner, getAssets } from '@/lib/api/storefrontEditor';
 import type { Asset } from '@/modules/storefront/models/asset';
 import type { CreateBannerRequest } from '@/modules/storefront/models/banner';
 // Use Asset type from the lib API until full migration is complete
-
-import { createBanner, getAssets } from '@/lib/api/storefrontEditor';
 
 interface CreateBannerModalProps {
   tenantId: UUID;
@@ -133,7 +134,7 @@ const CreateBannerModal: React.FC<CreateBannerModalProps> = ({ tenantId, onClose
 
               {loadingAssets ? (
                 <div className="mt-1 p-4 flex justify-center items-center border border-gray-300 border-dashed rounded-md">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-700"></div>
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-700" />
                 </div>
               ) : assetList.length === 0 ? (
                 <div className="mt-1 p-4 flex flex-col items-center justify-center border border-gray-300 border-dashed rounded-md">

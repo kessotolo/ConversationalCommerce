@@ -1,4 +1,4 @@
-import { Entity, UUID } from '@/modules/core/models/base';
+import type { Entity, UUID } from '@/modules/core/models/base';
 
 export interface Violation extends Entity {
   type: string;

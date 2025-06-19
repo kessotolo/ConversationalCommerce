@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { getAuditLog } from '../../lib/api/storefrontEditor';
-import type { AuditLogEntry } from '../../modules/storefront/models/audit';
+
+import { getAuditLog } from '@/lib/api/storefrontEditor';
+import type { AuditLogEntry } from '@/modules/storefront/models/audit';
 
 interface AuditLogTableProps {
   tenantId: string;

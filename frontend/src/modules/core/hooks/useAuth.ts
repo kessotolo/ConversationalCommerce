@@ -4,7 +4,7 @@
  * This hook provides a clean domain interface for authentication
  * while safely handling build-time vs runtime environments without hacky scripts
  */
-import { useAuthService, type AuthUser } from '../services/auth';
+import { useAuthService, type AuthUser } from '@/modules/core/services/auth';
 
 export interface UserAuth {
   user: AuthUser | null;
@@ -40,4 +40,4 @@ export function useAuth(): UserAuth {
  * Server-side authentication check that follows Result pattern
  * from core domain models
  */
-export { checkAuth } from '../services/auth';
+export { checkAuth } from '@/modules/core/services/auth';

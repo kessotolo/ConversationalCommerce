@@ -1,9 +1,3 @@
-import React from 'react';
-import { useState } from 'react';
-import { ThemeProvider } from '@/components/ThemeProvider';
-import { useTheme } from '@/contexts/ThemeContext';
-import StorefrontLinks from '@/components/dashboard/StorefrontLinks';
-import Link from 'next/link';
 import {
   ChevronLeft,
   Save,
@@ -13,6 +7,12 @@ import {
   Columns,
   Rows,
 } from 'lucide-react';
+import Link from 'next/link';
+import React, { useState } from 'react';
+
+import StorefrontLinks from '@/components/dashboard/StorefrontLinks';
+import { ThemeProvider } from '@/components/ThemeProvider';
+import { useTheme } from '@/contexts/ThemeContext';
 
 // Create a custom DragDropIcon since it's not in lucide-react
 interface DragDropIconProps {
@@ -255,7 +255,7 @@ function LayoutCustomizationContent() {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                             >
-                              <polyline points="18 15 12 9 6 15"></polyline>
+                              <polyline points="18 15 12 9 6 15" />
                             </svg>
                           </button>
                           <button
@@ -274,7 +274,7 @@ function LayoutCustomizationContent() {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                             >
-                              <polyline points="6 9 12 15 18 9"></polyline>
+                              <polyline points="6 9 12 15 18 9" />
                             </svg>
                           </button>
                         </div>

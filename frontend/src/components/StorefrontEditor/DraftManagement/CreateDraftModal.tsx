@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
 import { XMarkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import React, { useState } from 'react';
+
 import type { UUID, InputChangeEvent, FormSubmitEvent } from '@/modules/core/models';
+
 import { createDraft } from '@/lib/api/storefrontEditor';
 import type { CreateDraftRequest } from '@/modules/storefront/models';
 

@@ -1,8 +1,8 @@
+import { Search as MagnifyingGlassIcon, Filter as FunnelIcon } from 'lucide-react';
 import React, { useState } from 'react';
 
-import { Search as MagnifyingGlassIcon, Filter as FunnelIcon } from 'lucide-react';
-import type { UUID } from '@/modules/core/models/base';
 import type { FormSubmitEvent } from '@/modules/core/models';
+import type { UUID } from '@/modules/core/models/base';
 
 import type { Logo } from '@/modules/storefront/models/logo';
 interface LogoListProps {
@@ -68,7 +68,7 @@ const LogoList: React.FC<LogoListProps> = ({
   if (loading) {
     return (
       <div className="p-4 flex justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700" />
       </div>
     );
   }

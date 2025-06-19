@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth as useClerkAuth, useUser } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+
+import type { ReactNode } from 'react';
 
 // Type definitions
 interface AuthContextType {
@@ -44,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = {
     isLoading,
     isAuthenticated: !!userId,
-    userId: userId || null,
+    userId: userId ?? null,
     redirectToLogin,
     redirectToDashboard,
   };
@@ -79,7 +81,7 @@ export function withAuth<P extends object>(Component: React.ComponentType<P>) {
     if (isLoading) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-[#fdfcf7]">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#6C9A8B]"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#6C9A8B]" />
         </div>
       );
     }

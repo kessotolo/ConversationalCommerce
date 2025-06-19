@@ -37,7 +37,8 @@ export class LocalStorageCartService implements CartService {
       const storedItems = this.storage.getItem(this.storageKey);
       return storedItems ? JSON.parse(storedItems) : [];
     } catch (error) {
-      console.error('Failed to load cart items from storage:', error);
+      if (typeof console !== 'undefined')
+        console.error('Failed to load cart items from storage:', error);
       return [];
     }
   }
@@ -48,7 +49,8 @@ export class LocalStorageCartService implements CartService {
     try {
       this.storage.setItem(this.storageKey, JSON.stringify(this.items));
     } catch (error) {
-      console.error('Failed to save cart items to storage:', error);
+      if (typeof console !== 'undefined')
+        console.error('Failed to save cart items to storage:', error);
     }
   }
 

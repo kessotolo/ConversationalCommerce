@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import {
   FunnelIcon,
   MagnifyingGlassIcon,
@@ -6,8 +5,11 @@ import {
   CalendarIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import type { Version } from '@/modules/storefront/models/version';
+import React, { useState } from 'react';
+
 import type { UUID, FormSubmitEvent } from '@/modules/core/models';
+
+import type { Version } from '@/modules/storefront/models/version';
 
 interface VersionListProps {
   versions: Version[];
@@ -103,7 +105,7 @@ const VersionList: React.FC<VersionListProps> = ({
   if (loading) {
     return (
       <div className="p-4 flex justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700" />
       </div>
     );
   }

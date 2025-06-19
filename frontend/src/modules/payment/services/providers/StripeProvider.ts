@@ -1,20 +1,28 @@
-import type { PaymentInitializeRequest, PaymentInitializeResponse } from '../../models/payment';
+import type {
+  PaymentInitializeRequest,
+  PaymentInitializeResponse,
+} from '@/modules/payment/models/payment';
+
+// Define a type for window with Stripe
+interface StripeWindow extends Window {
+  Stripe?: (publicKey: string) => any;
+}
 
 export class StripeProvider {
   private publicKey: string;
-  private stripe: any;
+  private stripe: unknown;
 
   constructor(publicKey: string) {
     this.publicKey = publicKey;
-    if (typeof window !== 'undefined' && (window as any).Stripe) {
-      this.stripe = (window as any).Stripe(this.publicKey);
+    if (typeof window !== 'undefined' && typeof (window as StripeWindow).Stripe === 'function') {
+      this.stripe = (window as StripeWindow).Stripe!(this.publicKey);
     } else {
       this.loadStripeScript();
     }
   }
 
   async initializePayment(request: PaymentInitializeRequest): Promise<PaymentInitializeResponse> {
-    // Call backend to get client_secret
+    if (typeof fetch === 'undefined') throw new Error('fetch is not available');
     const response = await fetch('/api/v1/payments/initialize', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -22,7 +30,7 @@ export class StripeProvider {
     });
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to initialize Stripe payment');
+      throw new Error(errorData.message ?? 'Failed to initialize Stripe payment');
     }
     const data = await response.json();
     return data.payment;
@@ -31,30 +39,58 @@ export class StripeProvider {
   async createPaymentWidget(
     clientSecret: string,
     onSuccess: () => void,
-    onError: (error: any) => void,
+    onError: (error: unknown) => void,
   ) {
-    if (!this.stripe) {
-      this.stripe = (window as any).Stripe(this.publicKey);
+    if (
+      !this.stripe &&
+      typeof window !== 'undefined' &&
+      typeof (window as StripeWindow).Stripe === 'function'
+    ) {
+      this.stripe = (window as StripeWindow).Stripe!(this.publicKey);
     }
     try {
-      const elements = this.stripe.elements();
-      const card = elements.create('card');
-      card.mount('#card-element');
-      const form = document.getElementById('payment-form');
-      if (form) {
-        form.addEventListener('submit', async (event) => {
-          event.preventDefault();
-          const { error, paymentIntent } = await this.stripe.confirmCardPayment(clientSecret, {
-            payment_method: {
-              card: card,
-            },
-          });
-          if (error) {
-            onError(error);
-          } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-            onSuccess();
+      if (
+        typeof this.stripe === 'object' &&
+        this.stripe !== null &&
+        'create' in this.stripe &&
+        typeof (this.stripe as { create: (type: string) => unknown }).create === 'function'
+      ) {
+        const elements = this.stripe as {
+          create: (type: string) => { mount: (el: string) => void };
+          confirmCardPayment: (
+            clientSecret: string,
+            options: unknown,
+          ) => Promise<{ error?: unknown; paymentIntent?: { status: string } }>;
+        };
+        const card = elements.create('card');
+        card.mount('#card-element');
+        if (typeof document !== 'undefined') {
+          const form = document.getElementById('payment-form');
+          if (form) {
+            form.addEventListener('submit', async (event) => {
+              event.preventDefault();
+              if (
+                'confirmCardPayment' in elements &&
+                typeof elements.confirmCardPayment === 'function'
+              ) {
+                const { error, paymentIntent } = await elements.confirmCardPayment(clientSecret, {
+                  payment_method: {
+                    card: card,
+                  },
+                });
+                if (error) {
+                  onError(error);
+                } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+                  onSuccess();
+                }
+              } else {
+                onError(new Error('Stripe confirmCardPayment not available'));
+              }
+            });
           }
-        });
+        }
+      } else {
+        onError(new Error('Stripe elements not available'));
       }
     } catch (error) {
       onError(error);
@@ -62,14 +98,21 @@ export class StripeProvider {
   }
 
   private loadStripeScript() {
-    if (typeof window !== 'undefined' && !(window as any).Stripe) {
+    if (typeof window !== 'undefined' && typeof (window as StripeWindow).Stripe !== 'function') {
       const script = document.createElement('script');
       script.src = 'https://js.stripe.com/v3/';
       script.async = true;
       script.onload = () => {
-        this.stripe = (window as any).Stripe(this.publicKey);
+        if (
+          typeof window !== 'undefined' &&
+          typeof (window as StripeWindow).Stripe === 'function'
+        ) {
+          this.stripe = (window as StripeWindow).Stripe!(this.publicKey);
+        }
       };
-      document.body.appendChild(script);
+      if (typeof document !== 'undefined') {
+        document.body.appendChild(script);
+      }
     }
   }
 }

@@ -1,22 +1,25 @@
-import React, { useEffect, useState } from 'react';
-import { formatDistanceToNow } from 'date-fns';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Paper from '@mui/material/Paper';
+import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
-import Chip from '@mui/material/Chip';
-import TableContainer from '@mui/material/TableContainer';
+import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import TableCell from '@mui/material/TableCell';
-import TableBody from '@mui/material/TableBody';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import type { ChipProps } from '@mui/material/Chip';
+import Typography from '@mui/material/Typography';
+import { formatDistanceToNow } from 'date-fns';
+import React, { useEffect, useState } from 'react';
+
+import { useWebSocket } from '@/hooks/useWebSocket';
+
 import AuditLogTable from './AuditLogTable';
 import NotificationCenter from './NotificationCenter';
-import { useWebSocket } from '@/hooks/useWebSocket';
+
+import type { ChipProps } from '@mui/material/Chip';
 
 interface Activity {
   id: string;
@@ -78,21 +81,21 @@ const ActivityDashboard: React.FC = () => {
   useEffect(() => {
     setMounted(true);
     if (typeof window !== 'undefined') {
-      setTenantId(localStorage.getItem('tenant_id') || '');
+      setTenantId(localStorage.getItem('tenant_id') ?? '');
     }
   }, []);
 
   // WebSocket connection - only establish when tenantId is available
   const { lastMessage, sendMessage: _sendMessage } = useWebSocket(
     tenantId
-      ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/ws/monitoring/${tenantId}`
+      ? `${process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:8080'}/ws/monitoring/${tenantId}`
       : '',
   );
 
   useEffect(() => {
-    if (lastMessage && typeof (lastMessage as any).data === 'string') {
+    if (lastMessage && typeof (lastMessage as { data: string }).data === 'string') {
       try {
-        const data = JSON.parse((lastMessage as any).data);
+        const data = JSON.parse((lastMessage as { data: string }).data);
         if (data.type === 'activity') {
           setActivities((prev) => [data.data, ...prev].slice(0, 100));
           updateStats(data.data);
@@ -108,15 +111,15 @@ const ActivityDashboard: React.FC = () => {
       total: prev.total + 1,
       byType: {
         ...prev.byType,
-        [activity.resource_type]: (prev.byType[activity.resource_type] || 0) + 1,
+        [activity.resource_type]: (prev.byType[activity.resource_type] ?? 0) + 1,
       },
       byStatus: {
         ...prev.byStatus,
-        [activity.status_code]: (prev.byStatus[activity.status_code] || 0) + 1,
+        [activity.status_code]: (prev.byStatus[activity.status_code] ?? 0) + 1,
       },
       byUser: {
         ...prev.byUser,
-        [activity.user_id]: (prev.byUser[activity.user_id] || 0) + 1,
+        [activity.user_id]: (prev.byUser[activity.user_id] ?? 0) + 1,
       },
     }));
   };

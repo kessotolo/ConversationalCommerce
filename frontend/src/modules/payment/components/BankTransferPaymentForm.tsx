@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import {
   Box,
   Card,
@@ -12,11 +11,14 @@ import {
   Divider,
   Grid,
 } from '@mui/material';
+import React, { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { ManualPaymentProof, BankAccountDetails } from '../models/payment';
-import { HttpPaymentService } from '../services/PaymentService';
+
+import type { Order } from '@/modules/order/models/order';
+import type { ManualPaymentProof, BankAccountDetails } from '@/modules/payment/models/payment';
+import { HttpPaymentService } from '@/modules/payment/services/PaymentService';
+
 import { UploadButton } from './UploadButton';
-import { Order } from '@/modules/order/models/order';
 
 interface BankTransferPaymentFormProps {
   order: Order;
@@ -79,10 +81,12 @@ export const BankTransferPaymentForm: React.FC<BankTransferPaymentFormProps> = (
           onSubmissionComplete();
         }, 2000);
       } else {
-        setError('Failed to submit payment proof: ' + (result.error?.message || 'Unknown error'));
+        setError(`Failed to submit payment proof: ${result.error?.message || 'Unknown error'}`);
       }
-    } catch (err: any) {
-      setError('Error submitting payment proof: ' + (err.message || 'Unknown error'));
+    } catch (err: unknown) {
+      setError(
+        `Error submitting payment proof: ${err instanceof Error ? err.message : 'Unknown error'}`,
+      );
     } finally {
       setLoading(false);
     }

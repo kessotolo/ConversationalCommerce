@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+
 import type { UUID } from '@/modules/core/models/base';
 
 // Define WebSocketMessage type since it's not in core module

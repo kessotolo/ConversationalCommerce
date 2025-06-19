@@ -1,10 +1,27 @@
 // Try dynamic import as a workaround
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const axios = require('axios').default || require('axios');
 
 // Import standardized configuration optimized for African markets
+import type { DashboardStatsResponse } from '@/modules/core/models/dashboard';
+import type {
+  Order,
+  CreateOrderRequest,
+  OrderResponse,
+  OrdersResponse,
+} from '@/modules/core/models/order';
+import type {
+  Product,
+  CreateProductRequest,
+  UpdateProductRequest,
+  ProductResponse,
+  ProductsResponse,
+} from '@/modules/core/models/product';
+
 import { API_BASE_URL, API_TIMEOUT, RETRY_ATTEMPTS, FEATURES } from '@/config';
 import { parseApiError } from '@/lib/utils';
+
+// Import types
+
+const axios = require('axios').default || require('axios');
 
 // Define response and error types for better type safety
 export interface ApiResponse<T = unknown> {
@@ -97,22 +114,6 @@ apiClient.interceptors.response.use(
     throw parseApiError(error);
   },
 );
-
-// Import types
-import type {
-  Product,
-  CreateProductRequest,
-  UpdateProductRequest,
-  ProductResponse,
-  ProductsResponse,
-} from '@/modules/core/models/product';
-import type {
-  Order,
-  CreateOrderRequest,
-  OrderResponse,
-  OrdersResponse,
-} from '@/modules/core/models/order';
-import type { DashboardStatsResponse } from '@/modules/core/models/dashboard';
 
 // Product endpoints
 export const productService = {

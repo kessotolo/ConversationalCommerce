@@ -1,7 +1,8 @@
-import { ServiceInitializer } from '../../../core/services/ServiceInitializer';
-import { ServiceRegistry } from '../../../core/services/ServiceRegistry';
-import { HttpOrderService } from '../OrderService';
-import { initializeOrderEventHandlers } from '../../events/OrderEventHandlers';
+import type { ServiceInitializer } from '@/modules/core/services/ServiceInitializer';
+import type { ServiceRegistry } from '@/modules/core/services/ServiceRegistry';
+
+import { initializeOrderEventHandlers } from '@/modules/order/events/OrderEventHandlers';
+import { HttpOrderService } from '@/modules/order/services/OrderService';
 
 /**
  * OrderServiceInitializer integrates the OrderService into the application's

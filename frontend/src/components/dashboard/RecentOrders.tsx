@@ -1,10 +1,10 @@
-import React from 'react';
 import { ExternalLink, MessageSquare } from 'lucide-react';
-import { Badge } from '../ui/Badge';
-import { formatCurrency, formatDate } from '@/lib/utils';
-import { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import React from 'react';
+
+import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
+import { CardHeader, CardTitle, CardContent, Card } from '@/components/ui/Card';
+import { formatCurrency, formatDate } from '@/lib/utils';
 
 interface Order {
   id: string;
@@ -39,9 +39,9 @@ export function RecentOrders({ orders, isLoading = false }: RecentOrdersProps) {
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="flex flex-col space-y-2">
-                <div className="h-4 bg-gray-200 rounded animate-pulse w-1/3"></div>
-                <div className="h-4 bg-gray-200 rounded animate-pulse w-full"></div>
-                <div className="h-4 bg-gray-200 rounded animate-pulse w-1/4"></div>
+                <div className="h-4 bg-gray-200 rounded animate-pulse w-1/3" />
+                <div className="h-4 bg-gray-200 rounded animate-pulse w-full" />
+                <div className="h-4 bg-gray-200 rounded animate-pulse w-1/4" />
               </div>
             ))}
           </div>

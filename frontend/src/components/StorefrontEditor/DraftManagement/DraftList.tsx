@@ -46,7 +46,7 @@ const DraftList: React.FC<DraftListProps> = ({
   if (loading) {
     return (
       <div className="p-4 flex justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700" />
       </div>
     );
   }

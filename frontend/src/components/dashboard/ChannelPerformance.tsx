@@ -1,7 +1,8 @@
-import React from 'react';
 import { MessageSquare, Globe, ShoppingBag } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
+import React from 'react';
+
 import { CardHeader, CardTitle, CardContent, Card } from '@/components/ui/Card';
+import { formatCurrency } from '@/lib/utils';
 
 interface ChannelData {
   name: string;
@@ -41,10 +42,10 @@ export function ChannelPerformance({ data, isLoading = false }: ChannelPerforman
             {[...Array(3)].map((_, i) => (
               <div key={i} className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
-                  <div className="h-4 bg-gray-200 rounded animate-pulse w-24"></div>
+                  <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-24" />
                 </div>
-                <div className="h-3 bg-gray-200 rounded animate-pulse w-16"></div>
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-16" />
               </div>
             ))}
           </div>

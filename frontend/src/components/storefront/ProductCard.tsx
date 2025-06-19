@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
+import React, { useState } from 'react';
+
 import { useTheme } from '@/contexts/ThemeContext';
 import { useThemeStyles } from '@/hooks/useThemeStyles';
 
@@ -19,15 +20,15 @@ interface ProductCardProps {
   onAddToCart?: () => void;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
+const API_BASE = process.env['NEXT_PUBLIC_API_BASE'] || '';
 
-export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
+export default function ProductCard({ product, onAddToCart }: ProductCardProps): JSX.Element {
   const { theme } = useTheme();
   const styles = useThemeStyles();
   const [isHovered, setIsHovered] = useState(false);
   const [qrModal, setQrModal] = useState(false);
   const [qrUrl, setQrUrl] = useState<string | null>(null);
-  const [shareLinks, setShareLinks] = useState<any>(null);
+  const [shareLinks, setShareLinks] = useState<Record<string, { url: string }> | null>(null);
   const [loadingShare, setLoadingShare] = useState(false);
   const [errorShare, setErrorShare] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
@@ -51,8 +52,8 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
       const res = await fetch(`${API_BASE}/api/v1/share/all-platforms?product_id=${product.id}`);
       if (!res.ok) throw new Error('Failed to fetch share links');
       setShareLinks(await res.json());
-    } catch (e: any) {
-      setErrorShare(e.message);
+    } catch (e: unknown) {
+      setErrorShare(e instanceof Error ? e.message : 'An error occurred');
     } finally {
       setLoadingShare(false);
     }
@@ -65,7 +66,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
 
   const handleShareClick = async (platform: 'whatsapp' | 'instagram' | 'tiktok') => {
     await fetchShareLinks();
-    if (shareLinks && shareLinks[platform] && shareLinks[platform].url) {
+    if (shareLinks?.[platform]?.url) {
       window.open(shareLinks[platform].url, '_blank', 'noopener');
     }
   };
@@ -92,8 +93,8 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
       setSuccess(true);
       if (onAddToCart) onAddToCart();
       setTimeout(() => setSuccess(false), 1500);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'An error occurred');
     } finally {
       setAdding(false);
     }

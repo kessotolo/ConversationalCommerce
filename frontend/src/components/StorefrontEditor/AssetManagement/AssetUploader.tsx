@@ -1,4 +1,3 @@
-import React, { useState, useRef } from 'react';
 import {
   XMarkIcon,
   PhotoIcon,
@@ -8,10 +7,13 @@ import {
   MusicalNoteIcon,
   ArrowUpTrayIcon,
 } from '@heroicons/react/24/outline';
+import React, { useState, useRef } from 'react';
+
+import type { UUID } from '@/modules/core/models/base';
+
+import { uploadAsset } from '@/lib/api/storefrontEditor';
 
 import type { InputChangeEvent } from '@core/models/events';
-import type { UUID } from '@/modules/core/models/base';
-import { uploadAsset } from '@/lib/api/storefrontEditor';
 
 interface AssetUploaderProps {
   _tenantId: UUID;
@@ -128,7 +130,7 @@ const AssetUploader: React.FC<AssetUploaderProps> = ({ _tenantId, onClose, onSuc
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   };
 
   // Handle upload process
@@ -364,7 +366,7 @@ const AssetUploader: React.FC<AssetUploaderProps> = ({ _tenantId, onClose, onSuc
                                 <div
                                   className="bg-blue-600 h-2.5 rounded-full"
                                   style={{ width: `${progress}%` }}
-                                ></div>
+                                />
                               </div>
                               <span className="text-xs text-gray-500">
                                 {progress === 100 ? 'Processing...' : `Uploading: ${progress}%`}

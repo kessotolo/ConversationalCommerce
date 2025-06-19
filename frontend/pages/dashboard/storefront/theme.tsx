@@ -1,13 +1,14 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import { ChevronLeft, Save, Palette, Eye } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
+import React, { useState, useEffect, Suspense } from 'react';
+
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { useTheme } from '@/contexts/ThemeContext';
-import Link from 'next/link';
-import { ChevronLeft, Save, Palette, Eye } from 'lucide-react';
 
 // Dynamically import components to reduce initial bundle size
 const StorefrontLinks = dynamic(() => import('@/components/dashboard/StorefrontLinks'), {
-  loading: () => <div className="h-24 bg-gray-100 animate-pulse rounded-md"></div>,
+  loading: () => <div className="h-24 bg-gray-100 animate-pulse rounded-md" />,
   ssr: false,
 });
 
@@ -65,9 +66,9 @@ function ThemeCustomizationContent() {
     return (
       <div className="p-6">
         <div className="space-y-4">
-          <div className="h-8 bg-gray-200 rounded-md animate-pulse w-1/3"></div>
-          <div className="h-32 bg-gray-100 rounded-md animate-pulse"></div>
-          <div className="h-24 bg-gray-200 rounded-md animate-pulse"></div>
+          <div className="h-8 bg-gray-200 rounded-md animate-pulse w-1/3" />
+          <div className="h-32 bg-gray-100 rounded-md animate-pulse" />
+          <div className="h-24 bg-gray-200 rounded-md animate-pulse" />
         </div>
       </div>
     );
@@ -411,15 +412,15 @@ function ThemeCustomizationContent() {
                     <div
                       className="w-4 h-4 rounded-full"
                       style={{ backgroundColor: presetTheme.primary }}
-                    ></div>
+                    />
                     <div
                       className="w-4 h-4 rounded-full"
                       style={{ backgroundColor: presetTheme.secondary }}
-                    ></div>
+                    />
                     <div
                       className="w-4 h-4 rounded-full"
                       style={{ backgroundColor: presetTheme.accent }}
-                    ></div>
+                    />
                   </div>
                   <div className="text-sm font-medium">{presetTheme.name}</div>
                 </button>
@@ -555,8 +556,8 @@ export default function ThemeCustomizePage() {
         <Suspense
           fallback={
             <div className="p-6 space-y-4">
-              <div className="h-8 bg-gray-200 rounded-md animate-pulse w-1/3"></div>
-              <div className="h-64 bg-gray-100 rounded-md animate-pulse"></div>
+              <div className="h-8 bg-gray-200 rounded-md animate-pulse w-1/3" />
+              <div className="h-64 bg-gray-100 rounded-md animate-pulse" />
             </div>
           }
         >

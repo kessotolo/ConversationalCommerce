@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
 import { Button, CircularProgress, Box, Typography, Alert } from '@mui/material';
+import React, { useState, useRef } from 'react';
 
 interface UploadButtonProps {
   onImageUploaded: (imageUrl: string) => void;
@@ -65,8 +65,8 @@ export const UploadButton: React.FC<UploadButtonProps> = ({
       // });
       // const data = await response.json();
       // onImageUploaded(data.url);
-    } catch (err: any) {
-      setError(`Upload error: ${err.message || 'Unknown error'}`);
+    } catch (err: unknown) {
+      setError(`Upload error: ${err instanceof Error ? err.message : 'Unknown error'}`);
       setLoading(false);
     }
 

@@ -1,9 +1,10 @@
-import React from 'react';
-import { ThemeProvider } from '@/components/ThemeProvider';
-import { useTheme } from '@/contexts/ThemeContext';
 import { Palette, Layout, Type, Navigation, Image, Settings } from 'lucide-react';
 import Link from 'next/link';
+import React from 'react';
+
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { ThemeProvider } from '@/components/ThemeProvider';
+import { useTheme } from '@/contexts/ThemeContext';
 
 // Layout component to use theme context
 function StorefrontCustomizeContent() {

@@ -1,9 +1,12 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useOrderService } from '../hooks/useOrderService';
-import { Order, OrderStatus } from '../models/order';
+
 import { formatAddress } from '@/modules/core/models/base/address';
+
+import { useOrderService } from '@/modules/order/hooks/useOrderService';
+import { OrderStatus } from '@/modules/order/models/order';
+import type { Order } from '@/modules/order/models/order';
 
 interface OrderTrackingProps {
   /**
@@ -100,7 +103,7 @@ export function OrderTracking({
   if (loading) {
     return (
       <div className="flex justify-center items-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500" />
       </div>
     );
   }
@@ -271,14 +274,14 @@ export function OrderTracking({
               </tbody>
               <tfoot className="bg-gray-50">
                 <tr>
-                  <td colSpan={2} className="px-6 py-3"></td>
+                  <td colSpan={2} className="px-6 py-3" />
                   <td className="px-6 py-3 text-sm font-medium text-gray-500">Subtotal:</td>
                   <td className="px-6 py-3 text-sm font-medium">
                     {order.subtotal.amount.toLocaleString()} {order.subtotal.currency}
                   </td>
                 </tr>
                 <tr>
-                  <td colSpan={2} className="px-6 py-3"></td>
+                  <td colSpan={2} className="px-6 py-3" />
                   <td className="px-6 py-3 text-sm font-medium text-gray-500">Shipping:</td>
                   <td className="px-6 py-3 text-sm font-medium">
                     {order.shipping.shipping_cost.amount.toLocaleString()}{' '}
@@ -286,14 +289,14 @@ export function OrderTracking({
                   </td>
                 </tr>
                 <tr>
-                  <td colSpan={2} className="px-6 py-3"></td>
+                  <td colSpan={2} className="px-6 py-3" />
                   <td className="px-6 py-3 text-sm font-medium text-gray-500">Tax:</td>
                   <td className="px-6 py-3 text-sm font-medium">
                     {order.tax.amount.toLocaleString()} {order.tax.currency}
                   </td>
                 </tr>
                 <tr>
-                  <td colSpan={2} className="px-6 py-3"></td>
+                  <td colSpan={2} className="px-6 py-3" />
                   <td className="px-6 py-3 text-sm font-bold text-gray-700">Total:</td>
                   <td className="px-6 py-3 text-lg font-bold">
                     {order.total_amount.amount.toLocaleString()} {order.total_amount.currency}
@@ -313,11 +316,11 @@ export function OrderTracking({
                 <div key={event.id} className="relative pl-8">
                   {/* Timeline connector */}
                   {index !== order.timeline.length - 1 && (
-                    <div className="absolute top-4 left-[0.4375rem] bottom-0 w-0.5 bg-gray-200"></div>
+                    <div className="absolute top-4 left-[0.4375rem] bottom-0 w-0.5 bg-gray-200" />
                   )}
 
                   {/* Timeline dot */}
-                  <div className="absolute top-1 left-0 w-3 h-3 rounded-full bg-blue-500"></div>
+                  <div className="absolute top-1 left-0 w-3 h-3 rounded-full bg-blue-500" />
 
                   {/* Event content */}
                   <div>
@@ -414,7 +417,7 @@ function OrderProgressBar({ status }: { status: OrderStatus }) {
         <div
           className="h-1 bg-blue-500 absolute top-0 left-0 z-10"
           style={{ width: `${Math.max(0, (currentStep / (steps.length - 1)) * 100)}%` }}
-        ></div>
+        />
       </div>
 
       {/* Steps */}

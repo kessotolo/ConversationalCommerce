@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
+import React, { useState, useEffect } from 'react';
+
 import type { UUID } from '@/modules/core/models';
-import { getDrafts, publishDraft, deleteDraft } from '@/lib/api/storefrontEditor';
 import { Status } from '@/modules/core/models/base';
 
-import DraftList from '@/components/StorefrontEditor/DraftManagement/DraftList';
-import DraftDetail from '@/components/StorefrontEditor/DraftManagement/DraftDetail';
 import CreateDraftModal from '@/components/StorefrontEditor/DraftManagement/CreateDraftModal';
-
+import DraftDetail from '@/components/StorefrontEditor/DraftManagement/DraftDetail';
+import DraftList from '@/components/StorefrontEditor/DraftManagement/DraftList';
+import { getDrafts, publishDraft, deleteDraft } from '@/lib/api/storefrontEditor';
 import type { Draft } from '@/modules/storefront/models/draft';
 interface DraftManagementProps {
   tenantId: UUID;

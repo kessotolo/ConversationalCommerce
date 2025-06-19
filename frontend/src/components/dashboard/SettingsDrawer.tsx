@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
 import { X, CreditCard, Bell, Globe, Store, User } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 
 const categories = [
   { key: 'general', label: 'General', icon: Store },
