@@ -17,8 +17,9 @@ import React, { useState, useRef, useEffect } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { formatDate } from '@/lib/utils';
-import { ConversationEventType } from '@/modules/conversation/models/event';
+import { ConversationEvent, ConversationEventType } from '@/modules/conversation/models/event';
 import { ConversationEventLogger } from '@/modules/conversation/utils/eventLogger';
+import type { ConversationEvent as ConversationEventTyped } from '@/modules/conversation/models/event';
 
 // Mock conversations
 const mockConversations = [
@@ -128,6 +129,22 @@ function getTenantId(user: unknown, organization: { id?: string } | null): strin
   return undefined;
 }
 
+// Helper to extract display fields from ConversationEvent
+function getConversationDisplayFields(event: ConversationEventTyped) {
+  const payload = event.payload ?? {};
+  return {
+    id: event.conversation_id || event.id,
+    customerName: typeof payload['customerName'] === 'string' ? payload['customerName'] : (payload['name'] as string) ?? '',
+    phone: typeof payload['phone'] === 'string' ? payload['phone'] : '',
+    lastMessage: typeof payload['lastMessage'] === 'string' ? payload['lastMessage'] : '',
+    unread: typeof payload['unread'] === 'number' ? payload['unread'] : 0,
+    timestamp: event.created_at,
+    avatar: typeof payload['avatar'] === 'string' ? payload['avatar'] : undefined,
+    orderId: typeof payload['orderId'] === 'string' ? payload['orderId'] : undefined,
+    orderStatus: typeof payload['orderStatus'] === 'string' ? payload['orderStatus'] : undefined,
+  };
+}
+
 export default function MessagesPage() {
   const { user } = useUser();
   const { organization } = useOrganization();
@@ -137,23 +154,24 @@ export default function MessagesPage() {
   const currentUserId = user?.id;
   const tenantId = getTenantId(user, organization ?? null);
 
-  const [conversations, setConversations] = useState(mockConversations);
+  // --- State ---
+  const [conversations, setConversations] = useState<ConversationEvent[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
-  const [messages, setMessages] = useState(mockMessages);
+  const [messages, setMessages] = useState<ConversationEvent[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Track previous conversation for user_left event
   const prevConversationRef = useRef<string | null>(null);
 
   // Filter conversations based on search term
-  const filteredConversations = conversations.filter(
-    (conv) =>
-      conv.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      conv.phone.includes(searchTerm),
-  );
+  const filteredConversations = conversations.filter((conv) => {
+    const { customerName, phone } = getConversationDisplayFields(conv);
+    return (
+      customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      phone.includes(searchTerm)
+    );
+  });
 
   // Scroll to bottom of messages
   useEffect(() => {
@@ -162,22 +180,32 @@ export default function MessagesPage() {
     }
   }, [messages]);
 
-  // Fetch conversations with API integration structure
+  // --- Fetch conversations ---
   const fetchConversations = async () => {
     setIsLoading(true);
-
     try {
-      // This is where you would make a real API call
-      // const response = await conversationService.getConversations();
-      // setConversations(response.data);
-
-      // Simulate API call with mock data
-      setTimeout(() => {
-        setConversations(mockConversations);
-        setIsLoading(false);
-      }, 1000);
+      const res = await fetch('/api/conversations');
+      if (!res.ok) throw new Error('Failed to fetch conversations');
+      const data: ConversationEvent[] = await res.json();
+      setConversations(data);
     } catch (err) {
-      console.error('Error fetching conversations:', err);
+      setConversations([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // --- Fetch messages for selected conversation ---
+  const fetchMessages = async (conversationId: string) => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/conversation-events?conversation_id=${conversationId}`);
+      if (!res.ok) throw new Error('Failed to fetch messages');
+      const data: ConversationEvent[] = await res.json();
+      setMessages(data);
+    } catch (err) {
+      setMessages([]);
+    } finally {
       setIsLoading(false);
     }
   };
@@ -228,17 +256,15 @@ export default function MessagesPage() {
   }, [selectedConversation, currentUserId, tenantId]);
 
   // Helper: get selected conversation object
-  const selectedConvObj = conversations.find(
-    (c: (typeof mockConversations)[0]) => c.id === selectedConversation,
-  );
+  const selectedConvObj = conversations.find((c) => (c.conversation_id || c.id) === selectedConversation);
+  const selectedConvDisplay = selectedConvObj ? getConversationDisplayFields(selectedConvObj) : null;
   // Helper: get last message date
-  const lastMsgDate =
-    messages.length > 0 ? new Date(messages[messages.length - 1].timestamp) : null;
+  const lastMsgDate = messages.length > 0 ? new Date(messages[messages.length - 1].created_at) : null;
   // Helper: is expired (order closed or >2 weeks old)
   let isOrderClosed = false;
-  if (selectedConvObj) {
+  if (selectedConvDisplay && typeof selectedConvDisplay.orderStatus === 'string') {
     isOrderClosed =
-      selectedConvObj.orderStatus === 'delivered' || selectedConvObj.orderStatus === 'cancelled';
+      selectedConvDisplay.orderStatus === 'delivered' || selectedConvDisplay.orderStatus === 'cancelled';
   }
   const isMsgTooOld = lastMsgDate
     ? Date.now() - lastMsgDate.getTime() > 14 * 24 * 60 * 60 * 1000
@@ -374,67 +400,69 @@ export default function MessagesPage() {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
               </div>
             ) : filteredConversations.length > 0 ? (
-              filteredConversations.map((conv) => (
-                <button
-                  key={conv.id}
-                  className={`w-full text-left px-4 py-3 border-b flex items-start rounded-none transition-all duration-150 ${selectedConversation === conv.id ? 'bg-[#e8f6f1] border-l-4 border-[#6C9A8B]' : 'hover:bg-gray-100'}`}
-                  onClick={() => handleSelectConversation(conv.id)}
-                >
-                  <div className="relative h-12 w-12 rounded-full overflow-hidden bg-gray-300 mr-3 flex-shrink-0 border border-[#e6f0eb]">
-                    {conv.avatar ? (
-                      <Image
-                        src={conv.avatar}
-                        alt={conv.customerName}
-                        width={48}
-                        height={48}
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center h-full w-full bg-[#e6f0eb] text-[#6C9A8B]">
-                        {conv.customerName.charAt(0)}
-                      </div>
-                    )}
-                    {conv.unread > 0 && (
-                      <div className="absolute -bottom-1 -right-1 bg-[#6C9A8B] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                        {conv.unread}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between">
-                      <h3 className="font-medium truncate">{conv.customerName}</h3>
-                      <span className="text-xs text-gray-500">
-                        {conv.timestamp ? formatDate(conv.timestamp) : ''}
-                      </span>
+              filteredConversations.map((conv) => {
+                const display = getConversationDisplayFields(conv);
+                return (
+                  <button
+                    key={display.id}
+                    className={`w-full text-left px-4 py-3 border-b flex items-start rounded-none transition-all duration-150 ${selectedConversation === display.id ? 'bg-[#e8f6f1] border-l-4 border-[#6C9A8B]' : 'hover:bg-gray-100'}`}
+                    onClick={() => handleSelectConversation(display.id)}
+                  >
+                    <div className="relative h-12 w-12 rounded-full overflow-hidden bg-gray-300 mr-3 flex-shrink-0 border border-[#e6f0eb]">
+                      {display.avatar ? (
+                        <Image
+                          src={display.avatar}
+                          alt={display.customerName}
+                          width={48}
+                          height={48}
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full w-full bg-[#e6f0eb] text-[#6C9A8B]">
+                          {display.customerName.charAt(0)}
+                        </div>
+                      )}
+                      {display.unread > 0 && (
+                        <div className="absolute -bottom-1 -right-1 bg-[#6C9A8B] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          {display.unread}
+                        </div>
+                      )}
                     </div>
-                    <div className="flex items-center text-sm text-gray-500 mt-1">
-                      <Phone className="h-3 w-3 mr-1" />
-                      <span className="truncate">{conv.phone}</span>
-                    </div>
-                    <p className="text-sm truncate mt-1">{conv.lastMessage}</p>
-                    {conv.orderId && (
-                      <div className="mt-1 text-xs">
-                        <span className="bg-[#f0f7f4] text-[#6C9A8B] px-2 py-0.5 rounded">
-                          {conv.orderId}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between">
+                        <h3 className="font-medium truncate">{display.customerName}</h3>
+                        <span className="text-xs text-gray-500">
+                          {display.timestamp ? formatDate(display.timestamp) : ''}
                         </span>
-                        {conv.orderStatus && (
-                          <span
-                            className={`ml-2 px-2 py-0.5 rounded ${
-                              conv.orderStatus === 'delivered'
+                      </div>
+                      <div className="flex items-center text-sm text-gray-500 mt-1">
+                        <Phone className="h-3 w-3 mr-1" />
+                        <span className="truncate">{display.phone}</span>
+                      </div>
+                      <p className="text-sm truncate mt-1">{display.lastMessage}</p>
+                      {display.orderId && (
+                        <div className="mt-1 text-xs">
+                          <span className="bg-[#f0f7f4] text-[#6C9A8B] px-2 py-0.5 rounded">
+                            {display.orderId}
+                          </span>
+                          {display.orderStatus && (
+                            <span
+                              className={`ml-2 px-2 py-0.5 rounded ${display.orderStatus === 'delivered'
                                 ? 'bg-green-100 text-green-800'
-                                : conv.orderStatus === 'processing'
+                                : display.orderStatus === 'processing'
                                   ? 'bg-blue-100 text-blue-800'
                                   : 'bg-yellow-100 text-yellow-800'
-                            }`}
-                          >
-                            {conv.orderStatus}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </button>
-              ))
+                                }`}
+                            >
+                              {display.orderStatus}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })
             ) : (
               <div className="flex justify-center items-center h-32">
                 <p className="text-gray-500">No conversations found.</p>
@@ -445,29 +473,29 @@ export default function MessagesPage() {
         {/* Chat area */}
         <div className="flex-1 flex flex-col">
           {/* Chat header */}
-          {selectedConvObj ? (
+          {selectedConvDisplay ? (
             <div className="p-4 border-b flex items-center bg-white">
               <div className="flex items-center">
                 <div className="relative h-10 w-10 rounded-full overflow-hidden bg-gray-300 mr-3 border border-[#e6f0eb]">
-                  {selectedConvObj.avatar ? (
+                  {selectedConvDisplay.avatar ? (
                     <Image
-                      src={selectedConvObj.avatar}
-                      alt={selectedConvObj.customerName}
+                      src={selectedConvDisplay.avatar}
+                      alt={selectedConvDisplay.customerName}
                       width={40}
                       height={40}
                       className="object-cover"
                     />
                   ) : (
                     <div className="flex items-center justify-center h-full w-full bg-[#e6f0eb] text-[#6C9A8B]">
-                      {selectedConvObj.customerName.charAt(0)}
+                      {selectedConvDisplay.customerName.charAt(0)}
                     </div>
                   )}
                 </div>
                 <div>
-                  <h3 className="font-medium">{selectedConvObj.customerName}</h3>
+                  <h3 className="font-medium">{selectedConvDisplay.customerName}</h3>
                   <div className="flex items-center text-xs text-gray-500">
                     <Phone className="h-3 w-3 mr-1" />
-                    <span>{selectedConvObj.phone}</span>
+                    <span>{selectedConvDisplay.phone}</span>
                   </div>
                 </div>
               </div>
@@ -483,30 +511,34 @@ export default function MessagesPage() {
           ) : null}
           {/* Chat messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#f7faf9]">
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex ${msg.sender === 'store' ? 'justify-end' : 'justify-start'}`}
-              >
+            {messages.map((msg) => {
+              const payload = msg.payload ?? {};
+              const content = typeof payload['content'] === 'string' ? payload['content'] : '';
+              const sender = typeof payload['sender'] === 'string' ? payload['sender'] : (msg.event_type === ConversationEventType.MESSAGE_SENT ? 'store' : 'customer');
+              const status = typeof payload['status'] === 'string' ? payload['status'] : '';
+              return (
                 <div
-                  className={`max-w-[75%] rounded-lg px-4 py-2 ${
-                    msg.sender === 'store'
+                  key={msg.id}
+                  className={`flex ${sender === 'store' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[75%] rounded-lg px-4 py-2 ${sender === 'store'
                       ? 'bg-[#6C9A8B] text-white rounded-tr-none'
                       : 'bg-white border rounded-tl-none'
-                  }`}
-                >
-                  <p>{msg.content}</p>
-                  <div
-                    className={`text-xs mt-1 flex justify-end items-center gap-1 ${
-                      msg.sender === 'store' ? 'text-[#e6f0eb]' : 'text-gray-500'
-                    }`}
+                      }`}
                   >
-                    {formatDate(msg.timestamp, 'time')}
-                    {msg.sender === 'store' && renderMessageStatus(msg.status)}
+                    <p>{content}</p>
+                    <div
+                      className={`text-xs mt-1 flex justify-end items-center gap-1 ${sender === 'store' ? 'text-[#e6f0eb]' : 'text-gray-500'
+                        }`}
+                    >
+                      {formatDate(msg.created_at, 'time')}
+                      {sender === 'store' && renderMessageStatus(status)}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             <div ref={messagesEndRef} />
           </div>
           {/* Message input */}
