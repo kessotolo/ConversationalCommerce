@@ -1,45 +1,9 @@
 'use client';
 import { Plus, Edit, Trash2, BadgeX, Search, BadgeCheck } from 'lucide-react';
 import Image from 'next/image';
-import React, { useState } from 'react';
-
-// Product type
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  image_url: string;
-  status: 'Active' | 'Draft';
-  inventory: number;
-}
-
-// Mocked product data
-const MOCK_PRODUCTS: Product[] = [
-  {
-    id: '1',
-    name: 'Premium Coffee Blend',
-    price: 14.99,
-    image_url: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?q=80&w=500',
-    status: 'Active',
-    inventory: 120,
-  },
-  {
-    id: '2',
-    name: 'Organic Green Tea',
-    price: 9.99,
-    image_url: 'https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?q=80&w=500',
-    status: 'Active',
-    inventory: 80,
-  },
-  {
-    id: '3',
-    name: 'Handcrafted Ceramic Mug',
-    price: 24.99,
-    image_url: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?q=80&w=500',
-    status: 'Draft',
-    inventory: 0,
-  },
-];
+import React, { useState, useEffect } from 'react';
+import { useTenant } from '@/contexts/TenantContext';
+import type { Product } from '@/modules/core/models/product';
 
 type AddProductModalProps = {
   open: boolean;
@@ -56,23 +20,17 @@ function AddProductModal({
   const isEditing = !!editingProduct;
   const [name, setName] = useState(editingProduct?.name || '');
   const [price, setPrice] = useState(editingProduct?.price?.toString() || '');
-  const [image, setImage] = useState(editingProduct?.image_url || '');
-  const [status, setStatus] = useState<'Active' | 'Draft'>(editingProduct?.status || 'Active');
-  const [inventory, setInventory] = useState(editingProduct?.inventory?.toString() || '');
+  const [image, setImage] = useState(editingProduct?.image_url ?? '');
 
   React.useEffect(() => {
     if (editingProduct) {
       setName(editingProduct.name);
       setPrice(editingProduct.price.toString());
-      setImage(editingProduct.image_url);
-      setStatus(editingProduct.status);
-      setInventory(editingProduct.inventory.toString());
+      setImage(editingProduct.image_url ?? '');
     } else {
       setName('');
       setPrice('');
       setImage('');
-      setStatus('Active');
-      setInventory('');
     }
   }, [editingProduct, open]);
 
@@ -83,8 +41,9 @@ function AddProductModal({
       name,
       price: parseFloat(price),
       image_url: image,
-      status,
-      inventory: parseInt(inventory, 10),
+      description: editingProduct?.description ?? '',
+      created_at: editingProduct?.created_at ?? new Date().toISOString(),
+      updated_at: editingProduct?.updated_at ?? new Date().toISOString(),
     };
     onAdd(product);
     onClose();
@@ -119,23 +78,6 @@ function AddProductModal({
             value={image}
             onChange={(e) => setImage(e.target.value)}
           />
-          <input
-            className="border rounded-lg px-3 py-2"
-            placeholder="Inventory"
-            type="number"
-            min="0"
-            value={inventory}
-            onChange={(e) => setInventory(e.target.value)}
-            required
-          />
-          <select
-            className="border rounded-lg px-3 py-2"
-            value={status}
-            onChange={(e) => setStatus(e.target.value as 'Active' | 'Draft')}
-          >
-            <option value="Active">Active</option>
-            <option value="Draft">Draft</option>
-          </select>
           <div className="flex gap-2 justify-end mt-2">
             <button type="button" className="px-4 py-2 rounded-lg bg-gray-100" onClick={onClose}>
               Cancel
@@ -154,10 +96,29 @@ function AddProductModal({
 }
 
 export default function ProductsDashboardPage() {
-  const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
+  const { tenant, isLoading: isTenantLoading } = useTenant();
+  const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!tenant?.id) return;
+    setLoading(true);
+    setError(null);
+    fetch(`/api/v1/products?tenant_id=${tenant.id}`)
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch products');
+        return res.json();
+      })
+      .then((data) => {
+        setProducts(data.items || []);
+      })
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [tenant?.id]);
 
   const filtered = products.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
 
@@ -248,13 +209,7 @@ export default function ProductsDashboardPage() {
                   Name
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Price
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Inventory
                 </th>
                 <th className="px-6 py-3" />
               </tr>
@@ -263,26 +218,16 @@ export default function ProductsDashboardPage() {
               {filtered.map((product) => (
                 <tr key={product?.id} className="hover:bg-[#f7faf9] transition">
                   <td className="px-6 py-4">
-                    <img
-                      src={product?.image_url}
-                      alt={product?.name}
-                      className="w-14 h-14 object-cover rounded-lg border border-gray-100"
+                    <Image
+                      src={product.image_url ?? ''}
+                      alt={product.name}
+                      width={48}
+                      height={48}
+                      className="rounded-lg object-cover"
                     />
                   </td>
                   <td className="px-6 py-4 font-semibold text-gray-900">{product?.name}</td>
-                  <td className="px-6 py-4">
-                    {product?.status === 'Active' ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-100">
-                        <BadgeCheck size={14} /> Active
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
-                        <BadgeX size={14} /> Draft
-                      </span>
-                    )}
-                  </td>
                   <td className="px-6 py-4">${product?.price.toFixed(2)}</td>
-                  <td className="px-6 py-4">{product?.inventory}</td>
                   <td className="px-6 py-4 flex gap-2">
                     <button
                       className="p-2 rounded hover:bg-gray-100 text-gray-500"
