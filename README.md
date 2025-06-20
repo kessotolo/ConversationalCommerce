@@ -1060,3 +1060,22 @@ For backend contribution and developer practices, see the backend/README.md.
 - Alerting is supported via Prometheus Alertmanager and WhatsApp for critical events (see frontend/docs/WHATSAPP_ALERTING.md).
 - All event flows and hooks are covered by comprehensive integration and unit tests, including handler failure isolation.
 - Developer and ops onboarding for event-driven patterns, monitoring, and alerting is documented in backend/README.md.
+
+## Recent Refactor & Best Practices (2025-06)
+
+- All mock data has been removed from the frontend. All UIs (dashboard, messages, products, etc.) are now wired to real backend APIs with strict typing and error handling.
+- Only "fake" test purchases for sellers are allowed as mock/test data; all other mock data is prohibited.
+- No `any` types are allowed; use explicit interfaces, generics, or `unknown` with type guards. All code must be strictly typed and linter/type-check compliant.
+- Strict modular monolith architecture: each module has clear boundaries and public APIs. Only import from a module's public API, never from internal files or bridge files.
+- All async code uses async/await with try/catch for error handling. All async functions are fully typed. Loading, error, and empty states are handled in all UIs.
+- Onboarding flows are soft, non-blocking, and always use a prompt card/modal. New developers should read the architecture docs, onboarding guide, and run `npm run verify:architecture` before contributing. All code changes must be documented and tested.
+
+### For New Engineers
+- Read the [Architecture Documentation](frontend/docs/ARCHITECTURE.md) and [Onboarding Guide](frontend/docs/ONBOARDING.md) before making changes.
+- Run `npm run verify:architecture`, `npm run lint`, and `npm run type-check` before every commit.
+- Never reintroduce mock data or bridge files. Always use direct module imports and respect module boundaries.
+- Document all architectural or type changes in the appropriate `.md` files.
+- Use the provided scripts and CI checks to verify architecture and type safety.
+- When extending analytics or dashboard features, coordinate backend and frontend changes for type safety.
+
+For more details, see the architecture and onboarding docs.

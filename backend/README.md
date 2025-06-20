@@ -1125,3 +1125,17 @@ For more details, see AI_AGENT_CONFIG.md.
 - Onboarding is a "soft" flow: after sign in/up, users land on the dashboard. If onboarding is incomplete, a dismissible onboarding card appears at the top (web & mobile), launching the wizard in a modal.
 - The backend onboarding APIs are designed for async, non-blocking flows, supporting this soft onboarding UX.
 - For details, see `frontend/README.md` and `src/modules/tenant/components/README.md` in the frontend.
+
+## Frontend Integration & Type Safety
+
+- All backend APIs are consumed directly by the frontend, which enforces strict typing and module boundaries. All endpoints must be fully documented and return predictable, type-safe responses.
+- The event-driven order system is the single source of truth for order state, analytics, and notifications. Frontend widgets consume these events and analytics via real API endpoints—never mock data.
+- When extending or changing backend APIs, coordinate with frontend engineers to ensure type safety and update the shared models/interfaces as needed.
+- For more details, see the frontend [Architecture Documentation](../frontend/docs/ARCHITECTURE.md) and [Onboarding Guide](../frontend/docs/ONBOARDING.md).
+
+## Testing & Type Safety
+
+- All backend code must be fully tested, with integration and unit tests for all business logic and API endpoints.
+- Use Pydantic v2 for all request/response schemas, and ensure all fields are strictly typed.
+- Document all API changes and event types in the appropriate `.md` files.
+- When adding new endpoints, always provide example requests/responses and update the OpenAPI docs.

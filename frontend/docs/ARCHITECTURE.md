@@ -596,3 +596,29 @@ Our conversational engine is trained on real African chat data, supports local d
 - All code must be clean, readable, and well-documented
 - All code must pass `npm run lint`, `npm run type-check`, and `npm run verify:architecture`
 - All architectural and code quality rules are enforced by CI and documented in this file
+
+## Mock Data & API Integration Best Practices
+
+- All mock data has been removed from the frontend. All UIs (dashboard, messages, products, etc.) must use real backend APIs with strict typing and error handling.
+- Only "fake" test purchases for sellers are allowed as mock/test data; all other mock data is prohibited.
+- If a widget requires richer analytics than the backend currently provides, use empty arrays/placeholders and leave a clear TODO for backend/API extension.
+- Never reintroduce mock data or bridge files. Always use direct module imports and respect module boundaries.
+
+## Type Safety Enforcement
+
+- No `any` types are allowed. Use explicit interfaces, generics, or `unknown` with type guards. All code must be strictly typed and linter/type-check compliant.
+- Always use `import type` for type-only imports and import types directly from their module. Never use bridge files or centralized type directories.
+
+### Correct Example
+```typescript
+import type { Product } from '@/modules/product/models/product';
+import { productService } from '@/lib/api';
+
+const products: Product[] = await productService.getProducts();
+```
+
+### Incorrect Example
+```typescript
+import { Product } from '../../types/product'; // ❌ Bridge file - not allowed
+const products: any = await getProducts(); // ❌ 'any' type - not allowed
+```

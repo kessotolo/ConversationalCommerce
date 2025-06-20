@@ -275,3 +275,26 @@ If you use React hooks (like `useState`, `useEffect`, `useParams`, etc.) in a fi
 - All code must be clean, readable, and well-documented
 - All code must pass `npm run lint`, `npm run type-check`, and `npm run verify:architecture`
 - All architectural and code quality rules are enforced by CI and documented in this file
+
+## Frontend API Integration
+
+- All UIs must be connected to real backend APIs. Never use mock data except for allowed test purchase flows.
+- Use async/await for all API calls, with try/catch for error handling. Always handle loading, error, and empty states in the UI.
+- All API responses and UI state must be strictly typed. Use explicit interfaces, generics, or `unknown` with type guards. Never use `any`.
+- Always import types directly from their module using `import type`. Never use bridge files or centralized type directories.
+- If a widget requires richer analytics than the backend currently provides, use empty arrays/placeholders and leave a clear TODO for backend/API extension.
+
+## Common Pitfalls
+
+- Never reintroduce mock data or bridge files. All code must use real APIs and direct module imports.
+- Respect module boundaries: only import from a module's public API, never from internal files or bridge files.
+- All code must be strictly typed and linter/type-check compliant. No `any` types, no bridge files, and no centralized type directories are allowed.
+
+## Onboarding Steps (Updated)
+
+1. Read the [Architecture Documentation](ARCHITECTURE.md) and this onboarding guide before making changes.
+2. Run `npm run verify:architecture`, `npm run lint`, and `npm run type-check` before every commit.
+3. Never reintroduce mock data or bridge files. Always use direct module imports and respect module boundaries.
+4. Document all architectural or type changes in the appropriate `.md` files.
+5. Use the provided scripts and CI checks to verify architecture and type safety.
+6. When extending analytics or dashboard features, coordinate backend and frontend changes for type safety.

@@ -901,3 +901,25 @@ For more details, see AI_AGENT_CONFIG.md.
 - All code must be clean, readable, and well-documented
 - All code must pass `npm run lint`, `npm run type-check`, and `npm run verify:architecture`
 - All architectural and code quality rules are enforced by CI and documented in this file
+
+## API Integration & Mock Data Policy
+
+- All mock data has been removed from the frontend. All UIs (dashboard, messages, products, etc.) are now wired to real backend APIs with strict typing and error handling.
+- Only "fake" test purchases for sellers are allowed as mock/test data; all other mock data is prohibited.
+- All code must be strictly typed and linter/type-check compliant. No `any` types, no bridge files, and no centralized type directories are allowed.
+- Always use direct module imports and respect module boundaries. Never import from internal files or bridge files.
+- All async code uses async/await with try/catch for error handling. All async functions are fully typed. Loading, error, and empty states are handled in all UIs.
+
+## How to Extend the Dashboard
+
+- When adding new widgets or analytics, always use real backend APIs. If the backend does not yet provide the required data, use empty arrays/placeholders and leave a clear TODO for backend/API extension.
+- Never reintroduce mock data or bridge files. Always use direct module imports and respect module boundaries.
+- Document all architectural or type changes in the appropriate `.md` files.
+- Use the provided scripts and CI checks to verify architecture and type safety.
+- Coordinate backend and frontend changes for type safety when extending analytics or dashboard features.
+
+## Linter, Typing, and Import Rules
+
+- Run `npm run verify:architecture`, `npm run lint`, and `npm run type-check` before every commit.
+- All code must be strictly typed and linter/type-check compliant. No `any` types, no bridge files, and no centralized type directories are allowed.
+- Always use direct module imports and respect module boundaries. Never import from internal files or bridge files.

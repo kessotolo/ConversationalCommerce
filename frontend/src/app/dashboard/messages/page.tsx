@@ -17,97 +17,9 @@ import React, { useState, useRef, useEffect } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { formatDate } from '@/lib/utils';
-import { ConversationEvent, ConversationEventType } from '@/modules/conversation/models/event';
 import { ConversationEventLogger } from '@/modules/conversation/utils/eventLogger';
-import type { ConversationEvent as ConversationEventTyped } from '@/modules/conversation/models/event';
-
-// Mock conversations
-const mockConversations = [
-  {
-    id: '1',
-    customerName: 'John Doe',
-    phone: '+234 123 456 7890',
-    lastMessage: 'Do you have this in red color?',
-    unread: 2,
-    timestamp: '2025-05-25T15:30:00',
-    avatar: 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg',
-    orderId: 'ORD-001',
-    orderStatus: 'processing', // mock order status
-  },
-  {
-    id: '2',
-    customerName: 'Sarah Johnson',
-    phone: '+234 234 567 8901',
-    lastMessage: 'Thanks for the quick delivery!',
-    unread: 0,
-    timestamp: '2025-05-24T12:15:00',
-    avatar: 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg',
-    orderId: 'ORD-002',
-    orderStatus: 'delivered',
-  },
-  {
-    id: '3',
-    customerName: 'Michael Smith',
-    phone: '+234 345 678 9012',
-    lastMessage: 'When will my order arrive?',
-    unread: 1,
-    timestamp: '2025-05-25T09:45:00',
-    avatar: 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg',
-    orderId: 'ORD-003',
-    orderStatus: 'pending',
-  },
-  {
-    id: '4',
-    customerName: 'Elizabeth Brown',
-    phone: '+234 456 789 0123',
-    lastMessage: "I'd like to place an order for...",
-    unread: 0,
-    timestamp: '2025-05-23T16:20:00',
-    avatar: 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg',
-    orderId: null,
-    orderStatus: null,
-  },
-];
-
-// Mock messages for a selected conversation
-const mockMessages = [
-  {
-    id: '1',
-    content: "Hello! I'm interested in your products.",
-    timestamp: '2025-05-25T10:00:00',
-    sender: 'customer',
-    status: 'read',
-  },
-  {
-    id: '2',
-    content: 'Hi there! Thank you for your interest. How can I help you today?',
-    timestamp: '2025-05-25T10:02:00',
-    sender: 'store',
-    status: 'read',
-  },
-  {
-    id: '3',
-    content: 'I saw your wireless earbuds. Do you have them in stock?',
-    timestamp: '2025-05-25T10:05:00',
-    sender: 'customer',
-    status: 'read',
-  },
-  {
-    id: '4',
-    content:
-      'Yes, we do have the wireless earbuds in stock! They come in black, white, and blue. Which color would you prefer?',
-    timestamp: '2025-05-25T10:07:00',
-    sender: 'store',
-    status: 'read',
-  },
-  {
-    id: '5',
-    content: 'Do you have them in red color?',
-    timestamp: '2025-05-25T15:30:00',
-    sender: 'customer',
-    status: 'delivered',
-  },
-];
+import { ConversationEventType } from '@/modules/conversation/models/event';
+import type { ConversationEvent } from '@/modules/conversation/models/event';
 
 // Helper to safely extract tenantId from user or organization
 function getTenantId(user: unknown, organization: { id?: string } | null): string | undefined {
@@ -130,7 +42,7 @@ function getTenantId(user: unknown, organization: { id?: string } | null): strin
 }
 
 // Helper to extract display fields from ConversationEvent
-function getConversationDisplayFields(event: ConversationEventTyped) {
+function getConversationDisplayFields(event: ConversationEvent) {
   const payload = event.payload ?? {};
   return {
     id: event.conversation_id || event.id,
@@ -292,20 +204,8 @@ export default function MessagesPage() {
   }, [isExpired, selectedConversation, currentUserId, tenantId]);
 
   // Send a new message
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!newMessage.trim() || !selectedConversation) return;
-
-    const messageToSend = {
-      id: Date.now().toString(),
-      content: newMessage,
-      timestamp: new Date().toISOString(),
-      sender: 'store',
-      status: 'sending',
-    };
-
-    // Add message to UI immediately
-    setMessages([...messages, messageToSend]);
-    setNewMessage('');
 
     // Log the event
     if (typeof currentUserId === 'string' && typeof tenantId === 'string') {
@@ -320,26 +220,25 @@ export default function MessagesPage() {
     }
 
     // This is where you would make a real API call
-    // try {
-    //   await messageService.sendMessage(selectedConversation, newMessage);
-    //   // Update message status to sent
-    // } catch (error) {
-    //   // Handle error, maybe mark message as failed
-    // }
+    try {
+      const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          conversation_id: selectedConversation,
+          content: newMessage,
+        }),
+      });
 
-    // Simulate API call for message delivery status
-    setTimeout(() => {
-      setMessages((prev) =>
-        prev.map((msg) => (msg.id === messageToSend.id ? { ...msg, status: 'sent' } : msg)),
-      );
+      if (!response.ok) throw new Error('Failed to send message');
 
-      // Then simulate delivered status
-      setTimeout(() => {
-        setMessages((prev) =>
-          prev.map((msg) => (msg.id === messageToSend.id ? { ...msg, status: 'delivered' } : msg)),
-        );
-      }, 1000);
-    }, 1500);
+      const data: ConversationEvent = await response.json();
+      setMessages((prev) => [...prev, data]);
+    } catch (error) {
+      // Handle error, maybe mark message as failed
+    }
   };
 
   // Handle conversation selection
@@ -419,7 +318,7 @@ export default function MessagesPage() {
                         />
                       ) : (
                         <div className="flex items-center justify-center h-full w-full bg-[#e6f0eb] text-[#6C9A8B]">
-                          {display.customerName.charAt(0)}
+                          {(display.customerName?.charAt(0) ?? '')}
                         </div>
                       )}
                       {display.unread > 0 && (
@@ -487,7 +386,7 @@ export default function MessagesPage() {
                     />
                   ) : (
                     <div className="flex items-center justify-center h-full w-full bg-[#e6f0eb] text-[#6C9A8B]">
-                      {selectedConvDisplay.customerName.charAt(0)}
+                      {(selectedConvDisplay.customerName?.charAt(0) ?? '')}
                     </div>
                   )}
                 </div>
@@ -512,6 +411,7 @@ export default function MessagesPage() {
           {/* Chat messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#f7faf9]">
             {messages.map((msg) => {
+              if (!msg) return null;
               const payload = msg.payload ?? {};
               const content = typeof payload['content'] === 'string' ? payload['content'] : '';
               const sender = typeof payload['sender'] === 'string' ? payload['sender'] : (msg.event_type === ConversationEventType.MESSAGE_SENT ? 'store' : 'customer');

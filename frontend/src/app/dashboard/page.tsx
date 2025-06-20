@@ -22,7 +22,7 @@ import OnboardingWizard from '@/modules/tenant/components/OnboardingWizard';
 import { useAuth } from '@/utils/auth-utils';
 import { useTenant } from '@/contexts/TenantContext';
 import { HttpOrderService } from '@/modules/order/services/OrderService';
-import { fetchDashboardAnalytics } from '@/modules/core/services/dashboardService';
+import { dashboardService } from '@/lib/api';
 import type { Order } from '@/modules/order/models/order';
 
 // Define types to match component requirements
@@ -258,7 +258,7 @@ export default function Dashboard() {
         const orderService = new HttpOrderService();
         const [ordersResult, analyticsRes] = await Promise.all([
           orderService.getOrders({ tenantId: tenant.id, limit: 100, offset: 0 }),
-          fetch(`/api/conversation-analytics?tenant_id=${tenant.id}`).then((res) => res.json()),
+          dashboardService.getStats(),
         ]);
         if (ordersResult.success && Array.isArray(ordersResult.data?.items)) {
           setOrders(ordersResult.data.items);
@@ -377,6 +377,19 @@ export default function Dashboard() {
       ),
     },
   ];
+
+  // Before mapping orders for RecentOrders, filter to only include allowed statuses
+  const allowedStatuses = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'] as const;
+  const recentOrders = orders
+    .filter(order => allowedStatuses.includes(order.status as typeof allowedStatuses[number]))
+    .map(order => ({
+      id: order.order_number,
+      customerName: order.customer.name,
+      amount: order.total_amount.amount,
+      status: order.status.toLowerCase() as 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled',
+      date: order.timeline[0]?.timestamp || '',
+      phone: order.customer.phone,
+    }));
 
   return (
     <>
@@ -514,7 +527,7 @@ export default function Dashboard() {
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Messages & Activity</h2>
           <div className="flex flex-col gap-4">
-            {mockMessages.map((msg) => (
+            {analytics?.recentMessages?.map((msg: any) => (
               <div
                 key={msg.id}
                 className="bg-white rounded-xl shadow-sm border border-[#e6f0eb] p-4 flex items-start gap-3"
@@ -538,19 +551,19 @@ export default function Dashboard() {
 
         {/* Sales Chart */}
         <div className="mb-8 rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-6">
-          <SalesChart data={mockSalesData} period={period} />
+          <SalesChart data={analytics?.salesData || []} period={period} />
         </div>
 
         {/* Data Widgets */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-6">
-            <RecentOrders orders={mockRecentOrders} />
+            <RecentOrders orders={recentOrders} />
           </div>
           <div className="rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-6">
-            <TopProducts products={mockTopProducts} />
+            <TopProducts products={analytics?.topProducts || []} />
           </div>
           <div className="rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-6">
-            <ChannelPerformance data={mockChannelData} />
+            <ChannelPerformance data={analytics?.channelData || []} />
           </div>
         </div>
       </div>
