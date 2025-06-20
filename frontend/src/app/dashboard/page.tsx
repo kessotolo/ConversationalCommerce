@@ -11,7 +11,7 @@ import {
   Users,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { ChannelPerformance } from '@/components/dashboard/ChannelPerformance';
 import { RecentOrders } from '@/components/dashboard/RecentOrders';
@@ -20,18 +20,13 @@ import { StatCard } from '@/components/dashboard/StatCard';
 import { TopProducts } from '@/components/dashboard/TopProducts';
 import OnboardingWizard from '@/modules/tenant/components/OnboardingWizard';
 import { useAuth } from '@/utils/auth-utils';
+import { useTenant } from '@/contexts/TenantContext';
+import { HttpOrderService } from '@/modules/order/services/OrderService';
+import { fetchDashboardAnalytics } from '@/modules/core/services/dashboardService';
+import type { Order } from '@/modules/order/models/order';
 
 // Define types to match component requirements
 type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-
-interface Order {
-  id: string;
-  customerName: string;
-  amount: number;
-  status: OrderStatus;
-  date: string;
-  phone?: string;
-}
 
 interface Step {
   key: string;
@@ -244,8 +239,52 @@ function OnboardingChecklist({ steps, onOpenWizard }: { steps: Step[]; onOpenWiz
 export default function Dashboard() {
   const [period, setPeriod] = useState<'7days' | '30days' | '90days'>('7days');
   const [showWizard, setShowWizard] = useState(false);
-
   const { isLoading, isAuthenticated } = useAuth();
+  const { tenant } = useTenant();
+
+  // State for real data
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [customers, setCustomers] = useState<{ name: string; email: string; phone: string }[]>([]);
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!tenant?.id) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const orderService = new HttpOrderService();
+        const [ordersResult, analyticsRes] = await Promise.all([
+          orderService.getOrders({ tenantId: tenant.id, limit: 100, offset: 0 }),
+          fetch(`/api/conversation-analytics?tenant_id=${tenant.id}`).then((res) => res.json()),
+        ]);
+        if (ordersResult.success && Array.isArray(ordersResult.data?.items)) {
+          setOrders(ordersResult.data.items);
+          // Aggregate customers from orders
+          const customerMap = new Map<string, { name: string; email: string; phone: string }>();
+          for (const order of ordersResult.data.items) {
+            const { name, email, phone } = order.customer;
+            if (!customerMap.has(email)) {
+              customerMap.set(email, { name, email, phone });
+            }
+          }
+          setCustomers(Array.from(customerMap.values()));
+        } else {
+          setOrders([]);
+          setCustomers([]);
+        }
+        setAnalytics(analyticsRes);
+      } catch (err: unknown) {
+        setError((err as Error).message ?? 'Failed to load dashboard data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (tenant?.id) fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tenant?.id, period]);
 
   // Handle loading state
   if (isLoading) {
@@ -432,7 +471,7 @@ export default function Dashboard() {
           <div className="min-w-0 rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-5 flex flex-col items-start">
             <StatCard
               title="Total Orders"
-              value="85"
+              value={orders.length}
               icon={<ShoppingBag className="h-5 w-5 text-[#6C9A8B]" />}
               change={12}
               trend="up"
@@ -442,7 +481,7 @@ export default function Dashboard() {
           <div className="min-w-0 rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-5 flex flex-col items-start">
             <StatCard
               title="Total Revenue"
-              value="₦6,674.55"
+              value={analytics?.totalRevenue}
               icon={<DollarSign className="h-5 w-5 text-[#6C9A8B]" />}
               change={8}
               trend="up"
@@ -452,7 +491,7 @@ export default function Dashboard() {
           <div className="min-w-0 rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-5 flex flex-col items-start">
             <StatCard
               title="Customers"
-              value="63"
+              value={customers.length}
               icon={<Users className="h-5 w-5 text-[#6C9A8B]" />}
               change={5}
               trend="up"
@@ -462,7 +501,7 @@ export default function Dashboard() {
           <div className="min-w-0 rounded-2xl bg-white border border-[#e6f0eb] shadow-sm p-5 flex flex-col items-start">
             <StatCard
               title="Conversion Rate"
-              value="54%"
+              value={analytics?.conversionRate}
               icon={<ArrowUpRight className="h-5 w-5 text-[#6C9A8B]" />}
               change={-2}
               trend="down"
