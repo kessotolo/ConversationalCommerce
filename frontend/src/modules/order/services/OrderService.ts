@@ -4,6 +4,13 @@ import type { Result } from '@/modules/core/models/base/result';
 import type { Order } from '@/modules/order/models/order';
 import type { CreateOrderRequest } from '@/modules/order/validation/orderSchema';
 
+export interface PaginatedOrdersResult {
+  items: Order[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
 /**
  * Service interface for order management
  * Following the modular monolith pattern established in the codebase
@@ -66,6 +73,17 @@ export interface OrderService {
    * Get order timeline history
    */
   getOrderTimeline(orderId: string, tenantId: string): Promise<Result<unknown[], Error>>;
+
+  /**
+   * Get all orders for the current tenant (with optional filters)
+   */
+  getOrders(params: {
+    tenantId: string;
+    status?: string;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<Result<PaginatedOrdersResult, Error>>;
 }
 
 /**
@@ -398,6 +416,35 @@ export class HttpOrderService implements OrderService {
         success: false,
         error: error as Error,
       };
+    }
+  }
+
+  async getOrders({ tenantId, status, search, limit = 50, offset = 0 }: {
+    tenantId: string;
+    status?: string;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<Result<PaginatedOrdersResult, Error>> {
+    try {
+      const params = new URLSearchParams();
+      if (status && status !== 'all') params.append('status', status);
+      if (search) params.append('search', search);
+      params.append('limit', limit.toString());
+      params.append('offset', offset.toString());
+      const response = await fetch(`${this.apiUrl}/orders?${params.toString()}`, {
+        headers: {
+          'X-Tenant-ID': tenantId,
+        },
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message ?? 'Failed to fetch orders');
+      }
+      const data = await response.json();
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, error: error as Error };
     }
   }
 

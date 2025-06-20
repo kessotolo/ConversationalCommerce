@@ -1,77 +1,101 @@
 'use client';
 import { ChevronRight, Users, Search } from 'lucide-react';
 import Link from 'next/link';
-import React, { useState } from 'react';
-
-// Mock orders data (replace with real data/API in production)
-const mockOrders = [
-  {
-    id: '1',
-    customerName: 'John Doe',
-    email: 'john@example.com',
-    phone: '+234 123 456 7890',
-    amount: 120.5,
-    date: '2025-05-25T10:30:00',
-  },
-  {
-    id: '2',
-    customerName: 'Jane Smith',
-    email: 'jane@example.com',
-    phone: '+234 987 654 3210',
-    amount: 85.99,
-    date: '2025-05-24T14:45:00',
-  },
-  {
-    id: '3',
-    customerName: 'John Doe',
-    email: 'john@example.com',
-    phone: '+234 123 456 7890',
-    amount: 210.75,
-    date: '2025-05-23T09:15:00',
-  },
-];
-
-type Customer = {
-  name: string;
-  email: string;
-  phone: string;
-  orders: typeof mockOrders;
-  totalSpent: number;
-  lastOrder: string;
-};
-
-const customers: Customer[] = Object.values(
-  mockOrders.reduce(
-    (acc, order) => {
-      if (!acc[order.email]) {
-        acc[order.email] = {
-          name: order.customerName,
-          email: order.email,
-          phone: order.phone,
-          orders: [],
-          totalSpent: 0,
-          lastOrder: order.date,
-        };
-      }
-      (acc[order.email] as Customer).orders.push(order);
-      (acc[order.email] as Customer).totalSpent += order.amount;
-      if (new Date(order.date) > new Date((acc[order.email] as Customer).lastOrder)) {
-        (acc[order.email] as Customer).lastOrder = order.date;
-      }
-      return acc;
-    },
-    {} as Record<string, Customer>,
-  ),
-);
+import React, { useState, useEffect } from 'react';
+import { useTenant } from '@/contexts/TenantContext';
+import { HttpOrderService } from '@/modules/order/services/OrderService';
+import type { Order } from '@/modules/order/models/order';
 
 export default function CustomersPage() {
+  const { tenant, isLoading: isTenantLoading } = useTenant();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!tenant?.id) return;
+      setIsLoading(true);
+      setError(null);
+      try {
+        const orderService = new HttpOrderService();
+        const result = await orderService.getOrders({ tenantId: tenant.id, limit: 100, offset: 0 });
+        if (result.success && result.data && Array.isArray(result.data.items)) {
+          setOrders(result.data.items);
+        } else {
+          setOrders([]);
+          setError(result.error?.message ?? 'Failed to fetch orders');
+        }
+      } catch (err: unknown) {
+        setError((err as Error).message ?? 'Failed to fetch orders');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    if (tenant?.id) fetchOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tenant?.id]);
+
+  // Aggregate customers from orders
+  const customerMap = new Map<string, {
+    name: string;
+    email: string;
+    phone: string;
+    orders: Order[];
+    totalSpent: number;
+    lastOrder: string;
+  }>();
+  for (const order of orders) {
+    const email = order.customer.email;
+    if (!customerMap.has(email)) {
+      customerMap.set(email, {
+        name: order.customer.name,
+        email,
+        phone: order.customer.phone,
+        orders: [],
+        totalSpent: 0,
+        lastOrder: order.created_at ?? '',
+      });
+    }
+    const customer = customerMap.get(email)!;
+    customer.orders.push(order);
+    customer.totalSpent += order.total_amount.amount;
+    if (order.created_at && new Date(order.created_at) > new Date(customer.lastOrder)) {
+      customer.lastOrder = order.created_at;
+    }
+  }
+  const customers = Array.from(customerMap.values());
   const filtered = customers.filter(
     (c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
       c.email.toLowerCase().includes(search.toLowerCase()) ||
       c.phone.includes(search),
   );
+
+  if (isLoading || isTenantLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#fdfcf7]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#6C9A8B]" />
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-12 text-center">
+        <h2 className="text-xl font-bold mb-2">Error loading customers</h2>
+        <p className="text-gray-500">{error}</p>
+      </div>
+    );
+  }
+  if (filtered.length === 0) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-12 text-center">
+        <h2 className="text-xl font-bold mb-2">No customers found</h2>
+        <p className="text-gray-500">No customers match your search or there are no orders yet.</p>
+      </div>
+    );
+  }
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">

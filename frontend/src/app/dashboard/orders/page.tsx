@@ -2,90 +2,16 @@
 import { Check, RefreshCcw, Search, Eye, MessageSquare, Package, Truck } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { CardContent, CardHeader, CardTitle, Card } from '@/components/ui/Card';
 import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';
-
-// Define order types to match component requirements
-type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-
-interface Order {
-  id: string;
-  customerName: string;
-  phone: string;
-  amount: number;
-  items: number;
-  status: OrderStatus;
-  date: string;
-  paymentMethod: string;
-}
-
-// Mock data for orders
-const mockOrders: Order[] = [
-  {
-    id: 'ORD-001',
-    customerName: 'John Doe',
-    phone: '+234 123 456 7890',
-    amount: 150.5,
-    items: 3,
-    status: 'processing',
-    date: '2025-05-20T14:30:00',
-    paymentMethod: 'Mobile Money',
-  },
-  {
-    id: 'ORD-002',
-    customerName: 'Sarah Johnson',
-    phone: '+234 234 567 8901',
-    amount: 85.75,
-    items: 2,
-    status: 'delivered',
-    date: '2025-05-19T09:15:00',
-    paymentMethod: 'Cash on Delivery',
-  },
-  {
-    id: 'ORD-003',
-    customerName: 'Michael Smith',
-    phone: '+234 345 678 9012',
-    amount: 210.25,
-    items: 4,
-    status: 'pending',
-    date: '2025-05-21T16:45:00',
-    paymentMethod: 'Bank Transfer',
-  },
-  {
-    id: 'ORD-004',
-    customerName: 'Elizabeth Brown',
-    phone: '+234 456 789 0123',
-    amount: 65.99,
-    items: 1,
-    status: 'cancelled',
-    date: '2025-05-18T11:30:00',
-    paymentMethod: 'Mobile Money',
-  },
-  {
-    id: 'ORD-005',
-    customerName: 'David Wilson',
-    phone: '+234 567 890 1234',
-    amount: 175.5,
-    items: 3,
-    status: 'delivered',
-    date: '2025-05-17T13:20:00',
-    paymentMethod: 'Cash on Delivery',
-  },
-  {
-    id: 'ORD-006',
-    customerName: 'Grace Okonkwo',
-    phone: '+234 678 901 2345',
-    amount: 132.75,
-    items: 2,
-    status: 'shipped',
-    date: '2025-05-20T10:15:00',
-    paymentMethod: 'Mobile Money',
-  },
-];
+import { useTenant } from '@/contexts/TenantContext';
+import { HttpOrderService } from '@/modules/order/services/OrderService';
+import type { Order } from '@/modules/order/models/order';
+import { OrderStatus } from '@/modules/order/models/order';
 
 // Status badge colors
 const statusStyles = {
@@ -96,68 +22,89 @@ const statusStyles = {
   cancelled: 'bg-red-100 text-red-800 border-red-200',
 };
 
+// Helper to get order date (use latest timeline event or fallback)
+function getOrderDate(order: Order): string {
+  if (order.timeline && order.timeline.length > 0 && order.timeline[0]?.timestamp) {
+    return order.timeline[0].timestamp;
+  }
+  return order.created_at ?? '';
+}
+
+// Helper to get payment method as string
+function getPaymentMethod(order: Order): string {
+  return order.payment?.method ? order.payment.method.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : '';
+}
+
+// Helper to get status display string
+function getStatusDisplay(status: OrderStatus): string {
+  return status.charAt(0) + status.slice(1).toLowerCase();
+}
+
 export default function OrdersPage() {
-  const [orders, setOrders] = useState(mockOrders);
+  const { tenant, isLoading: isTenantLoading } = useTenant();
+  const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
 
-  // Fetch orders with API integration structure (using mock data for now)
+  const orderService = new HttpOrderService();
+
   const fetchOrders = async () => {
+    if (!tenant?.id) return;
     setIsLoading(true);
     setError(null);
-
     try {
-      // This is where you would make a real API call
-      // const response = await orderService.getOrders();
-      // setOrders(response.data);
-
-      // Simulate API call with mock data
-      setTimeout(() => {
-        setOrders(mockOrders);
-        setIsLoading(false);
-      }, 1000);
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message ?? 'Failed to fetch orders');
+      const result = await orderService.getOrders({
+        tenantId: tenant.id,
+        status: statusFilter,
+        search: searchTerm,
+        limit: 50,
+        offset: 0,
+      });
+      if (result.success && result.data && Array.isArray(result.data.items)) {
+        setOrders(result.data.items);
+      } else {
+        setOrders([]);
+        setError(result.error?.message ?? 'Failed to fetch orders');
       }
+    } catch (err: unknown) {
+      setError((err as Error).message ?? 'Failed to fetch orders');
+    } finally {
       setIsLoading(false);
     }
   };
 
+  useEffect(() => {
+    if (tenant?.id) fetchOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tenant?.id, statusFilter, searchTerm]);
+
   // Filter orders based on search term and status
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
-      order?.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order?.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order?.phone.includes(searchTerm);
-
-    const matchesStatus = statusFilter === 'all' || order?.status === statusFilter;
-
+      order.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customer.phone.includes(searchTerm);
+    const matchesStatus =
+      statusFilter === 'all' || order.status === OrderStatus[statusFilter.toUpperCase() as keyof typeof OrderStatus];
     return matchesSearch && matchesStatus;
   });
 
   // Function to update order status
   const updateOrderStatus = async (orderId: string, newStatus: OrderStatus) => {
     setIsLoading(true);
-
     try {
-      // This is where you would make a real API call
-      // await orderService.updateOrderStatus(orderId, newStatus);
-
-      // Simulate API call
-      setTimeout(() => {
-        setOrders(
-          orders.map((order) => (order?.id === orderId ? { ...order, status: newStatus } : order)),
-        );
-        setIsLoading(false);
-      }, 500);
+      // TODO: Call real API to update order status
+      setOrders(
+        orders.map((order) =>
+          order.id === orderId ? { ...order, status: newStatus } : order,
+        ),
+      );
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message ?? 'Failed to update order status');
-      }
+      setError((err as Error).message ?? 'Failed to update order status');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -193,9 +140,8 @@ export default function OrdersPage() {
   const handleBulkMarkShipped = () => {
     setOrders(
       orders.map((order) =>
-        selectedOrders.includes(order?.id) && order?.status === 'processing'
-          ? { ...order, status: 'shipped' }
-          : order,
+        selectedOrders.includes(order.id) && order.status === OrderStatus.PROCESSING
+          ? { ...order, status: OrderStatus.SHIPPED } : order,
       ),
     );
     setSelectedOrders([]);
@@ -219,9 +165,8 @@ export default function OrdersPage() {
   const handleBulkMarkProcessing = () => {
     setOrders(
       orders.map((order) =>
-        selectedOrders.includes(order?.id) && order?.status === 'pending'
-          ? { ...order, status: 'processing' }
-          : order,
+        selectedOrders.includes(order.id) && order.status === OrderStatus.PENDING
+          ? { ...order, status: OrderStatus.PROCESSING } : order,
       ),
     );
     setSelectedOrders([]);
@@ -257,7 +202,7 @@ export default function OrdersPage() {
           >
             Pending
             <span className="ml-2 bg-yellow-100 text-yellow-700 py-0.5 px-2 rounded-full text-xs">
-              {orders.filter((o) => o.status === 'pending').length}
+              {orders.filter((o) => o.status === OrderStatus.PENDING).length}
             </span>
           </button>
           <button
@@ -266,7 +211,7 @@ export default function OrdersPage() {
           >
             Processing
             <span className="ml-2 bg-blue-100 text-blue-700 py-0.5 px-2 rounded-full text-xs">
-              {orders.filter((o) => o.status === 'processing').length}
+              {orders.filter((o) => o.status === OrderStatus.PROCESSING).length}
             </span>
           </button>
           <button
@@ -275,7 +220,7 @@ export default function OrdersPage() {
           >
             Shipped
             <span className="ml-2 bg-purple-100 text-purple-700 py-0.5 px-2 rounded-full text-xs">
-              {orders.filter((o) => o.status === 'shipped').length}
+              {orders.filter((o) => o.status === OrderStatus.SHIPPED).length}
             </span>
           </button>
           <button
@@ -284,7 +229,7 @@ export default function OrdersPage() {
           >
             Delivered
             <span className="ml-2 bg-green-100 text-green-700 py-0.5 px-2 rounded-full text-xs">
-              {orders.filter((o) => o.status === 'delivered').length}
+              {orders.filter((o) => o.status === OrderStatus.DELIVERED).length}
             </span>
           </button>
           <button
@@ -293,7 +238,7 @@ export default function OrdersPage() {
           >
             Cancelled
             <span className="ml-2 bg-red-100 text-red-700 py-0.5 px-2 rounded-full text-xs">
-              {orders.filter((o) => o.status === 'cancelled').length}
+              {orders.filter((o) => o.status === OrderStatus.CANCELLED).length}
             </span>
           </button>
         </div>
@@ -414,19 +359,19 @@ export default function OrdersPage() {
                         </Link>
                       </td>
                       <td className="py-3 px-4">
-                        <div>{order?.customerName}</div>
+                        <div>{order?.customer.name}</div>
                         <div className="text-xs text-gray-500">
-                          {formatPhoneNumber(order?.phone)}
+                          {formatPhoneNumber(order?.customer.phone)}
                         </div>
                       </td>
-                      <td className="py-3 px-4">{formatDate(order?.date)}</td>
-                      <td className="py-3 px-4 font-medium">{formatCurrency(order?.amount)}</td>
+                      <td className="py-3 px-4">{formatDate(getOrderDate(order))}</td>
+                      <td className="py-3 px-4 font-medium">{formatCurrency(order.total_amount.amount, order.total_amount.currency)}</td>
                       <td className="py-3 px-4">
-                        <Badge className={statusStyles[order?.status as keyof typeof statusStyles]}>
-                          {order?.status.charAt(0).toUpperCase() + order?.status.slice(1)}
+                        <Badge className={statusStyles[getStatusDisplay(order.status).toLowerCase() as keyof typeof statusStyles]}>
+                          {getStatusDisplay(order.status)}
                         </Badge>
                       </td>
-                      <td className="py-3 px-4">{order?.paymentMethod}</td>
+                      <td className="py-3 px-4">{getPaymentMethod(order)}</td>
                       <td className="py-3 px-4">
                         <div className="flex space-x-2">
                           <Link href={`/dashboard/orders/${order?.id}`}>
@@ -437,34 +382,34 @@ export default function OrdersPage() {
                           <Button
                             className="h-8 w-8 p-0"
                             title="Message Customer"
-                            onClick={() => messageCustomer(order?.phone)}
+                            onClick={() => messageCustomer(order?.customer.phone)}
                           >
                             <MessageSquare className="h-4 w-4" />
                           </Button>
                           {/* Quick status update buttons */}
-                          {order?.status === 'pending' && (
+                          {order?.status === OrderStatus.PENDING && (
                             <Button
                               className="h-8 w-8 p-0 text-blue-600"
                               title="Mark as Processing"
-                              onClick={() => updateOrderStatus(order?.id, 'processing')}
+                              onClick={() => updateOrderStatus(order?.id, OrderStatus.PROCESSING)}
                             >
                               <Package className="h-4 w-4" />
                             </Button>
                           )}
-                          {order?.status === 'processing' && (
+                          {order?.status === OrderStatus.PROCESSING && (
                             <Button
                               className="h-8 w-8 p-0 text-purple-600"
                               title="Mark as Shipped"
-                              onClick={() => updateOrderStatus(order?.id, 'shipped')}
+                              onClick={() => updateOrderStatus(order?.id, OrderStatus.SHIPPED)}
                             >
                               <Truck className="h-4 w-4" />
                             </Button>
                           )}
-                          {order?.status === 'shipped' && (
+                          {order?.status === OrderStatus.SHIPPED && (
                             <Button
                               className="h-8 w-8 p-0 text-green-600"
                               title="Mark as Delivered"
-                              onClick={() => updateOrderStatus(order?.id, 'delivered')}
+                              onClick={() => updateOrderStatus(order?.id, OrderStatus.DELIVERED)}
                             >
                               <Check className="h-4 w-4" />
                             </Button>
