@@ -19,6 +19,7 @@ import {
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -31,87 +32,40 @@ import {
   CardDescription,
 } from '@/components/ui/Card';
 import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';
-
-// Define types
-type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-
-interface OrderItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image: string;
-}
-
-interface Order {
-  id: string;
-  date: string;
-  customer: {
-    name: string;
-    email: string;
-    phone: string;
-    address: string;
-  };
-  items: OrderItem[];
-  total: number;
-  status: OrderStatus;
-  notes: string;
-  paymentMethod: string;
-  source: 'web' | 'whatsapp' | 'in-store';
-}
+import { useTenant } from '@/contexts/TenantContext';
+import { HttpOrderService } from '@/modules/order/services/OrderService';
+import type { Order } from '@/modules/order/models/order';
+import { OrderStatus, OrderSource } from '@/modules/order/models/order';
 
 export default function OrderPage() {
   // const router = useRouter(); // removed as unused
   const params = useParams() as Record<string, string>;
   const { id } = params;
+  const { tenant, isLoading: isTenantLoading } = useTenant();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
-  // Removed unused variables: setError, hasError, status, setIsLoading, isLoadingIndicator
+  const [error, setError] = useState<string | null>(null);
   const [updated, setUpdated] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const orderService = new HttpOrderService();
   // Processing mode configuration
   const processingMode = useState<'auto' | 'manual'>('auto')[0];
 
-  // Mock data for the demo
   useEffect(() => {
-    const mockOrder = {
-      id: id as string,
-      date: '2023-08-15T14:30:00Z',
-      customer: {
-        name: 'Jane Smith',
-        email: 'jane.smith@example.com',
-        phone: '+1234567890',
-        address: '123 Main St, Anytown, CA 12345',
-      },
-      items: [
-        {
-          id: '1',
-          name: 'Premium T-Shirt',
-          price: 29.99,
-          quantity: 2,
-          image: 'https://source.unsplash.com/random/100x100?tshirt',
-        },
-        {
-          id: '2',
-          name: 'Denim Jeans',
-          price: 59.99,
-          quantity: 1,
-          image: 'https://source.unsplash.com/random/100x100?jeans',
-        },
-      ],
-      total: 119.97,
-      status: 'processing' as OrderStatus,
-      notes: 'Please leave at the front door',
-      paymentMethod: 'Credit Card',
-      source: 'whatsapp' as const,
-    };
-
-    // Simulate API call
-    setTimeout(() => {
-      setOrder(mockOrder);
-      setLoading(false);
-    }, 1000);
-  }, [id]);
+    if (!tenant?.id || !id) return;
+    setLoading(true);
+    setError(null);
+    orderService.getOrderById(id, tenant.id)
+      .then((result) => {
+        if (result.success && result.data) {
+          setOrder(result.data);
+        } else {
+          setError(result.error?.message || 'Order not found');
+        }
+      })
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [tenant?.id, id]);
 
   const updateOrderStatus = async () => {
     setUpdating(true);
@@ -132,19 +86,25 @@ export default function OrderPage() {
   };
 
   const statusIcons = {
-    pending: <Clock className="h-4 w-4" />,
-    processing: <Package className="h-4 w-4" />,
-    shipped: <Truck className="h-4 w-4" />,
-    delivered: <Check className="h-4 w-4" />,
-    cancelled: <X className="h-4 w-4" />,
+    [OrderStatus.PENDING]: <Clock className="h-4 w-4" />,
+    [OrderStatus.PROCESSING]: <Package className="h-4 w-4" />,
+    [OrderStatus.SHIPPED]: <Truck className="h-4 w-4" />,
+    [OrderStatus.DELIVERED]: <Check className="h-4 w-4" />,
+    [OrderStatus.CANCELLED]: <X className="h-4 w-4" />,
+    [OrderStatus.PAID]: <Check className="h-4 w-4" />,
+    [OrderStatus.REFUNDED]: <Check className="h-4 w-4" />,
+    [OrderStatus.FAILED]: <X className="h-4 w-4" />,
   };
 
   const statusStyles = {
-    pending: 'bg-yellow-100 text-yellow-800',
-    processing: 'bg-blue-100 text-blue-800',
-    shipped: 'bg-purple-100 text-purple-800',
-    delivered: 'bg-green-100 text-green-800',
-    cancelled: 'bg-red-100 text-red-800',
+    [OrderStatus.PENDING]: 'bg-yellow-100 text-yellow-800',
+    [OrderStatus.PROCESSING]: 'bg-blue-100 text-blue-800',
+    [OrderStatus.SHIPPED]: 'bg-purple-100 text-purple-800',
+    [OrderStatus.DELIVERED]: 'bg-green-100 text-green-800',
+    [OrderStatus.CANCELLED]: 'bg-red-100 text-red-800',
+    [OrderStatus.PAID]: 'bg-green-100 text-green-800',
+    [OrderStatus.REFUNDED]: 'bg-gray-100 text-gray-800',
+    [OrderStatus.FAILED]: 'bg-red-100 text-red-800',
   };
 
   if (loading) {
@@ -152,6 +112,14 @@ export default function OrderPage() {
       <div className="p-4 flex flex-col items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-4" />
         <p>Loading order information...</p>
+      </div>
+    );
+  }
+
+  if (error || !order) {
+    return (
+      <div className="p-4 flex flex-col items-center justify-center min-h-screen">
+        <p className="text-red-500">{error || 'Order not found.'}</p>
       </div>
     );
   }
@@ -168,24 +136,26 @@ export default function OrderPage() {
             Back to Orders
           </Link>
           <h1 className="text-2xl font-bold flex items-center">
-            Order {order?.id}
-            <Badge className={`ml-3 ${statusStyles[order?.status || 'pending']}`}>
+            Order {order.order_number}
+            <Badge className={`ml-3 ${statusStyles[order.status]}`}>
               <span className="flex items-center">
-                {statusIcons[order?.status || 'pending']}
-                <span className="ml-1 capitalize">{order?.status}</span>
+                {statusIcons[order.status]}
+                <span className="ml-1 capitalize">{order.status.toLowerCase()}</span>
               </span>
             </Badge>
           </h1>
           <p className="text-gray-500 flex items-center mt-1">
             <Calendar className="h-4 w-4 mr-1" />
-            {formatDate(order?.date || '')}
+            {formatDate(order.created_at || '')}
             <span className="mx-2">•</span>
             <Badge className="badge-outline">
-              {order?.source === 'whatsapp'
+              {order.source === OrderSource.WHATSAPP
                 ? 'WhatsApp Order'
-                : order?.source === 'web'
+                : order.source === OrderSource.WEBSITE
                   ? 'Web Order'
-                  : 'In-store Order'}
+                  : order.source === OrderSource.INSTAGRAM
+                    ? 'Instagram Order'
+                    : 'Other'}
             </Badge>
           </p>
         </div>
@@ -210,7 +180,7 @@ export default function OrderPage() {
             <CardHeader>
               <CardTitle>Order Status</CardTitle>
               <CardDescription>
-                Current status: <span className="font-medium capitalize">{order?.status}</span>
+                Current status: <span className="font-medium capitalize">{order.status}</span>
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -218,17 +188,16 @@ export default function OrderPage() {
                 <div className="relative">
                   <div className="overflow-hidden h-2 text-xs flex rounded bg-gray-200">
                     <div
-                      className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center ${
-                        order?.status === 'cancelled'
-                          ? 'bg-red-500'
-                          : order?.status === 'pending'
-                            ? 'bg-yellow-500 w-1/4'
-                            : order?.status === 'processing'
-                              ? 'bg-blue-500 w-2/4'
-                              : order?.status === 'shipped'
-                                ? 'bg-purple-500 w-3/4'
-                                : 'bg-green-500 w-full'
-                      }`}
+                      className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center ${order.status === OrderStatus.CANCELLED
+                        ? 'bg-red-500'
+                        : order.status === OrderStatus.PENDING
+                          ? 'bg-yellow-500 w-1/4'
+                          : order.status === OrderStatus.PROCESSING
+                            ? 'bg-blue-500 w-2/4'
+                            : order.status === OrderStatus.SHIPPED
+                              ? 'bg-purple-500 w-3/4'
+                              : 'bg-green-500 w-full'
+                        }`}
                     />
                   </div>
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -242,7 +211,7 @@ export default function OrderPage() {
 
               <div className="space-y-3">
                 <div className="flex flex-wrap gap-2">
-                  {order?.status !== 'pending' && order?.status !== 'cancelled' && (
+                  {order.status !== OrderStatus.PENDING && order.status !== OrderStatus.CANCELLED && (
                     <Button
                       onClick={() => updateOrderStatus()}
                       disabled={updating}
@@ -253,7 +222,7 @@ export default function OrderPage() {
                     </Button>
                   )}
 
-                  {order?.status !== 'processing' && order?.status !== 'cancelled' && (
+                  {order.status !== OrderStatus.PROCESSING && order.status !== OrderStatus.CANCELLED && (
                     <Button
                       onClick={() => updateOrderStatus()}
                       disabled={updating}
@@ -264,7 +233,7 @@ export default function OrderPage() {
                     </Button>
                   )}
 
-                  {order?.status !== 'shipped' && order?.status !== 'cancelled' && (
+                  {order.status !== OrderStatus.SHIPPED && order.status !== OrderStatus.CANCELLED && (
                     <Button
                       onClick={() => updateOrderStatus()}
                       disabled={updating}
@@ -275,7 +244,7 @@ export default function OrderPage() {
                     </Button>
                   )}
 
-                  {order?.status !== 'delivered' && order?.status !== 'cancelled' && (
+                  {order.status !== OrderStatus.DELIVERED && order.status !== OrderStatus.CANCELLED && (
                     <Button
                       onClick={() => updateOrderStatus()}
                       disabled={updating}
@@ -286,7 +255,7 @@ export default function OrderPage() {
                     </Button>
                   )}
 
-                  {order?.status !== 'cancelled' && (
+                  {order.status !== OrderStatus.CANCELLED && (
                     <Button
                       onClick={() => updateOrderStatus()}
                       disabled={updating}
@@ -317,31 +286,33 @@ export default function OrderPage() {
             <CardHeader>
               <CardTitle>Order Items</CardTitle>
               <CardDescription>
-                {order?.items.length} items, Total: {formatCurrency(order?.total || 0)}
+                {order.items.length} items, Total: {formatCurrency(order.total_amount.amount, order.total_amount.currency)}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {order?.items.map((item) => (
+                {order.items.map((item) => (
                   <div key={item.id} className="flex items-center justify-between border-b pb-4">
                     <div className="flex items-center space-x-4">
-                      <div className="h-12 w-12 rounded overflow-hidden bg-gray-100">
-                        {item.image && (
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="h-full w-full object-cover"
-                          />
-                        )}
-                      </div>
+                      {item.image_url && (
+                        <Image
+                          src={item.image_url}
+                          alt={item.product_name}
+                          width={48}
+                          height={48}
+                          className="rounded-lg object-cover"
+                        />
+                      )}
                       <div>
-                        <p className="font-medium">{item.name}</p>
+                        <p className="font-medium">{item.product_name}</p>
                         <p className="text-sm text-gray-500">
-                          {formatCurrency(item.price)} x {item.quantity}
+                          {item.quantity} × {formatCurrency(item.unit_price.amount, item.unit_price.currency)}
                         </p>
                       </div>
                     </div>
-                    <div className="font-medium">{formatCurrency(item.price * item.quantity)}</div>
+                    <div className="font-medium">
+                      {formatCurrency(item.total_price.amount, item.total_price.currency)}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -350,7 +321,7 @@ export default function OrderPage() {
               <div className="w-full space-y-1">
                 <div className="flex justify-between text-sm">
                   <span>Subtotal</span>
-                  <span>{formatCurrency(order?.total || 0)}</span>
+                  <span>{formatCurrency(order.total_amount.amount, order.total_amount.currency)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Shipping</span>
@@ -358,7 +329,7 @@ export default function OrderPage() {
                 </div>
                 <div className="flex justify-between font-medium pt-1 border-t mt-2">
                   <span>Total</span>
-                  <span>{formatCurrency(order?.total || 0)}</span>
+                  <span>{formatCurrency(order.total_amount.amount, order.total_amount.currency)}</span>
                 </div>
               </div>
             </CardFooter>
@@ -378,8 +349,8 @@ export default function OrderPage() {
                   <User className="h-5 w-5 text-gray-600" />
                 </div>
                 <div>
-                  <p className="font-medium">{order?.customer.name}</p>
-                  <p className="text-sm text-gray-500">{order?.customer.email}</p>
+                  <p className="font-medium">{order.customer.name}</p>
+                  <p className="text-sm text-gray-500">{order.customer.email}</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
@@ -387,7 +358,7 @@ export default function OrderPage() {
                   <Phone className="h-5 w-5 text-gray-600" />
                 </div>
                 <div>
-                  <p className="text-sm">{formatPhoneNumber(order?.customer.phone || '')}</p>
+                  <p className="text-sm">{formatPhoneNumber(order.customer.phone || '')}</p>
                   <Button className="text-xs btn-ghost p-0 h-auto mt-1">Send Message</Button>
                 </div>
               </div>
@@ -405,7 +376,7 @@ export default function OrderPage() {
                   <MapPin className="h-5 w-5 text-gray-600" />
                 </div>
                 <div>
-                  <p className="whitespace-pre-line">{order?.customer.address}</p>
+                  <p className="whitespace-pre-line">{order.shipping.address?.street || ''}</p>
                 </div>
               </div>
             </CardContent>
@@ -425,7 +396,7 @@ export default function OrderPage() {
             <CardContent className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Method</span>
-                <span>{order?.paymentMethod}</span>
+                <span>{order.payment.method}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Status</span>
