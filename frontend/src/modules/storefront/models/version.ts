@@ -1,4 +1,4 @@
-import type { Entity, UUID, TenantScoped } from '@/modules/core/models/base';
+import type { Entity, UUID } from '@/modules/core/models/base';
 import type { PaginatedResult } from '@/modules/core/models/pagination';
 
 export interface Version extends Entity {

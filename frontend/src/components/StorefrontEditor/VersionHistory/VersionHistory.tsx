@@ -198,7 +198,7 @@ const VersionHistory: React.FC<VersionHistoryProps> = ({ tenantId }) => {
             onSearch={handleSearch}
             tagsFilter={tagsFilter}
             dateFilter={dateFilter}
-            searchQuery={searchQuery}
+            searchQuery={searchQuery ?? ''}
           />
 
           {/* Pagination */}

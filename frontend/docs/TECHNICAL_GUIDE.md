@@ -186,26 +186,31 @@ import { ProductService } from '@/modules/product/services/ProductService';
 # Conversation Event Logging, Analytics, and Clerk Integration
 
 ## Event Logging
+
 - All significant conversation actions (messages, joins, leaves, closes, etc.) are logged as structured events.
 - Use the `ConversationEventLogger` utility to send events to the backend `/conversation-events` endpoint.
 - Events include `conversation_id`, `user_id`, `tenant_id`, `event_type`, `payload`, and `event_metadata`.
 
 ## Clerk Integration
+
 - The frontend uses Clerk's `useUser` and `useOrganization` hooks to get the real user and tenant (organization) IDs.
 - These IDs are included in every event log for multi-tenancy and user attribution.
 - If the user is not in an organization, fallback to `user.publicMetadata.tenantId`.
 
 ## Analytics & Dashboard
+
 - The backend aggregates events for analytics and exposes them via `/conversation-analytics`.
 - The dashboard visualizes metrics (event volume, type, response time, etc.) and supports CSV export.
 - Real-time monitoring is enabled via WebSocket, broadcasting key events and alerts to admins.
 - The dashboard displays a live feed of recent events and anomalies.
 
 ## Event Types
+
 - Supported event types: `message_sent`, `message_read`, `product_clicked`, `order_placed`, `conversation_started`, `user_joined`, `user_left`, `conversation_closed`.
 - New event types can be added in a type-safe manner on both backend and frontend.
 
 ## Best Practices
+
 - Always use the ConversationEventLogger for logging events in the frontend.
 - Ensure user and tenant IDs are sourced from Clerk context/hooks.
 - Extend analytics and monitoring by adding new event types and updating the dashboard as needed.
@@ -246,12 +251,14 @@ WhatsApp NLP Cart Management
 ### Key Components
 
 1. **WhatsApp Webhook Endpoint**:
+
    - Path: `/api/v1/whatsapp/webhook`
    - Handles both verification requests and incoming messages
    - Verifies webhook signatures for security
    - Located in `/backend/app/api/v1/endpoints/whatsapp.py`
 
 2. **Message Processing Flow**:
+
    - Receives incoming WhatsApp messages
    - Identifies tenant by the receiving WhatsApp number
    - Converts WhatsApp messages to conversation events
@@ -259,12 +266,14 @@ WhatsApp NLP Cart Management
    - Sends responses back to customer via seller's WhatsApp number
 
 3. **WhatsAppMessageManager**:
+
    - Manages sending messages on behalf of multiple tenants
    - Handles credential caching for performance
    - Supports fallback to platform-wide Twilio credentials
    - Uses background tasks for async message sending
 
 4. **Multi-Tenant Support**:
+
    - Each seller registers their WhatsApp number through settings
    - Tenant identification through WhatsApp number receiving the message
    - Isolated message processing per tenant
@@ -295,6 +304,7 @@ TWILIO_WHATSAPP_NUMBER=your_platform_whatsapp_number (optional fallback)
 Two approaches are supported for WhatsApp integration:
 
 1. **Platform-Managed Twilio Integration (Default)**:
+
    - Sellers simply register their WhatsApp number in settings
    - Platform manages all message routing through Twilio
    - Simplest approach for sellers with minimal technical requirements
@@ -892,30 +902,45 @@ The following considerations are critical during the build and deployment proces
 4. **Documentation**: Update documentation for changes
 5. **Review Process**: Code review by at least one team member
 
-## 🧹 Code Quality, Linting, and Type Safety
+## 🧹 2024: Initial Build & Type Safety Enforcement (Summary)
 
-- **Strict ESLint Configuration**: The codebase enforces strict architectural boundaries and type safety using ESLint and TypeScript. All cross-module imports must go through module public APIs (`index.ts`) or DTOs. Direct internal imports and bridge files are prohibited and will be flagged by CI.
-- **No Bridge Files**: All legacy bridge files (e.g., `src/types/events.ts`, `src/types/websocket.ts`) have been removed. Types must be imported from their module's public API.
-- **No Backup/Test Artifacts**: `.bak`, `.old`, and similar backup/test files are not allowed in the codebase and are regularly cleaned up.
-- **CI Enforcement**: All PRs must pass lint (`npm run lint`) and type checks (`npm run type-check`). Violations block merges to protected branches.
-- **Type Safety**: No `any` types are allowed. Use `unknown` with type guards for dynamic data. All module boundaries use explicit interfaces and DTOs.
+### Achievements
+- All `any` types eliminated; replaced with explicit interfaces, generics, or `unknown` with type guards
+- All unused variables, imports, and forbidden `require()` usage removed
+- All model interfaces (Product, Order, StorefrontComponent, etc.) now require `created_at: string` and use canonical base types
+- All bridge files removed; only direct module imports allowed (no `/types/` directory usage)
+- All index signature property access (TS4111) and strict optional property errors fixed
+- All code is now linter- and type-check compliant; CI blocks merges on violations
+- All async code uses async/await with full error handling and type safety
+- All code changes are documented and tested
 
-### How to Fix Lint/Type Errors
-- **Restricted Import**: Change your import to use the module's public API or DTO file.
-- **Unused Variable/Import**: Remove or use the variable/import as needed.
-- **Type Error**: Add or refine type annotations, avoid `any`, and use generics or type guards as appropriate.
+### Canonical Linter/Type Error Resolution
+- Use type guards and explicit types instead of non-null assertions or `any`
+- Suppress false positive linter/type errors only with line-level comments and clear justification
+- Never use file-level disables except for legacy/third-party code
+- All test code must be type-safe and use mocks for side-effectful utilities
+
+### Updated Rules for All Contributors & AI Agents
+- Never introduce new `any` types or bridge files
+- Always use direct module imports and respect module boundaries
+- All code must be clean, readable, and well-documented
+- All code must pass `npm run lint`, `npm run type-check`, and `npm run verify:architecture`
+- All architectural and code quality rules are enforced by CI and documented in this file
 
 ## Event-Driven Backend, Monitoring, and Alerting (2024-06)
+
 - The backend is now fully event-driven, with all order, payment, and webhook events monitored via Sentry and Prometheus.
 - Alerting is automated via Prometheus Alertmanager and WhatsApp for critical events.
 - All frontend monitoring and alerting (NotificationCenter, WhatsApp alerts) are integrated with backend events and metrics.
 - See backend/README.md and frontend/docs/MONITORING.md for details.
 
 ### Analytics, Fulfillment, and Alerting (2024-06)
+
 - Analytics logging is now structured (JSON), fulfillment is event-driven, and alerting is actionable and ready for real integration.
 - See backend/README.md and MONITORING.md for details.
 
 ## API Versioning (2024-06)
+
 - The backend supports API versioning for all breaking changes.
 - `/api/v2/orders/` and other v2 endpoints are available for new or breaking changes.
 - See backend/README.md for migration plan and technical details.

@@ -17,8 +17,8 @@ export function SafeClerkProvider({
   // Check if we're in a build environment where auth should be disabled
   const isBuildEnv =
     typeof window === 'undefined' &&
-    (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
-      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY === '');
+    (!process.env['NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY'] ||
+      process.env['NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY'] === '');
 
   // During build time, just render children without Clerk
   if (isBuildEnv) {

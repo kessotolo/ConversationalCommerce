@@ -13,7 +13,7 @@ import type { UUID } from '@/modules/core/models/base';
 
 import { uploadAsset } from '@/lib/api/storefrontEditor';
 
-import type { InputChangeEvent } from '@core/models/events';
+import type { InputChangeEvent } from '@/modules/core/models/events';
 
 interface AssetUploaderProps {
   _tenantId: UUID;

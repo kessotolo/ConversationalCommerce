@@ -58,7 +58,6 @@ const mockTemplates = [
 
 export default function SettingsPage() {
   const [store, setStore] = useState(mockStoreSettings);
-  const [templates, setTemplates] = useState(mockTemplates);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -383,7 +382,7 @@ export default function SettingsPage() {
               <div className="mt-4">
                 <h3 className="text-sm font-medium mb-2">Message Templates</h3>
                 <div className="space-y-2">
-                  {templates.map((template) => (
+                  {mockTemplates.map((template) => (
                     <div key={template.id} className="border rounded-md p-3">
                       <div className="flex justify-between items-start">
                         <h4 className="font-medium">{template.name}</h4>

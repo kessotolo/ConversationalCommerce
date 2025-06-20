@@ -539,38 +539,54 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
 
-## 🧹 Code Quality, Linting, and Type Safety
+## 🧹 2024: Initial Build & Type Safety Enforcement (Summary)
 
-- **Strict ESLint Configuration**: The frontend enforces strict architectural boundaries and type safety using ESLint and TypeScript. All cross-module imports must go through module public APIs (`index.ts`) or DTOs. Direct internal imports and bridge files are prohibited and will be flagged by CI.
-- **No Bridge Files**: All legacy bridge files (e.g., `src/types/events.ts`, `src/types/websocket.ts`) have been removed. Types must be imported from their module's public API.
-- **No Backup/Test Artifacts**: `.bak`, `.old`, and similar backup/test files are not allowed in the codebase and are regularly cleaned up.
-- **CI Enforcement**: All PRs must pass lint (`npm run lint`) and type checks (`npm run type-check`). Violations block merges to protected branches.
-- **Type Safety**: No `any` types are allowed. Use `unknown` with type guards for dynamic data. All module boundaries use explicit interfaces and DTOs.
+### What We Achieved
+- All `any` types eliminated; replaced with explicit interfaces, generics, or `unknown` with type guards
+- All unused variables, imports, and forbidden `require()` usage removed
+- All model interfaces (Product, Order, StorefrontComponent, etc.) now require `created_at: string` and use canonical base types
+- All bridge files removed; only direct module imports allowed (no `/types/` directory usage)
+- All index signature property access (TS4111) and strict optional property errors fixed
+- All code is now linter- and type-check compliant; CI blocks merges on violations
+- All async code uses async/await with full error handling and type safety
+- All code changes are documented and tested
 
-### How to Fix Lint/Type Errors
-- **Restricted Import**: Change your import to use the module's public API or DTO file.
-- **Unused Variable/Import**: Remove or use the variable/import as needed.
-- **Type Error**: Add or refine type annotations, avoid `any`, and use generics or type guards as appropriate.
+### Canonical Linter/Type Error Resolution
+- Use type guards and explicit types instead of non-null assertions or `any`
+- Suppress false positive linter/type errors only with line-level comments and clear justification
+- Never use file-level disables except for legacy/third-party code
+- All test code must be type-safe and use mocks for side-effectful utilities
+
+### Updated Rules for All Contributors
+- Never introduce new `any` types or bridge files
+- Always use direct module imports and respect module boundaries
+- All code must be clean, readable, and well-documented
+- All code must pass `npm run lint`, `npm run type-check`, and `npm run verify:architecture`
+- All architectural and code quality rules are enforced by CI and documented in this file
 
 # Conversation Event Logging, Analytics, and Clerk Integration
 
 ## Event Logging
+
 - All key conversation actions (messages, joins, leaves, closes, etc.) are logged as structured events.
 - Use the `ConversationEventLogger` utility to send events to the backend `/conversation-events` endpoint.
 - Events include `conversation_id`, `user_id`, `tenant_id`, `event_type`, `payload`, and `event_metadata`.
 
 ## Clerk Integration
+
 - The frontend uses Clerk's `useUser` and `useOrganization` hooks to get the real user and tenant (organization) IDs.
 - These IDs are included in every event log for multi-tenancy and user attribution.
 - If the user is not in an organization, fallback to `user.publicMetadata.tenantId`.
 
 ## Analytics & Dashboard
+
 - The backend aggregates events for analytics and exposes them via `/conversation-analytics`.
 - The dashboard visualizes metrics (event volume, type, response time, etc.) and supports CSV export.
 - Real-time monitoring is enabled via WebSocket, broadcasting key events and alerts to admins.
 - The dashboard displays a live feed of recent events and anomalies.
 
 ## Event Types
+
 - Supported event types: `message_sent`, `message_read`, `product_clicked`, `order_placed`, `conversation_started`, `user_joined`, `user_left`, `conversation_closed`.
 - New event types can be added in a type-safe manner on both backend and frontend.
 
@@ -583,12 +599,14 @@ The application implements a clean, build-safe authentication architecture using
 The authentication system is designed to work seamlessly during both development and build time without hacky scripts or file modifications:
 
 - **SafeClerkProvider**: A wrapper around Clerk's `ClerkProvider` that safely handles build-time scenarios
+
   - Located in `src/utils/auth/clerkProvider.tsx`
   - Detects build-time environment via environment variables
   - Renders children without Clerk during build to avoid errors
   - Used in both App Router (`src/app/providers.tsx`) and Pages Router (`pages/_app.tsx`)
 
 - **Core Authentication Service**:
+
   - Located in `src/modules/core/services/auth/buildSafeAuth.ts`
   - Follows the Result pattern from core domain models
   - Provides safe default values during build time
@@ -627,6 +645,7 @@ This approach disables Clerk during builds without modifying source files.
 ### How to Add New Auth-Protected Routes
 
 1. Use the `useAuth` hook from core domain:
+
    ```typescript
    import { useAuth } from '@/modules/core/hooks/useAuth';
 
@@ -641,6 +660,7 @@ This approach disables Clerk during builds without modifying source files.
    ```
 
 2. For server-side authentication checks, use the `checkAuth` function:
+
    ```typescript
    import { checkAuth } from '@/modules/core/hooks/useAuth';
 
@@ -663,6 +683,7 @@ This approach disables Clerk during builds without modifying source files.
    ```
 
 ## Best Practices
+
 - Always use the ConversationEventLogger for logging events in the frontend.
 - Ensure user and tenant IDs are sourced from Clerk context/hooks.
 - Use the core domain's `useAuth` hook instead of direct Clerk hooks for better architectural consistency.
@@ -706,6 +727,7 @@ try {
 ## Monitoring, Audit Log, and Alerts
 
 ### Audit Log Table
+
 - The `AuditLogTable` component displays all conversation-related audit log entries for the current tenant.
 - Integrate it into any dashboard or monitoring page by passing the `tenantId` prop.
 - Example usage:
@@ -715,10 +737,11 @@ import AuditLogTable from 'src/components/monitoring/AuditLogTable';
 
 const tenantId = localStorage.getItem('tenant_id') || '';
 
-<AuditLogTable tenantId={tenantId} />
+<AuditLogTable tenantId={tenantId} />;
 ```
 
 ### Alerts & Notifications
+
 - The `NotificationCenter` component displays real-time or recent alerts for the tenant.
 - Integrate it into your dashboard to show event-based alerts (e.g., high-priority events, errors, or custom triggers).
 - Example usage:
@@ -726,10 +749,11 @@ const tenantId = localStorage.getItem('tenant_id') || '';
 ```tsx
 import NotificationCenter from 'src/components/monitoring/NotificationCenter';
 
-<NotificationCenter />
+<NotificationCenter />;
 ```
 
 ### Event-Based Monitoring
+
 - Conversation events are now automatically logged to the audit log and can trigger alerts based on tenant configuration.
 - See the backend documentation for configuring alert rules and audit log integration.
 
@@ -750,11 +774,13 @@ import NotificationCenter from 'src/components/monitoring/NotificationCenter';
 - Payment events (e.g., PaymentProcessedEvent) are now part of the backend event system. See backend/docs/api/orders.md for details.
 
 ## Backend Event-Driven Architecture & Monitoring (2024-06)
+
 - The backend is now fully event-driven and monitored with Sentry and Prometheus. All order, payment, and webhook failures are tracked and alertable.
 - Frontend monitoring and alerting (NotificationCenter, WhatsApp alerts) are fully integrated with backend events and metrics.
 - See backend/README.md and frontend/docs/MONITORING.md for details.
 
 ## Backend API Versioning (2024-06)
+
 - The backend supports API versioning for all breaking changes.
 - `/api/v2/orders/` and other v2 endpoints are available for new or breaking changes.
 - Frontend should consume v2 endpoints for new features or breaking changes.
@@ -765,20 +791,24 @@ import NotificationCenter from 'src/components/monitoring/NotificationCenter';
 The primary buyer experience is chat-driven, powered by the backend chat flow engine and WhatsApp integration. The frontend is a complement for sellers/admins and can be extended to simulate chat for testing.
 
 ### How It Works
+
 - Buyers interact via WhatsApp (or SMS/Telegram) and are guided through a step-by-step checkout: name → phone → address → payment method → confirm.
 - The backend validates input, manages state, and generates real payment links.
 - All chat state and order/payment events are logged for analytics and audit.
 
 ### Extending the Frontend
+
 - If needed, a minimal chat simulator UI can be built to POST messages to the backend WhatsApp webhook for local testing.
 - All seller/admin dashboards and analytics reflect chat-driven orders/payments in real time.
 
 ### Key Backend Files
+
 - See backend `app/conversation/chat_flow_engine.py` and `app/api/v1/endpoints/whatsapp.py` for chat flow and WhatsApp integration logic.
 
 # Frontend Modules Overview
 
 ## core
+
 **Purpose:** Base types, utilities, and cross-cutting concerns for the frontend.
 **Allowed Imports:** None (cannot import from other modules).
 **Forbidden Imports:** All other modules.
@@ -791,6 +821,7 @@ import { OrderService } from '@/modules/order/services/OrderService';
 **Testing:** See /core/tests/unit and /core/tests/integration.
 
 ## conversation
+
 **Purpose:** Messaging UI and conversational flows.
 **Allowed Imports:** core, tenant.
 **Forbidden Imports:** product, order, storefront, theme, monitoring.
@@ -803,6 +834,7 @@ import { ProductService } from '@/modules/product/services/ProductService';
 **Testing:** See /conversation/tests/unit and /conversation/tests/integration.
 
 ## order
+
 **Purpose:** Order processing and transaction flows.
 **Allowed Imports:** core, tenant, product.
 **Forbidden Imports:** Should not import from unrelated modules.
@@ -815,15 +847,18 @@ import { ThemeService } from '@/modules/theme/services/ThemeService';
 **Testing:** See /order/tests/unit and /order/tests/integration.
 
 ---
+
 For more details, see AI_AGENT_CONFIG.md.
 
 ## Navigation
+
 - Uses a modern, mobile-first `MobileNav` component (see `src/components/MobileNav.tsx`).
 - `MobileNav` is a client component (uses React hooks, Clerk auth) and must include the `"use client"` directive.
 - On mobile, the admin dashboard uses a sticky bottom nav for quick access.
 - The old `Navbar` is deprecated and replaced by `MobileNav` everywhere.
 
 ## Onboarding Experience
+
 - After sign in/up, users land on the dashboard (not a blocking wizard).
 - If onboarding is incomplete, a prominent, dismissible onboarding card appears at the top of the dashboard (web & mobile).
 - The onboarding card shows progress, a "Continue Onboarding" button (opens modal wizard), and a dismiss (X) button.
@@ -831,11 +866,38 @@ For more details, see AI_AGENT_CONFIG.md.
 - This "soft onboarding" matches best-in-class SaaS UX (Shopify-style).
 
 ## Customization & Extensibility
+
 - To change onboarding steps, edit `OnboardingWizard` in `src/modules/tenant/components/OnboardingWizard.tsx`.
 - To customize the onboarding prompt card, see `src/components/dashboard/OnboardingPromptCard.tsx`.
 - To update navigation, edit `MobileNav.tsx`.
 
 ## Notes
+
 - All navigation and onboarding flows are mobile-first and accessible.
 - The onboarding prompt logic is ready to connect to a real backend status API.
 - For more, see the module-level README in `src/modules/tenant/components/README.md`.
+
+## 🧹 2024: Initial Build & Type Safety Enforcement (Summary)
+
+### What We Achieved
+- All `any` types eliminated; replaced with explicit interfaces, generics, or `unknown` with type guards
+- All unused variables, imports, and forbidden `require()` usage removed
+- All model interfaces (Product, Order, StorefrontComponent, etc.) now require `created_at: string` and use canonical base types
+- All bridge files removed; only direct module imports allowed (no `/types/` directory usage)
+- All index signature property access (TS4111) and strict optional property errors fixed
+- All code is now linter- and type-check compliant; CI blocks merges on violations
+- All async code uses async/await with full error handling and type safety
+- All code changes are documented and tested
+
+### Canonical Linter/Type Error Resolution
+- Use type guards and explicit types instead of non-null assertions or `any`
+- Suppress false positive linter/type errors only with line-level comments and clear justification
+- Never use file-level disables except for legacy/third-party code
+- All test code must be type-safe and use mocks for side-effectful utilities
+
+### Updated Rules for All Contributors
+- Never introduce new `any` types or bridge files
+- Always use direct module imports and respect module boundaries
+- All code must be clean, readable, and well-documented
+- All code must pass `npm run lint`, `npm run type-check`, and `npm run verify:architecture`
+- All architectural and code quality rules are enforced by CI and documented in this file

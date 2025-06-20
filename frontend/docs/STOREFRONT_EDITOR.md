@@ -175,6 +175,7 @@ Potential enhancements to consider:
 5. **Analytics Integration**: Track banner/logo performance
 
 ## Analytics & Event Logging Integration
+
 - All major actions in the Storefront Editor (e.g., asset changes, banner/logo updates) can be logged as structured events using the ConversationEventLogger utility.
 - Clerk integration ensures that user and tenant IDs are included in every event for accurate attribution.
 - These events power analytics and monitoring dashboards, enabling real-time and historical insights.
@@ -276,6 +277,7 @@ This ensures user-friendly, consistent error messages across the app.
 - **Type Safety**: No `any` types are allowed. Use `unknown` with type guards for dynamic data. All module boundaries use explicit interfaces and DTOs.
 
 ### How to Fix Lint/Type Errors
+
 - **Restricted Import**: Change your import to use the module's public API or DTO file.
 - **Unused Variable/Import**: Remove or use the variable/import as needed.
 - **Type Error**: Add or refine type annotations, avoid `any`, and use generics or type guards as appropriate.

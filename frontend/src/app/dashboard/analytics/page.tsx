@@ -12,19 +12,7 @@ import {
   Legend,
   Filler,
 } from 'chart.js';
-import {
-  ShoppingBag,
-  ArrowUpRight,
-  DollarSign,
-  Users,
-  User,
-  Download,
-  Eye,
-  RefreshCcw,
-  Package,
-  Truck,
-  MessageSquare,
-} from 'lucide-react';
+import { ShoppingBag, ArrowUpRight, DollarSign, Users, Download } from 'lucide-react';
 import Link from 'next/link';
 import React, { useState, useEffect, useRef } from 'react';
 import { Line, Pie, Bar } from 'react-chartjs-2';
@@ -103,20 +91,63 @@ const mockCustomerAcquisition = {
   ],
 };
 
+interface EventCountByDay {
+  date: string;
+  count: number;
+}
+
+interface ConversationAnalytics {
+  counts_by_type: Record<string, number>;
+  counts_by_day: EventCountByDay[];
+  total_count: number;
+  avg_response_time_seconds: number;
+}
+
+interface QualityLeaderboardRow {
+  conversation_id: string;
+  quality_score: number;
+  avg_response_time_seconds: number;
+  avg_sentiment: number;
+  resolved: boolean;
+}
+
+function isConversationAnalytics(obj: unknown): obj is ConversationAnalytics {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'counts_by_type' in obj &&
+    'counts_by_day' in obj &&
+    'total_count' in obj &&
+    'avg_response_time_seconds' in obj
+  );
+}
+
+function isQualityLeaderboardRow(obj: unknown): obj is QualityLeaderboardRow {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'conversation_id' in obj &&
+    'quality_score' in obj &&
+    'avg_response_time_seconds' in obj &&
+    'avg_sentiment' in obj &&
+    'resolved' in obj
+  );
+}
+
 export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState<'7days' | '30days' | '90days' | 'custom'>('30days');
   const [hasData] = useState(true); // Set to false to test empty state
 
   // Conversation analytics state
-  const [convAnalytics, setConvAnalytics] = useState<any>(null);
+  const [convAnalytics, setConvAnalytics] = useState<unknown>(null);
   const [loadingConv, setLoadingConv] = useState(false);
 
   // Real-time event and alert feed
-  const [eventFeed, setEventFeed] = useState<any[]>([]);
+  const [eventFeed, setEventFeed] = useState<unknown[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
 
   // Conversation quality leaderboard
-  const [qualityLeaderboard, setQualityLeaderboard] = useState<any[]>([]);
+  const [qualityLeaderboard, setQualityLeaderboard] = useState<unknown[]>([]);
   const [loadingQuality, setLoadingQuality] = useState(false);
 
   useEffect(() => {
@@ -182,39 +213,47 @@ export default function AnalyticsPage() {
   }, []);
 
   // Prepare chart data for events by type
-  const eventTypeChart = convAnalytics && {
-    labels: Object.keys(convAnalytics.counts_by_type || {}),
-    datasets: [
-      {
-        label: 'Events',
-        data: Object.values(convAnalytics.counts_by_type || {}),
-        backgroundColor: [
-          '#2563eb',
-          '#16b981',
-          '#f59e0b',
-          '#dc2626',
-          '#8b5cf6',
-          '#f43f5e',
-          '#0ea5e9',
-          '#fbbf24',
+  const eventTypeChart = isConversationAnalytics(convAnalytics)
+    ? {
+        labels: Object.keys(convAnalytics.counts_by_type) as string[],
+        datasets: [
+          {
+            label: 'Events',
+            data: Object.values(convAnalytics.counts_by_type) as number[],
+            backgroundColor: [
+              '#2563eb',
+              '#16b981',
+              '#f59e0b',
+              '#dc2626',
+              '#8b5cf6',
+              '#f43f5e',
+              '#0ea5e9',
+              '#fbbf24',
+            ],
+          },
         ],
-      },
-    ],
-  };
+      }
+    : undefined;
 
   // Prepare chart data for events by day
-  const eventDayChart = convAnalytics && {
-    labels: (convAnalytics.counts_by_day || []).map((d: any) => d.date),
-    datasets: [
-      {
-        label: 'Events per Day',
-        data: (convAnalytics.counts_by_day || []).map((d: any) => d.count),
-        borderColor: '#2563eb',
-        backgroundColor: 'rgba(37, 99, 235, 0.1)',
-        fill: true,
-      },
-    ],
-  };
+  const eventDayChart = isConversationAnalytics(convAnalytics)
+    ? {
+        labels: (convAnalytics.counts_by_day as EventCountByDay[]).map(
+          (d: EventCountByDay) => d.date,
+        ) as string[],
+        datasets: [
+          {
+            label: 'Events per Day',
+            data: (convAnalytics.counts_by_day as EventCountByDay[]).map(
+              (d: EventCountByDay) => d.count,
+            ) as number[],
+            borderColor: '#2563eb',
+            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+            fill: true,
+          },
+        ],
+      }
+    : undefined;
 
   const lineOptions = {
     responsive: true,
@@ -274,28 +313,58 @@ export default function AnalyticsPage() {
                 <div className="text-gray-400">No recent events or alerts</div>
               ) : (
                 <ul>
-                  {eventFeed.map((e, i) => (
-                    <li key={i} className="mb-2">
-                      {e.type === 'conversation_event' ? (
-                        <span>
-                          <b>Event:</b> <span className="text-blue-700">{e.event.event_type}</span>{' '}
-                          &mdash; <span className="text-gray-500">{e.event.created_at}</span>
-                          {e.event.payload?.content && (
+                  {eventFeed.map((e, i) => {
+                    if (typeof e === 'object' && e !== null && 'type' in e) {
+                      if (
+                        e.type === 'conversation_event' &&
+                        'event' in e &&
+                        typeof e.event === 'object' &&
+                        e.event !== null &&
+                        'event_type' in e.event &&
+                        'created_at' in e.event
+                      ) {
+                        return (
+                          <li key={i} className="mb-2">
                             <span>
-                              {' '}
-                              — <span className="italic">{e.event.payload.content}</span>
+                              <b>Event:</b>{' '}
+                              <span className="text-blue-700">{e.event.event_type as string}</span>{' '}
+                              &mdash;{' '}
+                              <span className="text-gray-500">{e.event.created_at as string}</span>
+                              {'payload' in e.event &&
+                              e.event.payload &&
+                              typeof e.event.payload === 'object' &&
+                              'content' in e.event.payload ? (
+                                <span>
+                                  {' '}
+                                  —{' '}
+                                  <span className="italic">
+                                    {(e.event.payload as { content?: string }).content}
+                                  </span>
+                                </span>
+                              ) : null}
                             </span>
-                          )}
-                        </span>
-                      ) : e.type === 'alert' ? (
-                        <span>
-                          <b className="text-red-700">ALERT:</b>{' '}
-                          <span className="font-semibold">{e.alert_type}</span> &mdash; {e.message}
-                          <span className="text-gray-500"> ({e.severity})</span>
-                        </span>
-                      ) : null}
-                    </li>
-                  ))}
+                          </li>
+                        );
+                      } else if (
+                        e.type === 'alert' &&
+                        'alert_type' in e &&
+                        'message' in e &&
+                        'severity' in e
+                      ) {
+                        return (
+                          <li key={i} className="mb-2">
+                            <span>
+                              <b className="text-red-700">ALERT:</b>{' '}
+                              <span className="font-semibold">{e.alert_type as string}</span>{' '}
+                              &mdash; {e.message as string}
+                              <span className="text-gray-500"> ({e.severity as string})</span>
+                            </span>
+                          </li>
+                        );
+                      }
+                    }
+                    return null;
+                  })}
                 </ul>
               )}
             </div>
@@ -313,7 +382,11 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">
-              {loadingConv ? '...' : (convAnalytics?.total_count ?? '--')}
+              {loadingConv
+                ? '...'
+                : isConversationAnalytics(convAnalytics)
+                  ? convAnalytics.total_count
+                  : '--'}
             </div>
           </CardContent>
         </Card>
@@ -357,8 +430,9 @@ export default function AnalyticsPage() {
             <div className="text-3xl font-bold">
               {loadingConv
                 ? '...'
-                : convAnalytics?.avg_response_time_seconds !== null &&
-                    convAnalytics?.avg_response_time_seconds !== undefined
+                : isConversationAnalytics(convAnalytics) &&
+                    convAnalytics.avg_response_time_seconds !== null &&
+                    convAnalytics.avg_response_time_seconds !== undefined
                   ? convAnalytics.avg_response_time_seconds.toFixed(2)
                   : '--'}
             </div>
@@ -400,24 +474,27 @@ export default function AnalyticsPage() {
                       </td>
                     </tr>
                   ) : (
-                    qualityLeaderboard.map((row, i) => (
-                      <tr key={row.conversation_id} className={i < 3 ? 'bg-green-50' : ''}>
-                        <td className="p-2 font-mono">{row.conversation_id}</td>
-                        <td className="p-2 font-bold">{row.quality_score}</td>
-                        <td className="p-2">
-                          {row.avg_response_time_seconds !== null &&
-                          row.avg_response_time_seconds !== undefined
-                            ? row.avg_response_time_seconds.toFixed(1)
-                            : '--'}
-                        </td>
-                        <td className="p-2">
-                          {row.avg_sentiment !== null && row.avg_sentiment !== undefined
-                            ? row.avg_sentiment.toFixed(2)
-                            : '--'}
-                        </td>
-                        <td className="p-2">{row.resolved ? '✅' : '❌'}</td>
-                      </tr>
-                    ))
+                    qualityLeaderboard.map((row, i) => {
+                      if (!isQualityLeaderboardRow(row)) return null;
+                      return (
+                        <tr key={row.conversation_id} className={i < 3 ? 'bg-green-50' : ''}>
+                          <td className="p-2 font-mono">{row.conversation_id}</td>
+                          <td className="p-2 font-bold">{row.quality_score}</td>
+                          <td className="p-2">
+                            {row.avg_response_time_seconds !== null &&
+                            row.avg_response_time_seconds !== undefined
+                              ? row.avg_response_time_seconds.toFixed(1)
+                              : '--'}
+                          </td>
+                          <td className="p-2">
+                            {row.avg_sentiment !== null && row.avg_sentiment !== undefined
+                              ? row.avg_sentiment.toFixed(2)
+                              : '--'}
+                          </td>
+                          <td className="p-2">{row.resolved ? '✅' : '❌'}</td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>

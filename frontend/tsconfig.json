@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2021",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -20,56 +16,22 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@/components/*": [
-        "./src/components/*"
-      ],
-      "@/lib/*": [
-        "./src/lib/*"
-      ],
-      "@/styles/*": [
-        "./src/styles/*"
-      ],
-      "@/types/*": [
-        "./src/types/*"
-      ],
-      "@/utils/*": [
-        "./src/utils/*"
-      ],
-      "@/hooks/*": [
-        "./src/hooks/*"
-      ],
-      "@/contexts/*": [
-        "./src/contexts/*"
-      ],
-      "@/services/*": [
-        "./src/services/*"
-      ],
-      "@/api/*": [
-        "./src/api/*"
-      ],
-      "@/config/*": [
-        "./src/config/*"
-      ],
-      "@/constants/*": [
-        "./src/constants/*"
-      ],
-      "@/assets/*": [
-        "./src/assets/*"
-      ]
+      "@/*": ["./src/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/styles/*": ["./src/styles/*"],
+      "@/types/*": ["./src/types/*"],
+      "@/utils/*": ["./src/utils/*"],
+      "@/hooks/*": ["./src/hooks/*"],
+      "@/contexts/*": ["./src/contexts/*"],
+      "@/services/*": ["./src/services/*"],
+      "@/api/*": ["./src/api/*"],
+      "@/config/*": ["./src/config/*"],
+      "@/constants/*": ["./src/constants/*"],
+      "@/assets/*": ["./src/assets/*"]
     },
-    "typeRoots": [
-      "./node_modules/@types",
-      "./src/types"
-    ],
-    "types": [
-      "node",
-      "jest",
-      "react",
-      "react-dom"
-    ],
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "types": ["node", "jest", "react", "react-dom"],
     "noImplicitAny": true,
     "noImplicitThis": true,
     "noUnusedLocals": true,
@@ -83,8 +45,6 @@
     "noPropertyAccessFromIndexSignature": true,
     "exactOptionalPropertyTypes": true,
     "verbatimModuleSyntax": true,
-    "preserveValueImports": true,
-    "importsNotUsedAsValues": "error",
     "isolatedModules": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
@@ -95,13 +55,7 @@
       }
     ]
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    "src/types/**/*.d.ts"
-  ],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/types/**/*.d.ts"],
   "exclude": [
     "node_modules",
     "out",

@@ -10,7 +10,7 @@ import type {
  */
 export class FlutterwaveProvider {
   private publicKey: string;
-  private encryptionKey?: string;
+  private encryptionKey: string | undefined;
 
   constructor(publicKey: string, encryptionKey?: string) {
     this.publicKey = publicKey;
@@ -90,7 +90,7 @@ export class FlutterwaveProvider {
   ) {
     if (
       typeof window === 'undefined' ||
-      typeof (window as any).FlutterwaveCheckout !== 'function'
+      typeof (window as unknown as FlutterwaveWindow).FlutterwaveCheckout !== 'function'
     ) {
       this.loadFlutterwaveScript();
     }
@@ -138,9 +138,9 @@ export class FlutterwaveProvider {
 
       if (
         typeof window !== 'undefined' &&
-        typeof (window as any).FlutterwaveCheckout === 'function'
+        typeof (window as unknown as FlutterwaveWindow).FlutterwaveCheckout === 'function'
       ) {
-        (window as any).FlutterwaveCheckout(config);
+        (window as unknown as FlutterwaveWindow).FlutterwaveCheckout?.(config);
       }
     } catch (error) {
       if (typeof console !== 'undefined')
@@ -155,7 +155,7 @@ export class FlutterwaveProvider {
   private loadFlutterwaveScript() {
     if (
       typeof window !== 'undefined' &&
-      typeof (window as any).FlutterwaveCheckout !== 'function'
+      typeof (window as unknown as FlutterwaveWindow).FlutterwaveCheckout !== 'function'
     ) {
       const script = typeof document !== 'undefined' ? document.createElement('script') : undefined;
       if (typeof document !== 'undefined' && script) {

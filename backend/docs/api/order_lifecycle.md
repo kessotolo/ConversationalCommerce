@@ -6,7 +6,7 @@ The order system uses a well-defined state machine for status transitions with t
 
 ```
 PENDING → PAID, CANCELLED
-PAID → PROCESSING, CANCELLED, REFUNDED  
+PAID → PROCESSING, CANCELLED, REFUNDED
 PROCESSING → SHIPPED, CANCELLED
 SHIPPED → DELIVERED, RETURNED
 DELIVERED → RETURNED
@@ -17,7 +17,7 @@ Terminal states (CANCELLED, REFUNDED, RETURNED) can only transition to themselve
 All order status updates are centralized through the `_update_order_status` method in OrderService, which enforces:
 
 1. **Valid Transitions**: Ensures that only permitted state transitions occur
-2. **Event Emission**: Emits appropriate domain events for each transition 
+2. **Event Emission**: Emits appropriate domain events for each transition
 3. **Optimistic Locking**: Uses version-based concurrency control to prevent conflicts
 4. **Audit Logging**: Creates detailed audit logs for all status changes
 5. **Special Validations**: Enforces required data for specific statuses (e.g., tracking info for SHIPPED)
@@ -34,7 +34,7 @@ order.status = OrderStatus.PAID.value  # This bypasses events and validation!
 
 # ✅ CORRECT: Using the service method
 updated_order = await order_service._update_order_status(
-    order, 
+    order,
     new_status=OrderStatus.PAID,
     payment_reference="TX123456"
 )
@@ -45,6 +45,7 @@ updated_order = await order_service._update_order_status(
 Each status transition emits appropriate events:
 
 1. **Generic Event (All Transitions)**
+
    - `OrderStatusChangedEvent` with before/after status
 
 2. **Specialized Events (Key Transitions)**
@@ -62,13 +63,17 @@ Each status transition emits appropriate events:
 ### Integration Points
 
 #### Event Handlers
+
 The following handlers process order events:
+
 - `NotificationHandler`: Sends order status notifications to customers
 - `AnalyticsHandler`: Logs order events for analytics
 - `InventoryHandler`: Updates inventory levels based on order status
 
 #### Service Integration
+
 Services that manage order status should use the OrderService methods:
+
 - `PaymentService`: When processing payments
 - `FulfillmentService`: When marking orders as shipped/delivered
 - `CustomerService`: When handling returns/cancellations

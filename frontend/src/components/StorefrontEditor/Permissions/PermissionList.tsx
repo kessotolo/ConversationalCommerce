@@ -1,20 +1,18 @@
 import { Search as MagnifyingGlassIcon, Filter as FunnelIcon } from 'lucide-react';
 import React from 'react';
 
-import type { UUID } from '@/modules/core/models';
-
 import type { UserPermission } from '@/modules/storefront/models/permission';
 import { StorefrontRole } from '@/modules/storefront/models/permission';
 
 interface PermissionListProps {
   users: UserPermission[];
   loading: boolean;
-  selectedUserId?: UUID;
+  selectedUserId?: string;
   onUserSelect: (user: UserPermission) => void;
   roleFilter: StorefrontRole | 'all';
   searchQuery: string;
-  onRoleFilterChange: (role: StorefrontRole | 'all') => void;
-  onSearchQueryChange: (query: string) => void;
+  onRoleFilterChange: React.Dispatch<React.SetStateAction<StorefrontRole | 'all'>>;
+  onSearchQueryChange: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const PermissionList: React.FC<PermissionListProps> = ({

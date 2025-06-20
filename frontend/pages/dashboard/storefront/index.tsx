@@ -15,7 +15,7 @@ function StorefrontPageContent() {
     return <div className="p-6">Loading theme information...</div>;
   }
 
-  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'yourplatform.com';
+  const baseDomain = process.env['NEXT_PUBLIC_BASE_DOMAIN'] || 'yourplatform.com';
   const isDefaultDomain = baseDomain === 'yourplatform.com';
   const isDefaultSubdomain = (tenant?.subdomain || 'default') === 'default';
   const usingPlaceholders = isDefaultDomain || isDefaultSubdomain;

@@ -16,6 +16,7 @@ We use path-based versioning where the API version is included in the URL path:
 ```
 
 This approach offers several advantages:
+
 - Clear distinction between different API versions
 - Easy to understand and implement for API consumers
 - Allows multiple versions to coexist in the codebase
@@ -101,15 +102,17 @@ The API code is organized by version in the codebase:
 ### Example: Breaking Change in Orders API
 
 **v1 Orders Response:**
+
 ```json
 {
   "id": "order_123",
   "customer": "John Doe",
-  "total": 100.00
+  "total": 100.0
 }
 ```
 
 **v2 Orders Response:**
+
 ```json
 {
   "id": "order_123",
@@ -118,7 +121,7 @@ The API code is organized by version in the codebase:
     "last_name": "Doe"
   },
   "amount": {
-    "value": 100.00,
+    "value": 100.0,
     "currency": "USD"
   }
 }

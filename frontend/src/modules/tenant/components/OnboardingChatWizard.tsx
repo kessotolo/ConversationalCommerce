@@ -31,7 +31,6 @@ const steps = [
   'teamInvite',
   'done',
 ] as const;
-type Step = (typeof steps)[number];
 
 export default function OnboardingChatWizard() {
   const [step, setStep] = useState<number>(0);
@@ -43,7 +42,6 @@ export default function OnboardingChatWizard() {
   ]);
   const [form, setForm] = useState<OnboardingFormState>({});
   const [loading, setLoading] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [domainStatus, setDomainStatus] = useState<{ available: boolean; message: string } | null>(
     null,
@@ -112,7 +110,6 @@ export default function OnboardingChatWizard() {
         case 'kycUpload':
           if (input instanceof File) {
             setError(null);
-            setFile(input);
             newMessages = [...messages, { sender: 'user' as const, text: input.name }];
             try {
               const uploadRes = await onboardingApi.uploadKYCFile(input);

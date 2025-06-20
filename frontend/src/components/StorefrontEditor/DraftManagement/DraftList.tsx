@@ -1,12 +1,11 @@
 import React from 'react';
 
-import type { UUID } from '@/modules/core/models/base';
-
 import type { Draft } from '@/modules/storefront/models/draft';
+
 interface DraftListProps {
   drafts: Draft[];
   loading: boolean;
-  selectedDraftId?: UUID;
+  selectedDraftId?: string | undefined;
   onDraftSelect: (draft: Draft) => void;
 }
 
@@ -66,7 +65,7 @@ const DraftList: React.FC<DraftListProps> = ({
           key={draft.id}
           onClick={() => onDraftSelect(draft)}
           className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
-            selectedDraftId === draft.id ? 'bg-blue-50' : ''
+            selectedDraftId && selectedDraftId === draft.id ? 'bg-blue-50' : ''
           }`}
         >
           <div className="flex justify-between items-start mb-1">

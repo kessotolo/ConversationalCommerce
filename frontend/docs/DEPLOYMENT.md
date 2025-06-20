@@ -54,7 +54,7 @@ The root `netlify.toml` file includes:
 [build]
   command = "npm run build"
   publish = ".next"
-  
+
 [build.environment]
   NEXT_TELEMETRY_DISABLED = "1"
   NODE_OPTIONS = "--max_old_space_size=4096"
@@ -128,10 +128,12 @@ The build process follows these steps:
 ### Common Build Issues
 
 1. **Authentication Errors**
+
    - Symptoms: Errors with Clerk hooks outside ClerkProvider
    - Solution: Ensure all components use the core `useAuth` hook and that build-time detection is working
 
 2. **Module Recognition Issues**
+
    - Symptoms: Next.js not recognizing certain pages as proper modules
    - Solution: Ensure export syntax is correct and remove any URL-encoded folder names
 

@@ -24,6 +24,7 @@ The architecture uses a webhook-based approach that integrates with our existing
 - See [ADR-0001: Direct Module Imports vs Bridge Files](./architecture/decisions/0001-direct-module-imports.md) for rationale and migration details.
 
 **Benefits:**
+
 - Cleaner and more maintainable codebase
 - Clear module boundaries and dependencies
 - Improved type safety and consistency
@@ -361,6 +362,7 @@ The project standardizes on UUID types for database primary keys and foreign key
 - **Type Safety**: No `any` types are allowed. Use `unknown` with type guards for dynamic data. All module boundaries use explicit interfaces and DTOs.
 
 #
+
 ## ESLint and Type Safety
 
 ### Import Rules
@@ -388,7 +390,9 @@ The following areas are flagged for future improvement:
 4. **StorefrontEditor TypeScript**: These components need type definition refinement
 
 ESLint is configured with selective overrides to flag these issues appropriately while development continues.
+
 ## How to Fix Lint/Type Errors
+
 - **Restricted Import**: Change your import to use the module's public API or DTO file.
 - **Unused Variable/Import**: Remove or use the variable/import as needed.
 - **Type Error**: Add or refine type annotations, avoid `any`, and use generics or type guards as appropriate.
@@ -398,18 +402,21 @@ ESLint is configured with selective overrides to flag these issues appropriately
 ## Theme Structure & Validation
 
 ### Theme Interface
+
 - The `Theme` interface is the single source of truth for all theme-related data.
 - All theme objects (default, API, user-customized) must match the interface:
   - `colors`: { primary, secondary, accent, background, text, error, success, warning }
   - `typography`, `layout`, `componentStyles` (with all required sub-keys)
 
 ### Best Practices
+
 - **Validate** all theme objects before use (especially from API or user input).
 - **Update** all theme objects and usages if the interface changes.
 - **Unit test** theme transformation logic.
 - **Consider runtime validation** (e.g., Zod/Yup) for user-customized themes.
 
 ### AI Agent Usage for Theme Audits
+
 - The AI agent can:
   - Audit theme structure across the codebase.
   - Compare interface to all usages in components/hooks.
@@ -423,12 +430,14 @@ ESLint is configured with selective overrides to flag these issues appropriately
 ## Conversation Analytics & Dashboard (2025)
 
 ### Analytics Aggregation & Reporting
+
 - The backend exposes `/conversation-analytics` (see `backend/app/api/routers/conversation.py`)
   - Returns: total event count, counts by type, counts by day, average response time
   - Supports date range and event type filters
   - Designed for extensibility (add new metrics as needed)
 
 ### Dashboard Integration
+
 - The frontend dashboard (`frontend/src/app/dashboard/analytics/page.tsx`) displays:
   - Total conversation events (stat card)
   - Events by type (pie chart)
@@ -437,6 +446,7 @@ ESLint is configured with selective overrides to flag these issues appropriately
 - Widgets fetch live data from the backend and are ready for further extension (filters, funnel, heatmap, etc.)
 
 ### Best Practices
+
 - Add new metrics to the backend endpoint and document them
 - Use strict typing and clear API contracts for analytics data
 - Visualize new metrics in the dashboard using chart.js or similar
@@ -445,15 +455,18 @@ ESLint is configured with selective overrides to flag these issues appropriately
 ## Real-Time Monitoring & Alerts (2025)
 
 ### WebSocket Monitoring
+
 - Conversation events are broadcast in real time to tenant admins via WebSocket (see `backend/app/core/websocket/monitoring.py` and `backend/app/api/routers/conversation.py`)
 - Key events (message sent/read, product clicked, order placed) are pushed to all connected admin clients
 - Anomaly detection and alerting can be added to broadcast alerts for issues (e.g., slow response times)
 
 ### Dashboard Integration
+
 - The analytics dashboard (`frontend/src/app/dashboard/analytics/page.tsx`) displays a live feed of recent events and alerts
 - The frontend subscribes to the WebSocket endpoint and updates the feed in real time
 
 ### Best Practices
+
 - Use the WebSocket feed for operational dashboards and proactive monitoring
 - Extend the backend to broadcast additional event types or alerts as needed
 - Keep the frontend feed performant by limiting the number of displayed events
@@ -461,19 +474,23 @@ ESLint is configured with selective overrides to flag these issues appropriately
 ## Advanced Analytics (2025)
 
 ### Sentiment & Intent Analysis
+
 - On every message_sent event, the backend analyzes sentiment (TextBlob) and classifies intent (rule-based)
 - Results are stored in the event's payload (see `backend/app/api/routers/conversation.py`)
 
 ### Conversation Quality Scoring
+
 - The backend exposes `/conversation-quality` (see `backend/app/api/routers/conversation.py`)
   - Computes a quality score for each conversation based on response time, sentiment, and resolution
   - Results are visualized in the dashboard leaderboard (`frontend/src/app/dashboard/analytics/page.tsx`)
 
 ### Anomaly Detection & Alerting
+
 - The backend detects anomalies (slow response, negative sentiment, unresolved >1 day) and broadcasts alerts via WebSocket
 - Alerts appear in the real-time dashboard feed
 
 ### Best Practices
+
 - Use NLP libraries for deeper analysis as needed
 - Tune quality scoring weights and anomaly thresholds for your business
 - Extend analytics endpoints and visualizations as new needs arise
@@ -481,27 +498,32 @@ ESLint is configured with selective overrides to flag these issues appropriately
 # Conversation Event Logging, Analytics, and Clerk Integration (2025)
 
 ## Event Logging Architecture
+
 - All significant conversation actions (messages, joins, leaves, closes, etc.) are logged as structured events.
 - Event types are defined in both backend (Pydantic/SQLAlchemy) and frontend (TypeScript enums) for strict type safety.
 - Events are sent from the frontend using the `ConversationEventLogger` utility, which posts to the `/conversation-events` API.
 - Events include `conversation_id`, `user_id`, `tenant_id`, `event_type`, `payload`, and `event_metadata`.
 
 ## Clerk Integration for User & Tenant IDs
+
 - The frontend uses Clerk's `useUser` and `useOrganization` hooks to obtain the real user and tenant (organization) IDs.
 - These IDs are included in every event log, ensuring multi-tenancy and user attribution.
 - Fallback to `user.publicMetadata.tenantId` if the user is not in an organization.
 
 ## Analytics & Dashboard
+
 - The backend aggregates events for analytics (volume, type, response time, etc.) and exposes them via `/conversation-analytics`.
 - The frontend dashboard visualizes these metrics (stat cards, charts, heatmaps) and provides CSV export.
 - Real-time monitoring is enabled via WebSocket, broadcasting key events and alerts to admins.
 - The dashboard displays a live feed of recent events and anomalies.
 
 ## Event Types
+
 - Supported event types include: `message_sent`, `message_read`, `product_clicked`, `order_placed`, `conversation_started`, `user_joined`, `user_left`, `conversation_closed`.
 - New event types can be added in a type-safe manner on both backend and frontend.
 
 ## Best Practices
+
 - Always use the ConversationEventLogger for logging events in the frontend.
 - Ensure user and tenant IDs are sourced from Clerk context/hooks.
 - Extend analytics and monitoring by adding new event types and updating the dashboard as needed.
@@ -520,16 +542,19 @@ Trust is at the heart of commerce in Africa. Our architecture is designed so tha
 Our conversational engine is trained on real African chat data, supports local dialects, and is always improving to make commerce feel as natural and trustworthy as chatting with a friend or local vendor.
 
 ## Event-Driven Backend, Monitoring, and Alerting (2024-06)
+
 - The backend is now fully event-driven, with all order, payment, and webhook events monitored via Sentry and Prometheus.
 - Alerting is automated via Prometheus Alertmanager and WhatsApp for critical events.
 - All frontend monitoring and alerting (NotificationCenter, WhatsApp alerts) are integrated with backend events and metrics.
 - See backend/README.md and frontend/docs/MONITORING.md for details.
 
 ### Analytics, Fulfillment, and Alerting (2024-06)
+
 - Analytics logging is now structured (JSON), fulfillment is event-driven, and alerting is actionable and ready for real integration.
 - See backend/README.md and MONITORING.md for details.
 
 ## API Versioning (2024-06)
+
 - The backend supports API versioning for all breaking changes.
 - `/api/v2/orders/` and other v2 endpoints are available for new or breaking changes.
 - See backend/README.md for migration plan and technical details.
@@ -546,3 +571,28 @@ Our conversational engine is trained on real African chat data, supports local d
 - **Error handling is required for all async flows**: Use try/catch around all await calls that can throw.
 - **All async functions must be fully typed**: Never use `any` in async function signatures or return types.
 - **Async flows must be documented and tested**: All async logic must have corresponding tests and inline comments for complex flows.
+
+## 🧹 2024: Initial Build & Type Safety Enforcement (Summary)
+
+### Achievements
+- All `any` types eliminated; replaced with explicit interfaces, generics, or `unknown` with type guards
+- All unused variables, imports, and forbidden `require()` usage removed
+- All model interfaces (Product, Order, StorefrontComponent, etc.) now require `created_at: string` and use canonical base types
+- All bridge files removed; only direct module imports allowed (no `/types/` directory usage)
+- All index signature property access (TS4111) and strict optional property errors fixed
+- All code is now linter- and type-check compliant; CI blocks merges on violations
+- All async code uses async/await with full error handling and type safety
+- All code changes are documented and tested
+
+### Canonical Linter/Type Error Resolution
+- Use type guards and explicit types instead of non-null assertions or `any`
+- Suppress false positive linter/type errors only with line-level comments and clear justification
+- Never use file-level disables except for legacy/third-party code
+- All test code must be type-safe and use mocks for side-effectful utilities
+
+### Updated Rules for All Contributors & AI Agents
+- Never introduce new `any` types or bridge files
+- Always use direct module imports and respect module boundaries
+- All code must be clean, readable, and well-documented
+- All code must pass `npm run lint`, `npm run type-check`, and `npm run verify:architecture`
+- All architectural and code quality rules are enforced by CI and documented in this file

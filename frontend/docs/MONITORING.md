@@ -154,6 +154,7 @@ Planned improvements to the monitoring system:
 5. **AI-powered Insights**: ML-based anomaly detection and business insights
 
 ## Backend Monitoring & Alerting Integration (2024-06)
+
 - The backend is fully integrated with Sentry (error monitoring) and Prometheus (metrics at /metrics for order, payment, and webhook failures).
 - Prometheus Alertmanager can be configured for automated alerting on spikes or failures.
 - Sentry captures all backend errors and exceptions for developer and ops visibility.
@@ -161,10 +162,12 @@ Planned improvements to the monitoring system:
 - See backend/README.md for ops setup, alert configuration, and troubleshooting.
 
 ## Developer Onboarding: Event-Driven Monitoring
+
 - All monitoring and alerting flows are event-driven. To add new alerts or metrics, register a new event handler in the backend and update Prometheus counters as needed.
 - For frontend integration, subscribe to NotificationCenter and WhatsApp alert events as documented above.
 
 ## Analytics Logging, Fulfillment, and Alerting (2024-06)
+
 - **Structured analytics logging**: All key events are logged as structured JSON and ready for ingestion by analytics systems (see backend/README.md, order_event_handlers.py).
 - **Event-driven fulfillment workflow**: Shipping and delivery are handled by a fulfillment event handler, ready for real-world integration.
 - **Actionable alerting**: Email/WhatsApp alert stubs are called for critical failures, with clear extension points for production (see backend/README.md, rules_engine.py).

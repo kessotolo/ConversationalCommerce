@@ -1,13 +1,15 @@
 'use client';
 
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
-import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
 import { HttpPaymentService } from '@/modules/payment/services/PaymentService';
 
 import type { CountryCode } from 'libphonenumber-js';
+import type { PaymentSettings } from '@/modules/payment/models/payment';
+import type { Result } from '@/modules/core/models/base/result';
+import { isSuccess } from '@/modules/core/models/base/result';
 
 interface CustomerInfo {
   name?: string;
@@ -22,7 +24,7 @@ interface ShippingAddress {
 }
 interface PaymentInfo {
   provider?: string;
-  details?: any;
+  details?: unknown;
 }
 interface CheckoutData {
   customer: CustomerInfo;
@@ -30,14 +32,20 @@ interface CheckoutData {
   payment: PaymentInfo;
 }
 
+// Define CartItem and Cart interfaces for type safety
 interface CartItem {
   id: string;
-  product_id: string;
   name: string;
-  price_at_add: number;
   quantity: number;
-  image_url: string | null;
-  variant_id?: string | null;
+  price: number;
+  variantId?: string;
+  variantName?: string;
+  imageUrl?: string;
+}
+
+interface Cart {
+  items: CartItem[];
+  // Add other cart properties as needed
 }
 
 const paymentService = new HttpPaymentService();
@@ -55,13 +63,12 @@ function StepCustomerInfo(props: {
   onChange: (data: CustomerInfo) => void;
   onNext: () => void;
 }) {
-  const { data, onChange, onNext } = props;
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
   const [touched, setTouched] = useState<{ [k: string]: boolean }>({});
-  const [local, setLocal] = useState<CustomerInfo>({ ...data });
+  const [local, setLocal] = useState<CustomerInfo>({ ...props.data });
 
   useEffect(() => {
-    onChange(local);
+    props.onChange(local);
   }, [local]);
 
   function validate() {
@@ -81,7 +88,7 @@ function StepCustomerInfo(props: {
 
   const handleBlur = (field: string) => setTouched((t) => ({ ...t, [field]: true }));
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setLocal((l) => ({ ...l, [e.target.name]: e.target.value }));
+    setLocal((l) => ({ ...l, [e.target['name']]: e.target['value'] }));
 
   return (
     <form className="flex flex-col gap-4">
@@ -122,7 +129,7 @@ function StepCustomerInfo(props: {
         type="button"
         className="btn-primary mt-4"
         disabled={Object.keys(errors).length > 0}
-        onClick={onNext}
+        onClick={props.onNext}
       >
         Next
       </button>
@@ -136,13 +143,12 @@ function StepShippingAddress(props: {
   onNext: () => void;
   onBack: () => void;
 }) {
-  const { data, onChange, onNext, onBack } = props;
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
   const [touched, setTouched] = useState<{ [k: string]: boolean }>({});
-  const [local, setLocal] = useState<ShippingAddress>({ ...data });
+  const [local, setLocal] = useState<ShippingAddress>({ ...props.data });
 
   useEffect(() => {
-    onChange(local);
+    props.onChange(local);
   }, [local]);
 
   function validate() {
@@ -159,7 +165,7 @@ function StepShippingAddress(props: {
 
   const handleBlur = (field: string) => setTouched((t) => ({ ...t, [field]: true }));
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-    setLocal((l) => ({ ...l, [e.target.name]: e.target.value }));
+    setLocal((l) => ({ ...l, [e.target['name']]: e.target['value'] }));
 
   return (
     <form className="flex flex-col gap-4">
@@ -194,8 +200,8 @@ function StepShippingAddress(props: {
       >
         <option value="">Select Country</option>
         {countryList.map((c) => (
-          <option key={c.code} value={c.code}>
-            {c.name}
+          <option key={c['code']} value={c['code']}>
+            {c['name']}
           </option>
         ))}
       </select>
@@ -214,14 +220,14 @@ function StepShippingAddress(props: {
         <span className="text-red-500 text-sm">{errors['postalCode']}</span>
       )}
       <div className="flex gap-2 mt-4">
-        <button type="button" className="btn-secondary" onClick={onBack}>
+        <button type="button" className="btn-secondary" onClick={props.onBack}>
           Back
         </button>
         <button
           type="button"
           className="btn-primary"
           disabled={Object.keys(errors).length > 0}
-          onClick={onNext}
+          onClick={props.onNext}
         >
           Next
         </button>
@@ -230,20 +236,31 @@ function StepShippingAddress(props: {
   );
 }
 
-function StepPaymentMethod(props: any) {
+function StepPaymentMethod(props: {
+  data: PaymentInfo;
+  onChange: (data: PaymentInfo) => void;
+  onNext: () => void;
+  onBack: () => void;
+  enabledProviders: string[];
+}) {
   return <div>Step 3: Payment Method (TODO)</div>;
 }
-function StepReviewConfirm(props: any) {
+
+function StepReviewConfirm(props: {
+  data: CheckoutData;
+  onEdit: (step: number) => void;
+  onSubmit: () => void;
+  onBack: () => void;
+}) {
   return <div>Step 4: Review & Confirm (TODO)</div>;
 }
 
 export default function CartPage() {
   const params = useParams();
   const { merchantId } = params as { merchantId: string };
-  const [cart, setCart] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [cart, setCart] = useState<Cart | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [updating, setUpdating] = useState(false);
   // Add wizard state
   const [step, setStep] = useState(1);
   const [checkoutData, setCheckoutData] = useState<CheckoutData>({
@@ -254,17 +271,17 @@ export default function CartPage() {
   const [enabledProviders, setEnabledProviders] = useState<string[]>([]);
 
   // TODO: Replace with real session/user/phone logic
-  const session_id =
-    typeof window !== 'undefined' ? (localStorage.getItem('session_id') ?? '') : '';
-  const API_BASE =
-    typeof process !== 'undefined' ? (process.env['NEXT_PUBLIC_API_BASE'] ?? '') : '';
+  const sessionId = typeof window !== 'undefined' ? (localStorage.getItem('session_id') ?? '') : '';
+  const apiBase = typeof process !== 'undefined' ? (process.env['NEXT_PUBLIC_API_BASE'] ?? '') : '';
 
   useEffect(() => {
     fetchCart();
-    paymentService.getPaymentSettings(merchantId).then((res) => {
-      if (res.success && res.data?.providers) {
+    paymentService.getPaymentSettings(merchantId).then((res: Result<PaymentSettings, Error>) => {
+      if (isSuccess(res) && Array.isArray(res.data.providers)) {
         setEnabledProviders(
-          res.data.providers.filter((p) => p.enabled).map((p) => p.provider.toLowerCase()),
+          res.data.providers
+            .filter((p) => p.enabled && typeof p.provider === 'string')
+            .map((p) => p.provider.toLowerCase()),
         );
       }
     });
@@ -276,72 +293,24 @@ export default function CartPage() {
     setError(null);
     try {
       const res = await fetch(
-        `${API_BASE}/api/v1/cart?tenant_id=${merchantId}&session_id=${session_id}`,
+        `${apiBase}/api/v1/cart?tenant_id=${merchantId}&session_id=${sessionId}`,
       );
       if (!res.ok) throw new Error('Failed to fetch cart');
-      setCart(await res.json());
-    } catch (e: any) {
-      setError(e.message);
+      const data: unknown = await res.json();
+      if (
+        typeof data === 'object' &&
+        data !== null &&
+        'items' in data &&
+        Array.isArray((data as Record<string, unknown>)['items'])
+      ) {
+        setCart(data as Cart);
+      } else {
+        setCart({ items: [] });
+      }
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
-    }
-  }
-
-  async function updateQuantity(product_id: string, variant_id: string | null, quantity: number) {
-    setUpdating(true);
-    try {
-      const res = await fetch(
-        `${API_BASE}/api/v1/cart/update?tenant_id=${merchantId}&session_id=${session_id}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ product_id, quantity, variant_id }),
-        },
-      );
-      if (!res.ok) throw new Error('Failed to update cart');
-      setCart(await res.json());
-    } catch (e: any) {
-      setError(e.message);
-    } finally {
-      setUpdating(false);
-    }
-  }
-
-  async function removeItem(product_id: string, variant_id: string | null) {
-    setUpdating(true);
-    try {
-      const res = await fetch(
-        `${API_BASE}/api/v1/cart/remove?tenant_id=${merchantId}&session_id=${session_id}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ product_id, variant_id }),
-        },
-      );
-      if (!res.ok) throw new Error('Failed to remove item');
-      setCart(await res.json());
-    } catch (e: any) {
-      setError(e.message);
-    } finally {
-      setUpdating(false);
-    }
-  }
-
-  async function clearCart() {
-    setUpdating(true);
-    try {
-      const res = await fetch(
-        `${API_BASE}/api/v1/cart/clear?tenant_id=${merchantId}&session_id=${session_id}`,
-        {
-          method: 'POST',
-        },
-      );
-      if (!res.ok) throw new Error('Failed to clear cart');
-      setCart(await res.json());
-    } catch (e: any) {
-      setError(e.message);
-    } finally {
-      setUpdating(false);
     }
   }
 
@@ -356,7 +325,7 @@ export default function CartPage() {
 
   if (loading) return <div className="p-8 text-center">Loading cart...</div>;
   if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
-  if (!cart?.items || cart.items.length === 0) {
+  if (!cart?.['items'] || cart['items'].length === 0) {
     return (
       <div className="max-w-md mx-auto p-8 text-center">
         <h2 className="text-xl font-bold mb-2">Your cart is empty</h2>
@@ -364,11 +333,6 @@ export default function CartPage() {
       </div>
     );
   }
-
-  const subtotal = cart.items.reduce(
-    (sum: number, item: CartItem) => sum + item.price_at_add * item.quantity,
-    0,
-  );
 
   // Render wizard
   return (
@@ -382,23 +346,23 @@ export default function CartPage() {
       </div>
       {step === 1 && (
         <StepCustomerInfo
-          data={checkoutData.customer}
-          onChange={(values: any) => handleChange('customer', values)}
+          data={checkoutData['customer']}
+          onChange={(values: CustomerInfo) => handleChange('customer', values)}
           onNext={() => goToStep(2)}
         />
       )}
       {step === 2 && (
         <StepShippingAddress
-          data={checkoutData.address}
-          onChange={(values: any) => handleChange('address', values)}
+          data={checkoutData['address']}
+          onChange={(values: ShippingAddress) => handleChange('address', values)}
           onNext={() => goToStep(3)}
           onBack={() => goToStep(1)}
         />
       )}
       {step === 3 && (
         <StepPaymentMethod
-          data={checkoutData.payment}
-          onChange={(values: any) => handleChange('payment', values)}
+          data={checkoutData['payment']}
+          onChange={(values: PaymentInfo) => handleChange('payment', values)}
           onNext={() => goToStep(4)}
           onBack={() => goToStep(2)}
           enabledProviders={enabledProviders}
@@ -408,7 +372,7 @@ export default function CartPage() {
         <StepReviewConfirm
           data={checkoutData}
           onEdit={goToStep}
-          onSubmit={() => {}}
+          onSubmit={() => { }}
           onBack={() => goToStep(3)}
         />
       )}

@@ -39,6 +39,7 @@ masked_data = mask_sensitive_data(payment_data)
 ### Rate Limiting & Abuse Prevention
 
 - **Endpoint-Specific Limits**:
+
   - Payment initialization: 10 requests/minute
   - Payment verification: 20 requests/minute
   - Webhooks: 100 requests/minute
@@ -217,4 +218,4 @@ def calculate_payment_risk(
 
 ---
 
-*This document should be reviewed and updated regularly as part of the security maintenance process.*
+_This document should be reviewed and updated regularly as part of the security maintenance process._

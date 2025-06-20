@@ -1,8 +1,6 @@
 import { Box, Button, CircularProgress, Typography, Alert, Card, CardContent } from '@mui/material';
 import React, { useState, useEffect } from 'react';
 
-import type { Money } from '@/modules/core/models/base/money';
-
 import type { Order } from '@/modules/order/models/order';
 import { PaymentProvider } from '@/modules/payment/models/payment';
 import type { PaymentInitializeRequest } from '@/modules/payment/models/payment';
@@ -59,7 +57,7 @@ export const OnlinePaymentProcessor: React.FC<OnlinePaymentProcessorProps> = ({
           customer_name: order.customer.name,
           customer_phone: order.customer.phone,
           provider,
-          redirect_url: isBrowser ? `${window.location.origin}/checkout/confirmation` : undefined,
+          redirect_url: isBrowser ? `${window.location.origin}/checkout/confirmation` : '',
           metadata: {
             order_id: order.order_number,
             source: order.source,
@@ -102,7 +100,7 @@ export const OnlinePaymentProcessor: React.FC<OnlinePaymentProcessorProps> = ({
         const containerId = 'paystack-payment-container';
         paystackProvider.createPaymentWidget(
           containerId,
-          order.total_amount.value,
+          order.total_amount.amount,
           order.customer.email,
           reference || `order_${order.order_number}_${Date.now()}`,
           (ref) => handlePaymentSuccess(ref),
@@ -142,13 +140,13 @@ export const OnlinePaymentProcessor: React.FC<OnlinePaymentProcessorProps> = ({
       setLoading(true);
       try {
         flutterwaveProvider.createPaymentWidget(
-          order.total_amount.value,
+          order.total_amount.amount,
           order.total_amount.currency,
           order.customer.email,
           order.customer.name,
           order.customer.phone,
           reference || `order_${order.order_number}_${Date.now()}`,
-          (ref, transactionId) => handlePaymentSuccess(ref),
+          (ref) => handlePaymentSuccess(ref),
           () => onCancel(),
         );
       } catch (error) {
@@ -170,29 +168,6 @@ export const OnlinePaymentProcessor: React.FC<OnlinePaymentProcessorProps> = ({
         >
           {loading ? <CircularProgress size={24} /> : 'Pay with Flutterwave'}
         </Button>
-      </Box>
-    );
-  };
-
-  const renderHostedCheckoutRedirect = () => {
-    return (
-      <Box>
-        <Typography variant="body1" gutterBottom>
-          You'll be redirected to a secure payment page to complete your payment.
-        </Typography>
-        <Box mt={2}>
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            href={paymentLink || '#'}
-            disabled={!paymentLink || loading}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {loading ? <CircularProgress size={24} /> : 'Proceed to Payment'}
-          </Button>
-        </Box>
       </Box>
     );
   };
@@ -249,7 +224,7 @@ export const OnlinePaymentProcessor: React.FC<OnlinePaymentProcessorProps> = ({
         {!error && (
           <Box>
             <Typography variant="body2" color="text.secondary" mb={2}>
-              Payment Amount: {order.total_amount.currency} {order.total_amount.value.toFixed(2)}
+              Payment Amount: {order.total_amount.currency} {order.total_amount.amount.toFixed(2)}
             </Typography>
 
             {useInlineWidget &&

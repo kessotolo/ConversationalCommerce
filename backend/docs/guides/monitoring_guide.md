@@ -25,7 +25,7 @@ from prometheus_client import Counter, Histogram, Gauge
 
 # Request metrics
 http_requests_total = Counter(
-    'http_requests_total', 
+    'http_requests_total',
     'Total HTTP Requests',
     ['method', 'endpoint', 'status']
 )
@@ -68,23 +68,23 @@ payments_processed_total = Counter(
 @app.middleware("http")
 async def metrics_middleware(request: Request, call_next):
     start_time = time.time()
-    
+
     response = await call_next(request)
-    
+
     # Record request duration
     duration = time.time() - start_time
     http_request_duration_seconds.labels(
         method=request.method,
         endpoint=request.url.path
     ).observe(duration)
-    
+
     # Record request count
     http_requests_total.labels(
         method=request.method,
         endpoint=request.url.path,
         status=response.status_code
     ).inc()
-    
+
     return response
 ```
 
@@ -94,13 +94,13 @@ async def metrics_middleware(request: Request, call_next):
 # In OrderService
 async def create_order(self, order_data: OrderCreate) -> Order:
     # Business logic...
-    
+
     # Record metric
     orders_created_total.labels(
         store_id=str(order.store_id),
         channel=order_data.channel or "web"
     ).inc()
-    
+
     return order
 ```
 
@@ -124,7 +124,7 @@ def configure_sentry(app: FastAPI):
             SqlalchemyIntegration(),
         ],
     )
-    
+
     app = SentryAsgiMiddleware(app)
     return app
 ```
@@ -145,7 +145,7 @@ async def process_payment(payment_id: str, data: dict):
             "amount": data.get("amount"),
             "currency": data.get("currency")
         })
-        
+
         try:
             # Payment processing logic
             result = await payment_service.process(payment_id, data)
@@ -173,11 +173,11 @@ def configure_logging():
         datefmt="%Y-%m-%dT%H:%M:%S%z"
     )
     log_handler.setFormatter(formatter)
-    
+
     root_logger = logging.getLogger()
     root_logger.addHandler(log_handler)
     root_logger.setLevel(settings.LOG_LEVEL)
-    
+
     # Third-party loggers
     logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
     logging.getLogger("uvicorn").setLevel(logging.INFO)
@@ -190,7 +190,7 @@ logger = logging.getLogger(__name__)
 
 async def update_order_status(self, order: Order, new_status: OrderStatus):
     old_status = order.status
-    
+
     # Structured log entry
     logger.info("Order status update", extra={
         "order_id": order.id,
@@ -199,7 +199,7 @@ async def update_order_status(self, order: Order, new_status: OrderStatus):
         "new_status": new_status.value,
         "event": "order_status_change"
     })
-    
+
     # Business logic...
 ```
 
@@ -233,34 +233,34 @@ async def db_health_check(db: AsyncSession = Depends(get_db)):
 
 ```yaml
 groups:
-- name: ConversationalCommerce
-  rules:
-  - alert: HighErrorRate
-    expr: sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) > 0.05
-    for: 2m
-    labels:
-      severity: critical
-    annotations:
-      summary: "High error rate detected"
-      description: "Error rate is {{ $value | humanizePercentage }} for the past 5 minutes"
+  - name: ConversationalCommerce
+    rules:
+      - alert: HighErrorRate
+        expr: sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'High error rate detected'
+          description: 'Error rate is {{ $value | humanizePercentage }} for the past 5 minutes'
 
-  - alert: SlowResponseTime
-    expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 2
-    for: 5m
-    labels:
-      severity: warning
-    annotations:
-      summary: "Slow response times detected"
-      description: "95th percentile of response time is {{ $value }} seconds"
+      - alert: SlowResponseTime
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Slow response times detected'
+          description: '95th percentile of response time is {{ $value }} seconds'
 
-  - alert: PaymentFailureRate
-    expr: sum(rate(payments_processed_total{status="failed"}[15m])) / sum(rate(payments_processed_total[15m])) > 0.1
-    for: 5m
-    labels:
-      severity: critical
-    annotations:
-      summary: "High payment failure rate"
-      description: "Payment failure rate is {{ $value | humanizePercentage }} for the past 15 minutes"
+      - alert: PaymentFailureRate
+        expr: sum(rate(payments_processed_total{status="failed"}[15m])) / sum(rate(payments_processed_total[15m])) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'High payment failure rate'
+          description: 'Payment failure rate is {{ $value | humanizePercentage }} for the past 15 minutes'
 ```
 
 ### WhatsApp Alert Integration
@@ -274,14 +274,14 @@ async def send_monitoring_alert(alert_type: str, message: str, severity: str):
     # Get store owner phone from store settings
     store_settings = await settings_service.get_store_settings(store_id)
     owner_phone = store_settings.owner_phone
-    
+
     if not owner_phone:
         logger.error("Cannot send alert: No owner phone configured")
         return
-    
+
     # Format alert message
     alert_message = f"🔔 *{severity.upper()} ALERT*: {alert_type}\n\n{message}"
-    
+
     # Send via WhatsApp
     whatsapp_service = WhatsAppService()
     await whatsapp_service.send_message(
@@ -289,7 +289,7 @@ async def send_monitoring_alert(alert_type: str, message: str, severity: str):
         text=alert_message,
         message_type="ALERT"
     )
-    
+
     logger.info(f"Alert sent to {owner_phone}", extra={
         "alert_type": alert_type,
         "severity": severity
@@ -374,7 +374,7 @@ product_views_total = Counter(
 ```python
 async def view_product(store_id: int, product_id: int, channel: str = "web"):
     # Business logic...
-    
+
     # Record metric
     product_views_total.labels(
         store_id=str(store_id),
@@ -399,7 +399,7 @@ payment_processing_duration = Histogram(
 
 async def process_payment(provider: str, payment_data: dict):
     start = time.time()
-    
+
     try:
         # Payment processing logic...
         result = await payment_provider.process(payment_data)

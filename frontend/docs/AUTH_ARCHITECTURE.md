@@ -24,7 +24,7 @@ export function SafeClerkProvider({ children }: { children: React.ReactNode }) {
   if (process.env.IS_BUILD_TIME === 'true') {
     return <>{children}</>;
   }
-  
+
   // During runtime, use actual Clerk provider
   return (
     <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
@@ -74,10 +74,10 @@ import { useAuth } from '@/modules/core/hooks/useAuth';
 
 export default function ProtectedPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
-  
+
   if (isLoading) return <LoadingState />;
   if (!isAuthenticated) return <RedirectToSignIn />;
-  
+
   return <YourContent user={user} />;
 }
 ```
@@ -94,6 +94,7 @@ export default function ProtectedPage() {
 ### Build Time
 
 During the Next.js build process:
+
 - `IS_BUILD_TIME=true` environment variable is set
 - `SafeClerkProvider` detects build mode and renders children without Clerk
 - `useAuth` hook returns safe defaults (unauthenticated state)
@@ -102,6 +103,7 @@ During the Next.js build process:
 ### Runtime
 
 In browser/server runtime:
+
 - `IS_BUILD_TIME` is not set
 - `SafeClerkProvider` uses actual Clerk provider
 - `useAuth` hook connects to Clerk and returns real auth state

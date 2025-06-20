@@ -76,14 +76,17 @@ export class PaystackProvider {
     onSuccess: (reference: string) => void,
     onClose: () => void,
   ) {
-    if (typeof window === 'undefined' || typeof (window as any).PaystackPop !== 'object') {
+    if (
+      typeof window === 'undefined' ||
+      typeof (window as unknown as PaystackWindow).PaystackPop !== 'object'
+    ) {
       this.loadPaystackScript();
     }
 
     try {
       const handler =
         typeof window !== 'undefined'
-          ? (window as any).PaystackPop.setup({
+          ? (window as unknown as PaystackWindow).PaystackPop?.setup({
               key: this.publicKey,
               email: email,
               amount: amount * 100, // Convert to kobo/cents
@@ -107,7 +110,7 @@ export class PaystackProvider {
           : undefined;
 
       if (handler) {
-        handler.openIframe();
+        (handler as { openIframe: () => void }).openIframe();
       }
     } catch (error) {
       if (typeof console !== 'undefined') console.error('Error creating Paystack widget:', error);
@@ -119,7 +122,10 @@ export class PaystackProvider {
    * Load Paystack script dynamically
    */
   private loadPaystackScript() {
-    if (typeof window !== 'undefined' && typeof (window as any).PaystackPop !== 'object') {
+    if (
+      typeof window !== 'undefined' &&
+      typeof (window as unknown as PaystackWindow).PaystackPop !== 'object'
+    ) {
       const script = typeof document !== 'undefined' ? document.createElement('script') : undefined;
       if (typeof document !== 'undefined' && script) {
         document.body.appendChild(script);

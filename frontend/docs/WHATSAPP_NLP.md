@@ -21,6 +21,7 @@ The WhatsApp NLP Cart Management allows customers to interact with their shoppin
 There are two ways sellers can connect their WhatsApp numbers:
 
 1. **Platform-managed Twilio integration** (Default):
+
    - Sellers simply add their WhatsApp number in the settings dashboard
    - The platform routes messages through a central Twilio account
    - Responses are sent from the seller's WhatsApp number via Twilio
@@ -48,6 +49,7 @@ TWILIO_WHATSAPP_NUMBER=your_platform_whatsapp_number (optional fallback)
 ### 3. Webhook Configuration
 
 1. In your WhatsApp Business API dashboard, set up a webhook with these settings:
+
    - URL: `https://your-domain.com/api/v1/whatsapp/webhook`
    - Verify Token: The same value you set for `WHATSAPP_VERIFY_TOKEN`
    - Subscribe to: `messages`

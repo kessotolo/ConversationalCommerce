@@ -1,6 +1,7 @@
 # Schemas Overview
 
 ## Onboarding Schemas
+
 - **OnboardingStartRequest:** Used for merchant signup/start onboarding.
 - **KYCRequest:** Used for submitting KYC information.
 - **DomainRequest:** Used for subdomain/custom domain setup.

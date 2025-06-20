@@ -1,5 +1,4 @@
 import { ExternalLink, Eye, QrCode, Settings, Edit } from 'lucide-react';
-import Link from 'next/link';
 import React from 'react';
 
 import { useTenant } from '@/contexts/TenantContext';
@@ -20,7 +19,7 @@ export default function StorefrontLinks({ className }: StorefrontLinksProps) {
     );
   }
 
-  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'yourplatform.com';
+  const baseDomain = process.env['NEXT_PUBLIC_BASE_DOMAIN'] || 'yourplatform.com';
   const isDefaultDomain = baseDomain === 'yourplatform.com';
   const isDefaultSubdomain = tenant.subdomain === 'default';
 

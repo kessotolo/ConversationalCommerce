@@ -1,6 +1,5 @@
 'use client';
 
-import { useUser } from '@clerk/nextjs';
 import {
   Home,
   Package,
@@ -15,6 +14,7 @@ import {
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useState } from 'react';
+import { useUser } from '@clerk/nextjs';
 
 import { cn } from '@/lib/utils';
 
@@ -51,7 +51,7 @@ export function MobileNav() {
   const pathname = usePathname();
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
-  const { user, isSignedIn } = useUser();
+  const { user } = useUser();
 
   // Only show navigation on dashboard pages
   if (!pathname?.startsWith('/dashboard')) {
@@ -61,7 +61,8 @@ export function MobileNav() {
   // Handle navigation and close menu
   const handleNav = (href: string) => {
     setShowMenu(false);
-    router.push(href);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    router!.push(href);
   };
 
   // Handle sign out
@@ -73,7 +74,8 @@ export function MobileNav() {
     ) {
       (window as unknown as { Clerk?: { signOut?: () => void } }).Clerk?.signOut();
     } else {
-      router.push('/');
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      router!.push('/');
     }
   };
 

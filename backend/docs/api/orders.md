@@ -38,12 +38,12 @@ POST /api/v1/orders
   "product_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "buyer_name": "John Doe",
   "buyer_phone": "+2547XXXXXXXX",
-  "buyer_email": "customer@example.com",  // Required for website orders
+  "buyer_email": "customer@example.com", // Required for website orders
   "buyer_address": "123 Main St, Nairobi",
   "quantity": 2,
   "total_amount": 59.98,
   "notes": "Please deliver before 5pm",
-  "order_source": "website"  // "website" or "instagram"
+  "order_source": "website" // "website" or "instagram"
 }
 ```
 
@@ -162,7 +162,7 @@ GET /api/v1/orders
       "status": "pending",
       "created_at": "2025-06-08T22:12:05",
       "updated_at": "2025-06-08T22:12:05"
-    },
+    }
     // Additional orders...
   ]
 }
@@ -211,7 +211,7 @@ GET /api/v1/orders/whatsapp?whatsapp_number={whatsapp_number}
       },
       "created_at": "2025-06-08T22:12:05",
       "updated_at": "2025-06-08T22:12:05"
-    },
+    }
     // Additional orders...
   ]
 }
@@ -270,7 +270,7 @@ PUT /api/v1/orders/{order_id}
   "buyer_name": "John Doe Updated",
   "status": "confirmed",
   "notes": "Updated delivery instructions",
-  "version": 1  // Current version for optimistic locking
+  "version": 1 // Current version for optimistic locking
 }
 ```
 
@@ -392,6 +392,7 @@ See the comprehensive test suite in `tests/api/test_create_order.py`, `tests/api
 To support clean separation of channel-specific metadata and extensibility for multiple communication channels, order metadata is now stored in a dedicated OrderChannelMeta model:
 
 ### OrderChannelMeta
+
 - Stores channel-specific metadata for an order (e.g., WhatsApp: whatsapp_number, message_id, chat_session_id)
 - One-to-one relationship with the core Order model via order_id
 - Includes a channel field to identify the source channel (WhatsApp, Instagram, etc.)
@@ -400,6 +401,7 @@ To support clean separation of channel-specific metadata and extensibility for m
 - Enables clean extensibility for additional channels without modifying the core Order model
 
 ### Example API Response (WhatsApp Order)
+
 ```json
 {
   "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -423,6 +425,7 @@ To support clean separation of channel-specific metadata and extensibility for m
 ```
 
 ### Rationale & Extensibility
+
 - **Single Responsibility:** Core order data and channel-specific metadata are separated for clarity and maintainability.
 - **Extensibility:** Easy to add support for other channels (e.g., Telegram, SMS) by creating similar models and relationships.
 - **Data Integrity:** Foreign key relationships ensure referential integrity and efficient queries.
@@ -436,15 +439,18 @@ The backend uses an event-driven architecture for order-related actions. This en
 > **Note:** For detailed documentation on the order status lifecycle, state machine transitions, and event emission guidelines, see [Order Lifecycle & Event-Driven Architecture](order_lifecycle.md).
 
 ### Event Bus
+
 - Located at `app/domain/events/event_bus.py`.
 - Implements async publish/subscribe for domain events.
 - Handlers can be registered for each event type.
 
 ### Order Event Types
+
 - Defined in `app/domain/events/order_events.py`.
 - Naming convention: `OrderActionEvent` (e.g., `OrderCreatedEvent`), with event type strings like `ORDER_CREATED`.
 
 #### Main Events:
+
 - **OrderCreatedEvent** (`ORDER_CREATED`):
   - `order_id`, `order_number`, `order`, `tenant_id`, `timestamp`, `event_id`, `event_metadata`
   - Emitted after a new order is created.
@@ -505,10 +511,13 @@ The backend uses an event-driven architecture for order-related actions. This en
 - See `OrderService.update_order_status` and related methods for reference implementation.
 
 ## 🛡️ Error Response Format
+
 All order API errors use the following format:
+
 ```json
 { "detail": "Error message here" }
 ```
 
 ## 🏢 Tenant Context Requirement
+
 All order endpoints are tenant-aware and require tenant context to be set (via middleware and request headers). Requests without valid tenant context will be rejected.

@@ -24,7 +24,6 @@ const __dirname = path.dirname(__filename);
 // Paths are relative to the project root
 const SRC_DIR = path.join(__dirname, '..', 'src');
 const EXTENSIONS = ['ts', 'tsx'];
-const IGNORE_PATTERNS: string[] = []; // Add patterns to ignore if needed
 
 console.log('Checking for circular dependencies...');
 

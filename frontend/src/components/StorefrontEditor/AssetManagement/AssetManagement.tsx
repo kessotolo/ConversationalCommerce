@@ -119,8 +119,8 @@ const AssetManagement: React.FC<AssetManagementProps> = ({ _tenantId }) => {
             <>
               <AssetGrid
                 assets={assets}
-                onAssetSelect={handleAssetSelect}
                 selectedAssetId={selectedAsset?.id}
+                onAssetSelect={handleAssetSelect}
               />
 
               {/* Pagination */}

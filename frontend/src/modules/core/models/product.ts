@@ -4,7 +4,7 @@ export interface Product {
   description: string;
   price: number;
   image_url?: string | null;
-  created_at?: string;
+  created_at: string;
   updated_at?: string;
   // Add more fields as needed
 }

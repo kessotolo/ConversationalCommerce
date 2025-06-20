@@ -4,12 +4,10 @@ import {
   CalendarIcon,
   ExclamationTriangleIcon,
   CheckIcon,
-  XMarkIcon,
   PhotoIcon,
   LinkIcon,
   UserGroupIcon,
 } from '@heroicons/react/24/outline';
-import Image from 'next/image';
 import React, { useState, useEffect } from 'react';
 
 import type { InputChangeEvent, FormSubmitEvent } from '@/modules/core/models';

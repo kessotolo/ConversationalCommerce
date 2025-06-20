@@ -11,7 +11,8 @@ export type EventHandler<T extends DomainEvent> = (event: T) => Promise<void> | 
  */
 export class EventBus {
   private static instance: EventBus;
-  private handlers: Map<string, Array<EventHandler<any>>>;
+  // Store handlers as functions accepting DomainEvent for type safety
+  private handlers: Map<string, Array<(event: DomainEvent) => void | Promise<void>>>;
 
   private constructor() {
     this.handlers = new Map();
@@ -29,18 +30,18 @@ export class EventBus {
 
   /**
    * Subscribe to a specific event type
+   * Note: Handlers must type guard the event if they expect a specific subtype.
    */
   public subscribe<T extends DomainEvent>(eventType: string, handler: EventHandler<T>): () => void {
     if (!this.handlers.has(eventType)) {
       this.handlers.set(eventType, []);
     }
-
+    // Cast handler to accept DomainEvent (safe if handler type guards internally)
     const handlers = this.handlers.get(eventType)!;
-    handlers.push(handler);
-
+    handlers.push(handler as (event: DomainEvent) => void | Promise<void>);
     // Return unsubscribe function
     return () => {
-      const index = handlers.indexOf(handler);
+      const index = handlers.indexOf(handler as (event: DomainEvent) => void | Promise<void>);
       if (index !== -1) {
         handlers.splice(index, 1);
       }

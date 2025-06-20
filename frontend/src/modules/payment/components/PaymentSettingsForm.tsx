@@ -27,7 +27,6 @@ export const PaymentSettingsForm: React.FC<PaymentSettingsFormProps> = ({ tenant
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<number>(0);
 
   const {
     register,
@@ -35,7 +34,6 @@ export const PaymentSettingsForm: React.FC<PaymentSettingsFormProps> = ({ tenant
     control,
     reset,
     watch,
-    setValue,
     formState: { errors },
   } = useForm<PaymentSettings>({
     defaultValues: {
@@ -87,10 +85,6 @@ export const PaymentSettingsForm: React.FC<PaymentSettingsFormProps> = ({ tenant
 
     loadSettings();
   }, [tenantId, reset]);
-
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setActiveTab(newValue);
-  };
 
   const onSubmit = async (data: PaymentSettings) => {
     setLoading(true);

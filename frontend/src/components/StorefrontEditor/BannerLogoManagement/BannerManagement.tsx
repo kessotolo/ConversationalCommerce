@@ -69,11 +69,6 @@ const BannerManagement: React.FC<BannerManagementProps> = ({ tenantId }) => {
     loadBanners();
   }, [tenantId, offset, limit, statusFilter, typeFilter, searchQuery]);
 
-  // Handle banner selection
-  const handleBannerSelect = (banner: Banner) => {
-    setSelectedBanner(banner);
-  };
-
   // Handle publishing a banner
   const handlePublishBanner = async (bannerId: UUID) => {
     try {
@@ -186,12 +181,12 @@ const BannerManagement: React.FC<BannerManagementProps> = ({ tenantId }) => {
               banners={banners}
               loading={loading}
               selectedBannerId={selectedBanner?.id}
-              onBannerSelect={handleBannerSelect}
+              onBannerSelect={(banner) => banner && setSelectedBanner(banner)}
               onBannerReorder={handleBannerReorder}
-              onFilterChange={handleFilterChange}
               statusFilter={statusFilter}
               typeFilter={typeFilter}
               searchQuery={searchQuery}
+              onFilterChange={handleFilterChange}
             />
 
             {/* Pagination */}

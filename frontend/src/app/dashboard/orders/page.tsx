@@ -7,7 +7,6 @@ import React, { useState } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { CardContent, CardHeader, CardTitle, Card } from '@/components/ui/Card';
-import { orderService } from '@/lib/api';
 import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';
 
 // Define order types to match component requirements

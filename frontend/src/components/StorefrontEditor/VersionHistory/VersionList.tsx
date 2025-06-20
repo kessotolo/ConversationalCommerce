@@ -5,7 +5,7 @@ import {
   CalendarIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import type { UUID, FormSubmitEvent } from '@/modules/core/models';
 
@@ -14,8 +14,8 @@ import type { Version } from '@/modules/storefront/models/version';
 interface VersionListProps {
   versions: Version[];
   loading: boolean;
-  selectedVersionId?: UUID;
-  compareVersionId?: UUID;
+  selectedVersionId?: string | undefined;
+  compareVersionId?: string | undefined;
   compareMode: boolean;
   onVersionSelect: (version: Version) => void;
   onTagsFilterChange: (tags: string[]) => void;
@@ -23,7 +23,7 @@ interface VersionListProps {
   onSearch: (query: string) => void;
   tagsFilter: string[];
   dateFilter: { start?: Date; end?: Date };
-  searchQuery: string;
+  searchQuery?: string;
 }
 
 const VersionList: React.FC<VersionListProps> = ({
@@ -38,20 +38,25 @@ const VersionList: React.FC<VersionListProps> = ({
   onSearch,
   tagsFilter,
   dateFilter,
-  searchQuery,
+  searchQuery = '',
 }) => {
   const [filterOpen, setFilterOpen] = useState(false);
-  const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
+  const [localSearchQuery, setLocalSearchQuery] = useState<string>(searchQuery as string);
   const [startDate, setStartDate] = useState(
     dateFilter.start ? formatDateForInput(dateFilter.start) : '',
   );
   const [endDate, setEndDate] = useState(dateFilter.end ? formatDateForInput(dateFilter.end) : '');
+
+  useEffect(() => {
+    setLocalSearchQuery(searchQuery as string);
+  }, [searchQuery]);
 
   // All available tags from all versions
   const allTags = [...new Set(versions.flatMap((version) => version.tags))].sort();
 
   // Format date for display
   const formatDate = (dateString: string): string => {
+    if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       month: 'short',
@@ -99,7 +104,10 @@ const VersionList: React.FC<VersionListProps> = ({
 
   // Check if a version is selected for comparison
   const isSelectedForCompare = (versionId: UUID) => {
-    return versionId === selectedVersionId || versionId === compareVersionId;
+    return (
+      (selectedVersionId && versionId === selectedVersionId) ||
+      (compareVersionId && versionId === compareVersionId)
+    );
   };
 
   if (loading) {

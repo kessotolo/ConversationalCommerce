@@ -1,7 +1,6 @@
 'use client';
 
 import { ArrowLeft, Camera, Upload, Trash2, MessageSquare, Globe, Check, Save } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState, useRef } from 'react';
@@ -42,13 +41,11 @@ export default function AddProductPage() {
 
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [isCapturing, setIsCapturing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
   // Direct camera capture for mobile
   const openCamera = () => {
-    setIsCapturing(true);
     if (cameraInputRef.current) {
       cameraInputRef.current.click();
     }
@@ -63,7 +60,6 @@ export default function AddProductPage() {
 
   // Handle camera capture
   const handleCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setIsCapturing(false);
     if (e.target.files?.[0]) {
       const file = e.target.files[0];
       processImageFile(file);

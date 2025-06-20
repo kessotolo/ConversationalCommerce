@@ -122,8 +122,7 @@ function ThemeCustomizationContent() {
       };
 
       await attemptSave();
-    } catch (error) {
-      console.error('Error saving theme:', error);
+    } catch {
       // Non-blocking error feedback
       const errorNotification = document.createElement('div');
       errorNotification.className =
@@ -402,11 +401,10 @@ function ThemeCustomizationContent() {
                       accent: presetTheme.accent,
                     }));
                   }}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    presetTheme.id === 'default'
+                  className={`p-4 rounded-lg border-2 transition-all ${presetTheme.id === 'default'
                       ? 'border-blue-500'
                       : 'border-gray-200 hover:border-gray-300'
-                  }`}
+                    }`}
                 >
                   <div className="flex space-x-2 mb-2">
                     <div
@@ -493,11 +491,11 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, Error
     return { hasError: true };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
+  override componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     console.error('Theme customization error:', error, errorInfo);
   }
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       return (
         <div className="p-6 text-center">

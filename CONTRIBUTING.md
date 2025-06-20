@@ -3,6 +3,7 @@
 Thank you for contributing! Please follow these guidelines to ensure code quality, maintainability, and alignment with our multi-tenant, async, and secure architecture.
 
 ## 🏗️ Architectural Principles
+
 - **Multi-Tenancy:** All features must support strict tenant isolation. Use tenant context from middleware/dependencies, never set tenant context in services or endpoints.
 - **PostgreSQL RLS:** All tenant data is protected by Row-Level Security. Never bypass RLS or access data across tenants.
 - **Async First:** All database access and business logic must be async. Do not mix sync and async DB sessions.
@@ -10,6 +11,7 @@ Thank you for contributing! Please follow these guidelines to ensure code qualit
 - **Extensibility:** Write code that is easy to extend for new tenants, endpoints, or features.
 
 ## 🧪 Testing Best Practices
+
 - Use async fixtures and sessions for all DB access in tests.
 - Always use the `test_tenant` fixture for tests that touch tenant data.
 - Ensure test isolation: no data leakage between tenants or test runs.
@@ -17,6 +19,7 @@ Thank you for contributing! Please follow these guidelines to ensure code qualit
 - Standardize error response checks using the `{ "detail": ... }` format.
 
 ## 🛡️ Error Handling
+
 - All API errors must use the standardized error response format:
   ```json
   { "detail": "Error message here" }
@@ -24,6 +27,7 @@ Thank you for contributing! Please follow these guidelines to ensure code qualit
 - See backend/docs/api/orders.md for examples.
 
 ## ➕ Adding New Features
+
 - Use async DB sessions and ensure tenant context is set via dependency/middleware.
 - Follow the thin-endpoint, service-centric pattern.
 - Reference backend/README.md and docs/architecture.md for patterns and best practices.
@@ -32,6 +36,7 @@ Thank you for contributing! Please follow these guidelines to ensure code qualit
   - All onboarding steps must log analytics/events using the ConversationEvent pattern (see backend/README.md for details).
 
 ## 🔄 API Versioning Guidelines
+
 - **When to version:** Create a new version when making breaking changes to existing endpoints.
 - **How to version:** Place new API endpoints in the `/api/v2/` directory structure.
 - **Backward compatibility:** Never modify existing v1 endpoints in ways that break compatibility.
@@ -40,6 +45,7 @@ Thank you for contributing! Please follow these guidelines to ensure code qualit
 - **Testing:** Write tests for both v1 and v2 endpoints to ensure proper functionality.
 
 ## 📚 References
+
 - [backend/README.md](backend/README.md)
 - [docs/architecture.md](docs/architecture.md)
 - [backend/docs/api/orders.md](backend/docs/api/orders.md)

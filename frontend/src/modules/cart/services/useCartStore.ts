@@ -30,7 +30,7 @@ const cartService = new LocalStorageCartService();
 // Create the store with persistence for offline resilience
 export const useCartStore = create<CartStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       items: cartService.getItems(),
 
       addItem: (item: Omit<CartItem, 'quantity'>) => {

@@ -1,5 +1,5 @@
 import type { Address } from '@/modules/core/models/base/address';
-import type { TenantScoped } from '@/modules/core/models/base/entity';
+import type { TenantScoped } from '@/modules/core/models/base';
 import type { Money } from '@/modules/core/models/base/money';
 
 /**
@@ -80,7 +80,7 @@ export interface OrderItem {
  */
 export interface ShippingPluginMeta {
   provider: string; // e.g. 'Sendy', 'DHL', 'CustomPluginName'
-  pluginData?: Record<string, any>;
+  pluginData?: Record<string, unknown>;
 }
 
 /**
@@ -148,7 +148,7 @@ export interface Order extends TenantScoped {
   shipping: ShippingDetails;
   payment: PaymentDetails;
   notes?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   timeline: OrderTimeline[];
   idempotency_key: string; // Used to prevent duplicate orders
 }

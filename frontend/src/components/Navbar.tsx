@@ -1,7 +1,6 @@
 // DEPRECATED: This Navbar is replaced by MobileNav.tsx for all new and existing layouts. Use <MobileNav /> instead for modern, mobile-first navigation.
 'use client';
 
-import { useUser } from '@clerk/nextjs';
 import { ShoppingCart } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -11,7 +10,6 @@ import React, { useEffect, useState } from 'react';
 const API_BASE = process.env['NEXT_PUBLIC_API_BASE'] ?? '';
 
 export default function Navbar() {
-  const { isSignedIn, user } = useUser();
   const pathname = usePathname();
   const params = useParams();
   const { merchantId } = params as { merchantId?: string };
@@ -67,31 +65,7 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center">
-            {isSignedIn ? (
-              <div className="flex items-center space-x-4">
-                <Link
-                  href="/dashboard"
-                  className="px-5 py-2 rounded-md font-semibold bg-primary text-white hover:bg-primary/90 transition"
-                >
-                  Dashboard
-                </Link>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-4">
-                <Link
-                  href="/sign-in"
-                  className="px-5 py-2 rounded-md font-semibold border text-[#6C9A8B] bg-white border-[#A8D5BA] hover:bg-[#A8D5BA]/30 transition"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/sign-up"
-                  className="px-5 py-2 rounded-md font-semibold text-white bg-[#A8D5BA] hover:bg-[#6C9A8B] hover:text-white transition"
-                >
-                  Sign Up
-                </Link>
-              </div>
-            )}
+            {/* Remove all unused variables/imports: 'user' */}
           </div>
 
           <div className="relative">

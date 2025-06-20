@@ -18,7 +18,6 @@ export const getStaticProps: GetStaticProps = async () => {
 export default function OnboardingPage() {
   const router = useRouter();
   const { user, isLoading, isAuthenticated } = useAuth();
-  const [hasStore, setHasStore] = useState<boolean | null>(null);
   const [isChecking, setIsChecking] = useState(true);
 
   // Check if user already has a store
@@ -32,7 +31,6 @@ export default function OnboardingPage() {
         const response = await fetch(`/api/users/has-tenant?userId=${user.id}`);
         if (response.ok) {
           const { hasTenant } = await response.json();
-          setHasStore(hasTenant);
 
           // If user already has a store, redirect to dashboard
           if (hasTenant) {

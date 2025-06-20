@@ -35,7 +35,7 @@ order.status = OrderStatus.PAID.value  # Bypasses events and validation!
 # ✅ CORRECT: Using the service method
 updated_order = await order_service._update_order_status(
     db,
-    order, 
+    order,
     new_status=OrderStatus.PAID,
     payment_reference="TX123456"
 )

@@ -1,5 +1,4 @@
 import { XMarkIcon, ExclamationTriangleIcon, PhotoIcon } from '@heroicons/react/24/outline';
-import Image from 'next/image';
 import React, { useState, useEffect } from 'react';
 
 import type { UUID, InputChangeEvent, FormSubmitEvent } from '@/modules/core/models';

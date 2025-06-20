@@ -46,6 +46,7 @@ mpesa_provider = MPesaProvider(
 ```
 
 Key features:
+
 - STK Push for smartphone users
 - USSD fallback for feature phones
 - Automatic transaction verification
@@ -65,6 +66,7 @@ paystack_provider = PaystackProvider(
 ```
 
 Key features:
+
 - Card payment processing
 - Bank transfer support
 - Payment link generation
@@ -73,6 +75,7 @@ Key features:
 ### Manual/Offline Payments
 
 The system supports manual payment verification for:
+
 - Cash on delivery (COD)
 - Bank transfers
 - Mobile money with manual verification
@@ -111,7 +114,7 @@ result = await payment_service.process_payment(
 # Submit proof of manual payment
 proof_id = await payment_service.submit_manual_payment_proof(
     order_id=order.id,
-    proof_type=ProofType.BANK_TRANSFER, 
+    proof_type=ProofType.BANK_TRANSFER,
     proof_reference="TXN123456",
     proof_image_url="https://example.com/receipt.jpg",
     additional_notes="Paid via KCB mobile banking"
@@ -148,6 +151,7 @@ async def mpesa_webhook(
 All webhooks implement:
 
 1. **Signature Verification**:
+
 ```python
 # Verify webhook signature
 is_valid = PaymentSecurity.verify_webhook_signature(
@@ -160,6 +164,7 @@ if not is_valid:
 ```
 
 2. **Idempotency**:
+
 ```python
 # Check for duplicate webhook processing
 if await payment_service.is_transaction_processed(transaction_ref):
@@ -167,6 +172,7 @@ if await payment_service.is_transaction_processed(transaction_ref):
 ```
 
 3. **Risk Scoring**:
+
 ```python
 # Score transaction risk
 risk_score = PaymentSecurity.calculate_risk_score(
@@ -205,15 +211,15 @@ class NewPaymentProvider(PaymentProviderInterface):
     def __init__(self, api_key, webhook_secret):
         self.api_key = api_key
         self.webhook_secret = webhook_secret
-        
+
     async def initialize_payment(self, payment):
         # Initialize payment with provider
         pass
-        
+
     async def verify_payment(self, reference):
         # Verify payment status
         pass
-        
+
     async def process_webhook(self, payload):
         # Process webhook data
         pass
@@ -241,24 +247,24 @@ async def new_provider_webhook(
 ):
     payload = await request.json()
     signature = request.headers.get("x-signature")
-    
+
     # Verify signature
     is_valid = PaymentSecurity.verify_webhook_signature(
         provider=PaymentProvider.NEW_PROVIDER,
         payload=payload,
         signature=signature
     )
-    
+
     if not is_valid:
         raise HTTPException(status_code=400, detail="Invalid signature")
-    
+
     # Process webhook asynchronously
     background_tasks.add_task(
         process_new_provider_webhook,
         db,
         payload
     )
-    
+
     return {"status": "success"}
 ```
 
@@ -272,7 +278,7 @@ Use mock providers for testing:
 class MockPaymentProvider(PaymentProviderInterface):
     async def initialize_payment(self, payment):
         return {"reference": f"mock-{payment.id}", "status": "pending"}
-        
+
     async def verify_payment(self, reference):
         # Always succeeds in test mode
         return {"status": "success", "amount": 1000.00}
@@ -322,11 +328,13 @@ response = client.post(
 ## Common Issues and Solutions
 
 1. **Webhook Failures**:
+
    - Check webhook URL accessibility
    - Verify signature calculation
    - Inspect webhook logs
 
 2. **Payment Timeouts**:
+
    - Implement asynchronous processing
    - Add background status checking
 

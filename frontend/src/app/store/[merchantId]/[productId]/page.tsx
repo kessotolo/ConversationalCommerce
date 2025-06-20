@@ -3,18 +3,25 @@
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
+import type { Product } from '@/modules/core/models/product';
 
 const API_BASE = typeof process !== 'undefined' ? (process.env['NEXT_PUBLIC_API_BASE'] ?? '') : '';
 
+interface ShareLinks {
+  whatsapp?: { url: string };
+  instagram?: { url: string };
+  tiktok?: { url: string };
+}
+
 export default function ProductDetailPage() {
   const params = useParams();
-  const { merchantId, productId } = params as { merchantId: string; productId: string };
-  const [product, setProduct] = useState<any>(null);
+  const { productId } = params as { merchantId: string; productId: string };
+  const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [qrModal, setQrModal] = useState(false);
   const [qrUrl, setQrUrl] = useState<string | null>(null);
-  const [shareLinks, setShareLinks] = useState<any>(null);
+  const [shareLinks, setShareLinks] = useState<ShareLinks | null>(null);
 
   useEffect(() => {
     async function fetchProduct() {
@@ -25,8 +32,8 @@ export default function ProductDetailPage() {
         if (!res.ok) throw new Error('Product not found');
         const data = await res.json();
         setProduct(data);
-      } catch (e: any) {
-        setError(e.message);
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : 'An error occurred');
       } finally {
         setLoading(false);
       }

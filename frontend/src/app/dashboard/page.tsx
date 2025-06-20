@@ -1,17 +1,13 @@
 'use client';
 
-import { useUser } from '@clerk/nextjs';
 import {
   ShoppingBag,
   DollarSign,
   ArrowUpRight,
   PlusCircle,
   ChevronRight,
-  Upload,
-  Check,
   CheckCircle,
   BarChart3,
-  User,
   Users,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -20,7 +16,6 @@ import { useState } from 'react';
 import { ChannelPerformance } from '@/components/dashboard/ChannelPerformance';
 import { RecentOrders } from '@/components/dashboard/RecentOrders';
 import { SalesChart } from '@/components/dashboard/SalesChart';
-import SettingsDrawer from '@/components/dashboard/SettingsDrawer';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { TopProducts } from '@/components/dashboard/TopProducts';
 import OnboardingWizard from '@/modules/tenant/components/OnboardingWizard';
@@ -36,6 +31,13 @@ interface Order {
   status: OrderStatus;
   date: string;
   phone?: string;
+}
+
+interface Step {
+  key: string;
+  label: string;
+  complete: boolean;
+  action?: React.ReactNode;
 }
 
 // Mock data - this would come from an API call in production
@@ -149,15 +151,7 @@ const mockMessages = [
 ];
 
 // --- SmartNudgeCard component ---
-function SmartNudgeCard({
-  steps,
-  onAction,
-  onOpenWizard,
-}: {
-  steps: any[];
-  onAction: (key: string) => void;
-  onOpenWizard: () => void;
-}) {
+function SmartNudgeCard({ steps, onOpenWizard }: { steps: Step[]; onOpenWizard: () => void }) {
   // Prioritize by logical order/impact
   const priority = [
     'addProduct',
@@ -196,107 +190,7 @@ function SmartNudgeCard({
   );
 }
 
-function OnboardingChecklist({
-  onOpenSettings,
-  onOpenWizard,
-}: {
-  onOpenSettings: (section: string) => void;
-  onOpenWizard: () => void;
-}) {
-  // Mock completion state
-  const steps = [
-    {
-      key: 'addProduct',
-      label: 'Add your first product',
-      complete: false,
-      action: (
-        <Link
-          href="/dashboard/products/add"
-          className="text-[#6C9A8B] font-semibold hover:underline flex items-center"
-        >
-          Add Product <ChevronRight className="ml-1 h-4 w-4" />
-        </Link>
-      ),
-    },
-    {
-      key: 'storeDetails',
-      label: 'Set up store details',
-      complete: true,
-      action: (
-        <button
-          onClick={() => onOpenSettings('general')}
-          className="text-[#6C9A8B] font-semibold hover:underline flex items-center"
-        >
-          Edit Details <ChevronRight className="ml-1 h-4 w-4" />
-        </button>
-      ),
-    },
-    {
-      key: 'payments',
-      label: 'Configure payments',
-      complete: false,
-      action: (
-        <button
-          onClick={() => onOpenSettings('billing')}
-          className="text-[#6C9A8B] font-semibold hover:underline flex items-center"
-        >
-          Set Up <ChevronRight className="ml-1 h-4 w-4" />
-        </button>
-      ),
-    },
-    {
-      key: 'logo',
-      label: 'Add a store logo',
-      complete: true,
-      action: (
-        <button
-          onClick={() => onOpenSettings('general')}
-          className="text-[#6C9A8B] font-semibold hover:underline flex items-center"
-        >
-          Upload Logo <ChevronRight className="ml-1 h-4 w-4" />
-        </button>
-      ),
-    },
-    {
-      key: 'notifications',
-      label: 'Set up notifications',
-      complete: false,
-      action: (
-        <button
-          onClick={() => onOpenSettings('notifications')}
-          className="text-[#6C9A8B] font-semibold hover:underline flex items-center"
-        >
-          Configure <ChevronRight className="ml-1 h-4 w-4" />
-        </button>
-      ),
-    },
-    {
-      key: 'users',
-      label: 'Invite team members',
-      complete: false,
-      action: (
-        <button
-          onClick={() => onOpenSettings('users')}
-          className="text-[#6C9A8B] font-semibold hover:underline flex items-center"
-        >
-          Invite <ChevronRight className="ml-1 h-4 w-4" />
-        </button>
-      ),
-    },
-    {
-      key: 'domains',
-      label: 'Connect a domain',
-      complete: false,
-      action: (
-        <button
-          onClick={() => onOpenSettings('domains')}
-          className="text-[#6C9A8B] font-semibold hover:underline flex items-center"
-        >
-          Connect <ChevronRight className="ml-1 h-4 w-4" />
-        </button>
-      ),
-    },
-  ];
+function OnboardingChecklist({ steps, onOpenWizard }: { steps: Step[]; onOpenWizard: () => void }) {
   // Prioritize incomplete steps, randomize order for incomplete
   const incomplete = steps.filter((s) => !s.complete);
   const complete = steps.filter((s) => s.complete);
@@ -349,12 +243,7 @@ function OnboardingChecklist({
 
 export default function Dashboard() {
   const [period, setPeriod] = useState<'7days' | '30days' | '90days'>('7days');
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
-  const { user } = useUser();
-
-  // Optionally, track which section to open in settings
-  // const [settingsSection, setSettingsSection] = useState<string | null>(null);
 
   const { isLoading, isAuthenticated } = useAuth();
 
@@ -374,12 +263,7 @@ export default function Dashboard() {
   }
 
   // TODO: Replace with real onboarding status API
-  const stepsComplete = 2;
-  const totalSteps = 5;
-  const onboardingIncomplete = stepsComplete < totalSteps;
-
-  // --- Onboarding steps logic (move to top-level for reuse) ---
-  const steps = [
+  const steps: Step[] = [
     {
       key: 'addProduct',
       label: 'Add your first product',
@@ -398,10 +282,7 @@ export default function Dashboard() {
       label: 'Set up store details',
       complete: true,
       action: (
-        <button
-          onClick={() => setSettingsOpen(true)}
-          className="text-[#6C9A8B] font-semibold hover:underline flex items-center"
-        >
+        <button className="text-[#6C9A8B] font-semibold hover:underline flex items-center">
           Edit Details <ChevronRight className="ml-1 h-4 w-4" />
         </button>
       ),
@@ -411,10 +292,7 @@ export default function Dashboard() {
       label: 'Configure payments',
       complete: false,
       action: (
-        <button
-          onClick={() => setSettingsOpen(true)}
-          className="text-[#6C9A8B] font-semibold hover:underline flex items-center"
-        >
+        <button className="text-[#6C9A8B] font-semibold hover:underline flex items-center">
           Set Up <ChevronRight className="ml-1 h-4 w-4" />
         </button>
       ),
@@ -424,10 +302,7 @@ export default function Dashboard() {
       label: 'Add a store logo',
       complete: true,
       action: (
-        <button
-          onClick={() => setSettingsOpen(true)}
-          className="text-[#6C9A8B] font-semibold hover:underline flex items-center"
-        >
+        <button className="text-[#6C9A8B] font-semibold hover:underline flex items-center">
           Upload Logo <ChevronRight className="ml-1 h-4 w-4" />
         </button>
       ),
@@ -437,10 +312,7 @@ export default function Dashboard() {
       label: 'Set up notifications',
       complete: false,
       action: (
-        <button
-          onClick={() => setSettingsOpen(true)}
-          className="text-[#6C9A8B] font-semibold hover:underline flex items-center"
-        >
+        <button className="text-[#6C9A8B] font-semibold hover:underline flex items-center">
           Configure <ChevronRight className="ml-1 h-4 w-4" />
         </button>
       ),
@@ -450,10 +322,7 @@ export default function Dashboard() {
       label: 'Invite team members',
       complete: false,
       action: (
-        <button
-          onClick={() => setSettingsOpen(true)}
-          className="text-[#6C9A8B] font-semibold hover:underline flex items-center"
-        >
+        <button className="text-[#6C9A8B] font-semibold hover:underline flex items-center">
           Invite <ChevronRight className="ml-1 h-4 w-4" />
         </button>
       ),
@@ -463,10 +332,7 @@ export default function Dashboard() {
       label: 'Connect a domain',
       complete: false,
       action: (
-        <button
-          onClick={() => setSettingsOpen(true)}
-          className="text-[#6C9A8B] font-semibold hover:underline flex items-center"
-        >
+        <button className="text-[#6C9A8B] font-semibold hover:underline flex items-center">
           Connect <ChevronRight className="ml-1 h-4 w-4" />
         </button>
       ),
@@ -527,15 +393,8 @@ export default function Dashboard() {
         </div>
         {/* Unified Onboarding Section */}
         <div className="flex flex-col lg:flex-row gap-6 mb-8">
-          <SmartNudgeCard
-            steps={steps}
-            onAction={() => {}}
-            onOpenWizard={() => setShowWizard(true)}
-          />
-          <OnboardingChecklist
-            onOpenSettings={() => setSettingsOpen(true)}
-            onOpenWizard={() => setShowWizard(true)}
-          />
+          <SmartNudgeCard steps={steps} onOpenWizard={() => setShowWizard(true)} />
+          <OnboardingChecklist steps={steps} onOpenWizard={() => setShowWizard(true)} />
         </div>
         {/* Quick Action Buttons */}
         <div className="flex flex-wrap gap-3 mb-8 relative">

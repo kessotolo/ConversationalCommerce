@@ -52,17 +52,17 @@ class OrderEvent(Event):
 
 The system currently supports these order events:
 
-| Event Class | Description | When Emitted |
-|-------------|-------------|--------------|
-| `OrderCreatedEvent` | New order created | After order creation |
-| `OrderStatusChangedEvent` | Order status updated | After any status change |
-| `OrderPaidEvent` | Order payment received | When status → PAID |
-| `OrderCancelledEvent` | Order cancelled | When status → CANCELLED |
-| `OrderShippedEvent` | Order shipped | When status → SHIPPED |
-| `OrderDeliveredEvent` | Order delivered | When status → DELIVERED |
-| `OrderReturnedEvent` | Order returned | When status → RETURNED |
-| `OrderRefundedEvent` | Order refunded | When status → REFUNDED |
-| `PaymentProcessedEvent` | Payment processed successfully | After payment verification |
+| Event Class               | Description                    | When Emitted               |
+| ------------------------- | ------------------------------ | -------------------------- |
+| `OrderCreatedEvent`       | New order created              | After order creation       |
+| `OrderStatusChangedEvent` | Order status updated           | After any status change    |
+| `OrderPaidEvent`          | Order payment received         | When status → PAID         |
+| `OrderCancelledEvent`     | Order cancelled                | When status → CANCELLED    |
+| `OrderShippedEvent`       | Order shipped                  | When status → SHIPPED      |
+| `OrderDeliveredEvent`     | Order delivered                | When status → DELIVERED    |
+| `OrderReturnedEvent`      | Order returned                 | When status → RETURNED     |
+| `OrderRefundedEvent`      | Order refunded                 | When status → REFUNDED     |
+| `PaymentProcessedEvent`   | Payment processed successfully | After payment verification |
 
 ## Event Bus
 
@@ -84,7 +84,7 @@ from app.domain.events.order_events import OrderEventFactory
 
 # Create a status changed event
 event = OrderEventFactory.create_status_changed_event(
-    order, 
+    order,
     old_status=old_status,
     new_status=new_status
 )
@@ -151,7 +151,7 @@ from app.domain.events.order_event_handlers import (
 
 def setup_event_handlers():
     event_bus = get_event_bus()
-    
+
     # Register handlers
     event_bus.register_handler("order.created", OrderNotificationHandler())
     event_bus.register_handler("order.status_changed", OrderNotificationHandler())
@@ -203,13 +203,13 @@ def setup_event_handlers():
 ```python
 class WhatsAppNotificationHandler(EventHandler):
     """Handler for sending WhatsApp notifications"""
-    
+
     async def handle(self, event):
         if event.event_type == "order.status_changed":
             # Extract customer phone from event data
             customer_phone = event.data.get("customer", {}).get("phone")
             new_status = event.data.get("new_status")
-            
+
             if customer_phone and new_status:
                 template = self._get_template_for_status(new_status)
                 await self._send_whatsapp_notification(
@@ -227,7 +227,7 @@ class WhatsAppNotificationHandler(EventHandler):
 ```python
 class OrderAnalyticsHandler(EventHandler):
     """Handler for logging analytics events"""
-    
+
     async def handle(self, event):
         # Extract relevant data
         event_data = {
@@ -236,14 +236,14 @@ class OrderAnalyticsHandler(EventHandler):
             "order_id": event.order_id,
             "store_id": event.store_id
         }
-        
+
         # Add event-specific data
         if event.event_type == "order.status_changed":
             event_data.update({
                 "old_status": event.data.get("old_status"),
                 "new_status": event.data.get("new_status")
             })
-        
+
         # Log to analytics service
         await self._log_analytics_event(event_data)
 ```

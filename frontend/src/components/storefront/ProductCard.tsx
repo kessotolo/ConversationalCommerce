@@ -4,16 +4,7 @@ import React, { useState } from 'react';
 
 import { useTheme } from '@/contexts/ThemeContext';
 import { useThemeStyles } from '@/hooks/useThemeStyles';
-
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image_url: string | null;
-  created_at: string;
-  is_available: boolean;
-}
+import type { Product } from '@/modules/core/models/product';
 
 interface ProductCardProps {
   product: Product;
@@ -121,44 +112,34 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps):
             <span style={{ color: theme.colors.secondary }}>No image</span>
           </div>
         )}
-        {!product.is_available && (
-          <div
-            className="absolute top-2 right-2 px-2 py-1 rounded text-sm"
-            style={styles.product.badge.style}
-          >
-            Out of Stock
-          </div>
-        )}
       </div>
       <div className={styles.product.content.className}>
         <h3 style={styles.product.title.style}>{product.name}</h3>
         <p style={styles.product.description.style}>{product.description}</p>
         <div className="flex items-center justify-between mt-2">
           <span style={styles.product.price.style}>${product.price.toFixed(2)}</span>
-          {product.is_available && (
-            <button
-              onClick={handleAddToCart}
-              disabled={adding}
-              style={{
-                backgroundColor: theme.colors.primary,
-                color: theme.componentStyles.button.primary.text,
-                borderRadius: theme.componentStyles.button.primary.borderRadius,
-                padding: theme.componentStyles.button.primary.padding,
-                border: 'none',
-                transition: 'background-color 0.2s ease-in-out',
-                opacity: adding ? 0.7 : 1,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor =
-                  theme.componentStyles.button.primary.hoverBackground;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = theme.colors.primary;
-              }}
-            >
-              {adding ? 'Adding...' : success ? 'Added!' : 'Add to Cart'}
-            </button>
-          )}
+          <button
+            onClick={handleAddToCart}
+            disabled={adding}
+            style={{
+              backgroundColor: theme.colors.primary,
+              color: theme.componentStyles.button.primary.text,
+              borderRadius: theme.componentStyles.button.primary.borderRadius,
+              padding: theme.componentStyles.button.primary.padding,
+              border: 'none',
+              transition: 'background-color 0.2s ease-in-out',
+              opacity: adding ? 0.7 : 1,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor =
+                theme.componentStyles.button.primary.hoverBackground;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = theme.colors.primary;
+            }}
+          >
+            {adding ? 'Adding...' : success ? 'Added!' : 'Add to Cart'}
+          </button>
         </div>
         {error && <div className="text-xs text-red-500 mt-1">{error}</div>}
         {/* Share Buttons */}

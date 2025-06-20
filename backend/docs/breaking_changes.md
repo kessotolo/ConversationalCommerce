@@ -5,14 +5,16 @@
 ### Major Changes
 
 #### 1. Order Status Management
+
 - **Change**: Centralized order status updates through `_update_order_status`
 - **Impact**: Direct status updates will be blocked
 - **Migration**:
+
   ```python
   # Old way (no longer works)
   order.status = "processing"
   await db.commit()
-  
+
   # New way
   await order_service._update_order_status(
       order_id=order.id,
@@ -23,16 +25,18 @@
   ```
 
 #### 2. Event System Integration
+
 - **Change**: All order modifications now emit events
 - **Impact**: Side effects must be moved to event handlers
 - **Migration**:
+
   ```python
   # Old way (direct side effects)
   async def process_order(order_id):
       order = await get_order(order_id)
       await send_email(order.user.email, "Order Confirmation")
       await update_inventory(order.items)
-  
+
   # New way (event-driven)
   async def process_order(order_id):
       await order_service._update_order_status(
@@ -45,6 +49,7 @@
 ### Database Migrations
 
 #### 1. UUID Standardization
+
 - **Change**: String UUIDs → Native PostgreSQL UUIDs
 - **Impact**: Required schema migration for all tables
 - **Migration Script**:
@@ -57,6 +62,7 @@
 ### API Changes
 
 #### 1. New Required Fields
+
 - **Endpoint**: `POST /api/v1/orders`
 - **Change**: `channel` field is now required
 - **Old Request**:
@@ -78,6 +84,7 @@
 ## v1.0.0 (Current)
 
 ### Initial Release
+
 - Base order management
 - Basic payment integration
 - Multi-tenant support
@@ -85,7 +92,9 @@
 ## Deprecation Notices
 
 ### Pending Deprecation
+
 1. **Legacy Endpoints**
+
    - `/api/legacy/orders` → Use `/api/v1/orders`
    - Will be removed in v3.0.0
 
@@ -96,6 +105,7 @@
 ## Migration Checklist
 
 ### Before Upgrading to v2.0.0
+
 - [ ] Update all direct status updates to use `_update_order_status`
 - [ ] Move side effects to event handlers
 - [ ] Test with `STRICT_MODE=true` to catch deprecated patterns
@@ -105,6 +115,7 @@
 ## Feature Flags
 
 ### Available Flags
+
 ```env
 # Enable new checkout flow
 ENABLE_V2_CHECKOUT=true
@@ -118,6 +129,7 @@ ENABLE_PAYSTACK=true
 ```
 
 ### Usage
+
 ```python
 from app.config import settings
 
@@ -130,6 +142,7 @@ else:
 ## Testing Upgrades
 
 ### Unit Tests
+
 ```bash
 # Test with strict mode
 STRICT_MODE=true pytest tests/
@@ -139,6 +152,7 @@ ENABLE_V2_CHECKOUT=true pytest tests/
 ```
 
 ### Integration Tests
+
 ```bash
 # Test database migrations
 pytest tests/integration/test_migrations.py
@@ -150,6 +164,7 @@ pytest tests/api/v1/
 ## Rollback Procedure
 
 ### Database Rollback
+
 1. Restore from backup
 2. Run previous migration:
    ```bash
@@ -157,6 +172,7 @@ pytest tests/api/v1/
    ```
 
 ### Code Rollback
+
 1. Checkout previous tag:
    ```bash
    git checkout v1.0.0
@@ -164,7 +180,9 @@ pytest tests/api/v1/
 2. Rebuild and restart services
 
 ## Support
+
 For assistance with migrations, contact:
+
 - **Slack**: #engineering-support
 - **Email**: support@example.com
 - **On-call**: +1-555-123-4567
@@ -172,7 +190,9 @@ For assistance with migrations, contact:
 ## Known Issues
 
 ### v2.0.0
+
 1. **Webhook Retries**
+
    - Some webhook retries may fail during high load
    - Workaround: Implement idempotency keys
    - Fix scheduled for v2.0.1
@@ -184,6 +204,7 @@ For assistance with migrations, contact:
 ## Upgrade Timeline
 
 ### v1.0.0 → v2.0.0
+
 1. **2025-07-01**: Beta release available
 2. **2025-07-15**: RC1 with migration tools
 3. **2025-08-01**: GA release
@@ -192,11 +213,13 @@ For assistance with migrations, contact:
 ## Breaking Changes Policy
 
 ### Versioning
+
 - **MAJOR**: Breaking changes
 - **MINOR**: Backwards-compatible features
 - **PATCH**: Backwards-compatible bug fixes
 
 ### Support Window
+
 - Current MAJOR version + 1 previous MAJOR version
 - Critical security fixes for all supported versions
 - 3 months deprecation notice for breaking changes

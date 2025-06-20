@@ -3,13 +3,11 @@
 // Import standardized configuration optimized for African markets
 import type { DashboardStatsResponse } from '@/modules/core/models/dashboard';
 import type {
-  Order,
   CreateOrderRequest,
   OrderResponse,
   OrdersResponse,
 } from '@/modules/core/models/order';
 import type {
-  Product,
   CreateProductRequest,
   UpdateProductRequest,
   ProductResponse,
@@ -21,7 +19,8 @@ import { parseApiError } from '@/lib/utils';
 
 // Import types
 
-const axios = require('axios').default || require('axios');
+import axios from 'axios';
+import type { AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
 // Define response and error types for better type safety
 export interface ApiResponse<T = unknown> {
@@ -47,23 +46,28 @@ const apiClient = axios.create({
 });
 
 // Add retry logic for better resilience in low-connectivity environments
-apiClient.interceptors.response.use(null, async (error: unknown) => {
+apiClient.interceptors.response.use(undefined, async (error: unknown) => {
   if (typeof error !== 'object' || error === null || !('config' in error)) {
     throw parseApiError(error);
   }
   const err = error as { config: unknown };
-  if (typeof err.config === 'object' && err.config !== null) {
-    const config = err.config as Record<string, any>;
-    if (!config.retry) {
-      config.retry = 0;
+  const config = err.config;
+  if (typeof config === 'object' && config !== null) {
+    if (!('retry' in config)) {
+      (config as Record<string, unknown>)['retry'] = 0;
     }
-    if (config.retry >= RETRY_ATTEMPTS) {
+    if (((config as Record<string, unknown>)['retry'] as number) >= RETRY_ATTEMPTS) {
       throw parseApiError(error);
     }
-    config.retry += 1;
-    const delay = 1000 * Math.pow(2, config.retry);
+    (config as Record<string, unknown>)['retry'] =
+      ((config as Record<string, unknown>)['retry'] as number) + 1;
+    const delay = 1000 * Math.pow(2, (config as Record<string, unknown>)['retry'] as number);
     await new Promise((resolve) => setTimeout(resolve, delay));
-    return apiClient(config);
+    // Only retry if config is a valid AxiosRequestConfig
+    if (typeof config === 'object' && config !== null && 'url' in config) {
+      return apiClient(config as AxiosRequestConfig);
+    }
+    throw parseApiError(error);
   }
   throw parseApiError(error);
 });
@@ -80,27 +84,29 @@ if (FEATURES.offlineMode && typeof window !== 'undefined') {
   });
 
   // Request queue for offline mode
-  const requestQueue: Array<Record<string, unknown>> = [];
+  const requestQueue: AxiosRequestConfig[] = [];
 
   // Process queue when back online
   window.addEventListener('online', async () => {
     while (requestQueue.length > 0) {
       const request = requestQueue.shift();
-      try {
-        await apiClient(request);
-      } catch (error) {
-        console.error('Failed to process offline request:', error);
+      if (request && typeof request === 'object') {
+        try {
+          await apiClient(request);
+        } catch (error) {
+          console.error('Failed to process offline request:', error);
+        }
       }
     }
   });
 }
 
 // Add request interceptor to include auth token
-apiClient.interceptors.request.use((config: unknown) => {
+apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('clerk-token');
     if (token && typeof config === 'object' && config !== null && 'headers' in config) {
-      (config as { headers: Record<string, string> }).headers.Authorization = `Bearer ${token}`;
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
   }
   return config;
@@ -108,7 +114,7 @@ apiClient.interceptors.request.use((config: unknown) => {
 
 // Add response interceptor for error handling
 apiClient.interceptors.response.use(
-  (response: unknown) => response,
+  (response: AxiosResponse) => response,
   (error: unknown) => {
     console.error('API error:', error);
     throw parseApiError(error);

@@ -202,6 +202,31 @@ AI agents must never generate code or suggestions that break these principles. T
 
 - **Order business logic is now in the service layer (`order_service.py`), with DRY error handling, transaction management, and a custom exception hierarchy. API endpoints are thin and use a decorator for error-to-HTTP mapping.**
 
+## 🧹 2024: Initial Build & Type Safety Enforcement (Summary)
+
+### Systematic Cleanup Achievements
+- Eliminated all `any` types; replaced with explicit interfaces, generics, or `unknown` with type guards
+- Removed all unused variables, imports, and forbidden `require()` usage
+- Consolidated all model interfaces (e.g., Product, Order, StorefrontComponent) to require `created_at: string` and canonical base types
+- Enforced direct module imports and removed all bridge files (no `/types/` directory usage)
+- Fixed all index signature property access (TS4111) and strict optional property errors
+- All code is now linter- and type-check compliant; CI blocks merges on violations
+- All async code uses async/await with full error handling and type safety
+- All code changes are documented and tested
+
+### Canonical Linter/Type Error Resolution
+- Use type guards and explicit types instead of non-null assertions or `any`
+- Suppress false positive linter/type errors only with line-level comments and clear justification
+- Never use file-level disables except for legacy/third-party code
+- All test code must be type-safe and use mocks for side-effectful utilities
+
+### Updated Rules for All Contributors & AI Agents
+- Never introduce new `any` types or bridge files
+- Always use direct module imports and respect module boundaries
+- All code must be clean, readable, and well-documented
+- All code must pass `npm run lint`, `npm run type-check`, and `npm run verify:architecture`
+- All architectural and code quality rules are enforced by CI and documented in this file
+
 ---
 
 By following these guidelines, AI agents will help maintain the architectural integrity, code quality, and product vision of the ConversationalCommerce platform.

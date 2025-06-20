@@ -9,7 +9,6 @@ import type {
   PaymentInitializeResponse,
   PaymentVerificationResponse,
   ManualPaymentProof,
-  PaymentSettings,
 } from '@/modules/payment/models/payment';
 import { HttpPaymentService } from '@/modules/payment/services/PaymentService';
 
@@ -39,16 +38,16 @@ export const usePayment = () => {
 
       try {
         const request: PaymentInitializeRequest = {
-          order_id: order.order_number,
-          amount: order.total_amount,
-          customer_email: order.customer.email,
-          customer_name: order.customer.name,
-          customer_phone: order.customer.phone,
+          order_id: order['order_number'],
+          amount: order['total_amount'],
+          customer_email: order.customer['email'],
+          customer_name: order.customer['name'],
+          customer_phone: order.customer['phone'],
           provider,
           ...(redirectUrl ? { redirect_url: redirectUrl } : {}),
           metadata: {
-            order_id: order.order_number,
-            source: order.source,
+            order_id: order['order_number'],
+            source: order['source'],
           },
         };
 

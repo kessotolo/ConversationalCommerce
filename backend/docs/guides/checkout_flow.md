@@ -7,6 +7,7 @@ This document outlines the unified checkout flow that handles both web and chat-
 ## Flowcharts
 
 ### Web Checkout Flow
+
 ```mermaid
 flowchart TD
     A[Start] --> B[Add to Cart]
@@ -20,6 +21,7 @@ flowchart TD
 ```
 
 ### Chat Checkout Flow
+
 ```mermaid
 flowchart TD
     A[Start] --> B[Cart Intent]
@@ -39,7 +41,7 @@ sequenceDiagram
     participant S as Server
     participant P as Payment Provider
     participant DB as Database
-    
+
     C->>+S: POST /api/v1/orders
     S->>+DB: Begin Transaction
     S->>S: Validate Items
@@ -60,6 +62,7 @@ sequenceDiagram
 ## API Payloads
 
 ### Web Checkout Request
+
 ```json
 {
   "items": [
@@ -83,6 +86,7 @@ sequenceDiagram
 ```
 
 ### Chat Checkout Request
+
 ```json
 {
   "channel": "whatsapp",
@@ -100,6 +104,7 @@ sequenceDiagram
 ## State Management
 
 ### Order Status Flow
+
 1. `draft` → Initial state
 2. `pending_payment` → Order created, awaiting payment
 3. `processing` → Payment received, order being processed
@@ -108,6 +113,7 @@ sequenceDiagram
 6. `cancelled` → Order cancelled
 
 ### Error States
+
 - `payment_failed` → Payment declined
 - `payment_requires_action` → 3DS/OTP required
 - `on_hold` → Manual review needed
@@ -115,6 +121,7 @@ sequenceDiagram
 ## Webhook Events
 
 ### Payment Success
+
 ```json
 {
   "event": "payment.succeeded",
@@ -127,6 +134,7 @@ sequenceDiagram
 ```
 
 ### Payment Failed
+
 ```json
 {
   "event": "payment.failed",
@@ -141,16 +149,19 @@ sequenceDiagram
 ## Implementation Notes
 
 ### Idempotency
+
 - All POST endpoints support idempotency keys
 - Include `Idempotency-Key` header for retries
 - 24-hour idempotency window
 
 ### Rate Limiting
+
 - 100 requests/minute per IP
 - 5 concurrent checkouts per user
 - 3 attempts for failed payments
 
 ### Security
+
 - All card data handled by payment processor
 - PCI DSS compliant
 - TLS 1.2+ required
@@ -158,12 +169,15 @@ sequenceDiagram
 ## Testing
 
 ### Test Cards
+
 - Success: `4242 4242 4242 4242`
 - 3D Secure: `4000 0025 0000 3155`
 - Insufficient Funds: `4000 0000 0000 9995`
 
 ### Webhook Testing
+
 Use Stripe CLI for local testing:
+
 ```bash
 stripe listen --forward-to localhost:8000/api/webhooks/stripe
 ```
@@ -171,6 +185,7 @@ stripe listen --forward-to localhost:8000/api/webhooks/stripe
 ## Mobile SDK Integration
 
 ### Android
+
 ```kotlin
 val checkoutSession = CheckoutSession.create(
     context = this,
@@ -180,6 +195,7 @@ val checkoutSession = CheckoutSession.create(
 ```
 
 ### iOS
+
 ```swift
 let config = STPPaymentConfiguration()
 config.publishableKey = "pk_test_..."
@@ -189,12 +205,15 @@ let paymentContext = STPPaymentContext(apiAdapter: self, configuration: config)
 ## Troubleshooting
 
 ### Common Issues
+
 1. **Payment Declined**
+
    - Check card details
    - Verify 3D Secure completion
    - Contact bank for restrictions
 
 2. **Webhook Failures**
+
    - Verify endpoint URL
    - Check signature verification
    - Review server logs
@@ -205,7 +224,9 @@ let paymentContext = STPPaymentContext(apiAdapter: self, configuration: config)
    - Manual intervention may be required
 
 ## Support
+
 For issues not covered here, contact support@example.com with:
+
 - Order ID
 - Timestamp
 - Screenshots (if applicable)

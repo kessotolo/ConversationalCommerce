@@ -8,7 +8,7 @@ export interface DomainEvent {
   timestamp: string;
   tenant_id: string;
   event_id: string;
-  event_metadata?: Record<string, any>;
+  event_metadata?: Record<string, unknown>;
 }
 
 /**
@@ -113,7 +113,7 @@ export type OrderEventUnion =
  * Factory functions to create order events
  */
 export const OrderEventFactory = {
-  createOrderCreatedEvent(order: Order, metadata?: Record<string, any>): OrderCreatedEvent {
+  createOrderCreatedEvent(order: Order, metadata?: Record<string, unknown>): OrderCreatedEvent {
     return {
       event_type: 'ORDER_CREATED',
       event_id: crypto.randomUUID(),
@@ -122,7 +122,7 @@ export const OrderEventFactory = {
       order_id: order.id,
       order_number: order.order_number,
       order,
-      event_metadata: metadata,
+      ...(metadata !== undefined ? { event_metadata: metadata } : {}),
     };
   },
 
@@ -132,7 +132,7 @@ export const OrderEventFactory = {
     newStatus: OrderStatus,
     changedBy?: string,
     notes?: string,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, unknown>,
   ): OrderStatusChangedEvent {
     return {
       event_type: 'ORDER_STATUS_CHANGED',
@@ -143,9 +143,9 @@ export const OrderEventFactory = {
       order_number: order.order_number,
       previous_status: previousStatus,
       new_status: newStatus,
-      changed_by: changedBy,
-      notes,
-      event_metadata: metadata,
+      ...(changedBy !== undefined ? { changed_by: changedBy } : {}),
+      ...(notes !== undefined ? { notes } : {}),
+      ...(metadata !== undefined ? { event_metadata: metadata } : {}),
     };
   },
 
@@ -156,7 +156,7 @@ export const OrderEventFactory = {
     transactionId?: string,
     paymentMethod?: string,
     paymentProvider?: string,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, unknown>,
   ): PaymentProcessedEvent {
     return {
       event_type: 'PAYMENT_PROCESSED',
@@ -167,10 +167,10 @@ export const OrderEventFactory = {
       order_number: order.order_number,
       payment_status: paymentStatus,
       amount,
-      transaction_id: transactionId,
+      ...(transactionId !== undefined ? { transaction_id: transactionId } : {}),
       payment_method: paymentMethod || order.payment.method,
-      payment_provider: paymentProvider,
-      event_metadata: metadata,
+      ...(paymentProvider !== undefined ? { payment_provider: paymentProvider } : {}),
+      ...(metadata !== undefined ? { event_metadata: metadata } : {}),
     };
   },
 };

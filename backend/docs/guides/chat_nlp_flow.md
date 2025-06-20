@@ -1,20 +1,24 @@
 # Chat NLP Flow Documentation
 
 ## Overview
+
 This document details the Natural Language Processing (NLP) flow for chat-based interactions, including recognized intents, entities, and fallback mechanisms.
 
 ## Recognized Intents
 
 ### Core Shopping Intents
+
 1. **Browse Products**
-   - Examples: 
+
+   - Examples:
      - "Show me shoes"
      - "What jackets do you have?"
-   - Entities: 
+   - Entities:
      - `product_type`: shoes, jackets, etc.
      - `attributes`: color, size, brand
 
 2. **Add to Cart**
+
    - Examples:
      - "Add 2 red shirts to cart"
      - "I'll take the blue one"
@@ -27,12 +31,14 @@ This document details the Natural Language Processing (NLP) flow for chat-based 
    - Examples:
      - "I'm ready to checkout"
      - "Let's complete my purchase"
-   - Triggers: 
+   - Triggers:
      - Order confirmation flow
      - Payment collection
 
 ### Support Intents
+
 1. **Order Status**
+
    - Examples:
      - "Where's my order?"
      - "Status of order #123"
@@ -45,7 +51,9 @@ This document details the Natural Language Processing (NLP) flow for chat-based 
 ## Fallback Flows
 
 ### Unclear Intent
+
 1. **Clarification**
+
    - Response: "I'm not sure I understand. Did you want to:
      1. Browse products
      2. Check order status
@@ -56,7 +64,9 @@ This document details the Natural Language Processing (NLP) flow for chat-based 
    - If in checkout: "Would you like to complete your purchase or keep shopping?"
 
 ### Error Recovery
+
 1. **Payment Failures**
+
    - Automatic retry with different payment method
    - Fallback to cash on delivery if available
 
@@ -67,6 +77,7 @@ This document details the Natural Language Processing (NLP) flow for chat-based 
 ## Sample Conversations
 
 ### Successful Purchase
+
 ```
 User: Show me running shoes
 Bot: Here are our top running shoes:
@@ -81,6 +92,7 @@ Bot: Great! Could you please confirm your shipping address?
 ```
 
 ### Fallback Example
+
 ```
 User: I want something for my phone
 Bot: I'm not sure what you're looking for. Did you want to:
@@ -95,24 +107,26 @@ Bot: Here are our latest smartphones...
 ## NLP Configuration
 
 ### Training Data
+
 ```yaml
 intents:
   - name: browse_products
     examples:
-      - "Show me {product_type}"
-      - "What {product_type} do you have"
+      - 'Show me {product_type}'
+      - 'What {product_type} do you have'
     responses:
-      - "Here are our {product_type}..."
+      - 'Here are our {product_type}...'
 
 entities:
   - name: product_type
     examples:
-      - "shoes"
-      - "jackets"
-      - "phones"
+      - 'shoes'
+      - 'jackets'
+      - 'phones'
 ```
 
 ### Confidence Thresholds
+
 - High: >0.8 - Direct match
 - Medium: 0.5-0.8 - Ask for confirmation
 - Low: <0.5 - Request clarification
@@ -120,6 +134,7 @@ entities:
 ## Integration Points
 
 ### Webhook Payload
+
 ```json
 {
   "message": "Show me red shoes",
@@ -149,13 +164,16 @@ entities:
 ## Testing
 
 ### Test Cases
+
 1. **Basic Intent Recognition**
+
    - Input: "Show me shoes"
    - Expected: `browse_products` intent with `product_type: shoes`
 
 2. **Entity Extraction**
+
    - Input: "I want a large blue t-shirt"
-   - Expected: 
+   - Expected:
      - `size: large`
      - `color: blue`
      - `product_type: t-shirt`
@@ -167,28 +185,34 @@ entities:
 ## Best Practices
 
 ### Message Design
+
 - Keep responses concise
 - Use buttons for common options
 - Include typing indicators for longer responses
 
 ### Error Handling
+
 - Always provide next steps
 - Include human handoff option
 - Log all failures for improvement
 
 ## Performance Metrics
+
 - Intent recognition accuracy
 - Fallback rate
 - User satisfaction (thumbs up/down)
 - Resolution rate
 
 ## Maintenance
+
 - Weekly review of failed interactions
 - Monthly model retraining
 - Quarterly intent/entity updates based on trends
 
 ## Support
+
 For issues with the NLP system:
+
 1. Check the error logs
 2. Verify training data
 3. Test with the NLU debugger

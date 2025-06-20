@@ -114,7 +114,7 @@ export default function CustomersPage() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
-            {filtered.map((c, idx) => (
+            {filtered.map((c) => (
               <tr key={c.email} className="hover:bg-[#f7faf9] transition">
                 <td className="px-6 py-4 font-semibold text-gray-900">{c.name}</td>
                 <td className="px-6 py-4">{c.email}</td>

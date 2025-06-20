@@ -1,4 +1,4 @@
-import { Button, CircularProgress, Box, Typography, Alert } from '@mui/material';
+import { Button, CircularProgress, Box, Typography } from '@mui/material';
 import React, { useState, useRef } from 'react';
 
 interface UploadButtonProps {

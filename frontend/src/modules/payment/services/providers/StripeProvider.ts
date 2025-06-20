@@ -5,7 +5,7 @@ import type {
 
 // Define a type for window with Stripe
 interface StripeWindow extends Window {
-  Stripe?: (publicKey: string) => any;
+  Stripe?: (publicKey: string) => unknown;
 }
 
 export class StripeProvider {

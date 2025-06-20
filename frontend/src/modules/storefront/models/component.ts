@@ -49,7 +49,7 @@ export interface StorefrontComponent {
   name: string;
   type: string;
   config: Record<string, unknown>;
-  created_at?: string;
+  created_at: string;
   updated_at?: string;
 }
 

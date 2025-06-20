@@ -9,7 +9,6 @@ export default function OnboardingWizard() {
   const [form, setForm] = useState<Record<string, unknown>>({});
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [statusMsg, setStatusMsg] = useState<string>('');
   const [domainStatus, setDomainStatus] = useState<{ available: boolean; message: string } | null>(
     null,
   );
@@ -61,7 +60,6 @@ export default function OnboardingWizard() {
         clearInterval(progressInterval);
         setUploadProgress(100);
         newForm['kyc_file_url'] = uploadRes.file_url;
-        setStatusMsg('ID uploaded!');
         setKycStatus('pending');
         // Simulate KYC review: after 2s, set to verified
         setTimeout(() => setKycStatus('verified'), 2000);

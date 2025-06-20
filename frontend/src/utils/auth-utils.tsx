@@ -25,7 +25,7 @@ const AuthContext = createContext<AuthContextType>({
 // Provider component
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { isLoaded: isAuthLoaded, userId } = useClerkAuth();
-  const { user, isLoaded: isUserLoaded } = useUser();
+  const { isLoaded: isUserLoaded } = useUser();
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 

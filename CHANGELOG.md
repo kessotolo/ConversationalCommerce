@@ -5,6 +5,7 @@
 ### Fixed
 
 #### Architecture
+
 - Created SQLAlchemy `OrderItem` model in `app/models/order_item.py`
 - Added `items` relationship to SQLAlchemy `Order` model
 - Generated Alembic migration for the new `OrderItem` table
@@ -12,6 +13,7 @@
 - Fixed architectural mismatch where Pydantic domain models were incorrectly used as ORM objects
 
 #### Code Quality
+
 - Fixed 419 lint issues:
   - 370 issues automatically resolved with `ruff --fix`
   - 49 boolean comparison issues (E712) fixed with `--unsafe-fixes`
@@ -24,6 +26,7 @@
 A comprehensive list of TODOs remains in the codebase:
 
 #### Backend TODOs
+
 - Dashboard router: implement actual database queries
 - Behavior analysis: implement system metrics collection
 - Payment endpoints: add missing permission checks
@@ -32,6 +35,7 @@ A comprehensive list of TODOs remains in the codebase:
 - Alert service: integrate with notification channels
 
 #### Frontend TODOs
+
 - Cart page: implement real session/user/phone logic
 - Storefront Editor: align DTOs with backend (asset_id, alt_text, description fields, banner_type)
 
@@ -40,6 +44,7 @@ A comprehensive list of TODOs remains in the codebase:
 ### Added
 
 #### Seller Onboarding (Phase 1.2)
+
 - Scaffolded onboarding API endpoints: start, KYC, domain, team invite, KYC document upload
 - Added SellerOnboardingService for onboarding business logic
 - Created onboarding request/response schemas in `schemas/onboarding.py`

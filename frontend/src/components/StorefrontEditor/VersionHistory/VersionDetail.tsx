@@ -15,11 +15,10 @@ import type { Version } from '@/modules/storefront/models/version';
 
 interface VersionDetailProps {
   version: Version;
-  tenantId: UUID;
   onRestore: (versionId: UUID) => Promise<boolean>;
 }
 
-const VersionDetail: React.FC<VersionDetailProps> = ({ version, tenantId, onRestore }) => {
+const VersionDetail: React.FC<VersionDetailProps> = ({ version, onRestore }) => {
   const [isRestoring, setIsRestoring] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

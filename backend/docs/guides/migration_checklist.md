@@ -9,16 +9,19 @@ This document provides a comprehensive checklist for planning and executing data
 ### Pre-Migration Planning
 
 - [ ] **Schema Change Analysis**
+
   - [ ] Identify all tables and fields affected by migration
   - [ ] Document current vs. new schema differences
   - [ ] Estimate data volume for affected tables
 
 - [ ] **Impact Assessment**
+
   - [ ] Identify dependent services/components
   - [ ] Assess transaction volume during migration window
   - [ ] Determine acceptable downtime (if any)
 
 - [ ] **Rollback Strategy**
+
   - [ ] Create full database backup before migration
   - [ ] Prepare rollback scripts for each migration step
   - [ ] Define rollback decision criteria and responsible parties
@@ -64,17 +67,17 @@ def upgrade():
         sa.Column('channel_type', sa.String(), nullable=False),
         sa.Column('entity_type', sa.String(), nullable=False),
         sa.Column('entity_id', sa.Integer(), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), 
+        sa.Column('created_at', sa.DateTime(timezone=True),
                   server_default=sa.text('now()'), nullable=False),
-        sa.Column('updated_at', sa.DateTime(timezone=True), 
+        sa.Column('updated_at', sa.DateTime(timezone=True),
                   server_default=sa.text('now()'), nullable=False),
         sa.PrimaryKeyConstraint('id'),
         schema='commerce'
     )
-    
+
     # Migrate existing data
     connection = op.get_bind()
-    
+
     # Example: Migrating WhatsApp data from order.metadata to channel_metadata
     orders = connection.execute(
         """
@@ -84,7 +87,7 @@ def upgrade():
           AND metadata->>'wa_phone' IS NOT NULL
         """
     )
-    
+
     for order in orders:
         if 'wa_phone' in order.metadata:
             connection.execute(
@@ -96,11 +99,11 @@ def upgrade():
                 """,
                 {"order_id": order.id}
             )
-            
+
             metadata_id = connection.execute(
                 "SELECT lastval() as id"
             ).scalar()
-            
+
             connection.execute(
                 """
                 INSERT INTO commerce.whatsapp_order_metadata
@@ -119,7 +122,7 @@ def upgrade():
 def downgrade():
     # Revert data migration first
     connection = op.get_bind()
-    
+
     # Example: Migrate data back to orders.metadata
     whatsapp_metadata = connection.execute(
         """
@@ -131,7 +134,7 @@ def downgrade():
           AND cm.entity_type = 'order'
         """
     )
-    
+
     for wm in whatsapp_metadata:
         connection.execute(
             """
@@ -146,7 +149,7 @@ def downgrade():
             {"order_id": wm.order_id, "phone": wm.wa_phone}
         )
         # Continue setting other fields...
-    
+
     # Drop tables in reverse order
     op.drop_table('whatsapp_order_metadata', schema='commerce')
     op.drop_table('channel_metadata', schema='commerce')
@@ -160,16 +163,19 @@ def downgrade():
 ### Migration Execution
 
 - [ ] **Pre-Execution Verification**
+
   - [ ] Run migration on clone of production data
   - [ ] Verify execution time on representative data volume
   - [ ] Confirm all tests pass with migrated data
 
 - [ ] **Execution Plan**
+
   - [ ] Schedule migration during low-traffic window
   - [ ] Notify all stakeholders of maintenance window
   - [ ] Prepare monitoring dashboards for migration tracking
 
 - [ ] **Deployment Steps**
+
   - [ ] Deploy code compatible with both old and new schema
   - [ ] Execute schema migrations (`alembic upgrade head`)
   - [ ] Verify data integrity post-migration
@@ -185,6 +191,7 @@ def downgrade():
 ### Breaking Changes Assessment
 
 - [ ] **API Contract Changes**
+
   - [ ] Document all changed request/response schemas
   - [ ] Identify removed endpoints or parameters
   - [ ] List behavior changes that affect clients
@@ -231,17 +238,17 @@ from app.core.config import settings
 
 def is_feature_enabled(feature_name: str, store_id: int = None) -> bool:
     """Check if a feature is enabled globally or for specific store."""
-    
+
     # Check global feature flags
     if feature_name in settings.ENABLED_FEATURES:
         return True
-        
+
     # Check store-specific flags
     if store_id:
         store_settings = get_store_settings(store_id)
         if store_settings and feature_name in store_settings.enabled_features:
             return True
-            
+
     return False
 
 # Usage in endpoint
@@ -258,11 +265,13 @@ async def create_order(order: OrderCreate, store_id: int):
 ### Client Migration Strategy
 
 - [ ] **Documentation Updates**
+
   - [ ] Create migration guide for API consumers
   - [ ] Document all breaking changes with examples
   - [ ] Provide example code for upgrading clients
 
 - [ ] **Deprecation Timeline**
+
   - [ ] Announce deprecation schedule for old API version
   - [ ] Define support timeline for each API version
   - [ ] Implement monitoring for usage of deprecated endpoints
@@ -277,6 +286,7 @@ async def create_order(order: OrderCreate, store_id: int):
 ### Maintain Compatibility Where Possible
 
 - [ ] **Request Handling**
+
   - [ ] Accept both old and new parameter formats
   - [ ] Support both camelCase and snake_case if format changed
   - [ ] Apply defaults for new required parameters
@@ -302,23 +312,26 @@ async def create_order(order_data: Dict):
         customer_id = order_data["customer"]["id"]
     else:
         customer_id = None
-        
+
     # Continue processing...
 ```
 
 ### Phased Migration
 
 - [ ] **Phase 1: New API Version Introduction**
+
   - [ ] Deploy new API version alongside existing version
   - [ ] Update documentation with migration guides
   - [ ] Begin notifying clients about future deprecation
 
 - [ ] **Phase 2: Encourage Migration**
+
   - [ ] Add deprecation warnings in old API responses
   - [ ] Track usage metrics for old vs. new API
   - [ ] Provide incentives for early adopters of new API
 
 - [ ] **Phase 3: Limited Support**
+
   - [ ] Freeze feature development on old API version
   - [ ] Focus support resources on migration assistance
   - [ ] Implement gradual performance throttling for old API
@@ -333,11 +346,13 @@ async def create_order(order_data: Dict):
 ### Test Coverage
 
 - [ ] **Migration Tests**
+
   - [ ] Unit tests for migration scripts
   - [ ] Integration tests with representative data
   - [ ] Performance tests for large data sets
 
 - [ ] **API Compatibility Tests**
+
   - [ ] Test suite using old API client against new API
   - [ ] Verify behavior consistency across versions
   - [ ] Test with real-world client request patterns
@@ -350,6 +365,7 @@ async def create_order(order_data: Dict):
 ### Monitoring During Migration
 
 - [ ] **Key Metrics**
+
   - [ ] Error rates by endpoint and API version
   - [ ] Response times before and after migration
   - [ ] Database query performance for migrated schema

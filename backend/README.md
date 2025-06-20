@@ -7,6 +7,7 @@
 - [API Reference](./docs/api/index.md) - API documentation
 
 ### Key Guides
+
 - [Checkout Flow](./docs/guides/checkout_flow.md) - Unified checkout for web & chat
 - [Chat NLP Flow](./docs/guides/chat_nlp_flow.md) - Conversation handling
 - [Error Handling](./docs/guides/error_handling.md) - Error recovery & logging
@@ -147,6 +148,7 @@ If you encounter NLP-related errors:
 The backend now includes a robust, stateful chat flow engine for conversational checkout, integrated with WhatsApp and extensible to SMS, Telegram, and other channels.
 
 ### How It Works
+
 - All incoming WhatsApp messages are routed through the chat flow engine unless they are cart/order intents.
 - The engine guides the buyer through a step-by-step checkout: name → phone → address → payment method → confirm.
 - Input is validated at each step, with retry and error handling.
@@ -155,19 +157,23 @@ The backend now includes a robust, stateful chat flow engine for conversational 
 - All state and context are persisted in ConversationHistory for audit and analytics.
 
 ### Key Files
+
 - `app/conversation/chat_flow_engine.py`: Core chat flow logic
 - `app/api/v1/endpoints/whatsapp.py`: WhatsApp webhook integration
 - `app/services/order_service.py`: Order creation from chat/cart
 - `app/services/payment/payment_service.py`: Payment link generation
 
 ### Extending to Other Channels
+
 - The chat flow engine is channel-agnostic; integrate with SMS, Telegram, etc. by routing their webhooks through the same engine.
 - Use the `ChannelType` and `SenderType` enums for channel-specific handling.
 
 ### Logging & Monitoring
+
 - All chat flow transitions, validation errors, order creation, and payment events are logged for debugging and monitoring.
 
 ### Testing
+
 - The flow can be tested via WhatsApp sandbox, API scripts, or by inspecting the database for created orders, payments, and conversation history.
 
 ## 🏪 Multi-Tenant Storefront System (2025-05-28)
@@ -963,6 +969,7 @@ All database migrations are managed using Alembic in the backend directory. To e
 - If you have migration issues, check your virtual environment and working directory first.
 
 **Recent Fixes:**
+
 - Removed duplicate/root-level Alembic config.
 - Created and activated a backend virtual environment.
 - Upgraded Alembic to the latest version.
@@ -1008,18 +1015,21 @@ All database migrations are managed using Alembic in the backend directory. To e
 ## Multi-Tenancy and Migration Best Practices
 
 ### Multi-Tenancy
+
 - This project uses PostgreSQL session variables (e.g., `SET my.tenant_id = ...`) for tenant isolation at the DB level.
 - All DB access is scoped to the current tenant by setting this variable at the start of each request/session.
 - **Important:** Only use trusted UUIDs for tenant IDs to avoid SQL injection.
 - If you change the tenant isolation approach (e.g., schemas, RLS), update this section and the code accordingly.
 
 ### Migration Hygiene
+
 - Always generate and review Alembic migrations after changing models.
 - Test migrations on a fresh database: drop, create, migrate.
 - Use the provided `scripts/db_reset_and_migrate.sh` to reset and migrate your local dev DB.
 - Never edit migration scripts after they are applied to shared environments.
 
 ### Local DB Reset & Migration
+
 To reset and migrate your local dev database:
 
 ```sh
@@ -1030,18 +1040,21 @@ bash scripts/db_reset_and_migrate.sh
 This will drop, recreate, and migrate your local DB using Alembic.
 
 ## 🆕 Recent Changes (2024-06)
+
 - Tenant context is now set in middleware and dependencies, not in services or endpoints. All business logic assumes tenant context is already set.
 - All database access is fully async using AsyncSession. No sync/async mixing is allowed.
 - All tests use async sessions and set tenant context via fixtures (see test_tenant). This ensures RLS and tenant isolation are always tested.
 - Error responses are now standardized with a top-level `detail` field. See backend/docs/api/orders.md for schema.
 
 ## 🧪 Testing Best Practices
+
 - Always use async fixtures and set tenant context for any test that touches tenant data.
 - Use the `test_tenant`
 
 # Backend Modules Overview
 
 ## core
+
 **Purpose:** Base types, utilities, and cross-cutting concerns.
 **Allowed Imports:** None (cannot import from other modules).
 **Forbidden Imports:** All other modules.
@@ -1054,6 +1067,7 @@ import { TenantService } from '@/modules/tenant/services/TenantService';
 **Testing:** See /core/tests/unit and /core/tests/integration.
 
 ## conversation
+
 **Purpose:** Messaging system and conversational flows.
 **Allowed Imports:** core, tenant.
 **Forbidden Imports:** product, order, storefront, theme, monitoring.
@@ -1066,6 +1080,7 @@ import { ProductService } from '@/modules/product/services/ProductService';
 **Testing:** See /conversation/tests/unit and /conversation/tests/integration.
 
 ## services
+
 **Purpose:** Business logic for various modules (order, product, etc.).
 **Allowed Imports:** core, tenant, product (depending on service).
 **Forbidden Imports:** Should not import from unrelated modules.
@@ -1078,19 +1093,22 @@ from app.theme.models import Theme
 **Testing:** See /services/tests/unit and /services/tests/integration.
 
 ## onboarding
+
 **Purpose:** Seller onboarding flows (merchant signup, KYC, domain setup, team invites, document upload).
 **Endpoints:**
+
 - `POST /api/v1/onboarding/start` — Start onboarding, create merchant draft
 - `POST /api/v1/onboarding/kyc` — Submit KYC info
 - `POST /api/v1/onboarding/domain` — Set subdomain/custom domain
 - `POST /api/v1/onboarding/team-invite` — Invite team member
 - `POST /api/v1/onboarding/upload-doc` — KYC document upload
-**Service:** `SellerOnboardingService` in `services/seller_onboarding_service.py` handles all business logic.
-**Schemas:** See `schemas/onboarding.py` for request/response validation.
-**Analytics/Event Logging:** All onboarding steps must log ConversationEvent (see ConversationEvent pattern docs).
-**Testing:** Add unit/integration tests for all onboarding flows.
+  **Service:** `SellerOnboardingService` in `services/seller_onboarding_service.py` handles all business logic.
+  **Schemas:** See `schemas/onboarding.py` for request/response validation.
+  **Analytics/Event Logging:** All onboarding steps must log ConversationEvent (see ConversationEvent pattern docs).
+  **Testing:** Add unit/integration tests for all onboarding flows.
 
 ---
+
 For more details, see AI_AGENT_CONFIG.md.
 
 ## Type Safety and Async/Await Standards

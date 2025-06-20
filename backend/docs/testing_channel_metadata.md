@@ -7,6 +7,7 @@ This document outlines the comprehensive test coverage for the WhatsApp & Channe
 Our tests ensure that all order creation paths properly create and link channel-specific metadata:
 
 1. **Unit Tests**: Verify individual components work correctly
+
    - `test_order_service_web.py`: Tests web order creation
    - `test_order_service_whatsapp.py`: Tests WhatsApp order creation
    - `test_order_intent_handler.py`: Tests conversation handling

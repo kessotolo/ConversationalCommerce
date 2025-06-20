@@ -5,6 +5,7 @@ Based on your modular monolith architecture and the technical debt analysis, her
 ## 1. Core Module Imports (Highest Priority)
 
 Files requiring immediate attention:
+
 - StorefrontEditor components importing directly from `@/modules/core/types` or `@/modules/core/models/base`
 - ThemeContext.tsx importing directly from `theme/types`
 - Monitoring components importing directly from `monitoring/types`
@@ -12,6 +13,7 @@ Files requiring immediate attention:
 ## 2. Unused Variables in Key Components
 
 High priority files with unused imports:
+
 - CreateBannerModal.tsx
 - BannerLogoManagement components
 - Monitoring components
@@ -20,6 +22,7 @@ High priority files with unused imports:
 ## 3. Module Boundary Enforcement
 
 Update remaining module public APIs:
+
 - Storefront module
 - Theme module
 - Monitoring module
@@ -33,15 +36,16 @@ Update remaining module public APIs:
 ## Implementation Notes
 
 1. When fixing imports, always update to use the module's public API:
+
    ```typescript
    // AVOID: Direct internal imports
    import { Type } from '@/modules/core/models/base';
-   
+
    // USE: Public API imports
    import { Type } from '@/modules/core';
    ```
 
 2. For files with unused variables, use one of these approaches:
    - Remove the unused import/variable
-   - Prefix with underscore (_unusedVar)
+   - Prefix with underscore (\_unusedVar)
    - Add ESLint disable comment for intentional cases

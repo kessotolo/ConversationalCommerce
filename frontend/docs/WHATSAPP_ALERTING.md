@@ -64,6 +64,7 @@ Sellers can set up their WhatsApp number through the Settings drawer:
 ### Backend Services
 
 1. **Alert Service** (`alert_service.py`):
+
    - Defines alert types and formats
    - Determines routing (WhatsApp, email, SMS)
    - Ensures tenant isolation for alerts
@@ -76,6 +77,7 @@ Sellers can set up their WhatsApp number through the Settings drawer:
 ### Tenant WhatsApp Number Management
 
 1. **Model Extension**:
+
    - The `Tenant` model includes a `whatsapp_number` field
    - Migration scripts handle database updates
 
@@ -116,11 +118,13 @@ Planned improvements to the WhatsApp alerting system:
 Common issues and solutions:
 
 1. **Missing WhatsApp Alerts**:
+
    - Verify Twilio credentials are correctly set
    - Confirm the seller's WhatsApp number is in international format
    - Check backend logs for Twilio API errors
 
 2. **Failed to Save WhatsApp Number**:
+
    - Ensure the number is in proper international format
    - Verify authentication is working correctly
    - Check network connectivity and API errors in browser console
@@ -131,10 +135,12 @@ Common issues and solutions:
    - Ensure proper API response from `/tenants/me` endpoint
 
 ## Backend Event-Driven Monitoring & Alerting (2024-06)
+
 - WhatsApp alerting is now fully integrated with the backend event system and Prometheus metrics.
 - All critical events (order, payment, webhook failures) are monitored and alertable via Prometheus Alertmanager and Sentry.
 - See backend/README.md and frontend/docs/MONITORING.md for details.
 
 ### Analytics, Fulfillment, and Alerting (2024-06)
+
 - Analytics logging is now structured (JSON), fulfillment is event-driven, and alerting is actionable and ready for real integration.
 - See backend/README.md and MONITORING.md for details.

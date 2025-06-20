@@ -11,7 +11,6 @@ import {
   MoreVertical,
   ImageIcon,
   Send,
-  MessageCircle,
 } from 'lucide-react';
 import Image from 'next/image';
 import React, { useState, useRef, useEffect } from 'react';
@@ -109,14 +108,25 @@ const mockMessages = [
   },
 ];
 
-// Quick reply templates
-const quickReplies = [
-  "Thank you for your order! We'll process it right away.",
-  'Your order has been shipped and should arrive within 2-3 business days.',
-  "We're currently out of stock on that item. Would you like to be notified when it's back?",
-  'Can I help you with anything else today?',
-  "What's your delivery address?",
-];
+// Helper to safely extract tenantId from user or organization
+function getTenantId(user: unknown, organization: { id?: string } | null): string | undefined {
+  if (organization && typeof organization.id === 'string') return organization.id;
+  if (user && typeof user === 'object' && user !== null) {
+    if ('tenantId' in user && typeof (user as Record<string, unknown>)['tenantId'] === 'string') {
+      return (user as Record<string, unknown>)['tenantId'] as string;
+    }
+    if (
+      'publicMetadata' in user &&
+      typeof user.publicMetadata === 'object' &&
+      user.publicMetadata !== null &&
+      'tenantId' in user.publicMetadata &&
+      typeof user.publicMetadata.tenantId === 'string'
+    ) {
+      return user.publicMetadata.tenantId;
+    }
+  }
+  return undefined;
+}
 
 export default function MessagesPage() {
   const { user } = useUser();
@@ -125,7 +135,7 @@ export default function MessagesPage() {
   // Use Clerk user ID and organization (tenant) ID
   // Fallback to user publicMetadata.tenantId if not in an organization
   const currentUserId = user?.id;
-  const tenantId = organization?.id || user?.publicMetadata?.tenantId;
+  const tenantId = getTenantId(user, organization ?? null);
 
   const [conversations, setConversations] = useState(mockConversations);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
@@ -225,9 +235,11 @@ export default function MessagesPage() {
   const lastMsgDate =
     messages.length > 0 ? new Date(messages[messages.length - 1].timestamp) : null;
   // Helper: is expired (order closed or >2 weeks old)
-  const isOrderClosed =
-    selectedConvObj &&
-    (selectedConvObj.orderStatus === 'delivered' || selectedConvObj.orderStatus === 'cancelled');
+  let isOrderClosed = false;
+  if (selectedConvObj) {
+    isOrderClosed =
+      selectedConvObj.orderStatus === 'delivered' || selectedConvObj.orderStatus === 'cancelled';
+  }
   const isMsgTooOld = lastMsgDate
     ? Date.now() - lastMsgDate.getTime() > 14 * 24 * 60 * 60 * 1000
     : false;
@@ -322,12 +334,6 @@ export default function MessagesPage() {
     // For now, we'll just use the mock messages
   };
 
-  // Insert quick reply
-  const insertQuickReply = (reply: string) => {
-    // Set the message input value to the quick reply text
-    setNewMessage(reply);
-  };
-
   // Render message status icon
   const renderMessageStatus = (status: string) => {
     switch (status) {
@@ -368,7 +374,7 @@ export default function MessagesPage() {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
               </div>
             ) : filteredConversations.length > 0 ? (
-              filteredConversations.map((conv: (typeof mockConversations)[0]) => (
+              filteredConversations.map((conv) => (
                 <button
                   key={conv.id}
                   className={`w-full text-left px-4 py-3 border-b flex items-start rounded-none transition-all duration-150 ${selectedConversation === conv.id ? 'bg-[#e8f6f1] border-l-4 border-[#6C9A8B]' : 'hover:bg-gray-100'}`}
@@ -397,7 +403,9 @@ export default function MessagesPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between">
                       <h3 className="font-medium truncate">{conv.customerName}</h3>
-                      <span className="text-xs text-gray-500">{formatDate(conv.timestamp)}</span>
+                      <span className="text-xs text-gray-500">
+                        {conv.timestamp ? formatDate(conv.timestamp) : ''}
+                      </span>
                     </div>
                     <div className="flex items-center text-sm text-gray-500 mt-1">
                       <Phone className="h-3 w-3 mr-1" />
@@ -409,184 +417,126 @@ export default function MessagesPage() {
                         <span className="bg-[#f0f7f4] text-[#6C9A8B] px-2 py-0.5 rounded">
                           {conv.orderId}
                         </span>
-                        <span
-                          className={`ml-2 px-2 py-0.5 rounded ${
-                            conv.orderStatus === 'delivered'
-                              ? 'bg-green-100 text-green-800'
-                              : conv.orderStatus === 'processing'
-                                ? 'bg-blue-100 text-blue-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                          }`}
-                        >
-                          {conv.orderStatus}
-                        </span>
+                        {conv.orderStatus && (
+                          <span
+                            className={`ml-2 px-2 py-0.5 rounded ${
+                              conv.orderStatus === 'delivered'
+                                ? 'bg-green-100 text-green-800'
+                                : conv.orderStatus === 'processing'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-yellow-100 text-yellow-800'
+                            }`}
+                          >
+                            {conv.orderStatus}
+                          </span>
+                        )}
                       </div>
                     )}
                   </div>
                 </button>
               ))
             ) : (
-              <div className="flex flex-col items-center justify-center h-32 text-gray-500">
-                <p>No conversations found</p>
+              <div className="flex justify-center items-center h-32">
+                <p className="text-gray-500">No conversations found.</p>
               </div>
             )}
           </div>
         </div>
-
         {/* Chat area */}
-        <div className="hidden sm:flex flex-col flex-1 bg-white">
-          {selectedConversation ? (
-            <>
-              {/* Chat header */}
-              <div className="px-4 py-3 border-b flex justify-between items-center bg-white">
-                <div className="flex items-center">
-                  <div className="relative h-10 w-10 rounded-full overflow-hidden bg-gray-300 mr-3 border border-[#e6f0eb]">
-                    {selectedConvObj?.avatar ? (
-                      <Image
-                        src={selectedConvObj.avatar}
-                        alt={selectedConvObj.customerName}
-                        width={40}
-                        height={40}
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center h-full w-full bg-[#e6f0eb] text-[#6C9A8B]">
-                        {selectedConvObj?.customerName.charAt(0)}
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="font-medium">{selectedConvObj?.customerName}</h3>
-                    <div className="flex items-center text-xs text-gray-500">
-                      <Phone className="h-3 w-3 mr-1" />
-                      <span>{selectedConvObj?.phone}</span>
+        <div className="flex-1 flex flex-col">
+          {/* Chat header */}
+          {selectedConvObj ? (
+            <div className="p-4 border-b flex items-center bg-white">
+              <div className="flex items-center">
+                <div className="relative h-10 w-10 rounded-full overflow-hidden bg-gray-300 mr-3 border border-[#e6f0eb]">
+                  {selectedConvObj.avatar ? (
+                    <Image
+                      src={selectedConvObj.avatar}
+                      alt={selectedConvObj.customerName}
+                      width={40}
+                      height={40}
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full w-full bg-[#e6f0eb] text-[#6C9A8B]">
+                      {selectedConvObj.customerName.charAt(0)}
                     </div>
-                  </div>
+                  )}
                 </div>
-                <div className="flex">
-                  <Button
-                    className="h-8 w-8 p-0 mr-2 btn-ghost"
-                    title="Video Call"
-                    disabled={isExpired}
-                  >
-                    <Video className="h-4 w-4" />
-                  </Button>
-                  <Button className="h-8 w-8 p-0 btn-ghost" title="More Actions">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
+                <div>
+                  <h3 className="font-medium">{selectedConvObj.customerName}</h3>
+                  <div className="flex items-center text-xs text-gray-500">
+                    <Phone className="h-3 w-3 mr-1" />
+                    <span>{selectedConvObj.phone}</span>
+                  </div>
                 </div>
               </div>
-
-              {/* Order status alert */}
-              {selectedConvObj?.orderId && (
+              <div className="flex ml-auto">
+                <Button className="h-8 w-8 p-0 mr-2 btn-ghost" title="Video Call">
+                  <Video className="h-4 w-4" />
+                </Button>
+                <Button className="h-8 w-8 p-0 btn-ghost" title="More Actions">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          ) : null}
+          {/* Chat messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#f7faf9]">
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex ${msg.sender === 'store' ? 'justify-end' : 'justify-start'}`}
+              >
                 <div
-                  className={`px-4 py-2 text-sm ${
-                    selectedConvObj.orderStatus === 'delivered'
-                      ? 'bg-green-100'
-                      : selectedConvObj.orderStatus === 'processing'
-                        ? 'bg-blue-100'
-                        : 'bg-yellow-100'
+                  className={`max-w-[75%] rounded-lg px-4 py-2 ${
+                    msg.sender === 'store'
+                      ? 'bg-[#6C9A8B] text-white rounded-tr-none'
+                      : 'bg-white border rounded-tl-none'
                   }`}
                 >
-                  Order {selectedConvObj.orderId} is{' '}
-                  <span className="font-medium">{selectedConvObj.orderStatus}</span>
-                </div>
-              )}
-
-              {/* Message area */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#f7faf9]">
-                {messages.map((msg) => (
+                  <p>{msg.content}</p>
                   <div
-                    key={msg.id}
-                    className={`flex ${msg.sender === 'store' ? 'justify-end' : 'justify-start'}`}
+                    className={`text-xs mt-1 flex justify-end items-center gap-1 ${
+                      msg.sender === 'store' ? 'text-[#e6f0eb]' : 'text-gray-500'
+                    }`}
                   >
-                    <div
-                      className={`max-w-[75%] rounded-lg px-4 py-2 ${
-                        msg.sender === 'store'
-                          ? 'bg-[#6C9A8B] text-white rounded-tr-none'
-                          : 'bg-white border rounded-tl-none'
-                      }`}
-                    >
-                      <p>{msg.content}</p>
-                      <div
-                        className={`text-xs mt-1 flex justify-end items-center gap-1 ${
-                          msg.sender === 'store' ? 'text-[#e6f0eb]' : 'text-gray-500'
-                        }`}
-                      >
-                        {formatDate(msg.timestamp, 'time')}
-                        {msg.sender === 'store' && renderMessageStatus(msg.status)}
-                      </div>
-                    </div>
+                    {formatDate(msg.timestamp, 'time')}
+                    {msg.sender === 'store' && renderMessageStatus(msg.status)}
                   </div>
-                ))}
-                <div ref={messagesEndRef} />
+                </div>
               </div>
-
-              {/* Quick replies */}
-              {!isExpired && (
-                <div className="bg-white border-t px-4 py-2">
-                  <p className="text-xs text-gray-500 mb-2">Quick replies:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {quickReplies.map((reply, index) => (
-                      <button
-                        key={index}
-                        onClick={() => insertQuickReply(reply)}
-                        className="bg-[#f0f7f4] hover:bg-[#e8f6f1] text-[#6C9A8B] text-xs px-3 py-1 rounded-full"
-                      >
-                        {reply.length > 30 ? `${reply.substring(0, 30)}...` : reply}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Message input */}
-              {isExpired ? (
-                <div className="p-4 border-t bg-gray-100">
-                  <div className="bg-yellow-100 text-yellow-800 p-3 rounded-lg text-sm">
-                    This conversation is no longer active. The order is complete or the conversation
-                    has expired.
-                  </div>
-                </div>
-              ) : (
-                <div className="p-4 border-t bg-white">
-                  <div className="flex">
-                    <Button className="h-10 w-10 p-0 mr-2" title="Attach Image">
-                      <ImageIcon className="h-5 w-5" />
-                    </Button>
-                    <input
-                      type="text"
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      placeholder="Type your message..."
-                      className="flex-1 border rounded-l-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#6C9A8B]"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          sendMessage();
-                        }
-                      }}
-                    />
-                    <Button
-                      onClick={sendMessage}
-                      disabled={!newMessage.trim()}
-                      className="bg-[#6C9A8B] hover:bg-[#5a8676] text-white rounded-l-none"
-                    >
-                      <Send className="h-5 w-5" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="flex flex-1 flex-col items-center justify-center text-center bg-white">
-              <MessageCircle className="w-16 h-16 text-[#e6f0eb] mb-4" />
-              <h2 className="text-xl font-semibold mb-2 text-gray-700">No conversation selected</h2>
-              <p className="text-gray-500 max-w-md">
-                Select a conversation from the list to start messaging
-              </p>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+          {/* Message input */}
+          <div className="p-4 border-t bg-white">
+            <div className="flex">
+              <Button className="h-10 w-10 p-0 mr-2" title="Attach Image">
+                <ImageIcon className="h-5 w-5" />
+              </Button>
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Type your message..."
+                className="flex-1 border rounded-l-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#6C9A8B]"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                  }
+                }}
+              />
+              <Button
+                onClick={sendMessage}
+                disabled={!newMessage.trim()}
+                className="bg-[#6C9A8B] hover:bg-[#5a8676] text-white rounded-l-none"
+              >
+                <Send className="h-5 w-5" />
+              </Button>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

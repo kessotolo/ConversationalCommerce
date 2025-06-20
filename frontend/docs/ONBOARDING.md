@@ -168,6 +168,7 @@ Welcome aboard! We're excited to have you contribute to ConversationalCommerce.
 - **Type Safety**: No `any` types are allowed. Use `unknown` with type guards for dynamic data. All module boundaries use explicit interfaces and DTOs.
 
 ### How to Fix Lint/Type Errors
+
 - **Restricted Import**: Change your import to use the module's public API or DTO file.
 - **Unused Variable/Import**: Remove or use the variable/import as needed.
 - **Type Error**: Add or refine type annotations, avoid `any`, and use generics or type guards as appropriate.
@@ -187,31 +188,37 @@ If you use React hooks (like `useState`, `useEffect`, `useParams`, etc.) in a fi
 - See: [Next.js docs on Client Components](https://nextjs.org/docs/app/building-your-application/rendering/composition-patterns#client-components)
 
 **CI/Build Tip:**
+
 - Our build scripts and linting will check for this, but you should always double-check when creating or editing App Router pages/components.
 
 # Conversation Event Logging, Analytics, and Clerk Integration
 
 ## Event Logging
+
 - All key conversation actions (messages, joins, leaves, closes, etc.) are logged as structured events.
 - Use the `ConversationEventLogger` utility to send events to the backend `/conversation-events` endpoint.
 - Events include `conversation_id`, `user_id`, `tenant_id`, `event_type`, `payload`, and `event_metadata`.
 
 ## Clerk Integration
+
 - The frontend uses Clerk's `useUser` and `useOrganization` hooks to get the real user and tenant (organization) IDs.
 - These IDs are included in every event log for multi-tenancy and user attribution.
 - If the user is not in an organization, fallback to `user.publicMetadata.tenantId`.
 
 ## Analytics & Dashboard
+
 - The backend aggregates events for analytics and exposes them via `/conversation-analytics`.
 - The dashboard visualizes metrics (event volume, type, response time, etc.) and supports CSV export.
 - Real-time monitoring is enabled via WebSocket, broadcasting key events and alerts to admins.
 - The dashboard displays a live feed of recent events and anomalies.
 
 ## Event Types
+
 - Supported event types: `message_sent`, `message_read`, `product_clicked`, `order_placed`, `conversation_started`, `user_joined`, `user_left`, `conversation_closed`.
 - New event types can be added in a type-safe manner on both backend and frontend.
 
 ## Best Practices
+
 - Always use the ConversationEventLogger for logging events in the frontend.
 - Ensure user and tenant IDs are sourced from Clerk context/hooks.
 - Extend analytics and monitoring by adding new event types and updating the dashboard as needed.
@@ -225,12 +232,14 @@ If you use React hooks (like `useState`, `useEffect`, `useParams`, etc.) in a fi
 - Payment events (e.g., PaymentProcessedEvent) are now part of the backend event system. See backend/docs/api/orders.md for details.
 
 ## Event-Driven Backend, Monitoring, and Alerting (2024-06)
+
 - The backend is now fully event-driven, with all order, payment, and webhook events monitored via Sentry and Prometheus.
 - Alerting is automated via Prometheus Alertmanager and WhatsApp for critical events.
 - All frontend monitoring and alerting (NotificationCenter, WhatsApp alerts) are integrated with backend events and metrics.
 - See backend/README.md and frontend/docs/MONITORING.md for details.
 
 ### Analytics, Fulfillment, and Alerting (2024-06)
+
 - Analytics logging is now structured (JSON), fulfillment is event-driven, and alerting is actionable and ready for real integration.
 - See backend/README.md and MONITORING.md for details.
 
@@ -241,3 +250,28 @@ If you use React hooks (like `useState`, `useEffect`, `useParams`, etc.) in a fi
 - **Error handling is required for all async flows**: Use try/catch around all await calls that can throw.
 - **All async functions must be fully typed**: Never use `any` in async function signatures or return types.
 - **Async flows must be documented and tested**: All async logic must have corresponding tests and inline comments for complex flows.
+
+## 🧹 2024: Initial Build & Type Safety Enforcement (Summary)
+
+### Achievements
+- All `any` types eliminated; replaced with explicit interfaces, generics, or `unknown` with type guards
+- All unused variables, imports, and forbidden `require()` usage removed
+- All model interfaces (Product, Order, StorefrontComponent, etc.) now require `created_at: string` and use canonical base types
+- All bridge files removed; only direct module imports allowed (no `/types/` directory usage)
+- All index signature property access (TS4111) and strict optional property errors fixed
+- All code is now linter- and type-check compliant; CI blocks merges on violations
+- All async code uses async/await with full error handling and type safety
+- All code changes are documented and tested
+
+### Canonical Linter/Type Error Resolution
+- Use type guards and explicit types instead of non-null assertions or `any`
+- Suppress false positive linter/type errors only with line-level comments and clear justification
+- Never use file-level disables except for legacy/third-party code
+- All test code must be type-safe and use mocks for side-effectful utilities
+
+### Updated Rules for All Contributors & AI Agents
+- Never introduce new `any` types or bridge files
+- Always use direct module imports and respect module boundaries
+- All code must be clean, readable, and well-documented
+- All code must pass `npm run lint`, `npm run type-check`, and `npm run verify:architecture`
+- All architectural and code quality rules are enforced by CI and documented in this file

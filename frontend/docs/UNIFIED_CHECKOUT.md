@@ -42,11 +42,13 @@ Domain Model Structure
 ### Key Architecture Components
 
 1. **Domain Model Layer**:
+
    - Separate domain models from transport/API models
    - Entity types with business rules enforced within the domain
    - Value objects for immutable concepts (Address, Money, etc.)
 
 2. **Event-Driven Architecture**:
+
    - Define clear domain events for each state change
    - Event listeners for downstream actions (inventory updates, notifications)
    - Event sourcing for complete order history and audit trail
@@ -189,11 +191,13 @@ CREATE TABLE order_timelines (
 ## 6. Implementation Phases
 
 ### Phase 1: Domain Model & Event Definition
+
 - Define all domain models, events, and validation schemas
 - Implement shared validation libraries
 - Set up event publishing/handling infrastructure
 
 ### Phase 2: Core Services Implementation
+
 - Implement OrderService with transactional processing
 - Build PaymentService with support for multiple payment methods
 - Create InventoryService for stock validation and reservation
@@ -201,6 +205,7 @@ CREATE TABLE order_timelines (
 - Set up event handlers for order lifecycle events
 
 ### Phase 3: Web UI Implementation
+
 - Create responsive checkout form components
 - Implement address autocomplete and validation
 - Build payment integration components
@@ -209,6 +214,7 @@ CREATE TABLE order_timelines (
 - Add order tracking interface for customers
 
 ### Phase 4: Conversational UI Implementation
+
 - Design conversation flow state machine for checkout
 - Implement contextual NLP for field extraction
 - Create rich message templates for each checkout step
@@ -217,6 +223,7 @@ CREATE TABLE order_timelines (
 - Support multi-lingual conversations
 
 ### Phase 5: Security & Compliance
+
 - Implement PII encryption for sensitive customer data
 - Add audit logging for all order operations
 - Set up fraud detection measures
@@ -224,6 +231,7 @@ CREATE TABLE order_timelines (
 - Implement rate limiting and abuse prevention
 
 ### Phase 6: Testing & Deployment
+
 - Write comprehensive unit and integration tests
 - Create end-to-end test suites for both channels
 - Set up synthetic monitoring for checkout flows
@@ -231,6 +239,7 @@ CREATE TABLE order_timelines (
 - Deploy with feature flags for gradual rollout
 
 ### Phase 7: Analytics & Optimization
+
 - Add conversion tracking and funnel analytics
 - Implement A/B testing for checkout variations
 - Create dashboard for order metrics
@@ -240,6 +249,7 @@ CREATE TABLE order_timelines (
 ## 7. API & Integration Architecture
 
 Webhook system for tenant integration:
+
 - Allow sellers to register webhooks for order events
 - Secure payload delivery with signatures
 - Support retry mechanisms for failed deliveries
@@ -256,6 +266,7 @@ Webhook system for tenant integration:
 ## 9. Future-proofing and Extensibility
 
 ### Payment Method Abstraction
+
 ```typescript
 // Payment method interface
 interface PaymentMethod {
@@ -273,18 +284,18 @@ interface PaymentMethod {
 
 ### Channel Comparison Matrix
 
-| Feature                   | Web UI                               | Conversational UI                      | Shared Backend                         |
-|---------------------------|--------------------------------------|----------------------------------------|---------------------------------------|
-| **Customer Information**  | Form with validation                 | NLP extraction with context            | Shared validation rules                |
-| **Address Collection**    | Google Places autocomplete           | Step-by-step with correction           | Geocoding and validation              |
-| **Payment Processing**    | Multiple methods with UI             | Simplified options with instructions   | Unified payment service               |
-| **Order Review**          | Visual summary with items and total  | Text summary with confirmation         | Shared order calculation              |
-| **Order Confirmation**    | Success page with details            | Confirmation message with order ID     | Event-driven notifications            |
-| **Error Handling**        | Form validation with visual cues     | Conversation recovery and guidance     | Consistent validation errors          |
-| **Order Tracking**        | Dedicated tracking page              | Status requests via chat               | Shared tracking service               |
-| **Abandoned Recovery**    | localStorage + email reminders       | Conversation resumption                | Unified incomplete order handling     |
-| **Localization**          | UI translation                       | NLP in multiple languages              | Shared localization service           |
-| **Analytics**             | Web-specific metrics                 | Conversation-specific metrics          | Unified conversion tracking           |
+| Feature                  | Web UI                              | Conversational UI                    | Shared Backend                    |
+| ------------------------ | ----------------------------------- | ------------------------------------ | --------------------------------- |
+| **Customer Information** | Form with validation                | NLP extraction with context          | Shared validation rules           |
+| **Address Collection**   | Google Places autocomplete          | Step-by-step with correction         | Geocoding and validation          |
+| **Payment Processing**   | Multiple methods with UI            | Simplified options with instructions | Unified payment service           |
+| **Order Review**         | Visual summary with items and total | Text summary with confirmation       | Shared order calculation          |
+| **Order Confirmation**   | Success page with details           | Confirmation message with order ID   | Event-driven notifications        |
+| **Error Handling**       | Form validation with visual cues    | Conversation recovery and guidance   | Consistent validation errors      |
+| **Order Tracking**       | Dedicated tracking page             | Status requests via chat             | Shared tracking service           |
+| **Abandoned Recovery**   | localStorage + email reminders      | Conversation resumption              | Unified incomplete order handling |
+| **Localization**         | UI translation                      | NLP in multiple languages            | Shared localization service       |
+| **Analytics**            | Web-specific metrics                | Conversation-specific metrics        | Unified conversion tracking       |
 
 ## 10. Integration with Existing Architecture
 
@@ -299,20 +310,24 @@ The unified checkout system will integrate with our existing architecture:
 ## 11. Technical Considerations
 
 ### Authentication
+
 - Uses the SafeClerkProvider pattern for web checkout
 - WhatsApp checkout tied to customer phone number
 - Guest checkout with optional account creation
 
 ### Build Process
+
 - Ensures compatibility with current build pipeline
 - Proper 'use client' directives for React components in the app router
 - Avoids creating new technical debt with bridge files
 
 ### Performance
+
 - Optimized for low-bandwidth and intermittent connectivity
 - Local state persistence for offline resilience
 - Minimal payload sizes for WhatsApp communication
 
 ### Analytics, Fulfillment, and Alerting (2024-06)
+
 - Analytics logging is now structured (JSON), fulfillment is event-driven, and alerting is actionable and ready for real integration.
 - See backend/README.md and MONITORING.md for details.

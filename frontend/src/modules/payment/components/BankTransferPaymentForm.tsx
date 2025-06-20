@@ -12,7 +12,8 @@ import {
   Grid,
 } from '@mui/material';
 import React, { useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
+import type { SubmitHandler } from 'react-hook-form';
 
 import type { Order } from '@/modules/order/models/order';
 import type { ManualPaymentProof, BankAccountDetails } from '@/modules/payment/models/payment';
@@ -38,20 +39,18 @@ export const BankTransferPaymentForm: React.FC<BankTransferPaymentFormProps> = (
   const [success, setSuccess] = useState<boolean>(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
 
+  const defaultValues: ManualPaymentProof = {
+    reference: '',
+    transfer_date: new Date().toISOString().split('T')[0] || '',
+    bank_name: bankDetails.bank_name || '',
+    account_name: bankDetails.account_name || '',
+    notes: '',
+  };
   const {
     register,
     handleSubmit,
-    control,
     formState: { errors },
-  } = useForm<ManualPaymentProof>({
-    defaultValues: {
-      reference: '',
-      transfer_date: new Date().toISOString().split('T')[0], // Today's date
-      bank_name: bankDetails.bank_name || '',
-      account_name: bankDetails.account_name || '',
-      notes: '',
-    },
-  });
+  } = useForm<ManualPaymentProof>({ defaultValues });
 
   const paymentService = new HttpPaymentService();
 
@@ -59,17 +58,15 @@ export const BankTransferPaymentForm: React.FC<BankTransferPaymentFormProps> = (
     setUploadedImageUrl(imageUrl);
   };
 
-  const onSubmit = async (data: ManualPaymentProof) => {
+  const onSubmit: SubmitHandler<ManualPaymentProof> = async (data) => {
     setLoading(true);
     setError(null);
 
     try {
-      // Add the screenshot URL to the proof if one was uploaded
       const proofWithImage: ManualPaymentProof = {
         ...data,
-        screenshot_url: uploadedImageUrl || undefined,
+        ...(uploadedImageUrl ? { screenshot_url: uploadedImageUrl } : {}),
       };
-
       const result = await paymentService.submitManualPaymentProof(
         order.order_number,
         proofWithImage,
@@ -113,7 +110,7 @@ export const BankTransferPaymentForm: React.FC<BankTransferPaymentFormProps> = (
           <>
             <Box mb={3}>
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                Payment Amount: {order.total_amount.currency} {order.total_amount.value.toFixed(2)}
+                Payment Amount: {order.total_amount.currency} {order.total_amount.amount.toFixed(2)}
               </Typography>
 
               <Divider sx={{ my: 2 }} />
@@ -127,14 +124,14 @@ export const BankTransferPaymentForm: React.FC<BankTransferPaymentFormProps> = (
                   <Typography variant="body2" color="text.secondary">
                     Bank Name
                   </Typography>
-                  <Typography variant="body1">{bankDetails.bank_name}</Typography>
+                  <Typography variant="body1">{bankDetails.bank_name || ''}</Typography>
                 </Box>
 
                 <Box>
                   <Typography variant="body2" color="text.secondary">
                     Account Name
                   </Typography>
-                  <Typography variant="body1">{bankDetails.account_name}</Typography>
+                  <Typography variant="body1">{bankDetails.account_name || ''}</Typography>
                 </Box>
 
                 <Box>
@@ -142,7 +139,7 @@ export const BankTransferPaymentForm: React.FC<BankTransferPaymentFormProps> = (
                     Account Number
                   </Typography>
                   <Typography variant="body1" fontWeight="medium">
-                    {bankDetails.account_number}
+                    {bankDetails.account_number || ''}
                   </Typography>
                 </Box>
 
@@ -151,7 +148,7 @@ export const BankTransferPaymentForm: React.FC<BankTransferPaymentFormProps> = (
                     <Typography variant="body2" color="text.secondary">
                       Instructions
                     </Typography>
-                    <Typography variant="body2">{bankDetails.instructions}</Typography>
+                    <Typography variant="body2">{bankDetails.instructions || ''}</Typography>
                   </Box>
                 )}
               </Stack>
@@ -210,7 +207,7 @@ export const BankTransferPaymentForm: React.FC<BankTransferPaymentFormProps> = (
                   />
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid item>
                   <Typography variant="subtitle2" gutterBottom>
                     Upload Payment Screenshot (Optional)
                   </Typography>

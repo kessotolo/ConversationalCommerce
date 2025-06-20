@@ -11,12 +11,15 @@ Our platform bridges the gap between digital efficiency and human connection, en
 While Western e-commerce follows a catalog-cart-checkout model, African commerce follows a conversation-context-conversion pattern. Our platform is built on three core principles:
 
 ### 1. **Chat is the New Interface**
+
 Every step—from product discovery to payment—happens naturally in conversation, mirroring how Africans actually buy and sell. The traditional webapp exists as a complementary tool, but the heart of the experience is the chat.
 
 ### 2. **Infrastructure, Not Apps**
+
 We're building commercial infrastructure for the continent—not another app to download. By integrating with WhatsApp (1B+ users in Africa) and extending to SMS, voice, and USSD, we reach customers regardless of smartphone access or data constraints.
 
 ### 3. **Multi-Channel by Design**
+
 Sellers manage products, orders, and customers from one dashboard while engaging buyers across multiple channels—WhatsApp, storefronts, Instagram, physical locations, and more—with consistent branding, inventory, and analytics.
 
 ## 🔑 Unique Value Proposition: The WhatsApp-First Commerce Platform
@@ -56,12 +59,14 @@ ConversationalCommerce is preparing for official launch in September 2025. Our g
 Our platform solves complex technical challenges behind a simple interface:
 
 ### For Sellers:
+
 - Multi-tenant architecture with subdomain and custom domain support
 - Unified dashboard for managing catalog, orders, and customer communications
 - Robust API ecosystem for custom integrations and third-party extensions
 - Advanced security with tenant isolation using PostgreSQL Row-Level Security
 
 ### For Buyers:
+
 - Frictionless entry points through QR codes, deep links, phone numbers, and more
 - Human-like conversational experiences that understand intent and context
 - Consistent shopping experience across web, WhatsApp, and physical touchpoints
@@ -181,17 +186,20 @@ The platform is designed with a mobile-first approach, recognizing that most use
 ### June 2025: WhatsApp NLP Cart Management
 
 - **Multi-Tenant WhatsApp Integration**:
+
   - Sellers use their own WhatsApp numbers for customer interactions
   - Platform routes messages to correct seller based on receiving WhatsApp number
   - Responses sent from seller's WhatsApp number for brand consistency
 
 - **NLP-Based Cart Management**:
+
   - Process natural language commands for cart operations directly through WhatsApp
   - Supported commands include: add to cart, remove from cart, update quantity, view cart, clear cart
   - Intent recognition using NLP models to understand customer requests
   - Product name extraction from conversational messages
 
 - **Integration Options**:
+
   - Platform-managed Twilio integration (default) - sellers just register their number
   - Direct WhatsApp Business API support for advanced sellers
   - Comprehensive webhook system to receive and process WhatsApp messages
@@ -928,6 +936,7 @@ Please contact the repository owner for contribution guidelines.
 - **Type Safety**: No `any` types are allowed. Use `unknown` with type guards for dynamic data. All module boundaries use explicit interfaces and DTOs.
 
 ### How to Fix Lint/Type Errors
+
 - **Restricted Import**: Change your import to use the module's public API or DTO file.
 - **Unused Variable/Import**: Remove or use the variable/import as needed.
 - **Type Error**: Add or refine type annotations, avoid `any`, and use generics or type guards as appropriate.
@@ -935,6 +944,7 @@ Please contact the repository owner for contribution guidelines.
 ## WhatsApp Alerting & Seller WhatsApp Number Management
 
 ### Overview
+
 - Sellers receive real-time alerts for critical events (new orders, customer inquiries, payments) directly on WhatsApp.
 - Each seller/tenant manages their WhatsApp number through an intuitive UI in dashboard settings.
 - The system uses Twilio WhatsApp Business API for reliable, high-deliverability messaging.
@@ -956,6 +966,7 @@ The WhatsApp alerting system follows our modular monolith architecture:
   - Proper migrations for database schema updates
 
 ### How it Works
+
 1. Seller configures their WhatsApp number in the dashboard (Settings > General).
 2. The backend securely stores this number in the tenant profile.
 3. When alert-worthy events occur, the system determines appropriate channel(s).
@@ -963,10 +974,12 @@ The WhatsApp alerting system follows our modular monolith architecture:
 5. Delivery status is tracked and fallback channels are used if needed.
 
 ### API Endpoints
+
 - `GET /tenants/me`: Fetch current tenant profile (including WhatsApp number)
 - `PATCH /tenants/me`: Update WhatsApp number for the current tenant
 
 ### Environment Variables
+
 ```
 TWILIO_ACCOUNT_SID=your_twilio_sid
 TWILIO_AUTH_TOKEN=your_twilio_token
@@ -974,12 +987,15 @@ TWILIO_WHATSAPP_NUMBER=your_whatsapp_number
 ```
 
 ### Testing & Validation
+
 - Add/update WhatsApp number in the dashboard and verify it saves correctly.
 - Trigger test events to confirm WhatsApp alert delivery.
 - Verify tenant isolation (alerts only go to the correct seller).
 
 ### Detailed Documentation
+
 For comprehensive implementation details, configuration options, and troubleshooting, see the [WhatsApp Alerting documentation](./frontend/docs/WHATSAPP_ALERTING.md).
+
 - Ensure only authenticated sellers can update their WhatsApp number.
 
 ## 🗂️ Alembic Migration Workflow (Backend)
@@ -1031,6 +1047,7 @@ For comprehensive implementation details, configuration options, and troubleshoo
 ## 🏗️ Technical Architecture & Coding Principles
 
 For technical details on our multi-tenant architecture, PostgreSQL Row-Level Security (RLS), async backend, and coding principles, see:
+
 - [Backend README](backend/README.md) — backend architecture, async, multi-tenancy, and testing
 - [Architecture Docs](docs/architecture.md) — service structure, tenant context propagation, and extensibility
 

@@ -9,8 +9,6 @@ import type {
   PaymentSettings,
 } from '@/modules/payment/models/payment';
 
-import { StripeProvider } from './providers/StripeProvider';
-
 /**
  * Payment service interface for handling payments across different providers
  */

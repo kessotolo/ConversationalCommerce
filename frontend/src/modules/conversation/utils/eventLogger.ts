@@ -1,5 +1,4 @@
 import { logConversationEvent } from '@/lib/api/conversationEvent';
-import type { ConversationEvent, ConversationEventType } from '@/modules/conversation/models/event';
 
 /**
  * Utility for logging conversation events from the frontend.

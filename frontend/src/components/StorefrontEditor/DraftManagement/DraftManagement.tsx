@@ -19,7 +19,7 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
-  const [skip, setSkip] = useState<number>(0);
+  const [skip] = useState<number>(0);
   const [limit] = useState<number>(10);
 
   // Filter state

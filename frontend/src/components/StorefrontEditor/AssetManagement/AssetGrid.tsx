@@ -11,8 +11,8 @@ import type { Asset } from '@/modules/storefront/models/asset';
 
 interface AssetGridProps {
   assets: Asset[];
-  onAssetSelect: (asset: Asset) => void;
   selectedAssetId?: string;
+  onAssetSelect: (asset: Asset) => void;
 }
 
 const AssetGrid: React.FC<AssetGridProps> = ({ assets, selectedAssetId, onAssetSelect }) => {
@@ -46,7 +46,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ assets, selectedAssetId, onAssetS
     if (asset.asset_type === 'image') {
       if (
         asset.is_optimized &&
-        (asset.metadata?.optimized_versions as Record<string, string>)?.['200x200']
+        (asset.metadata?.['optimized_versions'] as Record<string, string>)?.['200x200']
       ) {
         return `/api/assets/${asset.file_path.replace(/^.*[\\/]/, '')}`;
       }

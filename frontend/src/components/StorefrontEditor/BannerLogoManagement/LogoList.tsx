@@ -2,17 +2,16 @@ import { Search as MagnifyingGlassIcon, Filter as FunnelIcon } from 'lucide-reac
 import React, { useState } from 'react';
 
 import type { FormSubmitEvent } from '@/modules/core/models';
-import type { UUID } from '@/modules/core/models/base';
 
 import type { Logo } from '@/modules/storefront/models/logo';
 interface LogoListProps {
   logos: Logo[];
   loading: boolean;
-  selectedLogoId?: UUID;
+  selectedLogoId?: string | undefined;
   onLogoSelect: (logo: Logo) => void;
-  onFilterChange: (status: string | 'all', type: string | 'all', query: string) => void;
-  statusFilter: string | 'all';
-  typeFilter: string | 'all';
+  onFilterChange: (status: string, type: string, query: string) => void;
+  statusFilter: string;
+  typeFilter: string;
   searchQuery: string;
 }
 
@@ -198,7 +197,7 @@ const LogoList: React.FC<LogoListProps> = ({
                 key={logo.id}
                 onClick={() => onLogoSelect(logo)}
                 className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
-                  selectedLogoId === logo.id ? 'bg-blue-50' : ''
+                  selectedLogoId && selectedLogoId === logo.id ? 'bg-blue-50' : ''
                 }`}
               >
                 <div className="flex items-start">

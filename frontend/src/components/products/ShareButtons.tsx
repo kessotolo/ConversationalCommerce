@@ -283,11 +283,11 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
       case 'tiktok':
         return (
           <Box sx={{ textAlign: 'center' }}>
-            {typeof data?.profile_link === 'string' && data.profile_link && (
+            {typeof data?.['profile_link'] === 'string' && data['profile_link'] && (
               <Button
                 variant="contained"
                 color="primary"
-                href={data.profile_link}
+                href={data['profile_link']}
                 target="_blank"
                 startIcon={platforms.find((p) => p.id === platformId)?.icon}
                 sx={{ mb: 2 }}
@@ -296,7 +296,7 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
               </Button>
             )}
 
-            {typeof data?.caption === 'string' && data.caption && (
+            {typeof data?.['caption'] === 'string' && data['caption'] && (
               <>
                 <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
                   Caption for your post:
@@ -313,11 +313,11 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
                   }}
                 >
                   <Typography variant="body2" align="left">
-                    {data.caption}
+                    {data['caption']}
                   </Typography>
                   <IconButton
                     onClick={() =>
-                      copyToClipboard(typeof data.caption === 'string' ? data.caption : '')
+                      copyToClipboard(typeof data['caption'] === 'string' ? data['caption'] : '')
                     }
                     color="primary"
                     size="small"
@@ -333,9 +333,9 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
               </>
             )}
 
-            {typeof data?.instructions === 'string' && data.instructions && (
+            {data['instructions'] && (
               <Alert severity="info" sx={{ mt: 2, textAlign: 'left' }}>
-                <Typography variant="body2">{data.instructions}</Typography>
+                <Typography variant="body2">{data['instructions']}</Typography>
               </Alert>
             )}
           </Box>

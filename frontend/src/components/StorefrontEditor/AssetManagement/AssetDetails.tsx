@@ -18,7 +18,7 @@ import type { UUID } from '@/modules/core/models/base';
 import { updateAsset, deleteAsset, optimizeAsset } from '@/lib/api/storefrontEditor';
 import type { Asset } from '@/modules/storefront/models/asset';
 
-import type { InputChangeEvent } from '@core/models/events';
+import type { InputChangeEvent } from '@/modules/core/models/events';
 
 interface AssetDetailsProps {
   asset: Asset;

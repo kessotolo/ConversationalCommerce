@@ -24,7 +24,7 @@ interface DragItem {
 interface BannerItemProps {
   banner: Banner;
   index: number;
-  selectedBannerId?: string;
+  selectedBannerId?: string | undefined;
   onBannerSelect: (banner: Banner) => void;
   onBannerReorder: (sourceIndex: number, destinationIndex: number) => Promise<boolean>;
 }
@@ -151,7 +151,7 @@ const BannerItem: React.FC<BannerItemProps> = ({
       ref={ref}
       onClick={() => onBannerSelect(banner)}
       className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors border-b relative ${
-        selectedBannerId === banner.id ? 'bg-blue-50' : ''
+        selectedBannerId && selectedBannerId === banner.id ? 'bg-blue-50' : ''
       } ${isDragging ? 'opacity-50' : ''}`}
       data-index={index}
     >
@@ -196,10 +196,10 @@ const BannerItem: React.FC<BannerItemProps> = ({
 interface BannerListProps {
   banners: Banner[];
   loading: boolean;
-  selectedBannerId?: string;
+  selectedBannerId?: string | undefined;
   onBannerSelect: (banner: Banner) => void;
   onBannerReorder: (sourceIndex: number, destinationIndex: number) => Promise<boolean>;
-  onFilterChange: (status: BannerStatus | 'all', type: BannerType | 'all', query: string) => void;
+  onFilterChange: (status: BannerStatus | 'all', type: string, query: string) => void;
   statusFilter: BannerStatus | 'all';
   typeFilter: BannerType | 'all';
   searchQuery: string;

@@ -5,29 +5,7 @@ import type { NextRequest } from 'next/server';
 /**
  * Type definition for auth session with UUID tenant data
  */
-interface AuthSessionWithTenant {
-  userId?: string;
-  sessionId?: string;
-  tenantId?: string; // UUID format from database
-  getToken?: () => Promise<string>;
-}
-
-// Define public routes that don't require authentication
-const publicPaths = [
-  '/',
-  '/about',
-  '/contact',
-  '/sign-in',
-  '/sign-up',
-  '/api/public',
-  '/api/webhook',
-  '/store',
-];
-
-// Check if we're in a build environment
-const isBuildEnv =
-  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY === '' ||
-  !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+// import type { AuthSessionWithTenant } from '@/modules/core/models/auth';
 
 /**
  * Custom middleware implementation that combines tenant handling with auth
@@ -44,12 +22,14 @@ async function middlewareImplementation(request: NextRequest) {
   const hostnameArray = hostname.split('.');
 
   // Primary application domain (without subdomain)
-  const primaryDomain = process.env.PRIMARY_DOMAIN || 'yourplatform.com';
+  const primaryDomain = process.env['PRIMARY_DOMAIN'] || 'yourplatform.com';
 
   // Check for localhost or IP address which don't have subdomains in standard format
   if (hostname.includes('localhost') || /^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
     // For development, check for subdomain in a custom header or query param
-    tenantIdentifier = url.searchParams.get('subdomain') || 'default';
+    const subdomain = url.searchParams.get('subdomain');
+    tenantIdentifier =
+      typeof subdomain === 'string' && subdomain.length > 0 ? subdomain : 'default';
     identifierType = 'subdomain';
   }
   // Check if this is a subdomain of our primary domain
@@ -71,13 +51,13 @@ async function middlewareImplementation(request: NextRequest) {
   }
 
   // Check if the current path is public
-  const isPublicPath = publicPaths.some(
-    (publicPath) =>
-      url.pathname === publicPath ||
-      url.pathname.startsWith(`${publicPath}/`) ||
-      url.pathname.startsWith('/api/public/') ||
-      url.pathname.startsWith('/api/webhook/'),
-  );
+  // const isPublicPath = publicPaths.some(
+  //   (publicPath) =>
+  //     url.pathname === publicPath ||
+  //     url.pathname.startsWith(`${publicPath}/`) ||
+  //     url.pathname.startsWith('/api/public/') ||
+  //     url.pathname.startsWith('/api/webhook/'),
+  // );
 
   // Add tenant identifier to request headers for server components to access
   const requestHeaders = new Headers(request.headers);

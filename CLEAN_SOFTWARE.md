@@ -18,12 +18,14 @@ This project adheres to specific coding principles that guide our development:
 ## Outstanding Issues to Clean Up
 
 ### 1. Import Structure Issues
+
 - **Description:** Some components use relative imports (`./ or ../`) instead of absolute imports with `@/` prefix as required by the project standards.
 - **Action:** Refactor affected files to use consistent absolute import patterns.
-- **Files Identified:** 
+- **Files Identified:**
   - Several module files in `src/modules/` (complete audit needed)
 
 ### 2. React Hook Dependencies
+
 - **Description:** Some components (especially in monitoring) have React hook dependency arrays that need manual review for correctness.
 - **Action:** Audit and fix all hook dependencies to ensure stable and predictable behavior.
 - **Files Identified:**
@@ -33,6 +35,7 @@ This project adheres to specific coding principles that guide our development:
   - `auth-utils.tsx`: Missing redirectToLogin dependency
 
 ### 3. Next.js Component Usage
+
 - **Description:** Some components still use HTML tags instead of Next.js optimized components:
   - HTML `<img>` tags instead of Next.js `<Image>` component
   - HTML `<a>` tags instead of Next.js `<Link>` component
@@ -43,6 +46,7 @@ This project adheres to specific coding principles that guide our development:
   - `ShareButtons.tsx`: Uses HTML `<img>` tag (line 347) instead of Next.js `<Image>` component
 
 ### 4. Unused Imports and Variables
+
 - **Description:** Several components have unused variables and imports that should be cleaned up.
 - **Action:** Remove all unused imports and variables.
 - **Files Identified:**
@@ -52,26 +56,32 @@ This project adheres to specific coding principles that guide our development:
   - `VersionHistory.tsx`: Unused compareVersions
 
 ### 5. Scripts and API Routes
+
 - **Description:** `any` types and relaxed lint rules are currently allowed in scripts and API route files for flexibility.
 - **Action:** Review and refactor scripts and API routes to use strict typing and adhere to main codebase standards.
 
 ### 6. StorefrontEditor TypeScript Refinement
+
 - **Description:** Some StorefrontEditor components need improved type definitions and stricter type safety.
 - **Action:** Refactor these components to use explicit, robust TypeScript types.
 
 ### 7. Unused Variables in API Bridge Files
+
 - **Description:** Some unused type exports remain in bridge files as transitional technical debt.
 - **Action:** Remove or relocate unused types as soon as all references are updated.
 
 ### 8. Legacy JSX Files
+
 - **Description:** A few legacy JSX files remain and are pending migration to TypeScript.
 - **Action:** Convert all JSX files to `.tsx` and ensure type safety.
 
 ### 9. ESLint Overrides and Technical Debt
+
 - **Description:** Some issues are currently handled via ESLint configuration overrides (e.g., unused variables, relaxed rules in scripts).
 - **Action:** Remove overrides and enforce strict linting once codebase is fully migrated.
 
 ### 10. Mixed Styling Approaches
+
 - **Description:** The codebase uses a mix of styling approaches (TailwindCSS and MUI components).
 - **Action:** Standardize on a consistent styling approach or document clear boundaries for when each should be used.
 - **Files Identified:**
@@ -87,6 +97,7 @@ This project adheres to specific coding principles that guide our development:
 4. **Resolution Planning:** Set target dates for addressing non-blocking issues after core functionality is complete.
 
 ## How to Use This Document
+
 - **Update this file** whenever new technical debt is discovered or resolved.
 - **Assign owners** and deadlines to each item as the project nears completion.
 - **Review and check off** each item before the final production release.

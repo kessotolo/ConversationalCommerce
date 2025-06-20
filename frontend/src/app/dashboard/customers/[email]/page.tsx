@@ -3,7 +3,6 @@
 import { ChevronLeft, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import React, { useState, useEffect } from 'react';
 
 import { useAuth } from '@/utils/auth-utils';
 
@@ -35,52 +34,17 @@ const mockOrders = [
   },
 ];
 
-export default function CustomerDetailPage() {
-  const { isLoading, isAuthenticated } = useAuth();
-  const params = useParams();
-  const email = params?.email
-    ? decodeURIComponent(Array.isArray(params.email) ? params.email[0] : params.email)
-    : '';
+interface Customer {
+  name: string;
+  email: string;
+  phone: string;
+  totalSpent: number;
+  orders: typeof mockOrders;
+}
 
-  // Handle loading state
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fdfcf7]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#6C9A8B]" />
-      </div>
-    );
-  }
-
-  // Handle unauthenticated state
-  if (!isAuthenticated) {
-    // Will be handled by the auth utility's redirect
-    return null;
-  }
-
-  const customerOrders = mockOrders.filter((o) => o.email === email);
-  if (customerOrders.length === 0) {
-    return (
-      <div className="max-w-2xl mx-auto px-4 py-12 text-center">
-        <Link href="/dashboard/customers" className="inline-flex items-center text-[#6C9A8B] mb-6">
-          <ChevronLeft className="h-4 w-4 mr-1" /> Back to Customers
-        </Link>
-        <h2 className="text-xl font-bold mb-2">Customer not found</h2>
-        <p className="text-gray-500">No customer with this email exists.</p>
-      </div>
-    );
-  }
-  const customer = {
-    name: customerOrders[0].customerName,
-    email: customerOrders[0].email,
-    phone: customerOrders[0].phone,
-    totalSpent: customerOrders.reduce((sum, o) => sum + o.amount, 0),
-    orders: customerOrders,
-  };
+function CustomerDetail({ customer }: { customer: Customer }) {
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
-      <Link href="/dashboard/customers" className="inline-flex items-center text-[#6C9A8B] mb-6">
-        <ChevronLeft className="h-4 w-4 mr-1" /> Back to Customers
-      </Link>
+    <>
       <div className="bg-white rounded-2xl shadow border border-gray-100 p-6 mb-8">
         <h2 className="text-xl font-bold text-gray-900 mb-2">{customer.name}</h2>
         <div className="text-gray-700 mb-1">{customer.email}</div>
@@ -119,6 +83,58 @@ export default function CustomerDetailPage() {
           </tbody>
         </table>
       </div>
+    </>
+  );
+}
+
+export default function CustomerDetailPage() {
+  const { isLoading, isAuthenticated } = useAuth();
+  const params = useParams();
+  const email = params ? params['email'] : '';
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#fdfcf7]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#6C9A8B]" />
+      </div>
+    );
+  }
+
+  // Handle unauthenticated state
+  if (!isAuthenticated) {
+    // Will be handled by the auth utility's redirect
+    return null;
+  }
+
+  const customerOrders = mockOrders.filter((o) => o.email === email);
+  if (customerOrders.length === 0) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-12 text-center">
+        <Link href="/dashboard/customers" className="inline-flex items-center text-[#6C9A8B] mb-6">
+          <ChevronLeft className="h-4 w-4 mr-1" /> Back to Customers
+        </Link>
+        <h2 className="text-xl font-bold mb-2">Customer not found</h2>
+        <p className="text-gray-500">No customer with this email exists.</p>
+      </div>
+    );
+  }
+
+  // At this point, customerOrders.length > 0, so customer is always defined
+  const customer = {
+    name: customerOrders[0].customerName,
+    email: customerOrders[0].email,
+    phone: customerOrders[0].phone,
+    totalSpent: customerOrders.reduce((sum, o) => sum + o.amount, 0),
+    orders: customerOrders,
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto px-4 py-8">
+      <Link href="/dashboard/customers" className="inline-flex items-center text-[#6C9A8B] mb-6">
+        <ChevronLeft className="h-4 w-4 mr-1" /> Back to Customers
+      </Link>
+      <CustomerDetail customer={customer} />
     </div>
   );
 }
