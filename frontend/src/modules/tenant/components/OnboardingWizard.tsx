@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-
 import { onboardingApi, validateDomain, sendInviteEmail } from '@/modules/tenant/api/onboardingApi';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTenant } from '@/contexts/TenantContext';
+import { getStoredAuthToken } from '@/utils/auth-utils';
 
 const steps = ['Business Info', 'KYC', 'KYC Upload', 'Domain', 'Team Invite', 'Done'];
 
@@ -9,9 +11,7 @@ export default function OnboardingWizard() {
   const [form, setForm] = useState<Record<string, unknown>>({});
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [domainStatus, setDomainStatus] = useState<{ available: boolean; message: string } | null>(
-    null,
-  );
+  const [domainStatus, setDomainStatus] = useState<{ available: boolean; message: string } | null>(null);
   const [domainInput, setDomainInput] = useState('');
   const [kycStatus, setKycStatus] = useState<'pending' | 'verified' | 'rejected' | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
@@ -23,8 +23,9 @@ export default function OnboardingWizard() {
   const [webInviteLink, setWebInviteLink] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Placeholder: auto-redirect to chat if possible
-  // useEffect(() => { /* logic to detect chat and redirect */ }, []);
+  const { user } = useAuth();
+  const { tenant } = useTenant();
+  const token = getStoredAuthToken();
 
   const handleNext = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,97 +33,122 @@ export default function OnboardingWizard() {
     setFormError(null);
     let nextStep = step;
     const newForm = { ...form };
-    const inputElem = (e.target as HTMLFormElement).elements.namedItem(
-      'input',
-    ) as HTMLInputElement | null;
+    const inputElem = (e.target as HTMLFormElement).elements.namedItem('input') as HTMLInputElement | null;
     const input: string = inputElem ? inputElem.value : '';
-    if (steps[step] === 'Domain') {
-      const res = await validateDomain(domainInput || input);
-      setDomainStatus(res);
-      if (!res.available) {
-        setFormError(res.message);
+    try {
+      if (!token || !tenant) {
+        setFormError('Authentication or tenant context missing.');
         setLoading(false);
         return;
       }
-    }
-    if (steps[step] === 'KYC Upload' && file) {
-      setUploadProgress(0);
-      setKycError(null);
-      setKycStatus('pending');
-      // Simulate upload progress
-      let progress = 0;
-      const progressInterval = setInterval(() => {
-        progress += 20;
-        setUploadProgress(Math.min(progress, 100));
-      }, 200);
-      try {
-        const uploadRes = await onboardingApi.uploadKYCFile(file);
-        clearInterval(progressInterval);
+      if (steps[step] === 'Domain') {
+        const res = await validateDomain(domainInput || input, token);
+        setDomainStatus(res);
+        if (!res.available) {
+          setFormError(res.message);
+          setLoading(false);
+          return;
+        }
+        // Call setDomain API
+        await onboardingApi.setDomain({ tenant_id: tenant.id, domain: domainInput || input }, token);
+      }
+      if (steps[step] === 'KYC Upload' && file) {
+        setUploadProgress(0);
+        setKycError(null);
+        setKycStatus('pending');
+        const kycId = typeof newForm['kyc_id'] === 'string' ? newForm['kyc_id'] : '';
+        if (!kycId) {
+          setFormError('KYC ID missing. Please complete KYC step first.');
+          setLoading(false);
+          return;
+        }
+        const uploadRes = await onboardingApi.uploadKYCFile(kycId, file, token);
         setUploadProgress(100);
         newForm['kyc_file_url'] = uploadRes.file_url;
         setKycStatus('pending');
-        // Simulate KYC review: after 2s, set to verified
         setTimeout(() => setKycStatus('verified'), 2000);
         nextStep++;
-      } catch (err) {
-        clearInterval(progressInterval);
-        setUploadProgress(null);
-        setKycStatus('rejected');
-        setKycError('Failed to upload file. Please try again.');
-        setFormError('Failed to upload file. Please try again.');
-        setLoading(false);
-        return;
+      } else {
+        switch (steps[step]) {
+          case 'Business Info': {
+            if (!input || !(e.target as HTMLFormElement).elements.namedItem('phone')) {
+              setFormError('Business name and phone are required.');
+              setLoading(false);
+              return;
+            }
+            newForm['business_name'] = input;
+            const phoneElem = (e.target as HTMLFormElement).elements.namedItem('phone') as HTMLInputElement | null;
+            newForm['phone'] = phoneElem ? phoneElem.value : '';
+            const emailElem = (e.target as HTMLFormElement).elements.namedItem('email') as HTMLInputElement | null;
+            newForm['email'] = emailElem ? emailElem.value : '';
+            // Call startOnboarding API
+            const res = await onboardingApi.startOnboarding({
+              business_name: newForm['business_name'] as string,
+              phone: newForm['phone'] as string,
+              email: newForm['email'] as string,
+              subdomain: (newForm['business_name'] as string).toLowerCase().replace(/\s+/g, '-')
+            }, token);
+            newForm['tenant_id'] = res.tenant_id;
+            break;
+          }
+          case 'KYC': {
+            if (!input || !(e.target as HTMLFormElement).elements.namedItem('id_number')) {
+              setFormError('ID type and number are required.');
+              setLoading(false);
+              return;
+            }
+            newForm['id_type'] = input;
+            const idNumberElem = (e.target as HTMLFormElement).elements.namedItem('id_number') as HTMLInputElement | null;
+            newForm['id_number'] = idNumberElem ? idNumberElem.value : '';
+            // Call submitKYC API
+            const res = await onboardingApi.submitKYC({
+              tenant_id: tenant.id,
+              business_name: newForm['business_name'] as string,
+              id_number: newForm['id_number'] as string,
+              id_type: newForm['id_type'] as string,
+            }, token);
+            newForm['kyc_id'] = res.kyc_id;
+            break;
+          }
+          case 'Domain': {
+            newForm['domain'] = domainInput || input;
+            // setDomain already called above
+            break;
+          }
+          case 'Team Invite': {
+            if (!invitePhone && !inviteEmail) {
+              setFormError('Enter a phone number or email to invite a team member.');
+              setLoading(false);
+              return;
+            }
+            if (invitePhone) {
+              const res = await onboardingApi.inviteTeam({
+                tenant_id: tenant.id,
+                invitee_phone: invitePhone,
+                role: 'manager',
+              }, token || '');
+              setInviteStatus('WhatsApp invite link generated!');
+              setWebInviteLink(res.invite_link || '');
+            }
+            if (inviteEmail) {
+              const link = webInviteLink || `https://yourapp.com/invite/accept?email=${encodeURIComponent(inviteEmail)}`;
+              await sendInviteEmail(inviteEmail, link, token || '');
+              setInviteStatus('Email invite sent!');
+            }
+            break;
+          }
+          default:
+            break;
+        }
+        nextStep++;
       }
-    } else {
-      switch (steps[step]) {
-        case 'Business Info':
-          if (!input || !(e.target as HTMLFormElement).elements.namedItem('phone')) {
-            setFormError('Business name and phone are required.');
-            setLoading(false);
-            return;
-          }
-          newForm['business_name'] = input;
-          const phoneElem = (e.target as HTMLFormElement).elements.namedItem(
-            'phone',
-          ) as HTMLInputElement | null;
-          newForm['phone'] = phoneElem ? phoneElem.value : '';
-          const emailElem = (e.target as HTMLFormElement).elements.namedItem(
-            'email',
-          ) as HTMLInputElement | null;
-          newForm['email'] = emailElem ? emailElem.value : '';
-          break;
-        case 'KYC':
-          if (!input || !(e.target as HTMLFormElement).elements.namedItem('id_number')) {
-            setFormError('ID type and number are required.');
-            setLoading(false);
-            return;
-          }
-          newForm['id_type'] = input;
-          const idNumberElem = (e.target as HTMLFormElement).elements.namedItem(
-            'id_number',
-          ) as HTMLInputElement | null;
-          newForm['id_number'] = idNumberElem ? idNumberElem.value : '';
-          break;
-        case 'Domain':
-          newForm['domain'] = domainInput || input;
-          break;
-        case 'Team Invite':
-          if (!invitePhone && !inviteEmail) {
-            setFormError('Enter a phone number or email to invite a team member.');
-            setLoading(false);
-            return;
-          }
-          newForm['invitee_phone'] = invitePhone;
-          newForm['invitee_email'] = inviteEmail;
-          break;
-        default:
-          break;
-      }
-      nextStep++;
+      setForm(newForm);
+      setStep(nextStep);
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setLoading(false);
     }
-    setForm(newForm);
-    setStep(nextStep);
-    setLoading(false);
   };
 
   const stepLabels = ['Business Info', 'KYC', 'KYC Upload', 'Domain', 'Team Invite', 'Done'];
@@ -295,9 +321,9 @@ export default function OnboardingWizard() {
                   setInviteStatus(null);
                   setInviteError(null);
                   try {
-                    const res = await onboardingApi.inviteTeam({ phone: invitePhone });
+                    const res = await onboardingApi.inviteTeam({ tenant_id: tenant?.id || '', invitee_phone: invitePhone, role: 'manager' }, token || '');
                     setInviteStatus('WhatsApp invite link generated!');
-                    setWebInviteLink(res.invite_link);
+                    setWebInviteLink(res.invite_link || '');
                   } catch {
                     setInviteError('Failed to generate WhatsApp invite.');
                   }
@@ -331,7 +357,7 @@ export default function OnboardingWizard() {
                     const link =
                       webInviteLink ||
                       `https://yourapp.com/invite/accept?email=${encodeURIComponent(inviteEmail)}`;
-                    await sendInviteEmail(inviteEmail, link);
+                    await sendInviteEmail(inviteEmail, link, token || '');
                     setInviteStatus('Email invite sent!');
                   } catch {
                     setInviteError('Failed to send email invite.');
@@ -351,7 +377,7 @@ export default function OnboardingWizard() {
                   const link =
                     webInviteLink ||
                     `https://yourapp.com/invite/accept?phone=${encodeURIComponent(invitePhone)}`;
-                  setWebInviteLink(link);
+                  setWebInviteLink(link || '');
                   navigator.clipboard.writeText(link);
                   setInviteStatus('Web invite link copied!');
                 }}

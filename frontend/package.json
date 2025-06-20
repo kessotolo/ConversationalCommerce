@@ -14,7 +14,9 @@
     "verify:architecture": "node scripts/verify-architecture.js",
     "check:circular": "ts-node scripts/check-circular-deps.ts",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "analyze": "ANALYZE=true next build",
+    "depcruise": "dependency-cruiser --config .dependency-cruiser.js src"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.20.2",
@@ -73,7 +75,8 @@
     "postcss": "^8.5.4",
     "tailwindcss": "^3.4.17",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "dependency-cruiser": "^14.0.0"
   },
   "resolutions": {
     "@clerk/nextjs": "4.31.8",

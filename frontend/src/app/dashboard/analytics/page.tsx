@@ -20,6 +20,7 @@ import { Line, Pie, Bar } from 'react-chartjs-2';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { Button } from '@/components/ui/Button';
 import { CardContent, CardHeader, CardTitle, Card } from '@/components/ui/Card';
+import { useTenant } from '@/contexts/TenantContext';
 
 ChartJS.register(
   CategoryScale,
@@ -32,64 +33,6 @@ ChartJS.register(
   Legend,
   Filler,
 );
-
-// Mock data for analytics
-const mockSalesData = {
-  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-  datasets: [
-    {
-      label: 'Revenue',
-      data: [4500, 6000, 5300, 7800, 8900, 7400],
-      borderColor: '#2563eb',
-      backgroundColor: 'rgba(37, 99, 235, 0.1)',
-      fill: true,
-    },
-  ],
-};
-
-const mockChannelData = {
-  labels: ['WhatsApp', 'Web', 'In-Store'],
-  datasets: [
-    {
-      label: 'Sales by Channel',
-      data: [65, 25, 10],
-      backgroundColor: [
-        'rgba(37, 99, 235, 0.8)',
-        'rgba(16, 185, 129, 0.8)',
-        'rgba(245, 158, 11, 0.8)',
-      ],
-      borderWidth: 1,
-    },
-  ],
-};
-
-const mockProductPerformance = {
-  labels: ['Product A', 'Product B', 'Product C', 'Product D', 'Product E'],
-  datasets: [
-    {
-      label: 'Units Sold',
-      data: [42, 35, 28, 24, 18],
-      backgroundColor: 'rgba(37, 99, 235, 0.8)',
-    },
-  ],
-};
-
-const mockCustomerAcquisition = {
-  labels: ['Direct', 'WhatsApp', 'Social', 'Referral', 'Search'],
-  datasets: [
-    {
-      label: 'New Customers',
-      data: [28, 35, 12, 18, 7],
-      backgroundColor: [
-        'rgba(37, 99, 235, 0.8)',
-        'rgba(16, 185, 129, 0.8)',
-        'rgba(245, 158, 11, 0.8)',
-        'rgba(220, 38, 38, 0.8)',
-        'rgba(139, 92, 246, 0.8)',
-      ],
-    },
-  ],
-};
 
 interface EventCountByDay {
   date: string;
@@ -135,44 +78,52 @@ function isQualityLeaderboardRow(obj: unknown): obj is QualityLeaderboardRow {
 }
 
 export default function AnalyticsPage() {
+  const { tenant, isLoading: isTenantLoading } = useTenant();
   const [dateRange, setDateRange] = useState<'7days' | '30days' | '90days' | 'custom'>('30days');
-  const [hasData] = useState(true); // Set to false to test empty state
+  const [hasData, setHasData] = useState(true); // Will be set based on real data
 
   // Conversation analytics state
-  const [convAnalytics, setConvAnalytics] = useState<unknown>(null);
+  const [convAnalytics, setConvAnalytics] = useState<ConversationAnalytics | null>(null);
   const [loadingConv, setLoadingConv] = useState(false);
+  const [convError, setConvError] = useState<string | null>(null);
 
   // Real-time event and alert feed
   const [eventFeed, setEventFeed] = useState<unknown[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
 
   // Conversation quality leaderboard
-  const [qualityLeaderboard, setQualityLeaderboard] = useState<unknown[]>([]);
+  const [qualityLeaderboard, setQualityLeaderboard] = useState<QualityLeaderboardRow[]>([]);
   const [loadingQuality, setLoadingQuality] = useState(false);
+  const [qualityError, setQualityError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!tenant) return;
     // Fetch conversation analytics from backend
     const fetchAnalytics = async () => {
       setLoadingConv(true);
+      setConvError(null);
       try {
-        const res = await fetch('/api/conversation-analytics');
+        const res = await fetch(`/api/conversation-analytics?tenant_id=${tenant.id}`);
         if (!res.ok) throw new Error('Failed to fetch conversation analytics');
         const data = await res.json();
         setConvAnalytics(data);
+        setHasData(!!data && data.total_count > 0);
       } catch (err) {
-        console.warn('Failed to fetch conversation analytics', err);
+        setConvError('Failed to fetch conversation analytics');
+        setHasData(false);
       } finally {
         setLoadingConv(false);
       }
     };
     fetchAnalytics();
-  }, []);
+  }, [tenant]);
 
   useEffect(() => {
+    if (!tenant) return;
     // Connect to WebSocket for real-time events/alerts
     const ws = new WebSocket(
       typeof window !== 'undefined'
-        ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/api/ws/monitoring?tenant_id=demo`
+        ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/api/ws/monitoring/${tenant.id}`
         : '',
     );
     wsRef.current = ws;
@@ -183,76 +134,72 @@ export default function AnalyticsPage() {
           setEventFeed((prev) => [data, ...prev.slice(0, 49)]); // Keep last 50
         }
       } catch (err) {
-        console.warn('WebSocket message parse error', err);
+        // Ignore parse errors
       }
     };
-    ws.onerror = (err) => {
-      console.warn('WebSocket error', err);
-    };
+    ws.onerror = () => { };
     return () => {
       ws.close();
     };
-  }, []);
+  }, [tenant]);
 
   useEffect(() => {
+    if (!tenant) return;
     // Fetch conversation quality scores
     const fetchQuality = async () => {
       setLoadingQuality(true);
+      setQualityError(null);
       try {
-        const res = await fetch('/api/conversation-quality');
+        const res = await fetch(`/api/conversation-quality?tenant_id=${tenant.id}`);
         if (!res.ok) throw new Error('Failed to fetch conversation quality');
         const data = await res.json();
-        setQualityLeaderboard(data);
+        setQualityLeaderboard(data as QualityLeaderboardRow[]);
       } catch (err) {
-        console.warn('Failed to fetch conversation quality', err);
+        setQualityError('Failed to fetch conversation quality');
       } finally {
         setLoadingQuality(false);
       }
     };
     fetchQuality();
-  }, []);
+  }, [tenant]);
 
   // Prepare chart data for events by type
-  const eventTypeChart = isConversationAnalytics(convAnalytics)
+  const eventTypeChart = convAnalytics
     ? {
-        labels: Object.keys(convAnalytics.counts_by_type) as string[],
-        datasets: [
-          {
-            label: 'Events',
-            data: Object.values(convAnalytics.counts_by_type) as number[],
-            backgroundColor: [
-              '#2563eb',
-              '#16b981',
-              '#f59e0b',
-              '#dc2626',
-              '#8b5cf6',
-              '#f43f5e',
-              '#0ea5e9',
-              '#fbbf24',
-            ],
-          },
-        ],
-      }
+      labels: Object.keys(convAnalytics.counts_by_type) as string[],
+      datasets: [
+        {
+          label: 'Events',
+          data: Object.values(convAnalytics.counts_by_type) as number[],
+          backgroundColor: [
+            '#2563eb',
+            '#16b981',
+            '#f59e0b',
+            '#dc2626',
+            '#8b5cf6',
+            '#f43f5e',
+            '#0ea5e9',
+            '#fbbf24',
+          ],
+        },
+      ],
+    }
     : undefined;
 
   // Prepare chart data for events by day
-  const eventDayChart = isConversationAnalytics(convAnalytics)
+  const eventDayChart = convAnalytics
     ? {
-        labels: (convAnalytics.counts_by_day as EventCountByDay[]).map(
-          (d: EventCountByDay) => d.date,
-        ) as string[],
-        datasets: [
-          {
-            label: 'Events per Day',
-            data: (convAnalytics.counts_by_day as EventCountByDay[]).map(
-              (d: EventCountByDay) => d.count,
-            ) as number[],
-            borderColor: '#2563eb',
-            backgroundColor: 'rgba(37, 99, 235, 0.1)',
-            fill: true,
-          },
-        ],
-      }
+      labels: (convAnalytics.counts_by_day as EventCountByDay[]).map((d: EventCountByDay) => d.date) as string[],
+      datasets: [
+        {
+          label: 'Events per Day',
+          data: (convAnalytics.counts_by_day as EventCountByDay[]).map((d: EventCountByDay) => d.count) as number[],
+          borderColor: '#2563eb',
+          backgroundColor: 'rgba(37, 99, 235, 0.1)',
+          fill: true,
+        },
+      ],
+    }
     : undefined;
 
   const lineOptions = {
@@ -331,9 +278,9 @@ export default function AnalyticsPage() {
                               &mdash;{' '}
                               <span className="text-gray-500">{e.event.created_at as string}</span>
                               {'payload' in e.event &&
-                              e.event.payload &&
-                              typeof e.event.payload === 'object' &&
-                              'content' in e.event.payload ? (
+                                e.event.payload &&
+                                typeof e.event.payload === 'object' &&
+                                'content' in e.event.payload ? (
                                 <span>
                                   {' '}
                                   —{' '}
@@ -431,8 +378,8 @@ export default function AnalyticsPage() {
               {loadingConv
                 ? '...'
                 : isConversationAnalytics(convAnalytics) &&
-                    convAnalytics.avg_response_time_seconds !== null &&
-                    convAnalytics.avg_response_time_seconds !== undefined
+                  convAnalytics.avg_response_time_seconds !== null &&
+                  convAnalytics.avg_response_time_seconds !== undefined
                   ? convAnalytics.avg_response_time_seconds.toFixed(2)
                   : '--'}
             </div>
@@ -482,7 +429,7 @@ export default function AnalyticsPage() {
                           <td className="p-2 font-bold">{row.quality_score}</td>
                           <td className="p-2">
                             {row.avg_response_time_seconds !== null &&
-                            row.avg_response_time_seconds !== undefined
+                              row.avg_response_time_seconds !== undefined
                               ? row.avg_response_time_seconds.toFixed(1)
                               : '--'}
                           </td>
@@ -617,7 +564,13 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="h-80">
-                <Line data={mockSalesData} options={lineOptions} />
+                {eventDayChart ? (
+                  <Line data={eventDayChart} options={lineOptions} />
+                ) : loadingConv ? (
+                  <div className="text-gray-400">Loading...</div>
+                ) : (
+                  <div className="text-gray-400">No data</div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -630,7 +583,13 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="h-64">
-                  <Pie data={mockChannelData} options={pieOptions} />
+                  {eventTypeChart ? (
+                    <Pie data={eventTypeChart} options={pieOptions} />
+                  ) : loadingConv ? (
+                    <div className="text-gray-400">Loading...</div>
+                  ) : (
+                    <div className="text-gray-400">No data</div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -641,7 +600,7 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="h-64">
-                  <Bar data={mockProductPerformance} options={barOptions} />
+                  <div className="text-gray-400">No data</div>
                 </div>
               </CardContent>
             </Card>
@@ -653,7 +612,7 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="h-64">
-                <Pie data={mockCustomerAcquisition} options={pieOptions} />
+                <div className="text-gray-400">No data</div>
               </div>
             </CardContent>
           </Card>
