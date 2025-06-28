@@ -1,0 +1,135 @@
+# CODEOWNERS file for ConversationalCommerce
+# This file controls who needs to approve changes to specific parts of the codebase
+# Learn more: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+#################################################
+# ARCHITECTURAL & PLATFORM GOVERNANCE          #
+#################################################
+
+# Architecture and configuration files require architecture team review
+/frontend/docs/ARCHITECTURE.md @architecture-team
+/frontend/docs/architecture/decisions/ @architecture-team
+/frontend/.eslintrc* @architecture-team
+/frontend/scripts/verify-architecture.js @architecture-team
+/frontend/.cascade @architecture-team
+/frontend/.aiagentrc @architecture-team
+
+# Module boundaries - core module is most sensitive
+/frontend/src/modules/core/ @core-team
+
+#################################################
+# PRODUCT MANAGER OWNERSHIP STRUCTURE          #
+#################################################
+
+# Ownership Matrix Document
+/OWNERSHIP.md @merchant-pm @buyer-pm @conversation-pm @orders-pm @platform-pm
+
+#################################################
+# PM1: MERCHANT & TENANT EXPERIENCE            #
+#################################################
+
+# Frontend - Merchant Experience
+/frontend/src/modules/tenant/ @merchant-pm
+/frontend/src/modules/core/**/merchant/ @merchant-pm
+/frontend/src/pages/merchant/ @merchant-pm
+/frontend/src/pages/onboarding/ @merchant-pm
+/frontend/src/pages/settings/ @merchant-pm
+
+# Backend - Tenant & Merchant Models
+/backend/app/models/tenant.py @merchant-pm
+/backend/app/models/seller_profiles.py @merchant-pm
+/backend/app/models/kyc_document.py @merchant-pm
+/backend/app/models/kyc_info.py @merchant-pm
+/backend/app/api/v1/endpoints/tenant.py @merchant-pm
+/backend/app/api/v1/endpoints/merchant.py @merchant-pm
+/backend/app/api/v1/endpoints/kyc.py @merchant-pm
+
+#################################################
+# PM2: BUYER EXPERIENCE & STOREFRONT           #
+#################################################
+
+# Frontend - Buyer Experience
+/frontend/src/modules/storefront/ @buyer-pm
+/frontend/src/modules/theme/ @buyer-pm
+/frontend/src/modules/product/ @buyer-pm
+/frontend/src/pages/products/ @buyer-pm
+/frontend/src/pages/storefront/ @buyer-pm
+/frontend/src/pages/themes/ @buyer-pm
+
+# Backend - Storefront & Theme Models
+/backend/app/models/storefront_themes.py @buyer-pm
+/backend/app/models/products.py @buyer-pm @orders-pm
+/backend/app/api/v1/endpoints/storefront.py @buyer-pm
+/backend/app/api/v1/endpoints/themes.py @buyer-pm
+/backend/app/api/v1/endpoints/product_display.py @buyer-pm
+
+#################################################
+# PM3: CONVERSATION & COMMERCE IN CHAT         #
+#################################################
+
+# Frontend - Conversation Experience
+/frontend/src/modules/conversation/ @conversation-pm
+/frontend/src/pages/chat/ @conversation-pm
+/frontend/src/pages/messaging/ @conversation-pm
+
+# Backend - Conversation Processing
+/backend/app/conversation/ @conversation-pm
+/backend/app/models/conversation_events.py @conversation-pm
+/backend/app/api/v1/endpoints/conversation.py @conversation-pm
+/backend/app/api/v1/endpoints/messages.py @conversation-pm
+/backend/app/api/v1/endpoints/webhooks/ @conversation-pm
+
+#################################################
+# PM4: ORDERS, PAYMENTS & FULFILLMENT          #
+#################################################
+
+# Frontend - Order & Payment Flow
+/frontend/src/modules/order/ @orders-pm
+/frontend/src/modules/payment/ @orders-pm
+/frontend/src/pages/checkout/ @orders-pm
+/frontend/src/pages/orders/ @orders-pm
+
+# Backend - Order & Payment Processing
+/backend/app/models/orders.py @orders-pm
+/backend/app/models/saved_payment_methods.py @orders-pm
+/backend/app/models/address_book.py @orders-pm
+/backend/app/services/payment/ @orders-pm
+/backend/app/services/shipping/ @orders-pm
+/backend/app/api/v1/endpoints/orders.py @orders-pm
+/backend/app/api/v1/endpoints/payments.py @orders-pm
+/backend/app/api/v1/endpoints/shipping.py @orders-pm
+/backend/app/api/v1/endpoints/address_book.py @orders-pm
+
+#################################################
+# PM5: MONITORING, ANALYTICS & ENFORCEMENT     #
+#################################################
+
+# Frontend - Monitoring & Analytics
+/frontend/src/modules/monitoring/ @platform-pm
+/frontend/src/modules/dashboard/ @platform-pm
+/frontend/src/pages/dashboard.tsx @platform-pm
+/frontend/src/pages/admin/ @platform-pm
+
+# Backend - Analytics & Enforcement
+/backend/app/api/v1/endpoints/dashboard.py @platform-pm
+/backend/app/api/v1/endpoints/monitoring.py @platform-pm
+/backend/app/api/v1/endpoints/admin/ @platform-pm
+/backend/app/models/complaints.py @platform-pm
+
+#################################################
+# CROSS-CUTTING & SHARED OWNERSHIP             #
+#################################################
+
+# Cross-domain features require multiple approvals
+/frontend/src/modules/cart/ @buyer-pm @orders-pm
+/frontend/src/modules/shared/ @core-team
+
+# Database migrations require platform team approval
+/backend/alembic/ @platform-pm @core-team
+/backend/app/db/ @platform-pm @core-team
+
+# CI/CD configuration
+/.github/workflows/ @core-team
+
+# Documentation requires relevant PM approval plus docs team
+/docs/ @docs-team

@@ -1,0 +1,38 @@
+groups:
+  - name: Payment Webhook Alerts
+    rules:
+      - alert: WebhookHighFailureRate
+        expr: sum(rate(webhook_processed_total{result=~"error|invalid_signature|invalid_payload|ip_rejected"}[5m])) by (provider) / sum(rate(webhook_received_total[5m])) by (provider) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High webhook failure rate for {{ $labels.provider }}"
+          description: "Webhook failure rate above 10% for {{ $labels.provider }} in the last 5 minutes"
+
+      - alert: WebhookHighDuplicateRate
+        expr: sum(rate(webhook_processed_total{result="duplicate"}[5m])) by (provider) / sum(rate(webhook_received_total[5m])) by (provider) > 0.2
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High duplicate webhook rate for {{ $labels.provider }}"
+          description: "Over 20% of webhooks for {{ $labels.provider }} are duplicates in the last 10 minutes, check for provider issues"
+          
+      - alert: WebhookProcessingDelay
+        expr: histogram_quantile(0.95, sum(rate(webhook_processing_duration_seconds_bucket[5m])) by (provider, le)) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow webhook processing for {{ $labels.provider }}"
+          description: "95th percentile of webhook processing time is over 1 second for {{ $labels.provider }}"
+          
+      - alert: WebhookReceiveSpike
+        expr: sum(rate(webhook_received_total[5m])) by (provider) > 2 * sum(rate(webhook_received_total[60m])) by (provider)
+        for: 5m
+        labels:
+          severity: info
+        annotations:
+          summary: "Unusual webhook volume for {{ $labels.provider }}"
+          description: "Received webhook volume is more than 2x the hourly average for {{ $labels.provider }}"

@@ -1,0 +1,95 @@
+// Enhanced TypeScript configuration with strict settings to prevent type errors
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@core/*": [
+        "./src/modules/core/*"
+      ],
+      "@tenant/*": [
+        "./src/modules/tenant/*"
+      ],
+      "@conversation/*": [
+        "./src/modules/conversation/*"
+      ],
+      "@product/*": [
+        "./src/modules/product/*"
+      ],
+      "@order/*": [
+        "./src/modules/order/*"
+      ],
+      "@cart/*": [
+        "./src/modules/cart/*"
+      ],
+      "@theme/*": [
+        "./src/modules/theme/*"
+      ],
+      "@monitoring/*": [
+        "./src/modules/monitoring/*"
+      ],
+      "@storefront/*": [
+        "./src/modules/storefront/*"
+      ]
+    },
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ],
+    "types": [
+      "next",
+      "node"
+    ],
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": false,
+    "exactOptionalPropertyTypes": false,
+    "verbatimModuleSyntax": true,
+    "allowSyntheticDefaultImports": true,
+    "jsxImportSource": "react",
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
+  "include": [
+    "src",
+    "next-env.d.ts",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "src/app/test/**/*"
+  ]
+}

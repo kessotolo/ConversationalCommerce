@@ -1,0 +1,73 @@
+import enum
+import uuid
+
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Index, UniqueConstraint
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+
+from app.db.base_class import Base
+
+
+class StorefrontRole(enum.Enum):
+    """Roles for storefront editing permissions"""
+
+    VIEWER = "viewer"
+    EDITOR = "editor"
+    PUBLISHER = "publisher"
+    ADMIN = "admin"
+
+
+class StorefrontSectionType(enum.Enum):
+    """Types of sections that can have granular permissions"""
+
+    THEME = "theme"
+    LAYOUT = "layout"
+    CONTENT = "content"
+    PRODUCTS = "products"
+    SETTINGS = "settings"
+    BANNERS = "banners"
+    ASSETS = "assets"
+    SEO = "seo"
+
+
+class StorefrontPermission(Base):
+    """
+    Defines permission levels for users to edit different parts of a storefront.
+    Enables granular access control with role-based permissions.
+    """
+
+    __tablename__ = "storefront_permissions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id = Column(
+        UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False
+    )
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+
+    # Global role for this user
+    role = Column(Enum(StorefrontRole, create_type=False), nullable=False, default=StorefrontRole.VIEWER)
+
+    # Section-specific permissions (overrides global role)
+    section_permissions = Column(JSONB, nullable=False, default=lambda: {})
+
+    # Component-specific permissions
+    component_permissions = Column(JSONB, nullable=False, default=lambda: {})
+
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # Relationships
+    tenant = relationship("Tenant")
+    user = relationship("User")
+
+    __table_args__ = (
+        # Each user can only have one permission entry per tenant
+        UniqueConstraint("tenant_id", "user_id", name="uq_user_tenant_permission"),
+        # Index for efficient permission lookups
+        Index("idx_storefront_permission_user", "user_id"),
+        Index("idx_storefront_permission_tenant", "tenant_id"),
+    )

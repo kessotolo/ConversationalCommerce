@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: cc_user
+      POSTGRES_PASSWORD: cc_pass
+      POSTGRES_DB: cc_dev
+    ports:
+      - "5432:5432"
+    tmpfs:
+      - /var/lib/postgresql/data  # Clean DB every time
+
+  testdb:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: cc_test
+      POSTGRES_PASSWORD: cc_test_pass
+      POSTGRES_DB: cc_test
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data  # Clean DB every time
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    restart: always
+
+  backend:
+    build:
+      context: ./backend
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - ./backend/.env.development      # For local dev
+      # - ./backend/.env.test           # Uncomment for test runs
+      # For prod, do NOT use env_file; set env vars in Railway/cloud provider
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    env_file:
+      - ./frontend/.env.development.local  # For local dev
+      # - ./frontend/.env.test.local       # Uncomment for test runs
+      # For prod, do NOT use env_file; set env vars in Vercel/Netlify/cloud
+    restart: always
+
+# Uncomment below if you want persistent DBs instead of ephemeral (tmpfs)
+# volumes:
+#   pgdata:
+#   pgtestdata:

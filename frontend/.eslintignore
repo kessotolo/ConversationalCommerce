@@ -1,0 +1,2 @@
+# Ignore legacy JSX files
+src/components/store/StoreContent.jsx

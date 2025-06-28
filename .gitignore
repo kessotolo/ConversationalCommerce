@@ -1,0 +1,69 @@
+.vscode/
+
+# Node
+node_modules/
+
+# --- Node.js / Next.js ---
+node_modules/
+.next/
+out/
+.vercel/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Build artifacts ---
+dist/
+build/
+# TypeScript incremental compilation cache
+tsconfig.tsbuildinfo
+**/tsconfig.tsbuildinfo
+# SWC build cache
+.swc/
+
+# --- Environment / Secrets ---
+.env
+.env.*
+.env.local
+.env.development.local
+.env.production.local
+.env.backup
+
+# --- Python (FastAPI backend) ---
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.sqlite3
+*.db
+*.pkl
+*.egg-info/
+*.log
+.venv/
+venv/
+venv_py312/
+pip-wheel-metadata/
+.pytest_cache/
+pytest_cache/
+
+# --- VSCode / JetBrains ---
+.vscode/
+.idea/
+
+# --- OS-specific ---
+.DS_Store
+**/.DS_Store
+Thumbs.db
+
+# --- Test files ---
+coverage/
+
+# --- Logs ---
+logs/
+*.log
+
+# --- Auth and Temporary files ---
+.clerk/.tmp
+
+# --- Keep these files even if they match patterns above ---
+!*.gitkeep

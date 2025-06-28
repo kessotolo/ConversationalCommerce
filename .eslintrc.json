@@ -1,0 +1,26 @@
+// Root ESLint config: applies global minimal linting for JS/TS/React/Prettier. The main frontend config is in frontend/.eslintrc.js.
+{
+  "root": true,
+  "ignorePatterns": [
+    "node_modules/",
+    "backend/venv*/",
+    "backend/.pytest_cache/",
+    "frontend/.next/",
+    "*.tsbuildinfo",
+    "**/.DS_Store"
+  ],
+  "env": {
+    "es2021": true,
+    "node": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint", "prettier"],
+  "rules": {
+    "prettier/prettier": "error"
+  }
+}

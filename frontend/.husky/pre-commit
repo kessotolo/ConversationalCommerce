@@ -1,0 +1,15 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Run architecture verification as part of pre-commit
+echo "🔍 Verifying architecture..."
+npm run verify:architecture || (echo "❌ Architecture verification failed. Please fix the issues before committing." && exit 1)
+
+# Check for circular dependencies
+echo "🔄 Checking for circular dependencies..."
+npm run check:circular || (echo "❌ Circular dependencies detected. Please fix the cycles before committing." && exit 1)
+
+# Continue with other pre-commit checks
+npm run lint || (echo "❌ Lint failed. Please fix lint errors before committing." && exit 1)
+
+npm test || (echo "❌ Tests failed. Please fix test errors before committing." && exit 1)

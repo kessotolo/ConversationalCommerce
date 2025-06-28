@@ -1,0 +1,9 @@
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+check_untyped_defs = true
+
+[project.optional-dependencies]
+dev = [
+    "mypy>=1.0.0"
+]

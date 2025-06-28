@@ -1,0 +1,48 @@
+# AI Agent Rules Configuration for ConversationalCommerce
+# These rules should be followed by all AI assistants working on this codebase
+
+# ARCHITECTURAL ENFORCEMENT RULES
+[architectural_rules]
+
+# 1. MODULE BOUNDARIES
+# Defines which modules can import from which
+# Core module is the base and cannot import from other modules
+CORE_MODULE_IMPORTS=
+# Tenant module can only import from Core
+TENANT_MODULE_IMPORTS=core
+# Conversation module can import from Core and Tenant
+CONVERSATION_MODULE_IMPORTS=core,tenant
+# Product module can import from Core and Tenant
+PRODUCT_MODULE_IMPORTS=core,tenant
+# Order module can import from Core, Tenant, and Product
+ORDER_MODULE_IMPORTS=core,tenant,product
+# Storefront module can import from Core, Tenant, Product, and Order
+STOREFRONT_MODULE_IMPORTS=core,tenant,product,order
+# Theme module can import from Core and Tenant
+THEME_MODULE_IMPORTS=core,tenant
+# Monitoring module can import from Core only
+MONITORING_MODULE_IMPORTS=core
+
+# 2. FILE STRUCTURE RULES
+# Bridge files are strictly prohibited
+PROHIBITED_DIRECTORIES=src/types
+# All module files must be in their respective directories
+REQUIRED_MODULE_PATHS=src/modules/*/
+# File casing must be consistent with import statements
+ENFORCE_CONSISTENT_CASING=true
+
+# 3. IMPORT PATTERN RULES
+# Direct module imports required
+USE_DIRECT_MODULE_IMPORTS=true
+# Type imports should use 'import type' syntax
+PREFER_TYPE_IMPORTS=true
+# No default exports for models
+AVOID_DEFAULT_EXPORTS_FOR_MODELS=true
+# Correct path format for module imports
+CORRECT_IMPORT_FORMAT=@/modules/{module}/{type}/{name}
+
+# 4. VERIFICATION COMMANDS
+# Command to verify architecture compliance
+VERIFY_ARCHITECTURE=npm run verify:architecture
+# Command to run before commits
+PRE_COMMIT_CHECK=npm run verify:architecture && npm run lint

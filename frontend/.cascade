@@ -1,0 +1,31 @@
+# Cascade Configuration for ConversationalCommerce Frontend
+# AI assistants should adhere to these architectural rules
+
+[architecture]
+type = "modular_monolith"
+enforce_module_boundaries = true
+
+# Module boundaries definition - which modules can import from which
+[module_boundaries]
+core = []
+tenant = ["core"]
+conversation = ["core", "tenant"]
+product = ["core", "tenant"]
+order = ["core", "tenant", "product"]
+storefront = ["core", "tenant", "product", "order"]
+theme = ["core", "tenant"]
+monitoring = ["core"]
+
+# Import rules
+[imports]
+prefer_type_imports = true
+direct_module_imports_only = true
+bridge_files_prohibited = true
+
+# File structure rules
+[file_structure]
+bridge_files_prohibited = true
+types_directory_path = "NEVER USE src/types"
+
+[verification]
+verify_architecture_command = "npm run verify:architecture"

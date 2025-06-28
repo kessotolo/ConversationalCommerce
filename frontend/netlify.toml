@@ -1,0 +1,16 @@
+[build]
+  command = "next build"
+  publish = ".next"
+
+[build.environment]
+  NEXT_TELEMETRY_DISABLED = "1"
+  SKIP_PREFLIGHT_CHECK = "true"
+  CI = "false"
+  NODE_OPTIONS = "--max-old-space-size=8192"
+  # Use clean architecture approach for auth during build
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = ""
+  CLERK_SECRET_KEY = ""
+  NODE_ENV = "production"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
