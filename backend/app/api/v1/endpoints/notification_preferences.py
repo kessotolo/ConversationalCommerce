@@ -1,21 +1,27 @@
 import uuid
+
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.api.deps import get_db, get_current_buyer
 from app.models.notification_preferences import NotificationPreferences as NotificationPreferencesModel
 from app.schemas.notification_preferences import (
-    NotificationPreferencesBase, NotificationPreferencesUpdate, NotificationPreferencesResponse
+    NotificationPreferencesUpdate, NotificationPreferencesResponse,
 )
 
 router = APIRouter()
 
 
 @router.get("/", response_model=NotificationPreferencesResponse)
-def get_my_notification_preferences(db: Session = Depends(get_db), buyer=Depends(get_current_buyer)):
-    prefs = db.query(NotificationPreferencesModel).filter(
-        NotificationPreferencesModel.customer_id == buyer.id,
-        NotificationPreferencesModel.tenant_id == buyer.tenant_id
-    ).first()
+async def get_my_notification_preferences(db: AsyncSession = Depends(get_db), buyer=Depends(get_current_buyer)):
+    result = await db.execute(
+        select(NotificationPreferencesModel).where(
+            NotificationPreferencesModel.customer_id == buyer.id,
+            NotificationPreferencesModel.tenant_id == buyer.tenant_id,
+        )
+    )
+    prefs = result.scalar_one_or_none()
     if not prefs:
         # Create default preferences if not found
         prefs = NotificationPreferencesModel(
@@ -24,41 +30,48 @@ def get_my_notification_preferences(db: Session = Depends(get_db), buyer=Depends
             email_enabled=True,
             sms_enabled=False,
             whatsapp_enabled=False,
-            push_enabled=False
+            push_enabled=False,
         )
         db.add(prefs)
-        db.commit()
-        db.refresh(prefs)
+        await db.commit()
+        await db.refresh(prefs)
     return prefs
 
 
 @router.patch("/", response_model=NotificationPreferencesResponse)
-def update_my_notification_preferences(
+async def update_my_notification_preferences(
     prefs_in: NotificationPreferencesUpdate,
-    db: Session = Depends(get_db),
-    buyer=Depends(get_current_buyer)
+    db: AsyncSession = Depends(get_db),
+    buyer=Depends(get_current_buyer),
 ):
-    prefs = db.query(NotificationPreferencesModel).filter(
-        NotificationPreferencesModel.customer_id == buyer.id,
-        NotificationPreferencesModel.tenant_id == buyer.tenant_id
-    ).first()
+    result = await db.execute(
+        select(NotificationPreferencesModel).where(
+            NotificationPreferencesModel.customer_id == buyer.id,
+            NotificationPreferencesModel.tenant_id == buyer.tenant_id,
+        )
+    )
+    prefs = result.scalar_one_or_none()
     if not prefs:
         raise HTTPException(
-            status_code=404, detail="Notification preferences not found")
-    for field, value in prefs_in.dict(exclude_unset=True).items():
+            status_code=404, detail="Notification preferences not found"
+        )
+    for field, value in prefs_in.model_dump(exclude_unset=True).items():
         setattr(prefs, field, value)
-    db.commit()
-    db.refresh(prefs)
+    await db.commit()
+    await db.refresh(prefs)
     return prefs
 
 
 @router.delete("/{prefs_id}", status_code=204)
-def delete_notification_preferences(prefs_id: uuid.UUID, db: Session = Depends(get_db)):
-    prefs = db.query(NotificationPreferencesModel).filter(
-        NotificationPreferencesModel.id == prefs_id).first()
+async def delete_notification_preferences(
+    prefs_id: uuid.UUID, 
+    db: AsyncSession = Depends(get_db),
+):
+    prefs = await db.get(NotificationPreferencesModel, prefs_id)
     if not prefs:
         raise HTTPException(
-            status_code=404, detail="Notification preferences not found")
-    db.delete(prefs)
-    db.commit()
+            status_code=404, detail="Notification preferences not found"
+        )
+    await db.delete(prefs)
+    await db.commit()
     return None
