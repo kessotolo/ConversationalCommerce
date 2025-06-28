@@ -1,5 +1,3 @@
-from fastapi import APIRouter
-
 from app.api.routers.ai_config import router as ai_config_router
 from app.api.routers.conversation import router as conversation_router
 from app.api.routers.storefront import router as storefront_router
@@ -14,11 +12,18 @@ from app.api.v1.endpoints import (
 from app.api.v1.endpoints import storefront as storefront_content
 from app.api.v1.endpoints import storefront_catalog, websocket
 from app.api.v1.endpoints.behavior import router as behavior_router
+from app.api.v1.endpoints.buyer_profile import router as buyer_profile_router
 from app.api.v1.endpoints.complaint import router as complaint_router
 from app.api.v1.endpoints.content_moderation import router as content_moderation_router
-from app.api.v1.endpoints.domain_verification import router as domain_verification_router
+from app.api.v1.endpoints.domain_verification import (
+    router as domain_verification_router,
+)
+from app.api.v1.endpoints.notification_preferences import (
+    router as notification_preferences_router,
+)
 from app.api.v1.endpoints.violation import router as violation_router
 from app.api.v1.endpoints.whatsapp import router as whatsapp_router
+from fastapi import APIRouter
 
 api_router = APIRouter()
 
@@ -45,4 +50,12 @@ api_router.include_router(
     storefront_catalog.router, tags=["storefront-catalog"], prefix="/storefront-catalog"
 )
 api_router.include_router(whatsapp_router, tags=["whatsapp"], prefix="/whatsapp")
-api_router.include_router(domain_verification_router, tags=["domain-verification"], prefix="/domain")
+api_router.include_router(
+    domain_verification_router, tags=["domain-verification"], prefix="/domain"
+)
+api_router.include_router(
+    notification_preferences_router,
+    prefix="/notification-preferences",
+    tags=["notification-preferences"],
+)
+api_router.include_router(buyer_profile_router, prefix="/profile", tags=["profile"])
