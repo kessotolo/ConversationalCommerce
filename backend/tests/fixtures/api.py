@@ -3,12 +3,13 @@ API testing fixtures for tests.
 """
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Dict, Generator, Optional
+from typing import Dict, Generator, Optional, AsyncGenerator
 from unittest import mock
 
 import jwt
 import pytest
 from fastapi.testclient import TestClient
+import httpx
 
 from app.core.config import settings
 from app.main import app
@@ -41,6 +42,13 @@ def client() -> Generator:
     """
     with TestClient(app) as test_client:
         yield test_client
+
+
+@pytest.fixture(scope="function")
+async def async_client() -> AsyncGenerator:
+    """Async HTTP client for endpoints that require async interaction."""
+    async with httpx.AsyncClient(app=app, base_url="http://testserver") as ac:
+        yield ac
 
 
 def create_test_token(

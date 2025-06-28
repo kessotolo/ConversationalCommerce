@@ -3,7 +3,7 @@ import traceback
 import sys
 import os
 import pytest
-from fastapi.testclient import TestClient
+from httpx import AsyncClient
 from uuid import uuid4, UUID
 import logging
 from sqlalchemy import select
@@ -47,7 +47,7 @@ def dump_threads():
 
 @pytest.mark.asyncio
 async def test_create_order_minimum_fields(
-    client: TestClient,
+    async_client: AsyncClient,
     async_db_session,
     test_user,
     auth_headers,
@@ -58,9 +58,9 @@ async def test_create_order_minimum_fields(
     logger.info("Starting test_create_order_minimum_fields")
 
     # Log the HTTP client type and any relevant config
-    logger.debug(f"TestClient type: {type(client)}")
+    logger.debug(f"TestClient type: {type(async_client)}")
     try:
-        logger.debug(f"TestClient app: {client.app}")
+        logger.debug(f"TestClient app: {async_client.app}")
     except Exception as e:
         logger.debug(f"Error inspecting client: {e}")
 
@@ -94,7 +94,7 @@ async def test_create_order_minimum_fields(
         logger.info(f"Created order data: {order_data}")
 
         # Use the regular client since we're testing the API endpoint
-        response = client.post(
+        response = await async_client.post(
             "/api/v1/orders", headers=auth_headers, json=order_data)
         logger.info(f"Order submitted with status: {response.status_code}")
 
