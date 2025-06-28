@@ -1,7 +1,9 @@
 import pytest
+import logging
 from sqlalchemy import delete
 from tests.api.test_products import TEST_USER_ID
 from app.models.product import Product
+from app.models.user import User
 
 
 @pytest.mark.parametrize(
@@ -43,9 +45,32 @@ def test_create_product_validation_cases(
     Test product creation with different input data scenarios.
     Uses parameterized testing to cover multiple validation cases efficiently.
     """
-    # test_user fixture ensures the user exists in the database
-
-    response = client.post("/api/v1/products", headers=auth_headers, json=product_data)
+    # Debug logging to diagnose 403 errors
+    print(f"\n--- TEST DEBUG INFO ---")
+    print(f"test_user: {test_user.id} (is_seller: {test_user.is_seller})")
+    print(f"test_tenant: {test_tenant.id}")
+    print(f"auth_headers: {auth_headers}")
+    
+    # Print database row count to verify database state
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.debug(f"User count: {db_session.query(User).count()}")
+    logger.debug(f"Tenant count: {db_session.query(User).count()}")
+    
+    # Add seller_id to product_data
+    modified_product_data = product_data.copy()
+    modified_product_data['seller_id'] = str(test_user.id)
+    modified_product_data['tenant_id'] = str(test_tenant.id)
+    print(f"Product data with seller_id: {modified_product_data}")
+    
+    response = client.post("/api/v1/products", headers=auth_headers, json=modified_product_data)
+    
+    # Log response content for debugging
+    print(f"Response status code: {response.status_code}")
+    print(f"Response content: {response.content}")
+    print(f"Response headers: {response.headers}")
+    print("--- END TEST DEBUG INFO ---\n")
+    
     assert response.status_code == expected_status
 
     if expected_status == 201:

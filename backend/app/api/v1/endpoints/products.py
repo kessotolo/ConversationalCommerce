@@ -1,7 +1,10 @@
+import logging
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
+
+logger = logging.getLogger(__name__)
 
 from app.core.exceptions import (
     DatabaseError,
@@ -55,13 +58,34 @@ async def create_product_endpoint(
     - Validates all input fields
     - Returns the created product
     """
+    # Add debug logging
+    logger.debug(f"create_product_endpoint called with user: {user.sub}, tenant_context: {getattr(request.state, 'tenant_context', None)}")
+    logger.debug(f"Request headers: {request.headers}")
+    
+    # Check if tenant_id is available in request state
+    tenant_id = getattr(request.state, "tenant_id", None)
+    logger.debug(f"Tenant ID in request state: {tenant_id}")
+    
+    # Check for seller permission
+    if hasattr(user, "metadata") and user.metadata:
+        logger.debug(f"User metadata: {user.metadata}")
+    else:
+        logger.debug("No user metadata available")
+    
     try:
         product = await create_product(db, product_in, request)
+        logger.debug(f"Product created successfully: {product.id}")
         return product
     except ProductValidationError as e:
+        logger.error(f"Product validation error: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    except DatabaseError:
+    except ProductPermissionError as e:
+        logger.error(f"Product permission error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+    except DatabaseError as e:
+        logger.error(f"Database error creating product: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error creating product",

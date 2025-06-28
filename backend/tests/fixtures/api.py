@@ -3,18 +3,40 @@ API testing fixtures for tests.
 """
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Dict, Generator, Optional
+from typing import Dict, Generator, Optional, Callable, AsyncGenerator
 from unittest import mock
 
 import jwt
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.main import app
+from app.db.async_session import get_async_session_local
 
 # Setup logging
 logger = logging.getLogger(__name__)
+
+# Global variable to store test session for middleware access
+_test_db_session = None
+
+# Test session provider for middleware
+async def get_test_async_session() -> AsyncGenerator[AsyncSession, None]:
+    """Provide the test DB session to middleware during tests"""
+    global _test_db_session
+    if _test_db_session is not None:
+        try:
+            yield _test_db_session
+        except Exception as e:
+            logger.error(f"Error in get_test_async_session: {e}")
+            raise
+    else:
+        # Fallback to regular session if not in test context
+        logger.warning("No test session available, falling back to regular session")
+        session_factory = get_async_session_local()
+        async with session_factory() as session:
+            yield session
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -35,12 +57,62 @@ def patch_settings():
 
 
 @pytest.fixture(scope="function")
-def client() -> Generator:
+def client(async_db_session) -> Generator:
     """
     Create a FastAPI test client for API testing.
+    Override the get_db dependency to use our test session to ensure
+    middleware can see rows created in test fixtures.
+    Also patch get_async_session_local to ensure middleware uses the same session.
     """
-    with TestClient(app) as test_client:
-        yield test_client
+    from app.api.deps import get_db
+    from app.main import app as fastapi_app
+    from app.db.async_session import get_async_session_local
+    
+    # In case app is wrapped with middleware, access the original FastAPI instance
+    # This handles cases where app might be wrapped with SentryAsgiMiddleware
+    original_app = getattr(fastapi_app, "app", fastapi_app)
+    
+    # Create dependency override to use our test session
+    async def override_get_db():
+        try:
+            yield async_db_session
+        except Exception as e:
+            logger.error(f"Error in override_get_db: {e}")
+            raise
+    
+    # Store the test session globally for middleware access
+    global _test_db_session
+    _test_db_session = async_db_session
+    
+    # Create a patched version of get_async_session_local that returns a factory yielding our test session
+    original_get_async_session_local = get_async_session_local
+    
+    def patched_get_async_session_local():
+        # Return a factory that will yield our test session
+        async def factory():
+            try:
+                yield async_db_session
+            except Exception as e:
+                logger.error(f"Error in patched session factory: {e}")
+                raise
+        return factory
+    
+    # Apply the overrides
+    original_app.dependency_overrides[get_db] = override_get_db
+    
+    # Patch the session factory used by middleware
+    with mock.patch('app.db.async_session.get_async_session_local', patched_get_async_session_local):
+        try:
+            # Create and yield the client
+            with TestClient(fastapi_app) as test_client:
+                yield test_client
+        finally:
+            # Clean up the override after the test
+            if get_db in original_app.dependency_overrides:
+                del original_app.dependency_overrides[get_db]
+            
+    # Reset the global test session
+    _test_db_session = None
 
 
 def create_test_token(

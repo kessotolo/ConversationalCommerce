@@ -41,19 +41,68 @@ async def create_product(
 
     Raises:
         ProductValidationError: If product data is invalid
+        ProductPermissionError: If user doesn't have permission
         DatabaseError: If database operation fails
     """
+    # Add debug logging
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    logger.debug(f"create_product called with request: {request}")
+    
+    # Check tenant context
+    tenant_id = None
+    if request and hasattr(request.state, 'tenant_id'):
+        tenant_id = request.state.tenant_id
+        logger.debug(f"Found tenant_id in request.state: {tenant_id}")
+    elif request and hasattr(request.state, 'tenant_context') and request.state.tenant_context:
+        tenant_id = request.state.tenant_context.get('tenant_id')
+        logger.debug(f"Found tenant_id in tenant_context: {tenant_id}")
+    else:
+        logger.warning("No tenant_id found in request state")
+        
+    # For test debugging only
+    import os
+    if os.getenv("TESTING", "").lower() in ("true", "1", "t", "yes", "y"):
+        logger.debug("Running in TEST mode")
+        try:
+            # Verify database connection can see test data
+            from sqlalchemy import text
+            result = await db.execute(text("SELECT COUNT(*) FROM tenants"))
+            count = result.scalar()
+            logger.debug(f"Found {count} tenants in database")
+            
+            if tenant_id:
+                result = await db.execute(
+                    text("SELECT name FROM tenants WHERE id = :tenant_id"),
+                    {"tenant_id": tenant_id}
+                )
+                tenant_name = result.scalar()
+                logger.debug(f"Tenant name for ID {tenant_id}: {tenant_name}")
+        except Exception as e:
+            logger.error(f"Error querying test data: {e}")
+    
     try:
         async with db.begin():
+            logger.debug(f"Creating product with data: {product_in.model_dump()}")
             product = ProductModel(**product_in.model_dump())
+            
+            # Ensure tenant_id is set if available
+            if tenant_id and not product.tenant_id:
+                product.tenant_id = tenant_id
+                logger.debug(f"Setting product tenant_id from request: {tenant_id}")
+            
             db.add(product)
             await db.flush()
             await db.refresh(product)
+            logger.debug(f"Product created successfully: {product.id}")
             return product
     except Exception as e:
         await db.rollback()
+        logger.error(f"Error in create_product: {type(e).__name__}: {e}")
         if isinstance(e, ProductValidationError):
             raise
+        # Wrap other exceptions
         raise DatabaseError(f"Error creating product: {str(e)}")
 
 
