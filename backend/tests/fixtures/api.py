@@ -10,6 +10,7 @@ import jwt
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
+import httpx
 
 from app.core.config import settings
 from app.main import app
@@ -113,6 +114,13 @@ def client(async_db_session) -> Generator:
             
     # Reset the global test session
     _test_db_session = None
+
+
+@pytest.fixture(scope="function")
+async def async_client() -> AsyncGenerator:
+    """Async HTTP client for endpoints that require async interaction."""
+    async with httpx.AsyncClient(app=app, base_url="http://testserver") as ac:
+        yield ac
 
 
 def create_test_token(

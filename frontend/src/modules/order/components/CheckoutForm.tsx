@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { useCreateOrder } from '@/modules/order/hooks/useCreateOrder';
 import type { CreateOrderRequest } from '@/modules/order/validation/orderSchema';
 import { OrderSource, PaymentMethod, ShippingMethod } from '@/modules/order/models/order';
+import { getAddresses } from '@/lib/api/addressBook';
 
 // Define checkout form schema using Zod
 const checkoutFormSchema = z.object({
@@ -42,6 +43,19 @@ interface CartItem {
   variantId?: string;
   variantName?: string;
   imageUrl?: string;
+}
+
+interface SavedAddress {
+  id: string;
+  street: string;
+  city: string;
+  state?: string;
+  postal_code?: string;
+  country: string;
+  apartment?: string;
+  landmark?: string;
+  coordinates?: { latitude: number; longitude: number };
+  is_default: boolean;
 }
 
 interface CheckoutFormProps {
@@ -86,6 +100,7 @@ export function CheckoutForm({
     handleSubmit,
     formState: { errors },
     watch,
+    setValue,
   } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutFormSchema),
     defaultValues: {
@@ -99,6 +114,8 @@ export function CheckoutForm({
     ShippingMethod.RIDER,
   );
   const [pluginProvider, setPluginProvider] = useState<string>('');
+  const [addresses, setAddresses] = useState<SavedAddress[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string>('');
 
   useEffect(() => {
     // Fetch available shipping providers from the backend
@@ -113,6 +130,37 @@ export function CheckoutForm({
         // No need to update availableProviders as it's not used in the new code
       });
   }, []);
+
+  useEffect(() => {
+    getAddresses()
+      .then((data) => {
+        setAddresses(data);
+        const def = data.find((a) => a.is_default);
+        if (def) {
+          setSelectedAddressId(def.id);
+          setValue('shippingStreet', def.street);
+          setValue('shippingCity', def.city);
+          setValue('shippingState', def.state || '');
+          setValue('shippingPostalCode', def.postal_code || '');
+          setValue('shippingCountry', def.country);
+        }
+      })
+      .catch(() => {
+        // ignore address load errors
+      });
+  }, [setValue]);
+
+  function handleSelectAddress(id: string) {
+    setSelectedAddressId(id);
+    const addr = addresses.find((a) => a.id === id);
+    if (addr) {
+      setValue('shippingStreet', addr.street);
+      setValue('shippingCity', addr.city);
+      setValue('shippingState', addr.state || '');
+      setValue('shippingPostalCode', addr.postal_code || '');
+      setValue('shippingCountry', addr.country);
+    }
+  }
 
   const onSubmit = async (data: CheckoutFormData) => {
     setIsSubmitting(true);
@@ -265,6 +313,25 @@ export function CheckoutForm({
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-3">Shipping Address</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {addresses.length > 0 && (
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium mb-1">Saved Addresses</label>
+                <select
+                  className="w-full p-2 border rounded"
+                  value={selectedAddressId}
+                  onChange={(e) => handleSelectAddress(e.target.value)}
+                  disabled={isSubmitting}
+                >
+                  <option value="">Select saved address</option>
+                  {addresses.map((addr) => (
+                    <option key={addr.id} value={addr.id}>
+                      {addr.street}, {addr.city}, {addr.country}
+                      {addr.is_default ? ' (Default)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium mb-1">Street Address *</label>
               <Controller
