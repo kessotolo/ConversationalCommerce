@@ -133,6 +133,15 @@ class OrderService:
     async def get_orders(self, seller_id=None, status=None, order_source=None, search=None, start_date=None, end_date=None, limit=100, offset=0):
         return await self.query_service.get_orders(seller_id, status, order_source, search, start_date, end_date, limit, offset)
 
+    async def get_orders_for_buyer(self, customer_id, tenant_id, limit=100, offset=0):
+        """Retrieve orders for a specific buyer and tenant."""
+        return await self.query_service.get_orders_for_buyer(
+            customer_id=customer_id,
+            tenant_id=tenant_id,
+            limit=limit,
+            offset=offset,
+        )
+
     async def get_order_by_number(self, order_number, seller_id=None):
         return await self.query_service.get_order_by_number(order_number, seller_id)
 

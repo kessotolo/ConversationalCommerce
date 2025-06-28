@@ -8,6 +8,7 @@ from app.api.v1.endpoints import (
     batch_operations,
     dashboard,
     orders,
+    buyer_orders,
     products,
     products_keyset,
 )
@@ -27,6 +28,11 @@ api_router.include_router(products.router, tags=["products"])
 api_router.include_router(products_keyset.router, tags=["products"])
 api_router.include_router(batch_operations.router, tags=["batch-operations"])
 api_router.include_router(orders.router, tags=["orders"])
+api_router.include_router(
+    buyer_orders.router,
+    prefix="/buyer/orders",
+    tags=["buyer-orders"],
+)
 api_router.include_router(conversation_router, tags=["conversations"])
 api_router.include_router(ai_config_router, tags=["ai-config"])
 api_router.include_router(activities.router, tags=["monitoring"], prefix="/admin")
