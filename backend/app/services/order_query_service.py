@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
 from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from app.models.order import Order, OrderStatus, OrderSource
 
 
@@ -44,3 +44,30 @@ class OrderQueryService:
     def create_order_from_chat(self, chat_data: dict, tenant_id: str, phone_number: str):
         # Implement order creation from chat
         pass
+
+    async def get_orders_for_buyer(
+        self,
+        customer_id: UUID,
+        tenant_id: UUID,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> Tuple[List[Order], int]:
+        """Return orders for the given buyer within a tenant."""
+        stmt = (
+            select(Order)
+            .where(
+                Order.customer_id == customer_id,
+                Order.tenant_id == tenant_id,
+            )
+            .limit(limit)
+            .offset(offset)
+        )
+        result = await self.db.execute(stmt)
+        orders = result.scalars().all()
+
+        count_stmt = select(func.count()).select_from(Order).where(
+            Order.customer_id == customer_id,
+            Order.tenant_id == tenant_id,
+        )
+        total = (await self.db.execute(count_stmt)).scalar() or 0
+        return orders, int(total)
