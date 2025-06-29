@@ -35,11 +35,11 @@ The codebase is organized into domain-specific modules with clear boundaries. Ea
                └────────────┘
                       ▲
                       │
-               ┌──────┴─────┐
-               │            │
-               │ Storefront │
-               │            │
-               └────────────┘
+         ┌────────────┼────────────┐
+         │            │            │
+         │  Returns   │ Storefront │
+         │            │            │
+         └────────────┘└───────────┘
 ```
 
 ## Module Dependency Rules
@@ -52,6 +52,7 @@ The codebase is organized into domain-specific modules with clear boundaries. Ea
 | **Product**      | Core, Tenant                         |
 | **Order**        | Core, Tenant, Product                |
 | **Storefront**   | Core, Tenant, Product, Order         |
+| **Returns**      | Core, Tenant, Product, Order         |
 | **Theme**        | Core, Tenant                         |
 | **Monitoring**   | Core                                 |
 | **Payment**      | Core, Tenant, Order                  |
