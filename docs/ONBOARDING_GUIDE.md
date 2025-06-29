@@ -40,6 +40,58 @@ Trust is at the heart of commerce in Africa. Our onboarding and user experience 
 
 Our conversational engine is trained on real African chat data, supports local dialects, and is always improving to make commerce feel as natural and trustworthy as chatting with a friend or local vendor.
 
+## 🌟 Phase 2 Feature Overview (COMPLETED)
+
+Phase 2 focuses on core buyer and seller account features. As a new developer, here's what you need to know about the recently completed components:
+
+### Buyer Features
+
+#### Profile Management
+
+The `BuyerProfile` component (`/frontend/src/components/buyer/BuyerProfile.tsx`) serves as the container for all profile-related features, including:
+
+- **Profile Editing**: The `ProfileEditForm` component allows users to update their name, email, phone, and password. Secure password management is implemented with validation.
+- **Address Book**: The `AddressList` and `AddressForm` components provide full CRUD functionality for managing shipping and billing addresses.
+- **Payment Methods**: Saved payment methods management is available through `PaymentMethodManagement`.
+- **Notification Preferences**: `NotificationPreferencesForm` lets users manage their communication preferences across different channels.
+
+API interactions are handled by dedicated service files:
+- `userService.ts`: Profile management and security settings
+- `addressService.ts`: Address book CRUD operations
+- `paymentService.ts`: Payment method management
+
+#### Order Management
+
+Buyers can manage their orders through these components:
+
+- **Order List**: `OrderList` provides filterable order history with status tabs and sorting
+- **Order Detail**: `OrderDetail` shows comprehensive order information including items, tracking, and status
+- **Order Return**: `OrderReturn` handles the return process with item selection
+
+All order-related API calls are centralized in `orderService.ts`.
+
+### Seller Features
+
+#### Team Management
+
+Sellers can manage their team through:
+
+- **TeamManagement**: Container component with tabs for team members and invitations
+- **TeamMemberList**: Shows current team members with role management
+- **TeamInviteList**: Displays pending invitations
+- **TeamInviteForm**: Form for sending new invitations via email or phone
+
+#### Admin Review Dashboard
+
+Admins can review seller onboarding requests with:
+
+- **SellerOnboardingAdminDashboard**: Main container for all verification workflows
+- **SellerVerificationStats**: Dashboard metrics for verification statuses
+- **SellerVerificationList**: Filterable list of verification requests
+- **SellerVerificationDetail**: Detailed review interface with approve/reject actions
+
+Multi-channel notifications for status changes are implemented through `notificationService.ts`.
+
 ## WhatsApp NLP Cart Management ✅ VERIFIED
 
 We've successfully implemented multi-tenant WhatsApp NLP cart management that meets our core requirements:

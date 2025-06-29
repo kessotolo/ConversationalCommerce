@@ -1,5 +1,46 @@
 # Changelog
 
+## 2025-06-28
+
+### Added
+
+#### Phase 2 Feature Completion
+
+- **Buyer Profile Management**: 
+  - Added ProfileEditForm component for editing profile details (name, email, phone)
+  - Added password change functionality with validation
+  - Implemented userService.ts for secure profile management API integration
+  - Created NotificationPreferencesForm and its corresponding backend service
+
+- **Address Book Management**: 
+  - Implemented AddressForm component for adding and editing addresses
+  - Created AddressList component for managing saved addresses
+  - Added addressService.ts for CRUD operations with backend APIs
+
+- **Buyer Order Management**:
+  - Created OrderList component for viewing order history with filterable status tabs
+  - Implemented OrderDetail component with comprehensive order information
+  - Added OrderReturn component for processing returns with item selection
+  - Built orderService.ts for backend API integration including order tracking
+
+- **Team Role Management**:
+  - Implemented TeamMemberList, TeamInviteList, and TeamInviteForm components
+  - Created TeamManagement container component with tabs for members/invites
+  - Added role editing and invitation functionality with email/SMS options
+
+- **Seller Onboarding Admin Review**:
+  - Built SellerVerificationStats for dashboard metrics visualization
+  - Created SellerVerificationList and SellerVerificationDetail components
+  - Implemented admin review workflow with approve/reject actions
+  - Added multi-channel notifications for seller verification status changes
+
+### Improved
+
+- All React components now follow mobile-first, chat-native design principles
+- Full error handling with toast notifications throughout the frontend
+- React Query integration for efficient data fetching and cache management
+- TypeScript strict mode enabled across all new components
+
 ## 2025-06-14
 
 ### Fixed

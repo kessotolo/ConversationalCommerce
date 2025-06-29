@@ -1,16 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
+import NotificationPreferences from './NotificationPreferences';
+import Link from 'next/link';
 
 // Placeholder components for notification preferences and account security
-function NotificationPreferences() {
-    return (
-        <div className="mt-8 p-4 bg-white rounded shadow border">
-            <h2 className="text-lg font-semibold mb-2">Notification Preferences</h2>
-            <p className="text-gray-500">Coming soon: Manage your email, SMS, and WhatsApp notifications here.</p>
-        </div>
-    );
-}
-
 function AccountSecurity() {
     return (
         <div className="mt-8 p-4 bg-white rounded shadow border">
@@ -104,6 +97,9 @@ export default function ProfilePage() {
                 </button>
             </form>
             <NotificationPreferences />
+            <div className="mt-8">
+                <Link href="/account/address-book" className="text-blue-600 underline">Manage Address Book</Link>
+            </div>
             <AccountSecurity />
         </div>
     );

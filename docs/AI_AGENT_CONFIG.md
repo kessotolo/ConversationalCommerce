@@ -271,3 +271,9 @@ AI agents must never generate code or suggestions that break these principles. T
 AI agents and contributors must enforce these rules in all code generation, reviews, and refactors.
 
 By following these guidelines, AI agents will help maintain the architectural integrity, code quality, and product vision of the ConversationalCommerce platform.
+
+## Background Job/Event Handling (2025)
+- All notification and fulfillment events are now handled via Celery + Redis background jobs.
+- This ensures robust retry, dead-lettering, and async event-driven architecture.
+- AI agents and contributors must enqueue tasks for notifications/fulfillment, not call services directly.
+- See backend/README.md and app/tasks.py for implementation details.

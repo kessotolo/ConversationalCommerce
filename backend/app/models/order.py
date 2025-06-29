@@ -27,6 +27,7 @@ class OrderStatus(str, enum.Enum):
     shipped = "shipped"
     delivered = "delivered"
     cancelled = "cancelled"
+    returned = "returned"
 
 
 class OrderSource(str, enum.Enum):
@@ -41,6 +42,8 @@ class Order(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"))
     seller_id = Column(UUID(as_uuid=True), nullable=True)
+    tenant_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    customer_id = Column(UUID(as_uuid=True), nullable=True, index=True)
 
     # Buyer Information
     buyer_name = Column(String, nullable=False)
@@ -79,6 +82,8 @@ class Order(Base):
     )
     payments = relationship(
         "Payment", back_populates="order", cascade="all, delete-orphan")
+    returns = relationship(
+        "OrderReturn", back_populates="order", cascade="all, delete-orphan")
     # whatsapp_details = relationship(
     #     "WhatsAppOrderDetails",
     #     uselist=False,
@@ -90,3 +95,7 @@ class Order(Base):
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    cancelled_at = Column(DateTime(timezone=True))
+    returned_at = Column(DateTime(timezone=True))
+    cancellation_reason = Column(String)
+    return_reason = Column(String)

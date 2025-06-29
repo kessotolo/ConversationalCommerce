@@ -83,3 +83,5 @@ prometheus-client>=0.20.0
 pydantic[email]
 
 asyncpg>=0.29.0
+
+celery>=5.3

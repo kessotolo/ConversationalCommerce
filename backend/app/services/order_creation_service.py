@@ -65,20 +65,20 @@ class OrderCreationService:
             all_products = all_products_result.fetchall()
             logging.debug(f"Available products in DB: {all_products}")
             await self.db.execute(text("SET LOCAL my.bypass_rls = true"))
+        # ATOMIC INVENTORY ENFORCEMENT
+        # Lock the product row for update to prevent overselling
         stmt = select(Product).where(
             and_(
                 Product.id == product_id,
                 Product.seller_id == seller_id,
             )
-        )
+        ).with_for_update()
         result = await self.db.execute(stmt)
         product = result.scalar_one_or_none()
         logging.debug(
-            f"Product lookup result: {'Found' if product else 'Not found'}")
-        if product:
-            logging.debug(
-                f"Found product: id={product.id}, seller_id={product.seller_id}, tenant_id={product.tenant_id}")
+            f"Product lookup result: {'Found' if product else 'Not found'} (locked for update)")
         if not product:
+            await self.db.rollback()
             raise Exception(
                 f"Product not found with id={product_id} and seller_id={seller_id}")
         if items:
@@ -88,6 +88,13 @@ class OrderCreationService:
                 total_amount = sum(
                     item.get("price", 0) * item.get("quantity", 0) for item in items
                 )
+        # Check inventory after acquiring the lock
+        if product.inventory_quantity < quantity:
+            await self.db.rollback()
+            raise Exception(f"Insufficient stock for product {product.id}.")
+        # Deduct inventory
+        product.inventory_quantity -= quantity
+        await self.db.flush()
         order = Order(
             product_id=product_id,
             seller_id=seller_id,

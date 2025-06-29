@@ -1,5 +1,6 @@
 import { ApiResponse } from '@/lib/api-types';
-import type { Order } from '../models/order';
+import type { Order, OrderStatus } from '../models/order';
+import { orderBulkValidationService } from './OrderBulkValidationService';
 
 /**
  * Service for handling bulk operations on orders
@@ -23,12 +24,15 @@ export class OrderBulkOperationsService {
     tenantId: string
   ): Promise<ApiResponse<boolean>> {
     try {
-      if (!orderIds.length) {
+      // Validate the request
+      const validation = orderBulkValidationService.validateBulkDelete(orderIds);
+      if (!validation.isValid) {
         return {
           success: false,
           error: {
-            message: 'No orders provided for deletion',
-            code: 'INVALID_REQUEST',
+            message: validation.errors.map(err => err.message).join(', '),
+            code: 'VALIDATION_ERROR',
+            details: validation.errors,
           },
         };
       }
@@ -132,16 +136,19 @@ export class OrderBulkOperationsService {
    */
   async bulkUpdateStatus(
     orderIds: string[],
-    status: string,
+    status: OrderStatus,
     tenantId: string
   ): Promise<ApiResponse<Order[]>> {
     try {
-      if (!orderIds.length) {
+      // Validate the request
+      const validation = orderBulkValidationService.validateStatusUpdate(orderIds, status);
+      if (!validation.isValid) {
         return {
           success: false,
           error: {
-            message: 'No orders provided for status update',
-            code: 'INVALID_REQUEST',
+            message: validation.errors.map(err => err.message).join(', '),
+            code: 'VALIDATION_ERROR',
+            details: validation.errors,
           },
         };
       }
@@ -182,6 +189,74 @@ export class OrderBulkOperationsService {
         success: false,
         error: {
           message: error.message || 'An unexpected error occurred while updating orders',
+          code: 'UNKNOWN_ERROR',
+        },
+      };
+    }
+  }
+
+  /**
+   * Batch edit orders with specified field updates
+   * @param orderIds - Array of order IDs to update
+   * @param fieldsToUpdate - Object containing fields to update
+   * @param tenantId - Current tenant ID
+   * @returns ApiResponse with array of updated orders or error
+   */
+  async batchEditOrders(
+    orderIds: string[],
+    fieldsToUpdate: Partial<Pick<Order, 'notes' | 'metadata' | 'shipping'>>,
+    tenantId: string
+  ): Promise<ApiResponse<Order[]>> {
+    try {
+      // Validate the request
+      const validation = orderBulkValidationService.validateBatchEdit(orderIds, fieldsToUpdate);
+      if (!validation.isValid) {
+        return {
+          success: false,
+          error: {
+            message: validation.errors.map(err => err.message).join(', '),
+            code: 'VALIDATION_ERROR',
+            details: validation.errors,
+          },
+        };
+      }
+
+      const response = await fetch(
+        `${this.baseUrl}/tenants/${tenantId}/orders/bulk/edit`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            orderIds,
+            updates: fieldsToUpdate,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        return {
+          success: false,
+          error: {
+            message: error.message || 'Failed to batch edit orders',
+            code: error.code || response.status.toString(),
+          },
+        };
+      }
+
+      const updatedOrders = await response.json();
+      return {
+        success: true,
+        data: updatedOrders,
+      };
+    } catch (err: unknown) {
+      const error = err as Error;
+      return {
+        success: false,
+        error: {
+          message: error.message || 'An unexpected error occurred during batch edit',
           code: 'UNKNOWN_ERROR',
         },
       };
