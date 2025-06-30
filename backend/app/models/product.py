@@ -34,11 +34,13 @@ class Product(Base):
     # Weight and dimensions
     weight = Column(Float, nullable=True)
     weight_unit = Column(String, default="kg", nullable=True)
-    dimensions = Column(JSONB, nullable=True)  # {"length": 10, "width": 5, "height": 2, "unit": "cm"}
+    # {"length": 10, "width": 5, "height": 2, "unit": "cm"}
+    dimensions = Column(JSONB, nullable=True)
     # Additional product metadata
-    metadata = Column(JSONB, nullable=True)
+    product_metadata = Column(JSONB, nullable=True)
     # SEO information
-    seo = Column(JSONB, nullable=True)  # {"title": "SEO Title", "description": "SEO Description", "keywords": ["keyword1", "keyword2"]}
+    # {"title": "SEO Title", "description": "SEO Description", "keywords": ["keyword1", "keyword2"]}
+    seo = Column(JSONB, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow,
                         onupdate=datetime.utcnow)
@@ -56,5 +58,7 @@ class Product(Base):
     # Relationships
     complaints = relationship("Complaint", back_populates="product")
     # Variant relationships
-    variants = relationship("ProductVariant", back_populates="product", cascade="all, delete-orphan")
-    variant_options = relationship("VariantOption", back_populates="product", cascade="all, delete-orphan")
+    variants = relationship(
+        "ProductVariant", back_populates="product", cascade="all, delete-orphan")
+    variant_options = relationship(
+        "VariantOption", back_populates="product", cascade="all, delete-orphan")

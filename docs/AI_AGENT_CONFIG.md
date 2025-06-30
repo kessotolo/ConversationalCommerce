@@ -92,6 +92,7 @@ import { TenantService } from '@/modules/tenant/services/TenantService'; // WRON
 ### Frontend Specific
 
 - **Built with Next.js + TailwindCSS**
+- **For all new frontend features and UI components, prefer using shadcn/ui primitives. Existing custom UI kit can be maintained for legacy code, but new work should use shadcn/ui for consistency, accessibility, and maintainability.**
 - **Mobile-first design principles**:
   - All screens must be fully usable on low-end Android devices
   - Performance-optimized for low-bandwidth connections

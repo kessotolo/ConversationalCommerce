@@ -6,20 +6,30 @@ Mobile-first, modular monolith UI for chat-driven commerce. Built with Next.js, 
 - See [Onboarding Guide](/docs/ONBOARDING_GUIDE.md)
 - `npm install && npm run dev`
 
-## 🏗️ Structure
-- Modular: core, tenant, conversation, product, order, storefront, theme, monitoring
-- Theming: Tailwind, custom themes, mobile UX
-- Dashboard: analytics, real-time monitoring, admin tools
+## 🧹 2024: Initial Build & Type Safety Enforcement (Summary)
 
-## 🧪 Testing
-- `npm run test` for all tests
-- See [Onboarding Guide](/docs/ONBOARDING_GUIDE.md)
+### What We Achieved
+- All `any` types eliminated; replaced with explicit interfaces, generics, or `unknown` with type guards
+- All unused variables, imports, and forbidden `require()` usage removed
+- All model interfaces (Product, Order, StorefrontComponent, etc.) now require `created_at: string` and use canonical base types
+- All bridge files removed; only direct module imports allowed (no `/types/` directory usage)
+- All index signature property access (TS4111) and strict optional property errors fixed
+- All code is now linter- and type-check compliant; CI blocks merges on violations
+- All async code uses async/await with full error handling and type safety
+- All code changes are documented and tested
 
-## 📚 Docs
-- [Architecture](/docs/ARCHITECTURE.md)
-- [AI Agent Config](/docs/AI_AGENT_CONFIG.md)
-- [Changelog](/docs/CHANGELOG.md)
-- [Contributing](/docs/CONTRIBUTING.md)
+### Canonical Linter/Type Error Resolution
+- Use type guards and explicit types instead of non-null assertions or `any`
+- Suppress false positive linter/type errors only with line-level comments and clear justification
+- Never use file-level disables except for legacy/third-party code
+- All test code must be type-safe and use mocks for side-effectful utilities
+
+### Updated Rules for All Contributors
+- Never introduce new `any` types or bridge files
+- Always use direct module imports and respect module boundaries
+- All code must be clean, readable, and well-documented
+- All code must pass `npm run lint`, `npm run type-check`, and `npm run verify:architecture`
+- All architectural and code quality rules are enforced by CI and documented in this file
 
 ## 🚀 Our Core: Commerce in Conversation
 
@@ -1018,3 +1028,7 @@ See the project architecture documentation for more details on the modular bound
 - The onboarding wizard guides sellers through business info, KYC, domain, and team invite steps.
 - Admins can review and approve/reject KYC requests at `/admin/monitoring`.
 - All onboarding and KYC actions are logged for analytics and audit.
+
+## ⚡ Coding Principles
+
+- For all new frontend features and UI components, **prefer using shadcn/ui primitives**. Existing custom UI kit can be maintained for legacy code, but new work should use shadcn/ui for consistency, accessibility, and maintainability.

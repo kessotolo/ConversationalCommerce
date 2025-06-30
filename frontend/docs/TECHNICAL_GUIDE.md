@@ -143,6 +143,40 @@ The Storefront Editor allows sellers to customize their storefronts:
 - **Layout Editor**: Customize page layouts with drag-and-drop
 - **Theme Customization**: Color schemes, typography, and styling
 
+#### Mobile Optimization
+
+The platform includes several components and utilities specifically designed for mobile optimization, particularly targeting low-end Android devices and unstable network conditions:
+
+- **MobileOptimizationService**: A singleton service that provides:
+  - Device detection (mobile/tablet/desktop)
+  - Performance class detection (low/medium/high-end devices)
+  - Network status and connection quality monitoring
+  - Optimization recommendations (touch targets, image quality, pagination)
+  - Utilities to adapt UI complexity based on device capabilities
+
+- **OfflineDataHandler**: A component that enables robust offline support:
+  - Transparent caching of data with expiration policies
+  - Offline indication in the UI
+  - Automatic retry and synchronization when connectivity is restored
+  - Support for critical flows during network instability
+
+- **TouchTargetArea**: A component ensuring accessibility compliance:
+  - Enforces minimum 44x44px touch targets per WCAG guidelines
+  - Dynamically adjusts hitboxes for different device types
+  - Provides visual feedback for touch interactions
+
+- **PerformanceMonitoring**: A utility for tracking performance metrics:
+  - Core Web Vitals tracking (LCP, FID, CLS)
+  - Custom component render time tracking
+  - Network request performance monitoring
+  - Performance rating system for metrics
+
+- **PerformanceAuditOverlay**: A development tool for real-time performance visualization:
+  - Displays Core Web Vitals and custom metrics
+  - Shows device information and network status
+  - Real-time metric recording and visualization
+  - Only enabled in non-production environments
+
 #### Module Structure
 
 The frontend follows a modular monolith architecture with clear module boundaries:

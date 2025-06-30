@@ -99,12 +99,22 @@ This document is for anyone (even non-technical users) to help test the platform
 
 ---
 
-## 10. General UX & Accessibility
+## 10. Mobile Optimization & Accessibility
 - [ ] Is the app easy to use on both desktop and mobile?
-- [ ] Are all buttons, forms, and links working?
-- [ ] Is the language clear and friendly?
-- [ ] Are error messages helpful?
+- [ ] Are touch targets sufficiently large on mobile (min. 44x44px)?
+- [ ] Does the app perform well on low-end Android devices (Android 5-7, 1GB RAM)?
+- [ ] Does the app load efficiently over slow connections (2G/3G)?
+- [ ] Does the app work properly in offline mode where applicable?
+- [ ] Are offline indicators clearly visible when working without connectivity?
+- [ ] Are critical analytics and dashboard features usable on mobile screens?
+- [ ] Does the app conserve battery by minimizing background processes?
+- [ ] Are images and assets properly optimized for low bandwidth?
+- [ ] Is font size readable on small screens without zooming?
+- [ ] Does the app adjust layout appropriately for different screen sizes?
+- [ ] Are error messages helpful and properly displayed on mobile?
 - [ ] Is the app accessible (screen reader, keyboard navigation, color contrast)?
+- [ ] Can all critical user flows be completed on mobile devices?
+- [ ] Does the app perform well in variable network conditions (test with throttling)?
 
 ---
 

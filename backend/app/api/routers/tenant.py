@@ -52,3 +52,12 @@ async def update_tenant_by_subdomain(subdomain: str, update: TenantUpdate, db: A
     await db.commit()
     await db.refresh(tenant)
     return TenantOut.model_validate(tenant)
+
+
+@router.get("/by-subdomain/{subdomain}", response_model=TenantOut)
+async def get_tenant_by_subdomain(subdomain: str, db: AsyncSession = Depends(get_db)):
+    tenant = await db.execute(select(Tenant).where(Tenant.subdomain == subdomain))
+    tenant = tenant.scalar_one_or_none()
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    return TenantOut.model_validate(tenant)

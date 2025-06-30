@@ -36,29 +36,31 @@ class PaymentMethod(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     customer_id = Column(UUID(as_uuid=True), nullable=False, index=True)
     tenant_id = Column(UUID(as_uuid=True), nullable=False, index=True)
-    
+
     # Payment details
-    payment_type = Column(Enum(PaymentMethodType, create_type=False), nullable=False)
+    payment_type = Column(
+        Enum(PaymentMethodType, create_type=False), nullable=False)
     nickname = Column(String)  # User-defined name for this payment method
-    
+
     # Provider-specific details (tokenized/encrypted as needed)
-    provider = Column(String, nullable=False)  # Payment provider (e.g., Stripe, PayPal)
+    # Payment provider (e.g., Stripe, PayPal)
+    provider = Column(String, nullable=False)
     provider_token = Column(String, nullable=False)  # Token from provider
     provider_payment_id = Column(String)  # ID from provider
-    
+
     # Display-safe details (last 4 digits, expiry date, etc.)
     display_name = Column(String)  # E.g., "Visa ending in 4242"
     last_four = Column(String)  # Last 4 digits of card/account
     expiry_date = Column(String)  # MM/YY format for cards
     billing_address = Column(JSONB)  # Billing address details
-    
+
     # Settings
     is_default = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
-    
+
     # Metadata
-    metadata = Column(JSONB)  # Additional data from payment provider
-    
+    payment_metadata = Column(JSONB)  # Additional data from payment provider
+
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

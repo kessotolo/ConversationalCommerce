@@ -47,7 +47,34 @@ The `ActivityDashboard` component (`src/components/monitoring/ActivityDashboard.
 - Tenant-scoped activity feed showing only relevant events
 - Performance metrics and system health indicators
 
-### 2. Audit Log System
+### 2. Performance Monitoring
+
+The `PerformanceMonitoring` utility (`src/utils/PerformanceMonitoring.ts`) provides comprehensive tracking of performance metrics, especially important for mobile devices:
+
+- Tracks Core Web Vitals (LCP, FID, CLS) using web-vitals library
+- Monitors long tasks and resource loading times
+- Provides custom timing functions for component render and data loading
+- Rates performance as 'good', 'needs-improvement', or 'poor' based on established thresholds
+- Allows developer debugging with custom metric listeners
+
+For development and QA testing, the `PerformanceAuditOverlay` component (`src/modules/shared/components/PerformanceAuditOverlay.tsx`) provides real-time visualization of these metrics:
+
+- Shows Core Web Vitals and custom metrics in a collapsible overlay
+- Displays device information and network status
+- Allows real-time recording and clearing of metrics
+- Color-codes results based on performance rating
+- Only available in non-production environments
+
+### 3. Mobile Optimization Service
+
+The `MobileOptimizationService` (`src/services/MobileOptimizationService.ts`) provides device detection and optimization:
+
+- Detects device type (mobile, tablet, desktop) and performance class (low, medium, high)
+- Monitors network status and connection quality
+- Provides optimization recommendations for touch targets, image quality, and UI complexity
+- Helps components adapt to different device capabilities
+
+### 4. Audit Log System
 
 The audit logging system (`src/components/monitoring/AuditLogTable.tsx`) tracks all security-sensitive operations:
 
