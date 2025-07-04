@@ -27,6 +27,8 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from app.core.monitoring.metrics import metrics_middleware, setup_metrics
+
 import app.domain.events  # Ensure event handlers are registered
 from app.api.v1.api import api_router
 from app.api.v1.endpoints.websocket import router as websocket_router
@@ -259,6 +261,8 @@ async def lifespan(app: FastAPI):
     await initialize_cache()
     if not is_test:
         await start_domain_verification()
+        # Start metrics collection
+        setup_metrics()
 
     yield
 
@@ -298,7 +302,10 @@ def create_app() -> FastAPI:
     # 2. Rate limiting (early to prevent abuse)
     app.add_middleware(RateLimitMiddleware)
 
-    # 3. Request timing (for performance monitoring)
+    # 3. Metrics middleware (for system monitoring)
+    app.add_middleware(metrics_middleware)
+
+    # 4. Request timing (for performance monitoring)
     app.add_middleware(RequestTimingMiddleware)
 
     # 4. Activity tracking (for audit and monitoring)
