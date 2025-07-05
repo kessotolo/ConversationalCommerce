@@ -52,3 +52,25 @@ Backend for modular, multi-tenant, chat-driven commerce. Powered by FastAPI, SQL
 ### Troubleshooting
 - If notifications or fulfillment actions are not processed, ensure Redis and the Celery worker are running.
 - Check logs for errors and retry information.
+
+## Admin Backend Security & Environment Variables
+
+The admin backend (for super admin/staff at https://admin.enwhe.io) enforces strict security and isolation:
+
+- **CORS/Allowed Origins:** Only `https://admin.enwhe.io` is allowed for admin endpoints. Set `ALLOWED_ORIGINS` and `BACKEND_CORS_ORIGINS` accordingly in your environment.
+- **IP Allowlisting:** All admin endpoints are protected by a global IP allowlist. Manage allowlist entries via the admin UI/API. Initial entries can be seeded via migration or config if needed.
+- **Security Headers:** The following headers are enforced for all admin responses:
+  - `Strict-Transport-Security`
+  - `Content-Security-Policy`
+  - `X-Frame-Options`
+  - `X-Content-Type-Options`
+  - `Referrer-Policy`
+  - `Permissions-Policy`
+  - `X-XSS-Protection`
+- **Session Timeout & 2FA:**
+  - `ADMIN_SESSION_INACTIVITY_TIMEOUT` (minutes)
+  - `ADMIN_REQUIRE_2FA` (true/false)
+- **ADMIN_MODE:** (optional) Set to `true` in the admin backend environment to enable admin-only features.
+- **.env.example:** See this file for all required and recommended environment variables for admin deployment.
+
+**Note:** These settings are for the admin backend only and do not affect seller, buyer, or main app flows.

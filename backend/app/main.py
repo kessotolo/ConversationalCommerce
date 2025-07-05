@@ -46,6 +46,8 @@ from app.middleware.domain_verification import (
 from app.middleware.storefront_errors import StorefrontError, handle_storefront_error
 from app.middleware.subdomain_middleware import SubdomainMiddleware
 from app.core.errors import order_failures, payment_failures
+from app.services.security.ip_allowlist_service import IPAllowlistService
+from app.api.admin.endpoints import ip_allowlist as admin_ip_allowlist_router
 
 # Configure Sentry only if DSN is available
 sentry_dsn = os.environ.get("SENTRY_DSN", "")
@@ -157,28 +159,30 @@ class TenantMiddleware(BaseHTTPMiddleware):
             # Validate UUID format
             from uuid import UUID
             tenant_uuid = UUID(tenant_id)
-            
+
             # Store tenant_id in request.state for use in dependencies
             request.state.tenant_id = str(tenant_uuid)
-            
+
             # In test mode, skip DB validation in middleware
             # Detect test environment from settings or request headers
             from app.core.config.settings import get_settings
             settings = get_settings()
-            
-            test_mode = getattr(settings, "TESTING", False) or request.headers.get("X-Test") == "true"
-            
+
+            test_mode = getattr(settings, "TESTING", False) or request.headers.get(
+                "X-Test") == "true"
+
             if test_mode or is_test:
                 # For tests, skip DB validation in middleware
                 # This avoids async schema visibility issues while allowing the endpoint
                 # to use its normal get_db dependency which works correctly
-                logger.debug("Test environment detected - skipping tenant DB validation")
+                logger.debug(
+                    "Test environment detected - skipping tenant DB validation")
                 # Skip DB creation in middleware for tests
                 # request.state.db will be set by the endpoint's dependency
             else:
                 # Production path - create an async database session
                 db = AsyncSessionLocal()
-                
+
                 # Use the session directly in the request state
                 # Do not set tenant context here - will be handled by the get_db dependency
                 # when the endpoint is called
@@ -271,6 +275,34 @@ async def lifespan(app: FastAPI):
         await stop_domain_verification()
 
 
+class GlobalIPAllowlistMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app, ip_allowlist_service: IPAllowlistService, admin_prefix: str = "/api/admin"):
+        super().__init__(app)
+        self.ip_allowlist_service = ip_allowlist_service
+        self.admin_prefix = admin_prefix
+
+    async def dispatch(self, request: Request, call_next):
+        # Only enforce for admin endpoints
+        if request.url.path.startswith(self.admin_prefix):
+            client_ip = request.client.host
+            db = None
+            try:
+                # Use a new DB session for the check
+                AsyncSessionLocal = get_async_session_local()
+                db = AsyncSessionLocal()
+                # Check if IP is allowed globally
+                allowed = await self.ip_allowlist_service.is_ip_allowed_global(db, client_ip)
+                if not allowed:
+                    return JSONResponse(status_code=403, content={"detail": "Access denied: IP not allowed."})
+            except Exception as e:
+                logger.error(f"IP allowlist check failed: {e}")
+                return JSONResponse(status_code=500, content={"detail": "Internal server error (IP allowlist)"})
+            finally:
+                if db:
+                    await db.close()
+        return await call_next(request)
+
+
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
     app = FastAPI(
@@ -286,16 +318,24 @@ def create_app() -> FastAPI:
     # Register storefront error handler
     app.add_exception_handler(StorefrontError, handle_storefront_error)
 
-    # Add middleware in order of execution (top to bottom)
-    # 1. Security middleware (first to catch security issues)
+    # Register security headers middleware with comprehensive admin security headers
     app.add_middleware(
         SecurityHeadersMiddleware,
         headers={
+            # Prevent MIME type sniffing
             "X-Content-Type-Options": "nosniff",
+            # Prevent clickjacking
             "X-Frame-Options": "DENY",
+            # Enable XSS protection (legacy, most browsers ignore in modern mode)
             "X-XSS-Protection": "1; mode=block",
-            "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
-            "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:;",
+            # Enforce HTTPS and subdomain security
+            "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+            # Restrict resource loading and inline scripts/styles
+            "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none';",
+            # Control referrer information
+            "Referrer-Policy": "strict-origin-when-cross-origin",
+            # Restrict browser features (camera, mic, geolocation, etc.)
+            "Permissions-Policy": "geolocation=(), microphone=(), camera=(), fullscreen=(), payment=()",
         },
     )
 
@@ -359,6 +399,24 @@ def create_app() -> FastAPI:
         compression_level=6,  # Balanced compression level
     )
 
+    # Add global IP allowlist middleware for admin endpoints
+    app.add_middleware(
+        GlobalIPAllowlistMiddleware,
+        ip_allowlist_service=IPAllowlistService(),
+        admin_prefix="/api/admin"
+    )
+
+    # Restrict CORS for admin endpoints
+    admin_origins = ["https://admin.enwhe.io"]
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=admin_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=["X-Request-ID"],
+    )
+
     # Include API router
     app.include_router(api_router, prefix=settings.API_V1_STR)
 
@@ -368,6 +426,9 @@ def create_app() -> FastAPI:
     # Include v2 orders router
     app.include_router(
         v2_orders.router, prefix="/api/v2/orders", tags=["orders_v2"])
+
+    # Include admin IP allowlist router for management
+    app.include_router(admin_ip_allowlist_router.router, prefix="/api/admin")
 
     # Test endpoint to verify environment variables
     @app.get("/test-env")

@@ -216,7 +216,7 @@ The admin module follows a multi-domain architecture to ensure strict separation
   - Vercel hosting with domain configuration
   - Environment variables for API endpoints and authentication
   - CORS and CSP configuration for cross-domain security
-  
+
 - **Backend**:
   - Railway deployment with PostgreSQL database
   - Domain-aware authentication middleware
@@ -233,11 +233,15 @@ BASE_DOMAIN=yourplatform.com
 ADMIN_CORS_ORIGINS=https://admin.yourplatform.com
 SUPER_ADMIN_EMAIL=admin@yourcompany.com
 
-# Security
+# Security - NEW/UPDATED
 SECRET_KEY=your-secure-secret-key
 JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 REFRESH_TOKEN_EXPIRE_DAYS=7
+ADMIN_ENFORCE_IP_RESTRICTIONS=true
+ADMIN_REQUIRE_2FA=true
+ADMIN_SESSION_INACTIVITY_TIMEOUT=10
+ADMIN_MODE=true
 
 # Database
 DATABASE_URL=postgresql+asyncpg://user:password@hostname/dbname
@@ -279,7 +283,7 @@ NEXTAUTH_SECRET=your-nextauth-secret
    # Apply database migrations for tenant model and RBAC
    cd backend
    alembic upgrade head
-   
+
    # Deploy backend to Railway
    railway up
    ```
@@ -542,3 +546,32 @@ Finalize integration with existing systems and optimize performance.
 This phased implementation plan provides a structured approach to building a comprehensive Super Admin and Security system for the ConversationalCommerce platform. Each phase builds upon the previous one, ensuring that core functionality is implemented first before adding more advanced features.
 
 By following this plan, we'll create a secure, usable, and powerful administrative system that enables platform governance while maintaining strict security controls and comprehensive observability.
+
+### Security Middleware Implementation
+
+The admin backend now enforces multiple layers of security:
+
+#### 1. Global IP Allowlist Enforcement
+- **Middleware**: `GlobalIPAllowlistMiddleware` protects all `/api/admin/*` endpoints
+- **Service Integration**: Uses existing `IPAllowlistService` for allowlist management
+- **Scope**: Enforces global IP allowlist entries for all admin access
+- **Configuration**: Controlled via `ADMIN_ENFORCE_IP_RESTRICTIONS` environment variable
+
+#### 2. Enhanced Security Headers
+- **Strict-Transport-Security**: Enforces HTTPS for all admin communications
+- **Content-Security-Policy**: Prevents XSS and code injection attacks
+- **X-Frame-Options**: Prevents clickjacking attacks
+- **X-Content-Type-Options**: Prevents MIME type sniffing
+- **Referrer-Policy**: Controls referrer information leakage
+- **Permissions-Policy**: Restricts access to sensitive browser features
+
+#### 3. Staff Role Enforcement
+- **Authentication**: All admin endpoints now require the platform-wide `"staff"` role
+- **Authorization**: Enforced in `admin_user_from_token` dependency
+- **Scope**: Platform-wide role (not tenant-scoped) for super admin access
+- **Error Handling**: Clear HTTP 403 responses for unauthorized access
+
+#### 4. CORS Restrictions
+- **Admin Endpoints**: Only `https://admin.enwhe.io` is allowed for admin API access
+- **Tenant Endpoints**: Separate CORS policy for tenant-facing APIs
+- **Isolation**: Complete domain-level separation between admin and tenant access

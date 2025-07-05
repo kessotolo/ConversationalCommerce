@@ -34,15 +34,15 @@ async def admin_user_from_token(
 ) -> AdminUser:
     """
     Get admin user from JWT token.
-    
+
     Args:
         db: Database session
         token: JWT token
         admin_user_service: Optional admin user service
-        
+
     Returns:
         The admin user
-        
+
     Raises:
         HTTPException: If authentication fails
     """
@@ -53,7 +53,7 @@ async def admin_user_from_token(
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM]
         )
-        
+
         # Extract user_id from token
         user_id: str = payload.get("sub")
         if user_id is None:
@@ -62,7 +62,7 @@ async def admin_user_from_token(
                 detail="Invalid authentication credentials",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-            
+
         # Extract admin flag from token
         is_admin: bool = payload.get("is_admin", False)
         if not is_admin:
@@ -71,20 +71,20 @@ async def admin_user_from_token(
                 detail="Admin access required",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-            
+
         # Extract IP address if available
         ip_address: Optional[str] = payload.get("ip")
-        
+
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     # Get admin user service
     service = admin_user_service or AdminUserService()
-    
+
     # Get admin user
     admin_user = await service.get_admin_user_by_user_id(
         db=db,
@@ -96,7 +96,7 @@ async def admin_user_from_token(
             detail="User is not an admin",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     # Verify admin access (active account, IP restrictions, etc.)
     has_access = await verify_admin_access(
         db=db,
@@ -111,7 +111,23 @@ async def admin_user_from_token(
             detail="Admin access denied",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
+    # Enforce staff-only access for admin endpoints
+    # Require the user to have the 'staff' role (platform-wide, not tenant-scoped)
+    has_staff_role = await service.has_role(
+        db=db,
+        admin_user_id=admin_user.id,
+        role_name="staff",
+        tenant_id=None,  # Platform-wide role
+        include_ancestors=True
+    )
+    if not has_staff_role:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Staff role required for admin access",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     return admin_user
 
 
@@ -121,11 +137,11 @@ async def get_current_admin_user(
 ) -> AdminUser:
     """
     FastAPI dependency to get the current admin user from JWT token.
-    
+
     Args:
         token: JWT token from OAuth2 scheme
         db: Database session
-        
+
     Returns:
         The current admin user
     """
@@ -137,13 +153,13 @@ async def get_current_super_admin(
 ) -> AdminUser:
     """
     FastAPI dependency to verify the current admin user is a super admin.
-    
+
     Args:
         admin_user: Current admin user
-        
+
     Returns:
         The current admin user if they're a super admin
-        
+
     Raises:
         HTTPException: If the user is not a super admin
     """
