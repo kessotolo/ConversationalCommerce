@@ -4,6 +4,7 @@ import os
 from functools import lru_cache
 from typing import Any, Dict, List, Optional
 from uuid import UUID
+from datetime import datetime
 
 import httpx
 from fastapi import HTTPException
@@ -54,7 +55,7 @@ settings = get_settings()
 
 
 class ClerkTokenData(BaseModel):
-    """Enhanced token data with support for role-based access control"""
+    """Enhanced token data with support for role-based access control and SuperAdmin session management"""
 
     sub: str  # User ID from Clerk
     email: str
@@ -62,6 +63,16 @@ class ClerkTokenData(BaseModel):
         default_factory=list
     )  # User roles (e.g., "admin", "seller", "customer")
     metadata: Optional[Dict[str, Any]] = None  # Additional user metadata
+
+    # Clerk Organizations fields
+    organization_id: Optional[str] = None  # Clerk organization ID
+    organization_role: Optional[str] = None  # Role within the organization
+
+    # Session management fields
+    session_id: Optional[str] = None  # Session ID for SuperAdmin sessions
+    session_expires_at: Optional[datetime] = None  # Session expiration time
+    # Security level (standard, elevated, high)
+    security_level: Optional[str] = None
 
     def has_role(self, role: str) -> bool:
         """Check if user has a specific role"""
@@ -75,10 +86,47 @@ class ClerkTokenData(BaseModel):
         """Check if user has all of the specified roles"""
         return all(role in self.roles for role in roles)
 
+    def is_super_admin(self) -> bool:
+        """Check if user is a SuperAdmin (has organization membership)"""
+        return self.organization_id is not None
+
+    def has_organization_role(self, role: str) -> bool:
+        """Check if user has a specific role within their organization"""
+        return self.organization_role == role
+
+    def is_session_valid(self) -> bool:
+        """Check if the user's session is still valid"""
+        if not self.session_expires_at:
+            return True  # No session expiration set
+        return datetime.now() < self.session_expires_at
+
+    def has_security_level(self, level: str) -> bool:
+        """Check if user has at least the specified security level"""
+        if not self.security_level:
+            return level == "standard"
+
+        level_hierarchy = {"standard": 1, "elevated": 2, "high": 3}
+        user_level = level_hierarchy.get(self.security_level, 1)
+        required_level = level_hierarchy.get(level, 1)
+
+        return user_level >= required_level
+
     @property
-    def user_id(self) -> UUID:
-        """Convert sub string to UUID for easier use in the application"""
-        return UUID(self.sub)
+    def user_id(self) -> str:
+        """Return user ID as string for Clerk integration"""
+        return self.sub
+
+    @property
+    def user_uuid(self) -> UUID:
+        """Convert sub string to UUID for legacy compatibility"""
+        try:
+            return UUID(self.sub)
+        except ValueError:
+            # If sub is not a valid UUID, generate a deterministic one
+            import hashlib
+            hash_object = hashlib.md5(self.sub.encode())
+            hex_dig = hash_object.hexdigest()
+            return UUID(hex_dig)
 
 
 @lru_cache()
@@ -123,6 +171,18 @@ def verify_clerk_token(token: str) -> ClerkTokenData:
             email="admin@example.com",
             roles=["admin", "seller"],
             metadata={"name": "Admin User"},
+        )
+
+    # SuperAdmin token for testing SuperAdmin functionality
+    if token == "super_admin_token":
+        return ClerkTokenData(
+            sub="user_2zWGCeV8c2H56B4ZcK5QmDOv9vL",  # Test SuperAdmin user ID
+            email="superadmin@enwhe.com",
+            roles=["super_admin", "admin"],
+            metadata={"name": "Super Admin User"},
+            organization_id="org_2zWGCeV8c2H56B4ZcK5QmDOv9vL",
+            organization_role="admin",
+            security_level="elevated"
         )
 
     # Customer token for testing buyer flows

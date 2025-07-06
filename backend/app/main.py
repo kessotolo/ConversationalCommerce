@@ -38,6 +38,8 @@ from app.core.config.settings import Settings, get_settings
 from app.core.errors.exception_handlers import register_exception_handlers
 from app.core.middleware.activity_tracker import ActivityTrackerMiddleware
 from app.core.middleware.rate_limit import RateLimitMiddleware
+from app.core.middleware.super_admin_security import SuperAdminSecurityMiddleware
+from app.core.middleware.domain_specific_cors import DomainSpecificCORSMiddleware
 from app.db.async_session import get_async_session_local
 from app.middleware.domain_verification import (
     DomainVerificationMiddleware,
@@ -197,82 +199,74 @@ class TenantMiddleware(BaseHTTPMiddleware):
             logger.error(f"Tenant middleware error: {str(e)}")
             return Response("Internal server error in tenant handling", status_code=500)
         finally:
-            # Close the async db connection if it was created
             if db:
                 await db.close()
 
     def _is_public_path(self, path: str) -> bool:
-        """Check if the path is a public endpoint that doesn't require tenant isolation"""
+        """
+        Check if the path is public and doesn't require tenant validation.
+        """
         public_paths = [
-            "/",
-            "/health",
-            "/test-env",
-            "/test-settings",
             "/docs",
             "/redoc",
             "/openapi.json",
+            "/health",
+            "/",
+            "/test-env",
+            "/test-settings",
+            "/metrics",
+            "/ws/monitoring",
         ]
-
-        # Check if path exactly matches any public path or starts with one
-        return any(
-            path == public_path or path.startswith(f"{public_path}/")
-            for public_path in public_paths
-        )
+        return any(path.startswith(public_path) for public_path in public_paths)
 
 
 async def initialize_cache():
-    """Initialize Redis cache on startup."""
-    logger.info("Initializing Redis cache...")
+    """Initialize Redis cache connection."""
     try:
         await redis_cache.initialize()
-        if redis_cache.is_available:
-            logger.info("Redis cache successfully initialized and connected")
-        else:
-            logger.warning(
-                "Redis cache initialization completed, but cache is not available"
-            )
+        logger.info("Redis cache initialized successfully")
     except Exception as e:
-        logger.warning(
-            f"Redis cache initialization failed, continuing without cache: {str(e)}"
-        )
-        # Still mark as initialized to prevent repeated attempts
-        redis_cache._initialized = True
-        redis_cache._is_available = False
+        logger.error(f"Failed to initialize Redis cache: {e}")
+        # Don't fail startup if cache is unavailable
+        # The application should be able to run without cache
 
 
 async def start_domain_verification():
-    """Start domain verification service on startup."""
-    logger.info("Starting domain verification service...")
+    """Start the domain verification service."""
     await verification_service.start()
-    logger.info("Domain verification service started")
 
 
 async def stop_domain_verification():
-    """Stop domain verification service on shutdown."""
-    logger.info("Stopping domain verification service...")
+    """Stop the domain verification service."""
     await verification_service.stop()
-    logger.info("Domain verification service stopped")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifespan context manager for application startup and shutdown."""
-    # Determine if we're running in test mode
-    is_test = os.getenv("TESTING", "").lower() in (
-        "true", "1", "t", "yes", "y")
-
+    """FastAPI lifespan context manager for startup and shutdown events."""
     # Startup
+    logger.info("Starting up ConversationalCommerce backend...")
+
+    # Initialize cache
     await initialize_cache()
-    if not is_test:
-        await start_domain_verification()
-        # Start metrics collection
-        setup_metrics()
+
+    # Start domain verification service
+    await start_domain_verification()
+
+    # Setup metrics
+    setup_metrics()
+
+    logger.info("Startup complete")
 
     yield
 
     # Shutdown
-    if not is_test:
-        await stop_domain_verification()
+    logger.info("Shutting down ConversationalCommerce backend...")
+
+    # Stop domain verification service
+    await stop_domain_verification()
+
+    logger.info("Shutdown complete")
 
 
 class GlobalIPAllowlistMiddleware(BaseHTTPMiddleware):
@@ -382,15 +376,8 @@ def create_app() -> FastAPI:
                        "/static/", "/docs/", "/redoc/"],
     )
 
-    # 8. CORS (after security middleware)
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.ALLOWED_ORIGINS,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-        expose_headers=["X-Request-ID"],
-    )
+    # 8. Domain-specific CORS (replaces generic CORS)
+    app.add_middleware(DomainSpecificCORSMiddleware)
 
     # 9. Compression (last to compress all responses)
     app.add_middleware(
@@ -406,16 +393,8 @@ def create_app() -> FastAPI:
         admin_prefix="/api/admin"
     )
 
-    # Restrict CORS for admin endpoints
-    admin_origins = ["https://admin.enwhe.io"]
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=admin_origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-        expose_headers=["X-Request-ID"],
-    )
+    # Add Super Admin security middleware
+    app.add_middleware(SuperAdminSecurityMiddleware)
 
     # Include API router
     app.include_router(api_router, prefix=settings.API_V1_STR)
@@ -472,11 +451,12 @@ def create_app() -> FastAPI:
     # Add Prometheus metrics endpoint
     app.mount("/metrics", make_asgi_app())
 
-    # Wrap app with Sentry middleware
-    app = SentryAsgiMiddleware(app)
-
     return app
 
 
-# Create the application instance
+# Create the app instance
 app = create_app()
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
