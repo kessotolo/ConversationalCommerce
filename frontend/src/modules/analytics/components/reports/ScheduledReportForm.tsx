@@ -1,25 +1,10 @@
 import React, { useState } from 'react';
-import {
-  Box,
-  Button,
-  FormControl,
-  FormLabel,
-  FormErrorMessage,
-  Input,
-  Textarea,
-  Select,
-  Switch,
-  Stack,
-  HStack,
-  VStack,
-  Flex,
-  Divider,
-  Text,
-  Tag,
-  TagLabel,
-  TagCloseButton,
-  useToast,
-} from '@chakra-ui/react';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+// Add other shadcn/ui primitives as needed
+
 import { Formik, Form, Field, FieldArray } from 'formik';
 import * as Yup from 'yup';
 import { format, addDays } from 'date-fns';
@@ -53,8 +38,6 @@ const ScheduledReportForm: React.FC<ScheduledReportFormProps> = ({
   onCancel,
 }) => {
   const [newEmail, setNewEmail] = useState<string>('');
-  const toast = useToast();
-  
   // Default values for new report
   const defaultValues = {
     name: '',
@@ -82,19 +65,11 @@ const ScheduledReportForm: React.FC<ScheduledReportFormProps> = ({
   const handleEmailInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, push: (email: string) => void) => {
     if (e.key === 'Enter' && newEmail.trim()) {
       e.preventDefault(); // Prevent form submission
-      
       // Validate email
       if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(newEmail)) {
-        toast({
-          title: 'Invalid email',
-          description: 'Please enter a valid email address',
-          status: 'error',
-          duration: 3000,
-          isClosable: true,
-        });
+        window.alert('Please enter a valid email address');
         return;
       }
-      
       push(newEmail.trim());
       setNewEmail('');
     }
@@ -115,202 +90,187 @@ const ScheduledReportForm: React.FC<ScheduledReportFormProps> = ({
     >
       {({ values, errors, touched, isSubmitting, setFieldValue }) => (
         <Form>
-          <Stack spacing={6}>
+          <div className="space-y-6">
             {/* Basic Report Information */}
-            <Box>
-              <Text fontSize="lg" fontWeight="medium" mb={3}>
-                Report Details
-              </Text>
-              
-              <Stack spacing={4}>
+            <div>
+              <div className="text-lg font-medium mb-3">Report Details</div>
+              <div className="space-y-4">
                 <Field name="name">
                   {({ field, form }: any) => (
-                    <FormControl isInvalid={form.errors.name && form.touched.name}>
-                      <FormLabel htmlFor="name">Report Name</FormLabel>
-                      <Input {...field} id="name" placeholder="Monthly Sales Report" />
-                      <FormErrorMessage>{form.errors.name}</FormErrorMessage>
-                    </FormControl>
+                    <div className="space-y-1">
+                      <label htmlFor="name" className="block font-medium">Report Name</label>
+                      <input {...field} id="name" placeholder="Monthly Sales Report" className="w-full border rounded px-3 py-2" />
+                      {form.errors.name && form.touched.name && (
+                        <div className="text-red-500 text-sm">{form.errors.name}</div>
+                      )}
+                    </div>
                   )}
                 </Field>
-                
                 <Field name="description">
                   {({ field, form }: any) => (
-                    <FormControl>
-                      <FormLabel htmlFor="description">Description</FormLabel>
-                      <Textarea
+                    <div className="space-y-1">
+                      <label htmlFor="description" className="block font-medium">Description</label>
+                      <textarea
                         {...field}
                         id="description"
                         placeholder="Monthly sales broken down by product category"
+                        className="w-full border rounded px-3 py-2"
                       />
-                    </FormControl>
+                    </div>
                   )}
                 </Field>
-              </Stack>
-            </Box>
-            
-            <Divider />
+              </div>
+            </div>
+            <hr className="my-6" />
             
             {/* Schedule Configuration */}
-            <Box>
-              <Text fontSize="lg" fontWeight="medium" mb={3}>
-                Schedule Configuration
-              </Text>
-              
-              <Stack spacing={4}>
+            <div>
+              <div className="text-lg font-medium mb-3">Schedule Configuration</div>
+              <div className="space-y-4">
                 <Field name="frequency">
                   {({ field, form }: any) => (
-                    <FormControl isInvalid={form.errors.frequency && form.touched.frequency}>
-                      <FormLabel htmlFor="frequency">Frequency</FormLabel>
-                      <Select {...field} id="frequency">
+                    <div className="space-y-1">
+                      <label htmlFor="frequency" className="block font-medium">Frequency</label>
+                      <select {...field} id="frequency" className="w-full border rounded px-3 py-2">
                         <option value={ReportScheduleFrequency.DAILY}>Daily</option>
                         <option value={ReportScheduleFrequency.WEEKLY}>Weekly</option>
                         <option value={ReportScheduleFrequency.MONTHLY}>Monthly</option>
                         <option value={ReportScheduleFrequency.QUARTERLY}>Quarterly</option>
                         <option value={ReportScheduleFrequency.ANNUAL}>Annual</option>
-                      </Select>
-                      <FormErrorMessage>{form.errors.frequency}</FormErrorMessage>
-                    </FormControl>
+                      </select>
+                      {form.errors.frequency && form.touched.frequency && (
+                        <div className="text-red-500 text-sm">{form.errors.frequency}</div>
+                      )}
+                    </div>
                   )}
                 </Field>
-                
                 <Field name="next_run_date">
                   {({ field, form }: any) => (
-                    <FormControl isInvalid={form.errors.next_run_date && form.touched.next_run_date}>
-                      <FormLabel htmlFor="next_run_date">Next Run Date</FormLabel>
-                      <Input
+                    <div className="space-y-1">
+                      <label htmlFor="next_run_date" className="block font-medium">Next Run Date</label>
+                      <input
                         {...field}
                         id="next_run_date"
                         type="datetime-local"
+                        className="w-full border rounded px-3 py-2"
                       />
-                      <FormErrorMessage>{form.errors.next_run_date}</FormErrorMessage>
-                    </FormControl>
+                      {form.errors.next_run_date && form.touched.next_run_date && (
+                        <div className="text-red-500 text-sm">{form.errors.next_run_date}</div>
+                      )}
+                    </div>
                   )}
                 </Field>
-                
                 <Field name="enabled">
                   {({ field, form }: any) => (
-                    <FormControl display="flex" alignItems="center">
-                      <FormLabel htmlFor="enabled" mb="0">
-                        Enabled
-                      </FormLabel>
-                      <Switch
+                    <div className="flex items-center space-x-2">
+                      <label htmlFor="enabled" className="font-medium mb-0">Enabled</label>
+                      <input
                         {...field}
                         id="enabled"
-                        isChecked={field.value}
+                        type="checkbox"
+                        checked={field.value}
+                        className="form-checkbox h-5 w-5 text-blue-600"
                       />
-                    </FormControl>
+                    </div>
                   )}
                 </Field>
-              </Stack>
-            </Box>
-            
-            <Divider />
+              </div>
+            </div>
+            <hr className="my-6" />
             
             {/* Delivery Configuration */}
-            <Box>
-              <Text fontSize="lg" fontWeight="medium" mb={3}>
-                Delivery Configuration
-              </Text>
-              
-              <Stack spacing={4}>
+            <div>
+              <div className="text-lg font-medium mb-3">Delivery Configuration</div>
+              <div className="space-y-4">
                 <Field name="export_format">
                   {({ field, form }: any) => (
-                    <FormControl isInvalid={form.errors.export_format && form.touched.export_format}>
-                      <FormLabel htmlFor="export_format">Export Format</FormLabel>
-                      <Select {...field} id="export_format">
+                    <div className="space-y-1">
+                      <label htmlFor="export_format" className="block font-medium">Export Format</label>
+                      <select {...field} id="export_format" className="w-full border rounded px-3 py-2">
                         <option value={AnalyticsExportFormat.excel}>Excel</option>
                         <option value={AnalyticsExportFormat.csv}>CSV</option>
                         <option value={AnalyticsExportFormat.json}>JSON</option>
-                      </Select>
-                      <FormErrorMessage>{form.errors.export_format}</FormErrorMessage>
-                    </FormControl>
+                      </select>
+                      {form.errors.export_format && form.touched.export_format && (
+                        <div className="text-red-500 text-sm">{form.errors.export_format}</div>
+                      )}
+                    </div>
                   )}
                 </Field>
-                
-                <FormControl isInvalid={Boolean(errors.recipient_emails) && touched.recipient_emails as boolean}>
-                  <FormLabel>Recipient Emails</FormLabel>
-                  <FieldArray name="recipient_emails">
-                    {({ push, remove }: any) => (
-                      <VStack align="stretch" spacing={2}>
-                        <Flex>
-                          <Input
-                            placeholder="Enter email and press Enter"
-                            value={newEmail}
-                            onChange={(e) => setNewEmail(e.target.value)}
-                            onKeyDown={(e) => handleEmailInputKeyDown(e, push)}
-                          />
-                          <Button
-                            ml={2}
-                            onClick={() => {
-                              if (newEmail.trim() && /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(newEmail)) {
-                                push(newEmail.trim());
-                                setNewEmail('');
-                              }
-                            }}
-                          >
-                            Add
-                          </Button>
-                        </Flex>
-                        <Box minH="60px">
-                          <Flex wrap="wrap" gap={2} mt={2}>
-                            {values.recipient_emails?.map((email: string, index: number) => (
-                              <Tag
-                                size="md"
-                                key={index}
-                                borderRadius="full"
-                                variant="solid"
-                                colorScheme="blue"
-                              >
-                                <TagLabel>{email}</TagLabel>
-                                <TagCloseButton onClick={() => remove(index)} />
-                              </Tag>
-                            ))}
-                          </Flex>
-                        </Box>
-                        {errors.recipient_emails && touched.recipient_emails && (
-                          <Text color="red.500" fontSize="sm">
-                            {typeof errors.recipient_emails === 'string'
-                              ? errors.recipient_emails
-                              : 'Please add at least one valid recipient email'}
-                          </Text>
-                        )}
-                      </VStack>
-                    )}
-                  </FieldArray>
-                </FormControl>
-              </Stack>
-            </Box>
-            
-            <Divider />
+                <FieldArray name="recipient_emails">
+                  {({ push, remove }: any) => (
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <input
+                          placeholder="Enter email and press Enter"
+                          value={newEmail}
+                          onChange={(e) => setNewEmail(e.target.value)}
+                          onKeyDown={(e) => handleEmailInputKeyDown(e, push)}
+                          className="w-full border rounded px-3 py-2"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (newEmail.trim() && /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(newEmail)) {
+                              push(newEmail.trim());
+                              setNewEmail('');
+                            }
+                          }}
+                          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                        >
+                          Add
+                        </button>
+                      </div>
+                      <div className="min-h-[60px] flex flex-wrap gap-2 mt-2">
+                        {values.recipient_emails?.map((email: string, index: number) => (
+                          <badge key={index} className="flex items-center gap-1">
+                            {email}
+                            <button type="button" onClick={() => remove(index)} className="text-red-500 ml-1">×</button>
+                          </badge>
+                        ))}
+                      </div>
+                      {errors.recipient_emails && touched.recipient_emails && (
+                        <div className="text-red-500 text-sm">
+                          {typeof errors.recipient_emails === 'string'
+                            ? errors.recipient_emails
+                            : 'Please add at least one valid recipient email'}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </FieldArray>
+              </div>
+            </div>
+            <hr className="my-6" />
             
             {/* Query Configuration */}
-            <Box>
-              <Text fontSize="lg" fontWeight="medium" mb={3}>
-                Report Data Configuration
-              </Text>
-              
+            <div>
+              <div className="text-lg font-medium mb-3">Report Data Configuration</div>
               <AnalyticsQueryBuilder
                 initialQuery={values.query_params}
                 onChange={(query) => handleQueryChange(query, setFieldValue)}
               />
-            </Box>
-            
-            <Divider />
+            </div>
+            <hr className="my-6" />
             
             {/* Form Actions */}
-            <Flex justify="flex-end" mt={4}>
-              <Button variant="outline" mr={3} onClick={onCancel}>
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                type="button"
+                onClick={onCancel}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
+              >
                 Cancel
-              </Button>
-              <Button
-                colorScheme="blue"
-                isLoading={isSubmitting}
+              </button>
+              <button
                 type="submit"
+                disabled={isSubmitting}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
               >
                 {initialValues ? 'Update Report' : 'Create Report'}
-              </Button>
-            </Flex>
-          </Stack>
+              </button>
+            </div>
+          </div>
         </Form>
       )}
     </Formik>

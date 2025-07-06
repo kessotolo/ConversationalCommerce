@@ -8,6 +8,8 @@ export interface Tenant {
   phone_number: string;
   whatsapp_number?: string;
   email?: string;
+  kyc_status?: 'pending' | 'verified' | 'rejected';
+  country_code?: string;
 }
 
 interface TenantContextType {

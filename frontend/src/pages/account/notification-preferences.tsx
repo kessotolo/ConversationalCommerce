@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card } from '../../components/ui/Card';
-import { Button } from '../../components/ui/Button';
+import { Button } from '../../components/ui/button';
 import { useToast } from '../../components/ui/use-toast';
 import { getNotificationPreferences, updateNotificationPreferences } from '../../../lib/api/notificationPreferences';
 

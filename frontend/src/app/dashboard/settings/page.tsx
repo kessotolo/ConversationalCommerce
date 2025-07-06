@@ -7,8 +7,8 @@ import type { StoreSettings } from '@/modules/storefront/models/storeSettings';
 
 import type { InputChangeEvent } from '@/modules/core/models';
 
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 export default function SettingsPage() {
   const [store, setStore] = useState<StoreSettings>({

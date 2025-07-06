@@ -1,6 +1,6 @@
 import Image from 'next/image';
 
-import { CardHeader, CardTitle, CardContent, Card } from '@/components/ui/Card';
+import { CardHeader, CardTitle, CardContent, Card } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
 
 interface Product {

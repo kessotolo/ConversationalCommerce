@@ -1,26 +1,16 @@
 import React, { useState } from 'react';
-import {
-  Box,
-  Button,
-  Stack,
-  HStack,
-  Text,
-  VStack,
-  IconButton,
-  Accordion,
-  AccordionItem,
-  AccordionButton,
-  AccordionPanel,
-  AccordionIcon,
-  Badge,
-  Divider,
-  useColorModeValue,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-} from '@chakra-ui/react';
 import { FiPlus, FiX, FiChevronDown, FiFilter } from 'react-icons/fi';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 import { FilterGroup, FilterValue, FilterField } from '../filters/FilterBuilder';
 import MobileFilterCondition from './MobileFilterCondition';
 import { MetricDefinition } from './MobileAnalyticsDashboard';
@@ -103,7 +93,7 @@ const getFilterFields = (metrics: MetricDefinition[]): FilterField[] => {
       ],
     },
   ];
-  
+
   // Add metric-specific filter fields
   metrics.forEach(metric => {
     fields.push({
@@ -114,14 +104,14 @@ const getFilterFields = (metrics: MetricDefinition[]): FilterField[] => {
       category: 'Metrics',
     });
   });
-  
+
   return fields;
 };
 
 // Group filter fields by category
 const groupFieldsByCategory = (fields: FilterField[]): Record<string, FilterField[]> => {
   const categories: Record<string, FilterField[]> = {};
-  
+
   fields.forEach(field => {
     const category = field.category || 'General';
     if (!categories[category]) {
@@ -129,7 +119,7 @@ const groupFieldsByCategory = (fields: FilterField[]): Record<string, FilterFiel
     }
     categories[category].push(field);
   });
-  
+
   return categories;
 };
 
@@ -138,16 +128,14 @@ const MobileFilterDrawer: React.FC<MobileFilterDrawerProps> = ({
   onChange,
   metrics,
 }) => {
-  const [filters, setFilters] = useState<FilterGroup[]>(initialFilters.length > 0 
-    ? initialFilters 
+  const [filters, setFilters] = useState<FilterGroup[]>(initialFilters.length > 0
+    ? initialFilters
     : [{ id: `group-${Date.now()}`, logic: 'and', conditions: [] }]
   );
-  
-  const borderColor = useColorModeValue('gray.200', 'gray.600');
-  const bgColor = useColorModeValue('white', 'gray.800');
+
   const filterFields = getFilterFields(metrics);
   const fieldCategories = groupFieldsByCategory(filterFields);
-  
+
   // Toggle filter group logic (AND/OR)
   const toggleGroupLogic = (groupId: string) => {
     const updatedFilters = filters.map(group => {
@@ -159,11 +147,11 @@ const MobileFilterDrawer: React.FC<MobileFilterDrawerProps> = ({
       }
       return group;
     });
-    
+
     setFilters(updatedFilters);
     onChange(updatedFilters);
   };
-  
+
   // Add a new filter group
   const addFilterGroup = () => {
     const newGroup: FilterGroup = {
@@ -171,16 +159,16 @@ const MobileFilterDrawer: React.FC<MobileFilterDrawerProps> = ({
       logic: 'and',
       conditions: []
     };
-    
+
     const updatedFilters = [...filters, newGroup];
     setFilters(updatedFilters);
     onChange(updatedFilters);
   };
-  
+
   // Delete a filter group
   const deleteFilterGroup = (groupId: string) => {
     const updatedFilters = filters.filter(group => group.id !== groupId);
-    
+
     // Ensure at least one filter group exists
     if (updatedFilters.length === 0) {
       updatedFilters.push({
@@ -189,22 +177,22 @@ const MobileFilterDrawer: React.FC<MobileFilterDrawerProps> = ({
         conditions: []
       });
     }
-    
+
     setFilters(updatedFilters);
     onChange(updatedFilters);
   };
-  
+
   // Add a condition to a filter group
   const addCondition = (groupId: string, fieldId: string) => {
     const field = filterFields.find(f => f.id === fieldId);
     if (!field) return;
-    
+
     const newCondition: FilterValue = {
-      field: field.id,
+      field: fieldId,
       operator: getDefaultOperator(field.type),
       value: getDefaultValue(field.type, field.options)
     };
-    
+
     const updatedFilters = filters.map(group => {
       if (group.id === groupId) {
         return {
@@ -214,18 +202,18 @@ const MobileFilterDrawer: React.FC<MobileFilterDrawerProps> = ({
       }
       return group;
     });
-    
+
     setFilters(updatedFilters);
     onChange(updatedFilters);
   };
-  
+
   // Update a condition
   const updateCondition = (groupId: string, index: number, updatedCondition: FilterValue) => {
     const updatedFilters = filters.map(group => {
       if (group.id === groupId) {
         const updatedConditions = [...group.conditions];
         updatedConditions[index] = updatedCondition;
-        
+
         return {
           ...group,
           conditions: updatedConditions
@@ -233,18 +221,18 @@ const MobileFilterDrawer: React.FC<MobileFilterDrawerProps> = ({
       }
       return group;
     });
-    
+
     setFilters(updatedFilters);
     onChange(updatedFilters);
   };
-  
+
   // Delete a condition
   const deleteCondition = (groupId: string, index: number) => {
     const updatedFilters = filters.map(group => {
       if (group.id === groupId) {
         const updatedConditions = [...group.conditions];
         updatedConditions.splice(index, 1);
-        
+
         return {
           ...group,
           conditions: updatedConditions
@@ -252,11 +240,11 @@ const MobileFilterDrawer: React.FC<MobileFilterDrawerProps> = ({
       }
       return group;
     });
-    
+
     setFilters(updatedFilters);
     onChange(updatedFilters);
   };
-  
+
   // Get default operator based on field type
   const getDefaultOperator = (fieldType: string): string => {
     switch (fieldType) {
@@ -270,12 +258,12 @@ const MobileFilterDrawer: React.FC<MobileFilterDrawerProps> = ({
         return 'equals';
       case 'select':
       case 'multiselect':
-        return 'in';
+        return 'equals';
       default:
         return 'equals';
     }
   };
-  
+
   // Get default value based on field type
   const getDefaultValue = (fieldType: string, options?: { value: string; label: string }[]): any => {
     switch (fieldType) {
@@ -284,156 +272,147 @@ const MobileFilterDrawer: React.FC<MobileFilterDrawerProps> = ({
       case 'number':
         return 0;
       case 'boolean':
-        return true;
+        return false;
       case 'date':
         return new Date();
       case 'select':
-        return options && options.length > 0 ? options[0].value : '';
+        return options?.[0]?.value || '';
       case 'multiselect':
         return [];
       default:
         return '';
     }
   };
-  
+
+  // Get active filter count
+  const getActiveFilterCount = (): number => {
+    return filters.reduce((count, group) => count + group.conditions.length, 0);
+  };
+
   return (
-    <Box>
-      <VStack spacing={4} align="stretch" p={4}>
-        <Text>
-          Create filters to segment your analytics data. Add multiple filter groups for OR logic between groups.
-        </Text>
-        
-        {/* Filter groups */}
-        <Accordion allowMultiple defaultIndex={Array.from({ length: filters.length }, (_, i) => i)}>
-          {filters.map((group, groupIndex) => (
-            <AccordionItem 
-              key={group.id}
-              border="1px solid"
-              borderColor={borderColor}
-              borderRadius="md"
-              mb={3}
-            >
-              <AccordionButton p={3}>
-                <HStack flex="1" justify="space-between">
-                  <HStack>
-                    <Badge
-                      colorScheme="blue"
-                      px={2}
-                      py={1}
-                      borderRadius="md"
-                      cursor="pointer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleGroupLogic(group.id);
-                      }}
-                    >
-                      {group.logic === 'and' ? 'AND' : 'OR'}
-                    </Badge>
-                    <Text>
-                      {groupIndex === 0 ? 'Where' : group.logic === 'and' ? 'And where' : 'Or where'}
-                    </Text>
-                  </HStack>
-                  
-                  {filters.length > 1 && (
-                    <IconButton
-                      aria-label="Remove filter group"
-                      icon={<FiX />}
-                      size="sm"
-                      variant="ghost"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteFilterGroup(group.id);
-                      }}
-                    />
-                  )}
-                </HStack>
-                <AccordionIcon />
-              </AccordionButton>
-              
-              <AccordionPanel pb={4}>
-                <VStack spacing={3} align="stretch">
-                  {/* Filter conditions */}
-                  {group.conditions.map((condition, index) => {
-                    const field = filterFields.find(f => f.id === condition.field);
-                    if (!field) return null;
-                    
-                    return (
-                      <MobileFilterCondition
-                        key={`${group.id}-condition-${index}`}
-                        condition={condition}
-                        field={field}
-                        onChange={(updatedCondition) => updateCondition(group.id, index, updatedCondition)}
-                        onDelete={() => deleteCondition(group.id, index)}
-                      />
-                    );
-                  })}
-                  
-                  {/* Add condition button */}
-                  <Menu placement="bottom-end">
-                    <MenuButton 
-                      as={Button}
-                      leftIcon={<FiPlus />}
-                      rightIcon={<FiChevronDown />}
-                      size="sm"
-                      variant="outline"
-                    >
-                      Add Filter
-                    </MenuButton>
-                    <MenuList maxH="300px" overflow="auto">
-                      {Object.entries(fieldCategories).map(([category, fields]) => (
-                        <React.Fragment key={category}>
-                          <Text px={3} py={1} fontSize="xs" fontWeight="bold" color="gray.500">
-                            {category}
-                          </Text>
-                          {fields.map(field => (
-                            <MenuItem
+    <div className="w-full max-w-md mx-auto space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <FiFilter className="h-5 w-5" />
+          Filters
+        </h2>
+        <Badge variant="secondary">
+          {getActiveFilterCount()} active
+        </Badge>
+      </div>
+
+      {/* Filter Groups */}
+      <div className="space-y-4">
+        {filters.map((group, groupIndex) => (
+          <Card key={group.id} className="border">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-sm">
+                    Group {groupIndex + 1}
+                  </CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => toggleGroupLogic(group.id)}
+                    className="h-6 px-2 text-xs"
+                  >
+                    {group.logic.toUpperCase()}
+                  </Button>
+                </div>
+
+                {filters.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => deleteFilterGroup(group.id)}
+                    className="h-6 w-6 p-0"
+                  >
+                    <FiX className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-3">
+              {/* Conditions */}
+              {group.conditions.map((condition, conditionIndex) => {
+                const field = filterFields.find(f => f.id === condition.field);
+                if (!field) return null;
+
+                return (
+                  <MobileFilterCondition
+                    key={conditionIndex}
+                    condition={condition}
+                    field={field}
+                    onChange={(updatedCondition) =>
+                      updateCondition(group.id, conditionIndex, updatedCondition)
+                    }
+                    onDelete={() => deleteCondition(group.id, conditionIndex)}
+                  />
+                );
+              })}
+
+              {/* Add Condition */}
+              <Collapsible>
+                <CollapsibleTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-between"
+                  >
+                    <span className="flex items-center gap-2">
+                      <FiPlus className="h-4 w-4" />
+                      Add Condition
+                    </span>
+                    <FiChevronDown className="h-4 w-4" />
+                  </Button>
+                </CollapsibleTrigger>
+
+                <CollapsibleContent className="mt-2">
+                  <div className="space-y-2">
+                    {Object.entries(fieldCategories).map(([category, categoryFields]) => (
+                      <div key={category}>
+                        <h4 className="text-sm font-medium text-gray-600 mb-1">
+                          {category}
+                        </h4>
+                        <div className="grid grid-cols-1 gap-1">
+                          {categoryFields.map((field) => (
+                            <Button
                               key={field.id}
+                              variant="ghost"
+                              size="sm"
                               onClick={() => addCondition(group.id, field.id)}
+                              className="justify-start h-8 px-2 text-xs"
                             >
                               {field.label}
-                            </MenuItem>
+                            </Button>
                           ))}
-                          <Divider my={1} />
-                        </React.Fragment>
-                      ))}
-                    </MenuList>
-                  </Menu>
-                </VStack>
-              </AccordionPanel>
-            </AccordionItem>
-          ))}
-        </Accordion>
-        
-        {/* Add filter group button */}
-        <Button
-          leftIcon={<FiFilter />}
-          size="md"
-          variant="outline"
-          onClick={addFilterGroup}
-        >
-          Add Filter Group
-        </Button>
-      </VStack>
-      
-      {/* Apply button - fixed at bottom */}
-      <Box 
-        position="sticky" 
-        bottom={0} 
-        p={4} 
-        bg={bgColor} 
-        borderTop="1px" 
-        borderColor={borderColor}
+                        </div>
+                        {Object.keys(fieldCategories).indexOf(category) < Object.keys(fieldCategories).length - 1 && (
+                          <Separator className="mt-2" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Add Filter Group */}
+      <Button
+        variant="outline"
+        onClick={addFilterGroup}
+        className="w-full"
       >
-        <Button 
-          colorScheme="blue" 
-          size="lg" 
-          width="100%"
-          onClick={() => onChange(filters)}
-        >
-          Apply Filters
-        </Button>
-      </Box>
-    </Box>
+        <FiPlus className="h-4 w-4 mr-2" />
+        Add Filter Group
+      </Button>
+    </div>
   );
 };
 

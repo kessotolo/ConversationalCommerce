@@ -1,37 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Button,
-  Flex,
-  Heading,
-  Text,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  IconButton,
-  Badge,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  useDisclosure,
-  useToast,
-  Spinner,
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  AlertDescription,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
-} from '@chakra-ui/react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+// No modal, menu, or alert primitives found, so use semantic HTML and Tailwind for those.
+// Use native dialog for modals and window.alert for notifications.
 import { FiPlus, FiEdit2, FiTrash2, FiSend, FiMoreVertical } from 'react-icons/fi';
 import { format, parseISO } from 'date-fns';
 
@@ -228,168 +199,175 @@ const ScheduledReportsManager: React.FC = () => {
   };
 
   return (
-    <Box>
-      <Flex justifyContent="space-between" alignItems="center" mb={6}>
-        <Heading size="lg">Scheduled Reports</Heading>
+    <div className="p-6 max-w-5xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">Scheduled Reports</h2>
         <Button
-          leftIcon={<FiPlus />}
-          colorScheme="blue"
           onClick={handleCreateReport}
+          className="flex items-center gap-2"
         >
-          Create Report
+          <FiPlus className="w-4 h-4" /> Create Report
         </Button>
-      </Flex>
+      </div>
 
       {error && (
-        <Alert status="error" mb={6} borderRadius="md">
-          <AlertIcon />
-          <AlertTitle mr={2}>Error!</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6" role="alert">
+          <span className="font-bold mr-2">Error!</span>
+          <span>{error}</span>
+        </div>
       )}
 
       {isLoading ? (
-        <Flex justify="center" align="center" h="200px">
-          <Spinner size="xl" color="blue.500" />
-        </Flex>
+        <div className="flex justify-center items-center h-48">
+          <span className="inline-block w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+        </div>
       ) : reports.length === 0 ? (
-        <Box
-          p={8}
-          textAlign="center"
-          borderWidth={1}
-          borderRadius="md"
-          borderStyle="dashed"
-        >
-          <Text fontSize="lg" mb={4}>
-            No scheduled reports found
-          </Text>
+        <div className="p-8 text-center border border-dashed border-gray-300 rounded-md">
+          <div className="text-lg mb-4">No scheduled reports found</div>
           <Button
-            leftIcon={<FiPlus />}
-            colorScheme="blue"
             onClick={handleCreateReport}
+            className="flex items-center gap-2"
           >
-            Create Your First Report
+            <FiPlus className="w-4 h-4" /> Create Your First Report
           </Button>
-        </Box>
+        </div>
       ) : (
-        <Table variant="simple" borderWidth={1} borderRadius="md">
-          <Thead>
-            <Tr>
-              <Th>Name</Th>
-              <Th>Frequency</Th>
-              <Th>Format</Th>
-              <Th>Next Run</Th>
-              <Th>Status</Th>
-              <Th>Actions</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {reports.map((report) => (
-              <Tr key={report.id}>
-                <Td>
-                  <Text fontWeight="medium">{report.name}</Text>
-                  <Text fontSize="sm" color="gray.500" noOfLines={1}>
-                    {report.description || 'No description'}
-                  </Text>
-                </Td>
-                <Td>{getFrequencyText(report.frequency)}</Td>
-                <Td>{getExportFormatText(report.export_format)}</Td>
-                <Td>{formatDate(report.next_run_date)}</Td>
-                <Td>
-                  <Badge
-                    colorScheme={report.enabled ? 'green' : 'gray'}
-                    variant="subtle"
-                    px={2}
-                    py={1}
-                    borderRadius="full"
-                  >
-                    {report.enabled ? 'Active' : 'Paused'}
-                  </Badge>
-                </Td>
-                <Td>
-                  <Menu>
-                    <MenuButton
-                      as={IconButton}
-                      icon={<FiMoreVertical />}
-                      variant="ghost"
-                      size="sm"
-                      aria-label="Actions"
-                    />
-                    <MenuList>
-                      <MenuItem
-                        icon={<FiEdit2 />}
-                        onClick={() => handleEditReport(report)}
+        <div className="overflow-x-auto rounded-md border border-gray-200 dark:border-gray-700">
+          <table className="min-w-full bg-white dark:bg-gray-900">
+            <thead className="bg-gray-50 dark:bg-gray-800">
+              <tr>
+                <th className="px-4 py-2 text-left font-semibold">Name</th>
+                <th className="px-4 py-2 text-left font-semibold">Frequency</th>
+                <th className="px-4 py-2 text-left font-semibold">Format</th>
+                <th className="px-4 py-2 text-left font-semibold">Next Run</th>
+                <th className="px-4 py-2 text-left font-semibold">Status</th>
+                <th className="px-4 py-2 text-left font-semibold">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reports.map((report) => (
+                <tr key={report.id} className="border-t border-gray-100 dark:border-gray-800">
+                  <td className="px-4 py-2">
+                    <div className="font-medium">{report.name}</div>
+                    <div className="text-sm text-gray-500 truncate">
+                      {report.description || 'No description'}
+                    </div>
+                  </td>
+                  <td className="px-4 py-2">{getFrequencyText(report.frequency)}</td>
+                  <td className="px-4 py-2">{getExportFormatText(report.export_format)}</td>
+                  <td className="px-4 py-2">{formatDate(report.next_run_date)}</td>
+                  <td className="px-4 py-2">
+                    <Badge variant={report.enabled ? 'success' : 'secondary'}>
+                      {report.enabled ? 'Active' : 'Paused'}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-2">
+                    <div className="relative inline-block text-left">
+                      <button
+                        type="button"
+                        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                        onClick={() => setSelectedReport(report)}
+                        aria-haspopup="menu"
+                        aria-expanded={selectedReport?.id === report.id}
                       >
-                        Edit
-                      </MenuItem>
-                      <MenuItem
-                        icon={<FiSend />}
-                        onClick={() => handleRunNow(report)}
-                        isDisabled={isRunningNow}
-                      >
-                        Run Now
-                      </MenuItem>
-                      <MenuItem
-                        icon={<FiTrash2 />}
-                        onClick={() => handleDeleteClick(report)}
-                        color="red.500"
-                      >
-                        Delete
-                      </MenuItem>
-                    </MenuList>
-                  </Menu>
-                </Td>
-              </Tr>
-            ))}
-          </Tbody>
-        </Table>
+                        <FiMoreVertical className="w-5 h-5" />
+                      </button>
+                      {selectedReport?.id === report.id && (
+                        <ul className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
+                          <li>
+                            <button
+                              className="flex items-center gap-2 px-4 py-2 w-full hover:bg-gray-100 dark:hover:bg-gray-700 text-left"
+                              onClick={() => handleEditReport(report)}
+                            >
+                              <FiEdit2 className="w-4 h-4" /> Edit
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              className="flex items-center gap-2 px-4 py-2 w-full hover:bg-gray-100 dark:hover:bg-gray-700 text-left"
+                              onClick={() => handleRunNow(report)}
+                              disabled={isRunningNow}
+                            >
+                              <FiSend className="w-4 h-4" /> Run Now
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              className="flex items-center gap-2 px-4 py-2 w-full hover:bg-gray-100 dark:hover:bg-gray-700 text-left text-red-600"
+                              onClick={() => handleDeleteClick(report)}
+                            >
+                              <FiTrash2 className="w-4 h-4" /> Delete
+                            </button>
+                          </li>
+                        </ul>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {/* Create/Edit Report Form Modal */}
-      <Modal isOpen={isFormOpen} onClose={onFormClose} size="xl">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>
-            {selectedReport ? 'Edit Report' : 'Create Report'}
-          </ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
+      <dialog open={isFormOpen} className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-2xl">
+          <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+            <h3 className="text-lg font-semibold">
+              {selectedReport ? 'Edit Report' : 'Create Report'}
+            </h3>
+            <button
+              className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              onClick={onFormClose}
+              aria-label="Close"
+            >
+              ×
+            </button>
+          </div>
+          <div className="p-6">
             <ScheduledReportForm
               initialValues={selectedReport || undefined}
               onSubmit={handleSaveReport}
               onCancel={onFormClose}
             />
-          </ModalBody>
-        </ModalContent>
-      </Modal>
+          </div>
+        </div>
+      </dialog>
 
       {/* Delete Confirmation Modal */}
-      <Modal isOpen={isDeleteOpen} onClose={onDeleteClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Delete Report</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Text>
-              Are you sure you want to delete the report "{selectedReport?.name}"?
-              This action cannot be undone.
-            </Text>
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onDeleteClose}>
-              Cancel
-            </Button>
-            <Button
-              colorScheme="red"
-              onClick={handleDeleteConfirm}
-              isLoading={isDeleting}
+      <dialog open={isDeleteOpen} className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-md">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+            <h3 className="text-lg font-semibold">Delete Report</h3>
+            <button
+              className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              onClick={onDeleteClose}
+              aria-label="Close"
             >
-              Delete
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </Box>
+              ×
+            </button>
+          </div>
+          <div className="p-6">
+            <div className="mb-4">
+              Are you sure you want to delete the report "{selectedReport?.name}"? This action cannot be undone.
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" onClick={onDeleteClose}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteConfirm}
+                disabled={isDeleting}
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      </dialog>
+    </div>
   );
 };
 

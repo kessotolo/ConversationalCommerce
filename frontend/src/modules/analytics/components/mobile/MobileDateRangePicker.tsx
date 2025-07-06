@@ -1,165 +1,243 @@
 import React, { useState } from 'react';
-import {
-  Box,
-  Button,
-  Stack,
-  SimpleGrid,
-  Text,
-  VStack,
-  Input,
-  FormControl,
-  FormLabel,
-  Divider,
-  useColorModeValue
-} from '@chakra-ui/react';
-import { format, subDays, startOfDay, endOfDay, isValid, parseISO } from 'date-fns';
-import { DateRange } from '../DateRangeSelector';
+import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, isValid } from 'date-fns';
+import { FiCalendar, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import DatePicker from '../DatePicker';
 
-// Predefined date range options
-const PRESET_RANGES = [
-  { label: 'Today', getValue: () => [startOfDay(new Date()), endOfDay(new Date())] },
-  { label: 'Yesterday', getValue: () => [startOfDay(subDays(new Date(), 1)), endOfDay(subDays(new Date(), 1))] },
-  { label: 'Last 7 days', getValue: () => [startOfDay(subDays(new Date(), 6)), endOfDay(new Date())] },
-  { label: 'Last 30 days', getValue: () => [startOfDay(subDays(new Date(), 29)), endOfDay(new Date())] },
-  { label: 'This month', getValue: () => {
-    const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1);
-    return [startOfDay(start), endOfDay(new Date())];
-  }},
-  { label: 'Last month', getValue: () => {
-    const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const end = new Date(now.getFullYear(), now.getMonth(), 0);
-    return [startOfDay(start), endOfDay(end)];
-  }},
-];
+interface DateRange {
+  startDate: Date | null;
+  endDate: Date | null;
+}
 
 interface MobileDateRangePickerProps {
-  initialDateRange: DateRange;
+  dateRange: DateRange;
   onChange: (range: DateRange) => void;
+  className?: string;
+}
+
+interface PresetRange {
+  label: string;
+  range: DateRange;
 }
 
 const MobileDateRangePicker: React.FC<MobileDateRangePickerProps> = ({
-  initialDateRange,
-  onChange
+  dateRange,
+  onChange,
+  className = ''
 }) => {
-  const [startDate, setStartDate] = useState<string>(
-    format(initialDateRange.startDate, 'yyyy-MM-dd')
-  );
-  const [endDate, setEndDate] = useState<string>(
-    format(initialDateRange.endDate, 'yyyy-MM-dd')
-  );
-  
-  const activeButtonBg = useColorModeValue('blue.500', 'blue.300');
-  const activeButtonColor = useColorModeValue('white', 'gray.900');
-  
-  // Apply preset range
-  const applyPresetRange = (presetIndex: number) => {
-    const [presetStart, presetEnd] = PRESET_RANGES[presetIndex].getValue();
-    
-    setStartDate(format(presetStart, 'yyyy-MM-dd'));
-    setEndDate(format(presetEnd, 'yyyy-MM-dd'));
-    
-    onChange({
-      startDate: presetStart,
-      endDate: presetEnd,
-      label: PRESET_RANGES[presetIndex].label
-    });
+  const [isCustomOpen, setIsCustomOpen] = useState(false);
+  const [tempStartDate, setTempStartDate] = useState<Date | null>(dateRange.startDate);
+  const [tempEndDate, setTempEndDate] = useState<Date | null>(dateRange.endDate);
+
+  // Preset date ranges
+  const presetRanges: PresetRange[] = [
+    {
+      label: 'Today',
+      range: {
+        startDate: new Date(),
+        endDate: new Date()
+      }
+    },
+    {
+      label: 'Yesterday',
+      range: {
+        startDate: subDays(new Date(), 1),
+        endDate: subDays(new Date(), 1)
+      }
+    },
+    {
+      label: 'Last 7 days',
+      range: {
+        startDate: subDays(new Date(), 6),
+        endDate: new Date()
+      }
+    },
+    {
+      label: 'Last 30 days',
+      range: {
+        startDate: subDays(new Date(), 29),
+        endDate: new Date()
+      }
+    },
+    {
+      label: 'This week',
+      range: {
+        startDate: startOfWeek(new Date()),
+        endDate: endOfWeek(new Date())
+      }
+    },
+    {
+      label: 'This month',
+      range: {
+        startDate: startOfMonth(new Date()),
+        endDate: endOfMonth(new Date())
+      }
+    },
+    {
+      label: 'Last month',
+      range: {
+        startDate: startOfMonth(subMonths(new Date(), 1)),
+        endDate: endOfMonth(subMonths(new Date(), 1))
+      }
+    }
+  ];
+
+  // Format date range for display
+  const formatDateRange = (range: DateRange): string => {
+    if (!range.startDate || !range.endDate) return 'Select date range';
+
+    if (range.startDate.getTime() === range.endDate.getTime()) {
+      return format(range.startDate, 'MMM dd, yyyy');
+    }
+
+    return `${format(range.startDate, 'MMM dd, yyyy')} - ${format(range.endDate, 'MMM dd, yyyy')}`;
   };
-  
-  // Apply custom date range
-  const applyCustomRange = () => {
-    const start = parseISO(startDate);
-    const end = parseISO(endDate);
-    
-    if (isValid(start) && isValid(end) && start <= end) {
+
+  // Handle preset selection
+  const handlePresetSelect = (preset: PresetRange) => {
+    onChange(preset.range);
+  };
+
+  // Handle custom date application
+  const handleCustomApply = () => {
+    if (tempStartDate && tempEndDate) {
+      // Ensure start date is before end date
+      const startDate = tempStartDate <= tempEndDate ? tempStartDate : tempEndDate;
+      const endDate = tempStartDate <= tempEndDate ? tempEndDate : tempStartDate;
+
       onChange({
-        startDate: startOfDay(start),
-        endDate: endOfDay(end),
-        label: 'Custom Range'
+        startDate,
+        endDate
       });
     }
+    setIsCustomOpen(false);
   };
-  
-  // Check if a preset range is selected
-  const isPresetSelected = (presetIndex: number): boolean => {
-    const [presetStart, presetEnd] = PRESET_RANGES[presetIndex].getValue();
-    
-    if (!initialDateRange.label) {
+
+  // Handle custom date cancellation
+  const handleCustomCancel = () => {
+    setTempStartDate(dateRange.startDate);
+    setTempEndDate(dateRange.endDate);
+    setIsCustomOpen(false);
+  };
+
+  // Check if a preset is currently selected
+  const isPresetSelected = (preset: PresetRange): boolean => {
+    if (!dateRange.startDate || !dateRange.endDate || !preset.range.startDate || !preset.range.endDate) {
       return false;
     }
-    
-    if (initialDateRange.label === PRESET_RANGES[presetIndex].label) {
-      return true;
-    }
-    
-    return false;
+
+    return (
+      dateRange.startDate.getTime() === preset.range.startDate.getTime() &&
+      dateRange.endDate.getTime() === preset.range.endDate.getTime()
+    );
   };
-  
+
+  // Validate custom date range
+  const isCustomRangeValid = (): boolean => {
+    return tempStartDate !== null && tempEndDate !== null &&
+      isValid(tempStartDate) && isValid(tempEndDate);
+  };
+
   return (
-    <VStack spacing={5} width="100%">
-      {/* Preset ranges */}
-      <Box width="100%">
-        <Text fontWeight="medium" mb={2}>
-          Preset Ranges
-        </Text>
-        <SimpleGrid columns={2} spacing={3}>
-          {PRESET_RANGES.map((preset, index) => (
-            <Button
-              key={preset.label}
-              onClick={() => applyPresetRange(index)}
-              size="md"
-              variant={isPresetSelected(index) ? "solid" : "outline"}
-              colorScheme="blue"
-              width="100%"
-              height="48px"
-              _hover={{ bg: isPresetSelected(index) ? activeButtonBg : 'transparent' }}
-            >
-              {preset.label}
-            </Button>
-          ))}
-        </SimpleGrid>
-      </Box>
-      
-      <Divider />
-      
-      {/* Custom date range */}
-      <Box width="100%">
-        <Text fontWeight="medium" mb={2}>
-          Custom Range
-        </Text>
-        <Stack spacing={4}>
-          <FormControl>
-            <FormLabel>Start Date</FormLabel>
-            <Input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              size="md"
-            />
-          </FormControl>
-          
-          <FormControl>
-            <FormLabel>End Date</FormLabel>
-            <Input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              size="md"
-            />
-          </FormControl>
-          
+    <Card className={className}>
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold flex items-center gap-2">
+          <FiCalendar className="h-5 w-5" />
+          Date Range
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Current Selection Display */}
+        <div className="p-3 bg-gray-50 rounded-lg">
+          <p className="text-sm text-gray-600 mb-1">Selected Range</p>
+          <p className="font-medium">{formatDateRange(dateRange)}</p>
+        </div>
+
+        {/* Preset Ranges */}
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium text-gray-700">Quick Select</h4>
+          <div className="space-y-1">
+            {presetRanges.map((preset) => (
+              <Button
+                key={preset.label}
+                variant={isPresetSelected(preset) ? "default" : "ghost"}
+                size="sm"
+                className="w-full justify-start"
+                onClick={() => handlePresetSelect(preset)}
+              >
+                {preset.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Custom Date Range */}
+        <div className="space-y-3">
           <Button
-            colorScheme="blue"
-            size="md"
-            onClick={applyCustomRange}
-            isDisabled={!isValid(parseISO(startDate)) || !isValid(parseISO(endDate)) || parseISO(startDate) > parseISO(endDate)}
+            variant="outline"
+            className="w-full justify-between"
+            onClick={() => setIsCustomOpen(!isCustomOpen)}
           >
-            Apply Custom Range
+            Custom Range
+            {isCustomOpen ? (
+              <FiChevronUp className="h-4 w-4" />
+            ) : (
+              <FiChevronDown className="h-4 w-4" />
+            )}
           </Button>
-        </Stack>
-      </Box>
-    </VStack>
+
+          {isCustomOpen && (
+            <div className="space-y-4 pt-2 border-t">
+              <div className="space-y-3">
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Start Date
+                  </label>
+                  <DatePicker
+                    selected={tempStartDate}
+                    onChange={setTempStartDate}
+                    placeholderText="Select start date"
+                    maxDate={tempEndDate || undefined}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    End Date
+                  </label>
+                  <DatePicker
+                    selected={tempEndDate}
+                    onChange={setTempEndDate}
+                    placeholderText="Select end date"
+                    minDate={tempStartDate || undefined}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCustomCancel}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleCustomApply}
+                  disabled={!isCustomRangeValid()}
+                  className="flex-1"
+                >
+                  Apply
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

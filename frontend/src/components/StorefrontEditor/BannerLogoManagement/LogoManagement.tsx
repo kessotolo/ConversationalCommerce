@@ -50,7 +50,10 @@ const LogoManagement: React.FC<LogoManagementProps> = ({ tenantId }) => {
 
       // Select first logo if nothing is selected
       if (response.data.logos.length > 0 && !selectedLogo) {
-        setSelectedLogo(response.data.logos[0]);
+        const firstLogo = response.data.logos[0];
+        if (firstLogo) {
+          setSelectedLogo(firstLogo);
+        }
       }
     } catch (err) {
       setError('Failed to load logos. Please try again later.');
@@ -174,22 +177,20 @@ const LogoManagement: React.FC<LogoManagementProps> = ({ tenantId }) => {
                   <button
                     onClick={() => handlePageChange(Math.max(0, offset - limit))}
                     disabled={offset === 0}
-                    className={`px-3 py-1 rounded text-sm ${
-                      offset === 0
+                    className={`px-3 py-1 rounded text-sm ${offset === 0
                         ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                         : 'bg-blue-600 text-white hover:bg-blue-700'
-                    }`}
+                      }`}
                   >
                     Previous
                   </button>
                   <button
                     onClick={() => handlePageChange(offset + limit)}
                     disabled={offset + limit >= totalLogos}
-                    className={`px-3 py-1 rounded text-sm ${
-                      offset + limit >= totalLogos
+                    className={`px-3 py-1 rounded text-sm ${offset + limit >= totalLogos
                         ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                         : 'bg-blue-600 text-white hover:bg-blue-700'
-                    }`}
+                      }`}
                   >
                     Next
                   </button>

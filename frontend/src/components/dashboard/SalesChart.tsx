@@ -11,7 +11,7 @@ import {
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 
-import { CardHeader, CardTitle, CardContent, Card } from '@/components/ui/Card';
+import { CardHeader, CardTitle, CardContent, Card } from '@/components/ui/card';
 
 import type { TooltipItem, ChartOptions } from 'chart.js';
 

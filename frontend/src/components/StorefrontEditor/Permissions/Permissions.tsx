@@ -45,7 +45,10 @@ const Permissions: React.FC<PermissionsProps> = ({ tenantId }) => {
 
       // Select first user if nothing is selected
       if (perms.length > 0 && !selected) {
-        setSelectedUser(perms[0]);
+        const firstUser = perms[0];
+        if (firstUser) {
+          setSelectedUser(firstUser);
+        }
       }
     } catch (err) {
       setError('Failed to load permissions. Please try again later.');

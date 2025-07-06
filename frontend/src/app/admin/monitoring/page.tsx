@@ -5,10 +5,10 @@ import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { useToast, ToastProvider } from '@/components/ui/ToastProvider';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast, ToastProvider } from '@/components/ui/use-toast';
 import { onboardingApi } from '@/modules/tenant/api/onboardingApi';
 import type { KYCInfoResponse } from '@/modules/tenant/api/onboardingApi';
 

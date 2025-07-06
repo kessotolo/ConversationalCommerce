@@ -1,16 +1,5 @@
 import React, { useMemo } from 'react';
-import {
-  Box,
-  Flex,
-  Text,
-  Heading,
-  useColorModeValue,
-  Spinner,
-  Select,
-  Icon,
-  Tooltip,
-  HStack,
-} from '@chakra-ui/react';
+
 import { FiInfo } from 'react-icons/fi';
 import {
   ResponsiveContainer,
@@ -21,10 +10,10 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip as RechartsTooltip,
   Legend,
   AreaChart,
   Area,
+  Tooltip as RechartsTooltip,
 } from 'recharts';
 
 export type ChartType = 'line' | 'bar' | 'area';
@@ -65,22 +54,22 @@ const TrendChart: React.FC<TrendChartProps> = ({
   onCompareChange,
   compareOptions,
 }) => {
-  const cardBg = useColorModeValue('white', 'gray.800');
-  const borderColor = useColorModeValue('gray.200', 'gray.700');
-  const textColor = useColorModeValue('gray.600', 'gray.400');
-  const gridColor = useColorModeValue('gray.100', 'gray.700');
+  const cardBg = 'bg-white dark:bg-gray-800';
+  const borderColor = 'border-gray-200 dark:border-gray-700';
+  const textColor = 'text-gray-600 dark:text-gray-400';
+  const gridColor = '#e5e7eb'; // Tailwind gray-100
 
   // Format numbers for display in tooltip
   const formatValue = (value: number): string => {
     if (value === null || value === undefined) return 'N/A';
-    
+
     if (Math.abs(value) >= 1000000) {
       return (value / 1000000).toFixed(1) + 'M';
     }
     if (Math.abs(value) >= 1000) {
       return (value / 1000).toFixed(1) + 'K';
     }
-    
+
     return value.toLocaleString();
   };
 
@@ -88,32 +77,17 @@ const TrendChart: React.FC<TrendChartProps> = ({
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <Box
-          bg={cardBg}
-          p={3}
-          borderRadius="md"
-          boxShadow="md"
-          border="1px solid"
-          borderColor={borderColor}
-        >
-          <Text fontWeight="bold" mb={2}>
-            {label}
-          </Text>
+        <div className={`p-3 rounded-md shadow-md border ${cardBg} ${borderColor}`}>
+          <span className="font-bold mb-2 block">{label}</span>
           {payload.map((entry: any, index: number) => (
-            <Flex key={`tooltip-item-${index}`} mb={1} alignItems="center">
-              <Box
-                w={3}
-                h={3}
-                borderRadius="full"
-                bg={entry.color}
-                mr={2}
-              />
-              <Text fontSize="sm">
+            <div key={`tooltip-item-${index}`} className="flex items-center mb-1">
+              <span className="inline-block w-3 h-3 rounded-full mr-2" style={{ backgroundColor: entry.color }} />
+              <span className="text-sm">
                 {entry.name}: <strong>{formatValue(entry.value)}</strong>
-              </Text>
-            </Flex>
+              </span>
+            </div>
           ))}
-        </Box>
+        </div>
       );
     }
     return null;
@@ -189,8 +163,9 @@ const TrendChart: React.FC<TrendChartProps> = ({
                 name={s.name}
                 fill={s.color}
                 stroke={s.color}
-                fillOpacity={0.2}
                 stackId={stacked ? 'stack' : undefined}
+                strokeWidth={2}
+                fillOpacity={0.15}
               />
             ))}
           </AreaChart>
@@ -236,40 +211,26 @@ const TrendChart: React.FC<TrendChartProps> = ({
   };
 
   return (
-    <Box
-      bg={cardBg}
-      p={4}
-      borderRadius="lg"
-      boxShadow="sm"
-      border="1px"
-      borderColor={borderColor}
-      position="relative"
-    >
+    <div className={`bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 relative`}>
+
       {/* Header */}
-      <Flex justifyContent="space-between" alignItems="flex-start" mb={4}>
-        <Box>
+      <div className="flex justify-between items-start mb-4">
+        <div>
           {title && (
-            <Heading as="h3" size="sm" mb={1}>
-              {title}
-            </Heading>
+            <h3 className="text-base font-semibold mb-1">{title}</h3>
           )}
           {description && (
-            <HStack spacing={1}>
-              <Text color={textColor} fontSize="sm">
-                {description}
-              </Text>
-              <Tooltip label={description} placement="top">
-                <span>
-                  <Icon as={FiInfo} color={textColor} boxSize={3} />
-                </span>
-              </Tooltip>
-            </HStack>
+            <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+              <span>{description}</span>
+              <span className="ml-1 align-middle" title={description}>
+                <FiInfo className="inline w-3 h-3" />
+              </span>
+            </div>
           )}
-        </Box>
+        </div>
         {compareOptions && onCompareChange && (
-          <Select
-            size="xs"
-            width="auto"
+          <select
+            className="text-sm px-2 py-1 border rounded"
             value={compareWith}
             onChange={(e) => onCompareChange(e.target.value)}
           >
@@ -278,36 +239,31 @@ const TrendChart: React.FC<TrendChartProps> = ({
                 {option.label}
               </option>
             ))}
-          </Select>
+          </select>
         )}
-      </Flex>
+      </div>
 
-      {/* Chart */}
-      <Box height={`${height}px`} position="relative">
+      {/* Chart */ }
+      <div className={`h-${height} relative`}>
         {loading ? (
-          <Flex
-            height="100%"
-            alignItems="center"
-            justifyContent="center"
+          <div
+            className="h-full flex items-center justify-center"
           >
-            <Spinner color="blue.500" />
-          </Flex>
+            <span className="inline-block w-5 h-5 border-2 border-gray-300 border-t-primary-500 rounded-full animate-spin" />
+          </div>
         ) : data.length === 0 ? (
-          <Flex
-            height="100%"
-            alignItems="center"
-            justifyContent="center"
-            color={textColor}
+          <div
+            className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400"
           >
-            <Text>No data available</Text>
-          </Flex>
+            <span>No data available</span>
+          </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             {renderChart()}
           </ResponsiveContainer>
         )}
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 };
 

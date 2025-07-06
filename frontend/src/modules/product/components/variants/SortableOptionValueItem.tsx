@@ -4,7 +4,7 @@ import { Move, Edit2, Trash2 } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import type { VariantOptionValue } from '../../models/product';
 
 /**

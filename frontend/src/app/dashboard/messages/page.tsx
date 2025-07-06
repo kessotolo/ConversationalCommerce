@@ -15,7 +15,7 @@ import {
 import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils';
 import { ConversationEventLogger } from '@/modules/conversation/utils/eventLogger';
 import { ConversationEventType } from '@/modules/conversation/models/event';

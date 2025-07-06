@@ -1,196 +1,129 @@
 import React, { useState } from "react";
-import {
-  Box,
-  Tabs,
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel,
-  Heading,
-  Text,
-  Flex,
-  useDisclosure,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalCloseButton,
-  Button,
-  FormControl,
-  FormLabel,
-  Select,
-  useToast,
-  Divider,
-} from "@chakra-ui/react";
-import { AddIcon } from "@chakra-ui/icons";
-import { useMutation, useQueryClient } from "react-query";
-import { TeamMember, TeamMemberRole, updateTeamMember } from "../../services/teamService";
-
-// Import our modular components
+import { Users, UserPlus, Settings } from "lucide-react";
 import TeamMemberList from "./TeamMemberList";
-import TeamInviteList from "./TeamInviteList";
 import TeamInviteForm from "./TeamInviteForm";
+import TeamInviteList from "./TeamInviteList";
 
-interface EditRoleFormProps {
-  member: TeamMember;
-  onClose: () => void;
+interface TeamManagementProps {
+  tenantId: string;
 }
 
-const EditRoleForm: React.FC<EditRoleFormProps> = ({ member, onClose }) => {
-  const [role, setRole] = useState<TeamMemberRole>(member.role);
-  const toast = useToast();
-  const queryClient = useQueryClient();
+const TeamManagement: React.FC<TeamManagementProps> = ({ tenantId }) => {
+  const [activeTab, setActiveTab] = useState<'members' | 'invites' | 'settings'>('members');
+  const [showInviteForm, setShowInviteForm] = useState(false);
 
-  const updateMutation = useMutation(
-    (data: { id: string; data: { role: TeamMemberRole } }) =>
-      updateTeamMember(data.id, data.data),
-    {
-      onSuccess: () => {
-        toast({
-          title: "Role updated",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
-        queryClient.invalidateQueries("teamMembers");
-        onClose();
-      },
-      onError: (err: any) => {
-        toast({
-          title: "Error updating role",
-          description: err.message || "An error occurred",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-      },
-    }
-  );
+  const tabs = [
+    { id: 'members', label: 'Team Members', icon: Users },
+    { id: 'invites', label: 'Invitations', icon: UserPlus },
+    { id: 'settings', label: 'Settings', icon: Settings },
+  ];
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateMutation.mutate({
-      id: member.id,
-      data: { role },
-    });
-  };
-
-  const canEditToOwner = member.role !== TeamMemberRole.OWNER;
-  const canEditToAdmin = member.role !== TeamMemberRole.ADMIN;
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <FormControl isRequired>
-        <FormLabel>Role</FormLabel>
-        <Select
-          value={role}
-          onChange={(e) => setRole(e.target.value as TeamMemberRole)}
-        >
-          {canEditToOwner && <option value={TeamMemberRole.OWNER}>Owner</option>}
-          {canEditToAdmin && <option value={TeamMemberRole.ADMIN}>Admin</option>}
-          <option value={TeamMemberRole.MEMBER}>Member</option>
-          <option value={TeamMemberRole.SUPPORT}>Support</option>
-          <option value={TeamMemberRole.VIEWER}>Viewer</option>
-        </Select>
-      </FormControl>
-
-      <Flex justifyContent="flex-end" mt={4}>
-        <Button variant="outline" mr={3} onClick={onClose}>
-          Cancel
-        </Button>
-        <Button
-          colorScheme="blue"
-          type="submit"
-          isLoading={updateMutation.isLoading}
-        >
-          Save
-        </Button>
-      </Flex>
-    </form>
-  );
-};
-
-const TeamManagement: React.FC = () => {
-  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
-  const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure();
-  const { isOpen: isInviteOpen, onOpen: onInviteOpen, onClose: onInviteClose } = useDisclosure();
-
-  const handleEditMember = (member: TeamMember) => {
-    setSelectedMember(member);
-    onEditOpen();
+  const handleInviteSuccess = () => {
+    setShowInviteForm(false);
+    // Switch to invites tab to show the new invite
+    setActiveTab('invites');
   };
 
   return (
-    <Box p={4}>
-      <Heading as="h1" size="lg" mb={6}>
-        Team Management
-      </Heading>
+    <div className="p-6 bg-white rounded-lg border">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-semibold">Team Management</h1>
+        <button
+          onClick={() => setShowInviteForm(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
+          <UserPlus className="h-4 w-4" />
+          Invite Member
+        </button>
+      </div>
 
-      <Tabs variant="enclosed" colorScheme="blue">
-        <TabList>
-          <Tab>Team Members</Tab>
-          <Tab>Pending Invitations</Tab>
-        </TabList>
+      {/* Custom Tab Navigation */}
+      <div className="border-b border-gray-200 mb-6">
+        <nav className="-mb-px flex space-x-8">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${activeTab === tab.id
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+              >
+                <Icon className="h-4 w-4" />
+                {tab.label}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
 
-        <TabPanels>
-          <TabPanel>
-            <Flex justifyContent="space-between" alignItems="center" mb={4}>
-              <Heading size="md">Team Members</Heading>
-              <Button leftIcon={<AddIcon />} colorScheme="blue" onClick={onInviteOpen}>
-                Invite New Member
-              </Button>
-            </Flex>
-            <Text mb={4}>
-              Manage your team members and their roles. Different roles have different
-              permissions and access levels within the system.
-            </Text>
-            <Box mt={4}>
-              <TeamMemberList onEdit={handleEditMember} />
-            </Box>
-          </TabPanel>
+      {/* Tab Content */}
+      <div className="mt-6">
+        {activeTab === 'members' && (
+          <div>
+            <TeamMemberList onEdit={(member) => console.log('Edit member:', member)} />
+          </div>
+        )}
 
-          <TabPanel>
-            <Heading size="md" mb={4}>
-              Pending Invitations
-            </Heading>
-            <Text mb={4}>
-              View and manage pending team invitations. You can revoke invitations
-              that have not yet been accepted.
-            </Text>
-            <Box mt={4}>
-              <TeamInviteList />
-            </Box>
-          </TabPanel>
-        </TabPanels>
-      </Tabs>
+        {activeTab === 'invites' && (
+          <div>
+            <TeamInviteList onRefresh={() => { }} />
+          </div>
+        )}
 
-      {/* Edit Member Role Modal */}
-      <Modal isOpen={isEditOpen} onClose={onEditClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Edit Team Member Role</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody pb={6}>
-            {selectedMember && (
-              <EditRoleForm member={selectedMember} onClose={onEditClose} />
-            )}
-          </ModalBody>
-        </ModalContent>
-      </Modal>
+        {activeTab === 'settings' && (
+          <div>
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path
+                      fillRule="evenodd"
+                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-yellow-700">
+                    Team settings are currently in development.
+                  </p>
+                </div>
+              </div>
+            </div>
 
-      {/* Invite New Member Modal */}
-      <Modal isOpen={isInviteOpen} onClose={onInviteClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Invite Team Member</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody pb={6}>
-            <TeamInviteForm onSuccess={onInviteClose} />
-          </ModalBody>
-        </ModalContent>
-      </Modal>
-    </Box>
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="border rounded p-4">
+                <h3 className="font-medium mb-2">Role Permissions</h3>
+                <p className="text-gray-600 text-sm">
+                  Configure what each team role can access and modify.
+                </p>
+              </div>
+              <div className="border rounded p-4">
+                <h3 className="font-medium mb-2">Team Policies</h3>
+                <p className="text-gray-600 text-sm">
+                  Set up team-wide policies and guidelines.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Invite Form Modal */}
+      {showInviteForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full">
+            <TeamInviteForm
+              onSuccess={handleInviteSuccess}
+              onCancel={() => setShowInviteForm(false)}
+            />
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

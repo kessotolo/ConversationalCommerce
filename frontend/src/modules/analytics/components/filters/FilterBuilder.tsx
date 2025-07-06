@@ -1,21 +1,7 @@
 import React, { useState } from 'react';
-import {
-  Box,
-  Button,
-  Stack,
-  HStack,
-  Flex,
-  Text,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  Icon,
-  Divider,
-  Badge,
-  useColorModeValue,
-} from '@chakra-ui/react';
-import { FiPlus, FiFilter, FiChevronDown, FiX } from 'react-icons/fi';
+import { FiPlus, FiFilter, FiX } from 'react-icons/fi';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import FilterCondition from './FilterCondition';
 
 export interface FilterField {
@@ -45,73 +31,69 @@ interface FilterBuilderProps {
   initialFilters?: FilterGroup[];
 }
 
-const FilterBuilder: React.FC<FilterBuilderProps> = ({ 
-  fields, 
+const FilterBuilder: React.FC<FilterBuilderProps> = ({
+  fields,
   onChange,
-  initialFilters 
+  initialFilters
 }) => {
   const [filterGroups, setFilterGroups] = useState<FilterGroup[]>(
     initialFilters || [
       {
         id: `group-${Date.now()}`,
-        logic: 'and',
+        logic: 'and' as const,
         conditions: []
       }
     ]
   );
-  
-  const borderColor = useColorModeValue('gray.200', 'gray.600');
-  const bgColor = useColorModeValue('white', 'gray.700');
-  const badgeBg = useColorModeValue('blue.50', 'blue.900');
-  const badgeColor = useColorModeValue('blue.700', 'blue.200');
-  
+
   // Add a new filter group
   const addFilterGroup = () => {
     const newGroup: FilterGroup = {
       id: `group-${Date.now()}`,
-      logic: 'and',
+      logic: 'and' as const,
       conditions: []
     };
-    
-    setFilterGroups([...filterGroups, newGroup]);
-    onChange([...filterGroups, newGroup]);
+
+    const updatedGroups = [...filterGroups, newGroup];
+    setFilterGroups(updatedGroups);
+    onChange(updatedGroups);
   };
-  
+
   // Delete a filter group
   const deleteFilterGroup = (groupId: string) => {
     const updatedGroups = filterGroups.filter(group => group.id !== groupId);
     setFilterGroups(updatedGroups);
     onChange(updatedGroups);
   };
-  
+
   // Toggle logic (AND/OR) for a filter group
   const toggleGroupLogic = (groupId: string) => {
     const updatedGroups = filterGroups.map(group => {
       if (group.id === groupId) {
         return {
           ...group,
-          logic: group.logic === 'and' ? 'or' : 'and'
+          logic: (group.logic === 'and' ? 'or' : 'and') as 'and' | 'or'
         };
       }
       return group;
     });
-    
+
     setFilterGroups(updatedGroups);
     onChange(updatedGroups);
   };
-  
+
   // Add a condition to a filter group
   const addCondition = (groupId: string, fieldId: string) => {
     // Find selected field details
     const selectedField = fields.find(f => f.id === fieldId);
     if (!selectedField) return;
-    
+
     const newCondition: FilterValue = {
       field: selectedField.id,
       operator: getDefaultOperator(selectedField.type),
       value: getDefaultValue(selectedField.type, selectedField.options)
     };
-    
+
     const updatedGroups = filterGroups.map(group => {
       if (group.id === groupId) {
         return {
@@ -121,18 +103,18 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({
       }
       return group;
     });
-    
+
     setFilterGroups(updatedGroups);
     onChange(updatedGroups);
   };
-  
+
   // Update a condition
   const updateCondition = (groupId: string, index: number, updatedCondition: FilterValue) => {
     const updatedGroups = filterGroups.map(group => {
       if (group.id === groupId) {
         const updatedConditions = [...group.conditions];
         updatedConditions[index] = updatedCondition;
-        
+
         return {
           ...group,
           conditions: updatedConditions
@@ -140,18 +122,18 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({
       }
       return group;
     });
-    
+
     setFilterGroups(updatedGroups);
     onChange(updatedGroups);
   };
-  
+
   // Delete a condition
   const deleteCondition = (groupId: string, index: number) => {
     const updatedGroups = filterGroups.map(group => {
       if (group.id === groupId) {
         const updatedConditions = [...group.conditions];
         updatedConditions.splice(index, 1);
-        
+
         return {
           ...group,
           conditions: updatedConditions
@@ -159,26 +141,11 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({
       }
       return group;
     });
-    
+
     setFilterGroups(updatedGroups);
     onChange(updatedGroups);
   };
-  
-  // Group fields by category for the menu
-  const getFieldsByCategory = () => {
-    const categories: Record<string, FilterField[]> = {};
-    
-    fields.forEach(field => {
-      const category = field.category || 'General';
-      if (!categories[category]) {
-        categories[category] = [];
-      }
-      categories[category].push(field);
-    });
-    
-    return categories;
-  };
-  
+
   // Get default operator based on field type
   const getDefaultOperator = (fieldType: string): string => {
     switch (fieldType) {
@@ -197,7 +164,7 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({
         return 'equals';
     }
   };
-  
+
   // Get default value based on field type
   const getDefaultValue = (fieldType: string, options?: { value: string; label: string }[]): any => {
     switch (fieldType) {
@@ -206,125 +173,120 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({
       case 'number':
         return 0;
       case 'boolean':
-        return true;
+        return false;
       case 'date':
         return new Date();
       case 'select':
-        return options && options.length > 0 ? options[0].value : '';
+        return options?.[0]?.value || '';
       case 'multiselect':
         return [];
       default:
         return '';
     }
   };
-  
-  const fieldCategories = getFieldsByCategory();
-  
+
   return (
-    <Box>
-      <Stack spacing={4}>
+    <div className="w-full space-y-4 p-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <FiFilter className="h-5 w-5" />
+          <h3 className="text-lg font-semibold">Filters</h3>
+        </div>
+        <Badge variant="secondary">
+          {filterGroups.reduce((count, group) => count + group.conditions.length, 0)} conditions
+        </Badge>
+      </div>
+
+      {/* Placeholder for now */}
+      <div className="text-center py-8">
+        <div className="text-gray-400 mb-2">🔍</div>
+        <p className="text-gray-600">Filter Builder placeholder</p>
+        <p className="text-sm text-gray-500">Team B to implement full dropdown functionality</p>
+      </div>
+
+      {/* Filter Groups */}
+      <div className="space-y-4">
         {filterGroups.map((group, groupIndex) => (
-          <Box 
-            key={group.id}
-            p={4}
-            border="1px"
-            borderColor={borderColor}
-            borderRadius="md"
-            bg={bgColor}
-          >
-            <Flex justifyContent="space-between" alignItems="center" mb={3}>
-              <HStack>
-                <Badge
-                  bg={badgeBg}
-                  color={badgeColor}
-                  fontSize="sm"
-                  px={2}
-                  py={1}
-                  borderRadius="md"
-                  cursor="pointer"
+          <div key={group.id} className="border rounded-lg p-4 bg-white dark:bg-gray-800">
+            {/* Group Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Group {groupIndex + 1}</span>
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => toggleGroupLogic(group.id)}
+                  className="h-6 px-2 text-xs"
                 >
-                  {group.logic === 'and' ? 'AND' : 'OR'}
-                </Badge>
-                <Text fontSize="sm" fontWeight="medium">
-                  {groupIndex === 0 ? 'Where' : group.logic === 'and' ? 'And where' : 'Or where'}
-                </Text>
-              </HStack>
-              
+                  {group.logic.toUpperCase()}
+                </Button>
+              </div>
+
               {filterGroups.length > 1 && (
                 <Button
-                  size="sm"
                   variant="ghost"
-                  colorScheme="red"
+                  size="sm"
                   onClick={() => deleteFilterGroup(group.id)}
+                  className="h-6 w-6 p-0"
                 >
-                  <Icon as={FiX} />
+                  <FiX className="h-4 w-4" />
                 </Button>
               )}
-            </Flex>
-            
-            {/* Filter conditions */}
-            <Stack spacing={2}>
-              {group.conditions.map((condition, index) => {
+            </div>
+
+            {/* Conditions */}
+            <div className="space-y-2">
+              {group.conditions.map((condition, conditionIndex) => {
                 const field = fields.find(f => f.id === condition.field);
+                if (!field) return null;
+
                 return (
                   <FilterCondition
-                    key={`${group.id}-condition-${index}`}
-                    condition={condition}
-                    field={field!}
-                    onChange={(updatedCondition) => updateCondition(group.id, index, updatedCondition)}
-                    onDelete={() => deleteCondition(group.id, index)}
+                    key={conditionIndex}
+                    value={condition}
+                    field={field}
+                    onChange={(updatedCondition) =>
+                      updateCondition(group.id, conditionIndex, updatedCondition)
+                    }
+                    onDelete={() => deleteCondition(group.id, conditionIndex)}
                   />
                 );
               })}
-            </Stack>
-            
-            {/* Add condition button */}
-            <Menu closeOnSelect={true}>
-              <MenuButton
-                as={Button}
-                rightIcon={<FiChevronDown />}
-                leftIcon={<FiPlus />}
-                size="sm"
-                mt={3}
+            </div>
+
+            {/* Add Condition - Simplified for now */}
+            <div className="mt-4">
+              <Button
                 variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => {
+                  // Add first available field as example
+                  const firstField = fields[0];
+                  if (firstField) {
+                    addCondition(group.id, firstField.id);
+                  }
+                }}
               >
-                Add Filter
-              </MenuButton>
-              <MenuList>
-                {Object.entries(fieldCategories).map(([category, categoryFields]) => (
-                  <React.Fragment key={category}>
-                    <Text px={3} py={1} fontSize="xs" fontWeight="bold" color="gray.500">
-                      {category}
-                    </Text>
-                    {categoryFields.map(field => (
-                      <MenuItem 
-                        key={field.id} 
-                        onClick={() => addCondition(group.id, field.id)}
-                      >
-                        {field.label}
-                      </MenuItem>
-                    ))}
-                    <Divider my={1} />
-                  </React.Fragment>
-                ))}
-              </MenuList>
-            </Menu>
-          </Box>
+                <FiPlus className="h-4 w-4 mr-2" />
+                Add Condition
+              </Button>
+            </div>
+          </div>
         ))}
-        
-        {/* Add filter group button */}
-        <Button
-          leftIcon={<Icon as={FiFilter} />}
-          size="sm"
-          variant="outline"
-          onClick={addFilterGroup}
-          alignSelf="flex-start"
-        >
-          Add Filter Group
-        </Button>
-      </Stack>
-    </Box>
+      </div>
+
+      {/* Add Filter Group */}
+      <Button
+        variant="outline"
+        onClick={addFilterGroup}
+        className="w-full"
+      >
+        <FiPlus className="h-4 w-4 mr-2" />
+        Add Filter Group
+      </Button>
+    </div>
   );
 };
 

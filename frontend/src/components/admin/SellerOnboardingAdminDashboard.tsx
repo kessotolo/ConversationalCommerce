@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Import our modular components
 import SellerVerificationStats from "./SellerVerificationStats";

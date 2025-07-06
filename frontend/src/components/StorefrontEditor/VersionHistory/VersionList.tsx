@@ -68,7 +68,8 @@ const VersionList: React.FC<VersionListProps> = ({
   // Format date for input field
   function formatDateForInput(date?: Date): string {
     if (!date) return '';
-    return date.toISOString().split('T')[0];
+    const isoString = date.toISOString().split('T')[0];
+    return isoString || '';
   }
 
   // Handle search submission
@@ -212,11 +213,10 @@ const VersionList: React.FC<VersionListProps> = ({
                     <button
                       key={tag}
                       onClick={() => handleTagToggle(tag)}
-                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        tagsFilter.includes(tag)
+                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${tagsFilter.includes(tag)
                           ? 'bg-blue-100 text-blue-800'
                           : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                      }`}
+                        }`}
                     >
                       {tag}
                       {tagsFilter.includes(tag) && <XMarkIcon className="ml-1 h-3 w-3" />}
@@ -250,9 +250,8 @@ const VersionList: React.FC<VersionListProps> = ({
             <div
               key={version.id}
               onClick={() => onVersionSelect(version)}
-              className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors relative ${
-                isSelectedForCompare(version.id) ? 'bg-blue-50 border-l-4 border-blue-500 pl-3' : ''
-              }`}
+              className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors relative ${isSelectedForCompare(version.id) ? 'bg-blue-50 border-l-4 border-blue-500 pl-3' : ''
+                }`}
             >
               <div className="flex justify-between items-start mb-1">
                 <h3 className="font-medium text-gray-900 text-sm">{version.change_summary}</h3>

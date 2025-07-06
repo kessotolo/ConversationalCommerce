@@ -19,8 +19,8 @@ import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardHeader,
@@ -28,7 +28,7 @@ import {
   CardContent,
   CardFooter,
   CardDescription,
-} from '@/components/ui/Card';
+} from '@/components/ui/card';
 import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';
 import { useTenant } from '@/contexts/TenantContext';
 import type { Order } from '@/modules/order/models/order';

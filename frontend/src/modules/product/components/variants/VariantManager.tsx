@@ -3,16 +3,16 @@
 import { useState } from 'react';
 import { PlusCircle } from 'lucide-react';
 
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/Select';
+} from '@/components/ui/select';
 import { Label } from '@/components/ui/Label';
 import { useToast } from '@/components/ui/use-toast';
 import type { VariantOption } from '../../models/product';

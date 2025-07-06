@@ -37,7 +37,10 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
 
       // Select first draft if nothing is selected
       if (response.data.drafts.length > 0 && !selectedDraft) {
-        setSelectedDraft(response.data.drafts[0]);
+        const firstDraft = response.data.drafts[0];
+        if (firstDraft) {
+          setSelectedDraft(firstDraft);
+        }
       }
     } catch (err) {
       setError('Failed to load drafts. Please try again later.');
@@ -132,41 +135,37 @@ const DraftManagement: React.FC<DraftManagementProps> = ({ tenantId }) => {
             <div className="flex gap-2 mb-3">
               <button
                 onClick={() => setStatusFilter('all')}
-                className={`text-xs px-3 py-1 rounded-full ${
-                  statusFilter === 'all'
+                className={`text-xs px-3 py-1 rounded-full ${statusFilter === 'all'
                     ? 'bg-blue-100 text-blue-800'
                     : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                }`}
+                  }`}
               >
                 All
               </button>
               <button
                 onClick={() => setStatusFilter(Status.DRAFT)}
-                className={`text-xs px-3 py-1 rounded-full ${
-                  statusFilter === Status.DRAFT
+                className={`text-xs px-3 py-1 rounded-full ${statusFilter === Status.DRAFT
                     ? 'bg-blue-100 text-blue-800'
                     : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                }`}
+                  }`}
               >
                 Drafts
               </button>
               <button
                 onClick={() => setStatusFilter(Status.PENDING)}
-                className={`text-xs px-3 py-1 rounded-full ${
-                  statusFilter === Status.PENDING
+                className={`text-xs px-3 py-1 rounded-full ${statusFilter === Status.PENDING
                     ? 'bg-blue-100 text-blue-800'
                     : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                }`}
+                  }`}
               >
                 Pending
               </button>
               <button
                 onClick={() => setStatusFilter(Status.SCHEDULED)}
-                className={`text-xs px-3 py-1 rounded-full ${
-                  statusFilter === Status.SCHEDULED
+                className={`text-xs px-3 py-1 rounded-full ${statusFilter === Status.SCHEDULED
                     ? 'bg-blue-100 text-blue-800'
                     : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                }`}
+                  }`}
               >
                 Scheduled
               </button>

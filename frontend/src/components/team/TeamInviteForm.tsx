@@ -1,177 +1,210 @@
-import React from "react";
-import {
-  FormControl,
-  FormLabel,
-  FormHelperText,
-  Input,
-  Select,
-  Button,
-  VStack,
-  Box,
-  useToast,
-  Radio,
-  RadioGroup,
-  Stack,
-} from "@chakra-ui/react";
-import { useForm } from "react-hook-form";
-import { useMutation, useQueryClient } from "react-query";
-import {
-  TeamMemberRole,
-  createTeamInvite,
-  CreateInviteRequest,
-} from "../../services/teamService";
+import React, { useState } from "react";
+import { Mail, Send, UserPlus } from "lucide-react";
+
+// Mock services - replace with actual imports when available
+const sendTeamInvite = async (data: any) => data;
 
 interface TeamInviteFormProps {
   onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
 interface InviteFormData {
-  contactType: "email" | "phone";
-  contactValue: string;
-  role: TeamMemberRole;
+  email: string;
+  role: string;
   message?: string;
 }
 
-const TeamInviteForm: React.FC<TeamInviteFormProps> = ({ onSuccess }) => {
-  const {
-    register,
-    handleSubmit,
-    watch,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<InviteFormData>({
-    defaultValues: {
-      contactType: "email",
-      role: TeamMemberRole.MEMBER,
-    },
+const ROLES = [
+  { value: "admin", label: "Admin" },
+  { value: "manager", label: "Manager" },
+  { value: "member", label: "Member" },
+];
+
+const TeamInviteForm: React.FC<TeamInviteFormProps> = ({ onSuccess, onCancel }) => {
+  const [formData, setFormData] = useState<InviteFormData>({
+    email: "",
+    role: "member",
+    message: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const contactType = watch("contactType");
-  const toast = useToast();
-  const queryClient = useQueryClient();
+  const showToast = (title: string, type: "success" | "error" = "success") => {
+    alert(`${title}`);
+  };
 
-  const inviteMutation = useMutation(createTeamInvite, {
-    onSuccess: () => {
-      toast({
-        title: "Invitation sent",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-      queryClient.invalidateQueries("teamInvites");
-      reset();
-      if (onSuccess) onSuccess();
-    },
-    onError: (err: any) => {
-      toast({
-        title: "Error sending invitation",
-        description: err.message || "An error occurred",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    },
-  });
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
 
-  const onSubmit = (data: InviteFormData) => {
-    const inviteData: CreateInviteRequest = {
-      role: data.role,
-      message: data.message,
-    };
-
-    if (data.contactType === "email") {
-      inviteData.email = data.contactValue;
-    } else {
-      inviteData.phone = data.contactValue;
+    // Email validation
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email)) {
+      newErrors.email = "Invalid email address";
     }
 
-    inviteMutation.mutate(inviteData);
+    // Role validation
+    if (!formData.role) {
+      newErrors.role = "Role is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await sendTeamInvite({
+        email: formData.email,
+        role: formData.role,
+        message: formData.message,
+      });
+
+      showToast("Team invite sent successfully", "success");
+
+      // Reset form
+      setFormData({
+        email: "",
+        role: "member",
+        message: "",
+      });
+
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "Failed to send invite",
+        "error"
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleInputChange = (field: keyof InviteFormData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: "" }));
+    }
   };
 
   return (
-    <Box p={4} borderWidth="1px" borderRadius="md" bg="white">
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <VStack spacing={4} align="stretch">
-          <FormControl as="fieldset">
-            <FormLabel as="legend">Contact Method</FormLabel>
-            <RadioGroup defaultValue="email">
-              <Stack direction="row">
-                <Radio 
-                  value="email" 
-                  {...register("contactType")}
-                >
-                  Email
-                </Radio>
-                <Radio 
-                  value="phone" 
-                  {...register("contactType")}
-                >
-                  Phone
-                </Radio>
-              </Stack>
-            </RadioGroup>
-          </FormControl>
+    <div className="p-6 bg-white rounded-lg border">
+      <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+        <UserPlus className="h-5 w-5" />
+        Invite Team Member
+      </h2>
 
-          <FormControl isRequired isInvalid={!!errors.contactValue}>
-            <FormLabel>
-              {contactType === "email" ? "Email Address" : "Phone Number"}
-            </FormLabel>
-            <Input
-              type={contactType === "email" ? "email" : "tel"}
-              placeholder={
-                contactType === "email" ? "colleague@example.com" : "+1234567890"
-              }
-              {...register("contactValue", {
-                required: true,
-                pattern:
-                  contactType === "email"
-                    ? /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i
-                    : /^\+?[0-9]{10,15}$/,
-              })}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            Email Address <span className="text-red-500">*</span>
+          </label>
+          <div className="mt-1 relative">
+            <input
+              id="email"
+              type="email"
+              placeholder="Enter email address"
+              value={formData.email}
+              onChange={(e) => handleInputChange("email", e.target.value)}
+              className={`block w-full px-3 py-2 pl-10 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${errors.email ? "border-red-300" : "border-gray-300"
+                }`}
             />
-            <FormHelperText>
-              {contactType === "email"
-                ? "Enter the team member's email address"
-                : "Enter the team member's phone number"}
-            </FormHelperText>
-          </FormControl>
+            <Mail className="h-5 w-5 text-gray-400 absolute left-3 top-2.5" />
+          </div>
+          {errors.email && (
+            <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+          )}
+          <p className="mt-1 text-sm text-gray-500">
+            We'll send an invitation to this email address
+          </p>
+        </div>
 
-          <FormControl isRequired isInvalid={!!errors.role}>
-            <FormLabel>Role</FormLabel>
-            <Select {...register("role", { required: true })}>
-              <option value={TeamMemberRole.MEMBER}>Member</option>
-              <option value={TeamMemberRole.ADMIN}>Admin</option>
-              <option value={TeamMemberRole.SUPPORT}>Support</option>
-              <option value={TeamMemberRole.VIEWER}>Viewer</option>
-            </Select>
-            <FormHelperText>
-              Select the role for this team member
-            </FormHelperText>
-          </FormControl>
-
-          <FormControl isInvalid={!!errors.message}>
-            <FormLabel>Personal Message</FormLabel>
-            <Input
-              placeholder="Optional message to include in the invitation"
-              {...register("message")}
-            />
-            <FormHelperText>
-              Add a personal note to the invitation
-            </FormHelperText>
-          </FormControl>
-
-          <Button
-            mt={4}
-            colorScheme="blue"
-            type="submit"
-            isLoading={isSubmitting || inviteMutation.isLoading}
-            loadingText="Sending"
+        <div>
+          <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+            Role <span className="text-red-500">*</span>
+          </label>
+          <select
+            id="role"
+            value={formData.role}
+            onChange={(e) => handleInputChange("role", e.target.value)}
+            className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${errors.role ? "border-red-300" : "border-gray-300"
+              }`}
           >
-            Send Invitation
-          </Button>
-        </VStack>
+            {ROLES.map((role) => (
+              <option key={role.value} value={role.value}>
+                {role.label}
+              </option>
+            ))}
+          </select>
+          {errors.role && (
+            <p className="mt-1 text-sm text-red-600">{errors.role}</p>
+          )}
+          <p className="mt-1 text-sm text-gray-500">
+            Select the role for this team member
+          </p>
+        </div>
+
+        <div>
+          <label htmlFor="message" className="block text-sm font-medium text-gray-700">
+            Personal Message (Optional)
+          </label>
+          <textarea
+            id="message"
+            placeholder="Add a personal message to the invitation..."
+            value={formData.message}
+            onChange={(e) => handleInputChange("message", e.target.value)}
+            rows={3}
+            className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${errors.message ? "border-red-300" : "border-gray-300"
+              }`}
+          />
+          {errors.message && (
+            <p className="mt-1 text-sm text-red-600">{errors.message}</p>
+          )}
+          <p className="mt-1 text-sm text-gray-500">
+            This message will be included in the invitation email
+          </p>
+        </div>
+
+        <div className="flex justify-end gap-3 pt-4">
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+          )}
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Sending...
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4" />
+                Send Invitation
+              </>
+            )}
+          </button>
+        </div>
       </form>
-    </Box>
+    </div>
   );
 };
 

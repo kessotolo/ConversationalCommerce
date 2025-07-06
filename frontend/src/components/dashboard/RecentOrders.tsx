@@ -1,8 +1,8 @@
 import { ExternalLink, MessageSquare } from 'lucide-react';
 
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { CardHeader, CardTitle, CardContent, Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { CardHeader, CardTitle, CardContent, Card } from '@/components/ui/card';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
 interface Order {

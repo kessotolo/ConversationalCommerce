@@ -1,284 +1,225 @@
 import React from 'react';
-import {
-  Flex,
-  Select,
-  Input,
-  IconButton,
-  Box,
-  Checkbox,
-  Stack,
-  HStack,
-  Text,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  NumberIncrementStepper,
-  NumberDecrementStepper,
-  useColorModeValue,
-} from '@chakra-ui/react';
-import { FiX } from 'react-icons/fi';
-import { FilterField, FilterValue } from './FilterBuilder';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { FilterField, FilterValue } from './FilterBuilder';
 import DatePicker from '../DatePicker';
 
 interface FilterConditionProps {
-  condition: FilterValue;
   field: FilterField;
-  onChange: (updatedCondition: FilterValue) => void;
+  value: FilterValue;
+  onChange: (value: FilterValue) => void;
   onDelete: () => void;
 }
 
-// List of operators by field type
-const OPERATORS: Record<string, Array<{ value: string; label: string }>> = {
-  string: [
-    { value: 'equals', label: 'Equals' },
-    { value: 'not_equals', label: 'Not Equals' },
-    { value: 'contains', label: 'Contains' },
-    { value: 'not_contains', label: 'Does Not Contain' },
-    { value: 'starts_with', label: 'Starts With' },
-    { value: 'ends_with', label: 'Ends With' },
-    { value: 'is_empty', label: 'Is Empty' },
-    { value: 'is_not_empty', label: 'Is Not Empty' },
-  ],
-  number: [
-    { value: 'equals', label: 'Equals' },
-    { value: 'not_equals', label: 'Not Equals' },
-    { value: 'greater_than', label: 'Greater Than' },
-    { value: 'less_than', label: 'Less Than' },
-    { value: 'greater_than_equal', label: 'Greater Than or Equal' },
-    { value: 'less_than_equal', label: 'Less Than or Equal' },
-    { value: 'between', label: 'Between' },
-    { value: 'is_empty', label: 'Is Empty' },
-    { value: 'is_not_empty', label: 'Is Not Empty' },
-  ],
-  boolean: [
-    { value: 'equals', label: 'Equals' },
-    { value: 'not_equals', label: 'Not Equals' },
-  ],
-  date: [
-    { value: 'equals', label: 'On' },
-    { value: 'not_equals', label: 'Not On' },
-    { value: 'before', label: 'Before' },
-    { value: 'after', label: 'After' },
-    { value: 'between', label: 'Between' },
-    { value: 'is_empty', label: 'Is Empty' },
-    { value: 'is_not_empty', label: 'Is Not Empty' },
-  ],
-  select: [
-    { value: 'equals', label: 'Equals' },
-    { value: 'not_equals', label: 'Not Equals' },
-    { value: 'is_empty', label: 'Is Empty' },
-    { value: 'is_not_empty', label: 'Is Not Empty' },
-  ],
-  multiselect: [
-    { value: 'in', label: 'Contains Any' },
-    { value: 'not_in', label: 'Contains None' },
-    { value: 'contains_all', label: 'Contains All' },
-    { value: 'is_empty', label: 'Is Empty' },
-    { value: 'is_not_empty', label: 'Is Not Empty' },
-  ],
-};
-
 const FilterCondition: React.FC<FilterConditionProps> = ({
-  condition,
   field,
+  value,
   onChange,
   onDelete
 }) => {
-  const bgColor = useColorModeValue('gray.50', 'gray.800');
-  const operatorOptions = OPERATORS[field.type] || [];
-
-  // Update operator
-  const handleOperatorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newOperator = e.target.value;
-    // Reset value if needed for certain operators
-    let newValue = condition.value;
-    
-    if (newOperator === 'is_empty' || newOperator === 'is_not_empty') {
-      newValue = null;
-    } else if (newOperator === 'between' && !Array.isArray(condition.value)) {
-      if (field.type === 'number') {
-        newValue = [0, 0];
-      } else if (field.type === 'date') {
-        newValue = [new Date(), new Date()];
-      }
+  // Get available operators based on field type
+  const getOperators = (fieldType: string) => {
+    switch (fieldType) {
+      case 'string':
+        return [
+          { value: 'equals', label: 'Equals' },
+          { value: 'contains', label: 'Contains' },
+          { value: 'starts_with', label: 'Starts with' },
+          { value: 'ends_with', label: 'Ends with' },
+          { value: 'not_equals', label: 'Not equals' }
+        ];
+      case 'number':
+        return [
+          { value: 'equals', label: 'Equals' },
+          { value: 'not_equals', label: 'Not equals' },
+          { value: 'greater_than', label: 'Greater than' },
+          { value: 'less_than', label: 'Less than' },
+          { value: 'greater_than_or_equal', label: 'Greater than or equal' },
+          { value: 'less_than_or_equal', label: 'Less than or equal' }
+        ];
+      case 'boolean':
+        return [
+          { value: 'equals', label: 'Is' }
+        ];
+      case 'date':
+        return [
+          { value: 'equals', label: 'On' },
+          { value: 'before', label: 'Before' },
+          { value: 'after', label: 'After' },
+          { value: 'between', label: 'Between' }
+        ];
+      case 'select':
+        return [
+          { value: 'equals', label: 'Equals' },
+          { value: 'not_equals', label: 'Not equals' }
+        ];
+      case 'multiselect':
+        return [
+          { value: 'in', label: 'In' },
+          { value: 'not_in', label: 'Not in' }
+        ];
+      default:
+        return [{ value: 'equals', label: 'Equals' }];
     }
-    
+  };
+
+  // Handle operator change
+  const handleOperatorChange = (operator: string) => {
     onChange({
-      ...condition,
-      operator: newOperator,
-      value: newValue
+      ...value,
+      operator
     });
   };
 
-  // Update value
+  // Handle value change
   const handleValueChange = (newValue: any) => {
     onChange({
-      ...condition,
+      ...value,
       value: newValue
     });
   };
 
-  // Render value input based on field type and operator
+  // Render value input based on field type
   const renderValueInput = () => {
-    // No value input needed for empty/not empty operators
-    if (condition.operator === 'is_empty' || condition.operator === 'is_not_empty') {
-      return null;
-    }
-    
-    // Handle between operator
-    if (condition.operator === 'between') {
-      return (
-        <HStack spacing={2} flex={1}>
-          {renderSingleValueInput(Array.isArray(condition.value) ? condition.value[0] : null, 0)}
-          <Text>and</Text>
-          {renderSingleValueInput(Array.isArray(condition.value) ? condition.value[1] : null, 1)}
-        </HStack>
-      );
-    }
-    
-    // All other operators
-    return renderSingleValueInput(condition.value);
-  };
-  
-  // Render a single value input based on field type
-  const renderSingleValueInput = (value: any, index: number = -1) => {
-    const updateValue = (newValue: any) => {
-      if (index === -1) {
-        handleValueChange(newValue);
-      } else {
-        const newValues = Array.isArray(condition.value) ? [...condition.value] : [null, null];
-        newValues[index] = newValue;
-        handleValueChange(newValues);
-      }
-    };
-    
     switch (field.type) {
       case 'string':
         return (
           <Input
-            value={value || ''}
-            onChange={(e) => updateValue(e.target.value)}
-            size="sm"
-            flex={index === -1 ? 1 : undefined}
+            type="text"
+            value={value.value as string}
+            onChange={(e) => handleValueChange(e.target.value)}
+            placeholder="Enter value"
           />
         );
-      
+
       case 'number':
         return (
-          <NumberInput
-            value={value || 0}
-            onChange={(_, valueAsNumber) => updateValue(valueAsNumber)}
-            size="sm"
-            flex={index === -1 ? 1 : undefined}
-          >
-            <NumberInputField />
-            <NumberInputStepper>
-              <NumberIncrementStepper />
-              <NumberDecrementStepper />
-            </NumberInputStepper>
-          </NumberInput>
+          <Input
+            type="number"
+            value={value.value as number}
+            onChange={(e) => handleValueChange(Number(e.target.value))}
+            placeholder="Enter number"
+          />
         );
-      
+
       case 'boolean':
         return (
-          <Checkbox
-            isChecked={!!value}
-            onChange={(e) => updateValue(e.target.checked)}
-          >
-            {value ? 'True' : 'False'}
-          </Checkbox>
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id={`checkbox-${field.id}`}
+              checked={value.value as boolean}
+              onChange={(e) => handleValueChange(e.target.checked)}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor={`checkbox-${field.id}`} className="text-sm font-medium text-gray-700">
+              {value.value ? 'True' : 'False'}
+            </label>
+          </div>
         );
-      
+
       case 'date':
         return (
-          <Box flex={index === -1 ? 1 : undefined}>
-            <DatePicker
-              selected={value ? new Date(value) : new Date()}
-              onChange={(date) => updateValue(date)}
-              size="sm"
-            />
-          </Box>
+          <DatePicker
+            selected={value.value as Date}
+            onChange={(date) => handleValueChange(date)}
+            placeholderText="Select date"
+          />
         );
-      
+
       case 'select':
         return (
-          <Select
-            value={value || ''}
-            onChange={(e) => updateValue(e.target.value)}
-            size="sm"
-            flex={index === -1 ? 1 : undefined}
-          >
-            {field.options?.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
+          <Select value={value.value as string} onValueChange={handleValueChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select option" />
+            </SelectTrigger>
+            <SelectContent>
+              {field.options?.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
         );
-      
+
       case 'multiselect':
+        const selectedValues = (value.value as string[]) || [];
         return (
-          <Stack flex={index === -1 ? 1 : undefined}>
+          <div className="space-y-2">
             {field.options?.map((option) => (
-              <Checkbox
-                key={option.value}
-                isChecked={Array.isArray(value) ? value.includes(option.value) : false}
-                onChange={(e) => {
-                  const currentValues = Array.isArray(value) ? [...value] : [];
-                  if (e.target.checked) {
-                    updateValue([...currentValues, option.value]);
-                  } else {
-                    updateValue(currentValues.filter(v => v !== option.value));
-                  }
-                }}
-              >
-                {option.label}
-              </Checkbox>
+              <div key={option.value} className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id={`multiselect-${field.id}-${option.value}`}
+                  checked={selectedValues.includes(option.value)}
+                  onChange={(e) => {
+                    const newValues = e.target.checked
+                      ? [...selectedValues, option.value]
+                      : selectedValues.filter(v => v !== option.value);
+                    handleValueChange(newValues);
+                  }}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor={`multiselect-${field.id}-${option.value}`} className="text-sm font-medium text-gray-700">
+                  {option.label}
+                </label>
+              </div>
             ))}
-          </Stack>
+          </div>
         );
-      
+
       default:
-        return <Input size="sm" placeholder="Value" flex={index === -1 ? 1 : undefined} />;
+        return (
+          <Input
+            type="text"
+            value={value.value as string}
+            onChange={(e) => handleValueChange(e.target.value)}
+            placeholder="Enter value"
+          />
+        );
     }
   };
 
   return (
-    <Flex
-      bg={bgColor}
-      p={2}
-      borderRadius="md"
-      alignItems="center"
-      gap={2}
-    >
-      <Text fontWeight="medium" fontSize="sm" minWidth="auto" width="auto">
-        {field.label}
-      </Text>
-      
-      <Select
-        value={condition.operator}
-        onChange={handleOperatorChange}
-        size="sm"
-        width="auto"
-        minWidth="140px"
-      >
-        {operatorOptions.map(op => (
-          <option key={op.value} value={op.value}>
-            {op.label}
-          </option>
-        ))}
-      </Select>
-      
-      {renderValueInput()}
-      
-      <IconButton
-        aria-label="Remove filter"
-        icon={<FiX />}
-        size="sm"
+    <div className="flex items-center space-x-2 p-3 border rounded-lg bg-gray-50">
+      {/* Field name */}
+      <div className="min-w-0 flex-1">
+        <span className="text-sm font-medium text-gray-700">{field.label}</span>
+      </div>
+
+      {/* Operator */}
+      <div className="min-w-0 flex-1">
+        <Select value={value.operator} onValueChange={handleOperatorChange}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {getOperators(field.type).map((op) => (
+              <SelectItem key={op.value} value={op.value}>
+                {op.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Value */}
+      <div className="min-w-0 flex-1">
+        {renderValueInput()}
+      </div>
+
+      {/* Delete button */}
+      <Button
         variant="ghost"
+        size="sm"
         onClick={onDelete}
-      />
-    </Flex>
+        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+      >
+        ×
+      </Button>
+    </div>
   );
 };
 

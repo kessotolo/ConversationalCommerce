@@ -1,25 +1,10 @@
 import React from 'react';
-import {
-  Box,
-  Flex,
-  Text,
-  Heading,
-  Badge,
-  Stack,
-  HStack,
-  Grid,
-  SimpleGrid,
-  Stat,
-  StatLabel,
-  StatNumber,
-  StatHelpText,
-  StatArrow,
-  useColorModeValue,
-  Tooltip,
-  Icon,
-} from '@chakra-ui/react';
+import { Badge } from '@/components/ui/badge';
+// If you do not have a Tooltip primitive, use a fallback or remove this import.
+// import { Tooltip } from '@/components/ui/tooltip';
 import { FiInfo, FiArrowUp, FiArrowDown } from 'react-icons/fi';
-import TrendChart, { ChartType } from './TrendChart';
+import TrendChart from './TrendChart';
+import type { ChartType } from './TrendChart';
 
 interface ComparisonSeries {
   key: string;
@@ -63,92 +48,81 @@ const ComparisonChart: React.FC<ComparisonChartProps> = ({
   height = 250,
   loading = false,
 }) => {
-  const cardBg = useColorModeValue('white', 'gray.800');
-  const borderColor = useColorModeValue('gray.200', 'gray.700');
-  const textColor = useColorModeValue('gray.600', 'gray.400');
-  const highlightBg = useColorModeValue('blue.50', 'blue.900');
-  
-  // Calculate color schemes for badges
-  const getPercentChangeBadge = (percentChange?: number) => {
+  // Calculate badge color and icon for percent change
+  type BadgeVariant = 'default' | 'outline' | 'success' | 'warning' | 'secondary' | 'destructive' | 'info' | 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | undefined;
+  const getPercentChangeBadge = (percentChange?: number): { color: BadgeVariant; icon: React.ReactNode; text: string } => {
     if (percentChange === undefined || percentChange === 0) {
       return {
-        colorScheme: 'gray',
+        color: 'secondary',
         icon: null,
         text: '0%',
       };
     }
-    
     const isPositive = percentChange > 0;
     const absoluteChange = Math.abs(percentChange);
-    
     return {
-      colorScheme: isPositive ? 'green' : 'red',
-      icon: isPositive ? FiArrowUp : FiArrowDown,
+      color: isPositive ? 'success' : 'destructive', // shadcn/ui badge color
+      icon: isPositive ? <FiArrowUp className="inline w-3 h-3" /> : <FiArrowDown className="inline w-3 h-3" />,
       text: `${isPositive ? '+' : '-'}${absoluteChange.toFixed(1)}%`,
     };
   };
 
   return (
-    <Box
-      bg={cardBg}
-      p={4}
-      borderRadius="lg"
-      boxShadow="sm"
-      border="1px"
-      borderColor={borderColor}
-    >
+    <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
       {/* Header */}
-      <Flex justifyContent="space-between" alignItems="flex-start" mb={4}>
-        <Box>
-          <Heading as="h3" size="sm" mb={1}>
-            {title}
-          </Heading>
+      <div className="flex justify-between items-start mb-4">
+        <div>
+          <div className="text-base font-semibold mb-1">{title}</div>
           {description && (
-            <HStack spacing={1}>
-              <Text color={textColor} fontSize="sm">
-                {description}
-              </Text>
-              <Tooltip label={description} placement="top">
-                <span>
-                  <Icon as={FiInfo} color={textColor} boxSize={3} />
-                </span>
-              </Tooltip>
-            </HStack>
+            <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+              <span>{description}</span>
+              <span className="ml-1 align-middle" title={description}>
+                <FiInfo className="inline w-3 h-3" />
+              </span>
+            </div>
           )}
-        </Box>
-      </Flex>
+        </div>
+      </div>
 
       {/* Summary Stats */}
       {periods.length > 0 && (
-        <SimpleGrid columns={{ base: 1, md: periods.length }} spacing={4} mb={6}>
+        <div
+          className={`grid gap-4 mb-6 ${periods.length > 1 ? `md:grid-cols-${periods.length}` : ''}`}
+          style={periods.length > 1 ? { gridTemplateColumns: `repeat(${periods.length}, minmax(0, 1fr))` } : {}}
+        >
           {periods.map((period) => {
             const badge = getPercentChangeBadge(period.percentChange);
-            
             return (
-              <Stat key={period.id} p={3} bg={highlightBg} borderRadius="md">
-                <StatLabel fontSize="xs">{period.name}</StatLabel>
-                <StatNumber fontSize="xl">{metricFormatFn(period.total ?? 0)}</StatNumber>
+              <div
+                key={period.id}
+                className="p-3 bg-blue-50 dark:bg-blue-900 rounded-md flex flex-col gap-1"
+              >
+                <div className="text-xs font-medium text-gray-600 dark:text-gray-300">{period.name}</div>
+                <div className="text-xl font-bold text-gray-900 dark:text-white">
+                  {metricFormatFn(period.total ?? 0)}
+                </div>
                 {period.previousTotal !== undefined && (
-                  <HStack spacing={1}>
-                    <StatHelpText mb={0}>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
                       vs. {metricFormatFn(period.previousTotal)}
-                    </StatHelpText>
-                    <Badge colorScheme={badge.colorScheme} variant="subtle">
-                      <HStack spacing={1}>
-                        {badge.icon && <Icon as={badge.icon} boxSize="10px" />}
-                        <Text>{badge.text}</Text>
-                      </HStack>
+                    </span>
+                    <Badge variant={badge.color} className="flex items-center gap-1 px-2 py-0.5 text-xs">
+                      {badge.icon}
+                      <span>{badge.text}</span>
                     </Badge>
-                  </HStack>
+                  </div>
                 )}
-              </Stat>
+              </div>
             );
           })}
-        </SimpleGrid>
+        </div>
       )}
 
       {/* Charts */}
-      <SimpleGrid columns={{ base: 1, md: periods.length }} spacing={6}>
+      <div
+        className={`grid gap-6 ${periods.length > 1 ? `md:grid-cols-${periods.length}` : ''}`}
+        style={periods.length > 1 ? { gridTemplateColumns: `repeat(${periods.length}, minmax(0, 1fr))` } : {}}
+      >
         {periods.map((period) => (
           <TrendChart
             key={period.id}
@@ -161,9 +135,10 @@ const ComparisonChart: React.FC<ComparisonChartProps> = ({
             loading={loading}
           />
         ))}
-      </SimpleGrid>
-    </Box>
+      </div>
+    </div>
   );
 };
+
 
 export default ComparisonChart;

@@ -3,7 +3,7 @@
 import { RefreshCcw } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { useTenant } from '@/contexts/TenantContext';
 import type { Order } from '@/modules/order/models/order';
 import { OrderStatus } from '@/modules/order/models/order';

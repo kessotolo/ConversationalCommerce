@@ -1,425 +1,450 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Heading,
-  FormControl,
-  FormLabel,
-  Select,
-  Stack,
-  VStack,
-  HStack,
-  Button,
-  Text,
-  Tag,
-  TagLabel,
-  TagCloseButton,
-  Tabs,
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel,
-  useColorModeValue,
-} from '@chakra-ui/react';
-import { FiPlus } from 'react-icons/fi';
+import { FiPlus, FiX, FiBarChart, FiLayers, FiFilter, FiSettings } from 'react-icons/fi';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import FilterBuilder from './FilterBuilder';
+import type { FilterGroup, FilterField } from './FilterBuilder';
 
-import { AnalyticsQuery } from '../../types/analytics';
-import DateRangeSelector, { DateRange } from '../DateRangeSelector';
-import FilterBuilder, { FilterGroup } from './FilterBuilder';
-
-// Available metrics
-const AVAILABLE_METRICS = [
-  { id: 'revenue', name: 'Revenue' },
-  { id: 'orders', name: 'Order Count' },
-  { id: 'average_order_value', name: 'Average Order Value' },
-  { id: 'conversion_rate', name: 'Conversion Rate' },
-  { id: 'cart_abandonment_rate', name: 'Cart Abandonment Rate' },
-  { id: 'product_views', name: 'Product Views' },
-  { id: 'customer_count', name: 'Customer Count' },
-  { id: 'new_customers', name: 'New Customers' },
-  { id: 'returning_customers', name: 'Returning Customers' },
-  { id: 'website_visits', name: 'Website Visits' },
-];
-
-// Available dimensions
-const AVAILABLE_DIMENSIONS = [
-  { id: 'date', name: 'Date' },
-  { id: 'hour', name: 'Hour' },
-  { id: 'day_of_week', name: 'Day of Week' },
-  { id: 'month', name: 'Month' },
-  { id: 'quarter', name: 'Quarter' },
-  { id: 'year', name: 'Year' },
-  { id: 'product_id', name: 'Product' },
-  { id: 'product_category', name: 'Product Category' },
-  { id: 'customer_id', name: 'Customer' },
-  { id: 'device_type', name: 'Device Type' },
-  { id: 'payment_method', name: 'Payment Method' },
-  { id: 'shipping_method', name: 'Shipping Method' },
-  { id: 'region', name: 'Region' },
-  { id: 'country', name: 'Country' },
-  { id: 'channel', name: 'Marketing Channel' },
-];
-
-// Available sort directions
-const SORT_DIRECTIONS = [
-  { id: 'false', name: 'Ascending' },
-  { id: 'true', name: 'Descending' },
-];
+interface AnalyticsQuery {
+  metrics: string[];
+  dimensions: string[];
+  date_range: {
+    start_date: string;
+    end_date: string;
+  };
+  filters: Record<string, any>;
+  sort_by: string;
+  sort_desc: boolean;
+  limit: number;
+}
 
 interface AnalyticsQueryBuilderProps {
   initialQuery: AnalyticsQuery;
   onChange: (query: AnalyticsQuery) => void;
 }
 
-const AnalyticsQueryBuilder: React.FC<AnalyticsQueryBuilderProps> = ({ 
-  initialQuery, 
-  onChange 
+interface MetricDefinition {
+  key: string;
+  label: string;
+  description: string;
+  category: string;
+}
+
+interface DimensionDefinition {
+  key: string;
+  label: string;
+  description: string;
+  category: string;
+}
+
+const AnalyticsQueryBuilder: React.FC<AnalyticsQueryBuilderProps> = ({
+  initialQuery,
+  onChange
 }) => {
   const [query, setQuery] = useState<AnalyticsQuery>(initialQuery);
-  const bgColor = useColorModeValue('gray.50', 'gray.700');
-  const borderColor = useColorModeValue('gray.200', 'gray.600');
-  
+  const [filterGroups, setFilterGroups] = useState<FilterGroup[]>([]);
+  const [activeTab, setActiveTab] = useState<'metrics' | 'dimensions' | 'filters' | 'settings'>('metrics');
+
+  // Available metrics
+  const availableMetrics: MetricDefinition[] = [
+    { key: 'revenue', label: 'Revenue', description: 'Total revenue generated', category: 'Financial' },
+    { key: 'orders', label: 'Orders', description: 'Number of orders', category: 'Sales' },
+    { key: 'conversion_rate', label: 'Conversion Rate', description: 'Percentage of visitors who make a purchase', category: 'Performance' },
+    { key: 'average_order_value', label: 'Average Order Value', description: 'Average amount spent per order', category: 'Financial' },
+    { key: 'customer_count', label: 'Customer Count', description: 'Number of unique customers', category: 'Customers' },
+    { key: 'product_views', label: 'Product Views', description: 'Number of product page views', category: 'Engagement' },
+    { key: 'cart_abandonment_rate', label: 'Cart Abandonment Rate', description: 'Percentage of carts left without purchase', category: 'Performance' },
+    { key: 'return_rate', label: 'Return Rate', description: 'Percentage of orders returned', category: 'Quality' }
+  ];
+
+  // Available dimensions
+  const availableDimensions: DimensionDefinition[] = [
+    { key: 'date', label: 'Date', description: 'Group by date', category: 'Time' },
+    { key: 'product_category', label: 'Product Category', description: 'Group by product category', category: 'Product' },
+    { key: 'customer_segment', label: 'Customer Segment', description: 'Group by customer segment', category: 'Customer' },
+    { key: 'channel', label: 'Channel', description: 'Group by sales channel', category: 'Channel' },
+    { key: 'region', label: 'Region', description: 'Group by geographic region', category: 'Geography' },
+    { key: 'device_type', label: 'Device Type', description: 'Group by device type', category: 'Technology' },
+    { key: 'traffic_source', label: 'Traffic Source', description: 'Group by traffic source', category: 'Marketing' },
+    { key: 'payment_method', label: 'Payment Method', description: 'Group by payment method', category: 'Payment' }
+  ];
+
+  // Available filter fields
+  const filterFields: FilterField[] = [
+    {
+      id: 'product_category', name: 'product_category', label: 'Product Category', type: 'select', options: [
+        { value: 'electronics', label: 'Electronics' },
+        { value: 'clothing', label: 'Clothing' },
+        { value: 'books', label: 'Books' }
+      ]
+    },
+    {
+      id: 'customer_segment', name: 'customer_segment', label: 'Customer Segment', type: 'select', options: [
+        { value: 'new', label: 'New Customers' },
+        { value: 'returning', label: 'Returning Customers' },
+        { value: 'vip', label: 'VIP Customers' }
+      ]
+    },
+    { id: 'order_value', name: 'order_value', label: 'Order Value', type: 'number' },
+    { id: 'order_date', name: 'order_date', label: 'Order Date', type: 'date' },
+    { id: 'is_mobile', name: 'is_mobile', label: 'Mobile Order', type: 'boolean' }
+  ];
+
   // Update local state when initialQuery changes
   useEffect(() => {
     setQuery(initialQuery);
   }, [initialQuery]);
-  
-  // Handle metric selection
-  const handleMetricChange = (metricId: string) => {
-    const isSelected = query.metrics.includes(metricId);
-    let updatedMetrics;
-    
-    if (isSelected) {
-      // Remove metric
-      updatedMetrics = query.metrics.filter(id => id !== metricId);
-    } else {
-      // Add metric
-      updatedMetrics = [...query.metrics, metricId];
-    }
-    
-    const updatedQuery = { ...query, metrics: updatedMetrics };
+
+  // Update parent when query changes
+  const updateQuery = (updatedQuery: AnalyticsQuery) => {
     setQuery(updatedQuery);
     onChange(updatedQuery);
-  };
-  
-  // Handle dimension selection
-  const handleDimensionChange = (dimensionId: string) => {
-    const isSelected = query.dimensions.includes(dimensionId);
-    let updatedDimensions;
-    
-    if (isSelected) {
-      // Remove dimension
-      updatedDimensions = query.dimensions.filter(id => id !== dimensionId);
-    } else {
-      // Add dimension
-      updatedDimensions = [...query.dimensions, dimensionId];
-    }
-    
-    const updatedQuery = { ...query, dimensions: updatedDimensions };
-    setQuery(updatedQuery);
-    onChange(updatedQuery);
-  };
-  
-  // Handle date range change
-  const handleDateRangeChange = (dateRange: DateRange) => {
-    const updatedQuery = {
-      ...query,
-      date_range: {
-        start_date: dateRange.startDate.toISOString().split('T')[0],
-        end_date: dateRange.endDate.toISOString().split('T')[0],
-      },
-    };
-    setQuery(updatedQuery);
-    onChange(updatedQuery);
-  };
-  
-  // Handle filter changes
-  const handleFilterChange = (filters: FilterGroup[]) => {
-    // Convert FilterGroup[] structure to the format expected by the API
-    const filterObject: Record<string, any> = {};
-    
-    filters.forEach(group => {
-      group.conditions.forEach(condition => {
-        // Creating a nested structure based on field and operator
-        if (!filterObject[condition.field]) {
-          filterObject[condition.field] = {};
-        }
-        filterObject[condition.field][condition.operator] = condition.value;
-      });
-    });
-    
-    const updatedQuery = { ...query, filters: filterObject };
-    setQuery(updatedQuery);
-    onChange(updatedQuery);
-  };
-  
-  // Handle sort by change
-  const handleSortByChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const updatedQuery = { ...query, sort_by: e.target.value };
-    setQuery(updatedQuery);
-    onChange(updatedQuery);
-  };
-  
-  // Handle sort direction change
-  const handleSortDirectionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const sortDesc = e.target.value === 'true';
-    const updatedQuery = { ...query, sort_desc: sortDesc };
-    setQuery(updatedQuery);
-    onChange(updatedQuery);
-  };
-  
-  // Handle limit change
-  const handleLimitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const updatedQuery = { ...query, limit: parseInt(e.target.value, 10) };
-    setQuery(updatedQuery);
-    onChange(updatedQuery);
-  };
-  
-  // Get initial date range for date range selector
-  const getInitialDateRange = (): DateRange => {
-    return {
-      startDate: new Date(query.date_range.start_date),
-      endDate: new Date(query.date_range.end_date),
-      key: 'selection',
-    };
-  };
-  
-  // Format filters for the FilterBuilder
-  const getInitialFilters = (): FilterGroup[] => {
-    // If no filters, return empty array with one group
-    if (!query.filters || Object.keys(query.filters).length === 0) {
-      return [{
-        id: 'group-1',
-        logic: 'and',
-        conditions: [],
-      }];
-    }
-    
-    // Convert API filter format to FilterGroup[]
-    const group: FilterGroup = {
-      id: 'group-1',
-      logic: 'and',
-      conditions: [],
-    };
-    
-    Object.entries(query.filters).forEach(([field, operators]) => {
-      Object.entries(operators as Record<string, any>).forEach(([operator, value]) => {
-        group.conditions.push({
-          field,
-          operator,
-          value,
-        });
-      });
-    });
-    
-    return [group];
   };
 
+  // Add metric to query
+  const addMetric = (metricKey: string) => {
+    if (!query.metrics.includes(metricKey)) {
+      const updatedQuery = {
+        ...query,
+        metrics: [...query.metrics, metricKey]
+      };
+      updateQuery(updatedQuery);
+    }
+  };
+
+  // Remove metric from query
+  const removeMetric = (metricKey: string) => {
+    const updatedQuery = {
+      ...query,
+      metrics: query.metrics.filter(m => m !== metricKey)
+    };
+    updateQuery(updatedQuery);
+  };
+
+  // Add dimension to query
+  const addDimension = (dimensionKey: string) => {
+    if (!query.dimensions.includes(dimensionKey)) {
+      const updatedQuery = {
+        ...query,
+        dimensions: [...query.dimensions, dimensionKey]
+      };
+      updateQuery(updatedQuery);
+    }
+  };
+
+  // Remove dimension from query
+  const removeDimension = (dimensionKey: string) => {
+    const updatedQuery = {
+      ...query,
+      dimensions: query.dimensions.filter(d => d !== dimensionKey)
+    };
+    updateQuery(updatedQuery);
+  };
+
+  // Handle filter changes
+  const handleFilterChange = (groups: FilterGroup[]) => {
+    setFilterGroups(groups);
+    const updatedQuery = {
+      ...query,
+      filters: { groups }
+    };
+    updateQuery(updatedQuery);
+  };
+
+  // Get metric label
+  const getMetricLabel = (key: string): string => {
+    const metric = availableMetrics.find(m => m.key === key);
+    return metric?.label || key;
+  };
+
+  // Get dimension label
+  const getDimensionLabel = (key: string): string => {
+    const dimension = availableDimensions.find(d => d.key === key);
+    return dimension?.label || key;
+  };
+
+  // Group metrics by category
+  const groupedMetrics = availableMetrics.reduce((acc, metric) => {
+    const category = metric.category;
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push(metric);
+    return acc;
+  }, {} as Record<string, MetricDefinition[]>);
+
+  // Group dimensions by category
+  const groupedDimensions = availableDimensions.reduce((acc, dimension) => {
+    const category = dimension.category;
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push(dimension);
+    return acc;
+  }, {} as Record<string, DimensionDefinition[]>);
+
   return (
-    <Box>
-      <Tabs variant="enclosed" colorScheme="blue">
-        <TabList>
-          <Tab>Metrics & Dimensions</Tab>
-          <Tab>Filters</Tab>
-          <Tab>Date Range</Tab>
-          <Tab>Display Options</Tab>
-        </TabList>
-        
-        <TabPanels>
-          <TabPanel>
-            <Stack spacing={6}>
-              {/* Metrics Selection */}
-              <Box>
-                <Heading size="sm" mb={2}>
-                  Metrics
-                </Heading>
-                <Text fontSize="sm" mb={3} color="gray.500">
-                  Select the metrics you want to include in your report.
-                </Text>
-                
-                <Box bg={bgColor} borderRadius="md" p={4} borderWidth="1px" borderColor={borderColor}>
-                  <Stack spacing={3}>
-                    {AVAILABLE_METRICS.map(metric => (
-                      <Button
-                        key={metric.id}
-                        size="sm"
-                        variant={query.metrics.includes(metric.id) ? "solid" : "outline"}
-                        colorScheme={query.metrics.includes(metric.id) ? "blue" : "gray"}
-                        onClick={() => handleMetricChange(metric.id)}
-                      >
-                        {metric.name}
-                      </Button>
-                    ))}
-                  </Stack>
-                </Box>
-              </Box>
-              
-              {/* Dimensions Selection */}
-              <Box>
-                <Heading size="sm" mb={2}>
-                  Dimensions
-                </Heading>
-                <Text fontSize="sm" mb={3} color="gray.500">
-                  Select the dimensions to group your data by.
-                </Text>
-                
-                <Box bg={bgColor} borderRadius="md" p={4} borderWidth="1px" borderColor={borderColor}>
-                  <Stack spacing={3}>
-                    {AVAILABLE_DIMENSIONS.map(dimension => (
-                      <Button
-                        key={dimension.id}
-                        size="sm"
-                        variant={query.dimensions.includes(dimension.id) ? "solid" : "outline"}
-                        colorScheme={query.dimensions.includes(dimension.id) ? "blue" : "gray"}
-                        onClick={() => handleDimensionChange(dimension.id)}
-                      >
-                        {dimension.name}
-                      </Button>
-                    ))}
-                  </Stack>
-                </Box>
-              </Box>
-            </Stack>
-          </TabPanel>
-          
-          <TabPanel>
-            <Box>
-              <Heading size="sm" mb={2}>
+    <div className="w-full space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FiBarChart className="h-5 w-5" />
+            Analytics Query Builder
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger
+                active={activeTab === 'metrics'}
+                onClick={() => setActiveTab('metrics')}
+                className="flex items-center gap-2"
+              >
+                <FiBarChart className="h-4 w-4" />
+                Metrics
+              </TabsTrigger>
+              <TabsTrigger
+                active={activeTab === 'dimensions'}
+                onClick={() => setActiveTab('dimensions')}
+                className="flex items-center gap-2"
+              >
+                <FiLayers className="h-4 w-4" />
+                Dimensions
+              </TabsTrigger>
+              <TabsTrigger
+                active={activeTab === 'filters'}
+                onClick={() => setActiveTab('filters')}
+                className="flex items-center gap-2"
+              >
+                <FiFilter className="h-4 w-4" />
                 Filters
-              </Heading>
-              <Text fontSize="sm" mb={3} color="gray.500">
-                Add filters to narrow down your report data.
-              </Text>
-              
-              <FilterBuilder
-                initialFilters={getInitialFilters()}
-                onChange={handleFilterChange}
-              />
-            </Box>
-          </TabPanel>
-          
-          <TabPanel>
-            <Box>
-              <Heading size="sm" mb={2}>
-                Date Range
-              </Heading>
-              <Text fontSize="sm" mb={3} color="gray.500">
-                Select the time period for your report data.
-              </Text>
-              
-              <DateRangeSelector
-                initialRange={getInitialDateRange()}
-                onChange={handleDateRangeChange}
-              />
-            </Box>
-          </TabPanel>
-          
-          <TabPanel>
-            <Stack spacing={6}>
-              {/* Sorting */}
-              <Box>
-                <Heading size="sm" mb={2}>
-                  Sorting
-                </Heading>
-                <Text fontSize="sm" mb={3} color="gray.500">
-                  Choose how to sort your report data.
-                </Text>
-                
-                <HStack spacing={4}>
-                  <FormControl>
-                    <FormLabel>Sort By</FormLabel>
-                    <Select value={query.sort_by} onChange={handleSortByChange}>
-                      {[...AVAILABLE_METRICS, ...AVAILABLE_DIMENSIONS].map(option => (
-                        <option key={option.id} value={option.id}>
-                          {option.name}
-                        </option>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  
-                  <FormControl>
-                    <FormLabel>Direction</FormLabel>
-                    <Select 
-                      value={query.sort_desc.toString()} 
-                      onChange={handleSortDirectionChange}
-                    >
-                      {SORT_DIRECTIONS.map(direction => (
-                        <option key={direction.id} value={direction.id}>
-                          {direction.name}
-                        </option>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </HStack>
-              </Box>
-              
-              {/* Limit */}
-              <Box>
-                <Heading size="sm" mb={2}>
-                  Row Limit
-                </Heading>
-                <Text fontSize="sm" mb={3} color="gray.500">
-                  Maximum number of rows to include in the report.
-                </Text>
-                
-                <FormControl>
-                  <Select value={query.limit.toString()} onChange={handleLimitChange}>
-                    <option value="100">100 rows</option>
-                    <option value="500">500 rows</option>
-                    <option value="1000">1,000 rows</option>
-                    <option value="5000">5,000 rows</option>
-                    <option value="10000">10,000 rows</option>
-                  </Select>
-                </FormControl>
-              </Box>
-            </Stack>
-          </TabPanel>
-        </TabPanels>
-      </Tabs>
-      
-      {/* Summary */}
-      <Box mt={4} p={4} bg={bgColor} borderRadius="md" borderWidth="1px" borderColor={borderColor}>
-        <Heading size="sm" mb={3}>Query Summary</Heading>
-        
-        {query.metrics.length > 0 && (
-          <Box mb={3}>
-            <Text fontWeight="bold" mb={1}>Metrics:</Text>
-            <HStack spacing={2} wrap="wrap">
-              {query.metrics.map(metricId => {
-                const metric = AVAILABLE_METRICS.find(m => m.id === metricId);
-                return (
-                  <Tag key={metricId} colorScheme="blue" size="md">
-                    {metric?.name || metricId}
-                  </Tag>
-                );
-              })}
-            </HStack>
-          </Box>
-        )}
-        
-        {query.dimensions.length > 0 && (
-          <Box mb={3}>
-            <Text fontWeight="bold" mb={1}>Dimensions:</Text>
-            <HStack spacing={2} wrap="wrap">
-              {query.dimensions.map(dimensionId => {
-                const dimension = AVAILABLE_DIMENSIONS.find(d => d.id === dimensionId);
-                return (
-                  <Tag key={dimensionId} colorScheme="green" size="md">
-                    {dimension?.name || dimensionId}
-                  </Tag>
-                );
-              })}
-            </HStack>
-          </Box>
-        )}
-        
-        <Box>
-          <Text fontWeight="bold" mb={1}>Date Range:</Text>
-          <Text>
-            {new Date(query.date_range.start_date).toLocaleDateString()} to {new Date(query.date_range.end_date).toLocaleDateString()}
-          </Text>
-        </Box>
-      </Box>
-    </Box>
+              </TabsTrigger>
+              <TabsTrigger
+                active={activeTab === 'settings'}
+                onClick={() => setActiveTab('settings')}
+                className="flex items-center gap-2"
+              >
+                <FiSettings className="h-4 w-4" />
+                Settings
+              </TabsTrigger>
+            </TabsList>
+
+            {activeTab === 'metrics' && (
+              <TabsContent className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium mb-3">Selected Metrics</h3>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {query.metrics.length > 0 ? (
+                      query.metrics.map((metric) => (
+                        <Badge key={metric} variant="default" className="flex items-center gap-1">
+                          {getMetricLabel(metric)}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-4 w-4 p-0 hover:bg-transparent"
+                            onClick={() => removeMetric(metric)}
+                          >
+                            <FiX className="h-3 w-3" />
+                          </Button>
+                        </Badge>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-500">No metrics selected</p>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium mb-3">Available Metrics</h3>
+                  <div className="space-y-4">
+                    {Object.entries(groupedMetrics).map(([category, metrics]) => (
+                      <div key={category}>
+                        <h4 className="text-xs font-medium text-gray-600 mb-2">{category}</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {metrics.map((metric) => (
+                            <div
+                              key={metric.key}
+                              className="flex items-center justify-between p-2 border rounded-lg hover:bg-gray-50"
+                            >
+                              <div className="flex-1">
+                                <p className="text-sm font-medium">{metric.label}</p>
+                                <p className="text-xs text-gray-500">{metric.description}</p>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => addMetric(metric.key)}
+                                disabled={query.metrics.includes(metric.key)}
+                              >
+                                <FiPlus className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+            )}
+
+            {activeTab === 'dimensions' && (
+              <TabsContent className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium mb-3">Selected Dimensions</h3>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {query.dimensions.length > 0 ? (
+                      query.dimensions.map((dimension) => (
+                        <Badge key={dimension} variant="secondary" className="flex items-center gap-1">
+                          {getDimensionLabel(dimension)}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-4 w-4 p-0 hover:bg-transparent"
+                            onClick={() => removeDimension(dimension)}
+                          >
+                            <FiX className="h-3 w-3" />
+                          </Button>
+                        </Badge>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-500">No dimensions selected</p>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium mb-3">Available Dimensions</h3>
+                  <div className="space-y-4">
+                    {Object.entries(groupedDimensions).map(([category, dimensions]) => (
+                      <div key={category}>
+                        <h4 className="text-xs font-medium text-gray-600 mb-2">{category}</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {dimensions.map((dimension) => (
+                            <div
+                              key={dimension.key}
+                              className="flex items-center justify-between p-2 border rounded-lg hover:bg-gray-50"
+                            >
+                              <div className="flex-1">
+                                <p className="text-sm font-medium">{dimension.label}</p>
+                                <p className="text-xs text-gray-500">{dimension.description}</p>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => addDimension(dimension.key)}
+                                disabled={query.dimensions.includes(dimension.key)}
+                              >
+                                <FiPlus className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+            )}
+
+            {activeTab === 'filters' && (
+              <TabsContent className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium mb-3">Query Filters</h3>
+                  <FilterBuilder
+                    fields={filterFields}
+                    onChange={handleFilterChange}
+                    initialFilters={filterGroups}
+                  />
+                </div>
+              </TabsContent>
+            )}
+
+            {activeTab === 'settings' && (
+              <TabsContent className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium mb-3">Query Settings</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">Sort By</label>
+                      <Select value={query.sort_by} onValueChange={(value) => {
+                        const updatedQuery = { ...query, sort_by: value };
+                        updateQuery(updatedQuery);
+                      }}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select sort field" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {query.metrics.map((metric) => (
+                            <SelectItem key={metric} value={metric}>
+                              {getMetricLabel(metric)}
+                            </SelectItem>
+                          ))}
+                          {query.dimensions.map((dimension) => (
+                            <SelectItem key={dimension} value={dimension}>
+                              {getDimensionLabel(dimension)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">Sort Direction</label>
+                      <Select value={query.sort_desc ? 'desc' : 'asc'} onValueChange={(value) => {
+                        const updatedQuery = { ...query, sort_desc: value === 'desc' };
+                        updateQuery(updatedQuery);
+                      }}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="asc">Ascending</SelectItem>
+                          <SelectItem value="desc">Descending</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">Result Limit</label>
+                      <Select value={query.limit.toString()} onValueChange={(value) => {
+                        const updatedQuery = { ...query, limit: parseInt(value, 10) };
+                        updateQuery(updatedQuery);
+                      }}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="10">10 results</SelectItem>
+                          <SelectItem value="25">25 results</SelectItem>
+                          <SelectItem value="50">50 results</SelectItem>
+                          <SelectItem value="100">100 results</SelectItem>
+                          <SelectItem value="500">500 results</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Query Summary</h4>
+                  <div className="text-sm text-gray-600 space-y-1">
+                    <p><strong>Metrics:</strong> {query.metrics.length > 0 ? query.metrics.map(getMetricLabel).join(', ') : 'None'}</p>
+                    <p><strong>Dimensions:</strong> {query.dimensions.length > 0 ? query.dimensions.map(getDimensionLabel).join(', ') : 'None'}</p>
+                    <p><strong>Filters:</strong> {filterGroups.length > 0 ? `${filterGroups.length} filter group(s)` : 'None'}</p>
+                    <p><strong>Sort:</strong> {query.sort_by ? `${getMetricLabel(query.sort_by) || getDimensionLabel(query.sort_by)} (${query.sort_desc ? 'desc' : 'asc'})` : 'None'}</p>
+                    <p><strong>Limit:</strong> {query.limit} results</p>
+                  </div>
+                </div>
+              </TabsContent>
+            )}
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

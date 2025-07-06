@@ -52,7 +52,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     if (previewCookie) {
       try {
         const cookieParts = previewCookie.split('=');
-        if (cookieParts.length > 1) {
+        if (cookieParts.length > 1 && cookieParts[1]) {
           const previewData = JSON.parse(decodeURIComponent(cookieParts[1]));
           setPreviewTheme(previewData);
         }

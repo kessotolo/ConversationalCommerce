@@ -21,7 +21,7 @@ import Typography from '@mui/material/Typography';
 import { MessageCircle, Send, Camera } from 'lucide-react';
 import React, { useState } from 'react';
 
-import { CardContent } from '@/components/ui/Card';
+import { CardContent } from '@/components/ui/card';
 import { ConversationEventType } from '@/modules/conversation/models/event';
 import { ConversationEventLogger } from '@/modules/conversation/utils/eventLogger';
 

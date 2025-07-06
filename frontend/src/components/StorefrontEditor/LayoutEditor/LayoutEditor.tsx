@@ -1,12 +1,16 @@
 import React from 'react';
 
+interface LayoutEditorProps {
+  tenantId: string;
+}
+
 /**
  * Layout Editor component for the Storefront Editor
  *
  * This is a placeholder component created to resolve TypeScript errors.
  * In the future, this component will allow users to edit the layout of their storefront.
  */
-const LayoutEditor = () => {
+const LayoutEditor: React.FC<LayoutEditorProps> = ({ tenantId }) => {
   return (
     <div className="p-4">
       <h2 className="text-2xl font-semibold mb-4">Layout Editor</h2>
