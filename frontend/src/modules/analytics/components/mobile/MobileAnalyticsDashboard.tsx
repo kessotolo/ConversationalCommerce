@@ -76,6 +76,10 @@ const MobileAnalyticsDashboard: React.FC<MobileAnalyticsDashboardProps> = ({
       return dateRange.label;
     }
 
+    if (!dateRange.startDate || !dateRange.endDate) {
+      return 'Select date range';
+    }
+
     const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
     const start = dateRange.startDate.toLocaleDateString(undefined, options);
     const end = dateRange.endDate.toLocaleDateString(undefined, options);
@@ -178,8 +182,9 @@ const MobileAnalyticsDashboard: React.FC<MobileAnalyticsDashboardProps> = ({
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setFilterDrawerOpen(false)}>
           <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-lg p-4 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <MobileFilterDrawer
-              filters={filters}
+              initialFilters={filters}
               onChange={handleFiltersChange}
+              metrics={metrics}
             />
           </div>
         </div>

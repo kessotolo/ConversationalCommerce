@@ -167,8 +167,8 @@ export default function MessagesPage() {
     : null;
   // Helper: get last message date
   // Use optional chaining and last array element access for type safety
-  const lastMsgDate = messages.length > 0 
-    ? new Date(messages.at(-1)?.created_at ?? Date.now()) 
+  const lastMsgDate = messages.length > 0
+    ? new Date(messages.at(-1)?.created_at ?? Date.now())
     : null;
   // Helper: is expired (order closed or >2 weeks old)
   let isOrderClosed = false;
@@ -445,7 +445,7 @@ export default function MessagesPage() {
                       className={`text-xs mt-1 flex justify-end items-center gap-1 ${sender === 'store' ? 'text-[#e6f0eb]' : 'text-gray-500'
                         }`}
                     >
-                      {formatDate(msg.created_at, 'time')}
+                      {formatDate(msg.created_at)}
                       {sender === 'store' && renderMessageStatus(status)}
                     </div>
                   </div>

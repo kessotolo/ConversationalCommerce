@@ -31,8 +31,8 @@ const PRESET_RANGES: { label: string; getValue: () => [Date, Date] }[] = [
 ];
 
 export interface DateRange {
-  startDate: Date;
-  endDate: Date;
+  startDate: Date | null;
+  endDate: Date | null;
   label?: string;
 }
 

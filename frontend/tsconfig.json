@@ -71,7 +71,6 @@
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": false,
     "exactOptionalPropertyTypes": false,
-    "verbatimModuleSyntax": true,
     "allowSyntheticDefaultImports": true,
     "jsxImportSource": "react",
     "strictNullChecks": true,

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -60,7 +59,7 @@ const ScheduledReportForm: React.FC<ScheduledReportFormProps> = ({
       limit: 1000,
     },
   };
-  
+
   // Handle email input
   const handleEmailInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, push: (email: string) => void) => {
     if (e.key === 'Enter' && newEmail.trim()) {
@@ -74,12 +73,12 @@ const ScheduledReportForm: React.FC<ScheduledReportFormProps> = ({
       setNewEmail('');
     }
   };
-  
+
   // Handle query change
   const handleQueryChange = (query: AnalyticsQuery, setFieldValue: (field: string, value: any) => void) => {
     setFieldValue('query_params', query);
   };
-  
+
   return (
     <Formik
       initialValues={initialValues || defaultValues}
@@ -122,7 +121,7 @@ const ScheduledReportForm: React.FC<ScheduledReportFormProps> = ({
               </div>
             </div>
             <hr className="my-6" />
-            
+
             {/* Schedule Configuration */}
             <div>
               <div className="text-lg font-medium mb-3">Schedule Configuration</div>
@@ -177,7 +176,7 @@ const ScheduledReportForm: React.FC<ScheduledReportFormProps> = ({
               </div>
             </div>
             <hr className="my-6" />
-            
+
             {/* Delivery Configuration */}
             <div>
               <div className="text-lg font-medium mb-3">Delivery Configuration</div>
@@ -242,7 +241,7 @@ const ScheduledReportForm: React.FC<ScheduledReportFormProps> = ({
               </div>
             </div>
             <hr className="my-6" />
-            
+
             {/* Query Configuration */}
             <div>
               <div className="text-lg font-medium mb-3">Report Data Configuration</div>
@@ -252,7 +251,7 @@ const ScheduledReportForm: React.FC<ScheduledReportFormProps> = ({
               />
             </div>
             <hr className="my-6" />
-            
+
             {/* Form Actions */}
             <div className="flex justify-end gap-2 mt-4">
               <button

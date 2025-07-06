@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { FilterGroup, FilterValue, FilterField } from '../filters/FilterBuilder';
-import MobileFilterCondition from './MobileFilterCondition';
+import FilterCondition from '../filters/FilterCondition';
 import { MetricDefinition } from './MobileAnalyticsDashboard';
 
 interface MobileFilterDrawerProps {
@@ -142,7 +142,7 @@ const MobileFilterDrawer: React.FC<MobileFilterDrawerProps> = ({
       if (group.id === groupId) {
         return {
           ...group,
-          logic: group.logic === 'and' ? 'or' : 'and'
+          logic: group.logic === 'and' ? 'or' as const : 'and' as const
         };
       }
       return group;
@@ -156,7 +156,7 @@ const MobileFilterDrawer: React.FC<MobileFilterDrawerProps> = ({
   const addFilterGroup = () => {
     const newGroup: FilterGroup = {
       id: `group-${Date.now()}`,
-      logic: 'and',
+      logic: 'and' as const,
       conditions: []
     };
 
@@ -173,7 +173,7 @@ const MobileFilterDrawer: React.FC<MobileFilterDrawerProps> = ({
     if (updatedFilters.length === 0) {
       updatedFilters.push({
         id: `group-${Date.now()}`,
-        logic: 'and',
+        logic: 'and' as const,
         conditions: []
       });
     }
@@ -342,15 +342,18 @@ const MobileFilterDrawer: React.FC<MobileFilterDrawerProps> = ({
                 if (!field) return null;
 
                 return (
-                  <MobileFilterCondition
-                    key={conditionIndex}
-                    condition={condition}
-                    field={field}
-                    onChange={(updatedCondition) =>
-                      updateCondition(group.id, conditionIndex, updatedCondition)
-                    }
-                    onDelete={() => deleteCondition(group.id, conditionIndex)}
-                  />
+                  <div key={conditionIndex} className="p-2 border rounded">
+                    <p className="text-sm">Filter: {field.label}</p>
+                    <p className="text-xs text-gray-500">Value: {JSON.stringify(condition.value)}</p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteCondition(group.id, conditionIndex)}
+                      className="h-6 w-6 p-0 mt-1"
+                    >
+                      <FiX className="h-4 w-4" />
+                    </Button>
+                  </div>
                 );
               })}
 
