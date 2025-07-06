@@ -1,17 +1,5 @@
 import React from "react";
-import {
-  Box,
-  SimpleGrid,
-  Stat,
-  StatLabel,
-  StatNumber,
-  StatHelpText,
-  Heading,
-  Text,
-  useColorModeValue,
-} from "@chakra-ui/react";
-import { useQuery } from "react-query";
-import { getSellerDashboardStats } from "../../services/sellerOnboardingService";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 
 interface StatCardProps {
   title: string;
@@ -26,54 +14,60 @@ const StatCard: React.FC<StatCardProps> = ({
   helpText,
   colorScheme = "blue",
 }) => {
-  const bgColor = useColorModeValue(`${colorScheme}.50`, `${colorScheme}.900`);
-  const textColor = useColorModeValue(`${colorScheme}.600`, `${colorScheme}.200`);
+  const getColorClasses = (scheme: string) => {
+    switch (scheme) {
+      case "yellow":
+        return "bg-yellow-50 border-yellow-200 text-yellow-800";
+      case "blue":
+        return "bg-blue-50 border-blue-200 text-blue-800";
+      case "green":
+        return "bg-green-50 border-green-200 text-green-800";
+      case "red":
+        return "bg-red-50 border-red-200 text-red-800";
+      case "orange":
+        return "bg-orange-50 border-orange-200 text-orange-800";
+      default:
+        return "bg-gray-50 border-gray-200 text-gray-800";
+    }
+  };
 
   return (
-    <Stat
-      px={4}
-      py={3}
-      borderWidth="1px"
-      borderRadius="lg"
-      boxShadow="sm"
-      bg={bgColor}
-    >
-      <StatLabel color={textColor} fontWeight="medium">
-        {title}
-      </StatLabel>
-      <StatNumber fontSize="3xl" fontWeight="bold">
-        {stat}
-      </StatNumber>
-      {helpText && <StatHelpText>{helpText}</StatHelpText>}
-    </Stat>
+    <Card className={`${getColorClasses(colorScheme)} shadow-sm`}>
+      <CardContent className="p-4">
+        <div className="space-y-2">
+          <p className="text-sm font-medium opacity-80">{title}</p>
+          <p className="text-3xl font-bold">{stat}</p>
+          {helpText && <p className="text-sm opacity-70">{helpText}</p>}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
 const SellerVerificationStats: React.FC = () => {
-  const { data: stats, isLoading, error } = useQuery(
-    "sellerDashboardStats",
-    getSellerDashboardStats
-  );
-
-  if (isLoading) {
-    return <Text>Loading statistics...</Text>;
-  }
-
-  if (error || !stats) {
-    return (
-      <Text color="red.500">
-        Error loading dashboard statistics: {(error as Error)?.message || "Unknown error"}
-      </Text>
-    );
-  }
+  // Mock stats data for now
+  const stats = {
+    pending_verifications: 12,
+    in_review_verifications: 8,
+    approved_sellers: 156,
+    rejected_verifications: 3,
+    additional_info_needed: 5,
+    pending_identity: 4,
+    pending_business: 3,
+    pending_banking: 2,
+    pending_tax: 2,
+    pending_address: 1,
+  };
 
   return (
-    <Box mb={8}>
-      <Heading size="md" mb={4}>
-        Seller Verification Dashboard
-      </Heading>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Seller Verification Dashboard</CardTitle>
+        </CardHeader>
+      </Card>
 
-      <SimpleGrid columns={{ base: 2, md: 3, lg: 5 }} spacing={4} mb={8}>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <StatCard
           title="Pending Verifications"
           stat={stats.pending_verifications}
@@ -99,19 +93,19 @@ const SellerVerificationStats: React.FC = () => {
           stat={stats.additional_info_needed}
           colorScheme="orange"
         />
-      </SimpleGrid>
+      </div>
 
-      <Heading size="sm" mb={3}>
-        Pending by Type
-      </Heading>
-      <SimpleGrid columns={{ base: 2, md: 3, lg: 5 }} spacing={4}>
-        <StatCard title="Identity" stat={stats.pending_identity} />
-        <StatCard title="Business" stat={stats.pending_business} />
-        <StatCard title="Banking" stat={stats.pending_banking} />
-        <StatCard title="Tax" stat={stats.pending_tax} />
-        <StatCard title="Address" stat={stats.pending_address} />
-      </SimpleGrid>
-    </Box>
+      <div className="space-y-4">
+        <h3 className="text-base font-semibold">Pending by Type</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <StatCard title="Identity" stat={stats.pending_identity} />
+          <StatCard title="Business" stat={stats.pending_business} />
+          <StatCard title="Banking" stat={stats.pending_banking} />
+          <StatCard title="Tax" stat={stats.pending_tax} />
+          <StatCard title="Address" stat={stats.pending_address} />
+        </div>
+      </div>
+    </div>
   );
 };
 

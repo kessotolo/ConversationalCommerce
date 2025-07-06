@@ -1,20 +1,6 @@
 import React, { useState } from "react";
-import {
-  Box,
-  Heading,
-  Tabs,
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel,
-  useDisclosure,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalCloseButton,
-} from "@chakra-ui/react";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 
 // Import our modular components
 import SellerVerificationStats from "./SellerVerificationStats";
@@ -23,93 +9,97 @@ import SellerVerificationDetail from "./SellerVerificationDetail";
 
 const SellerOnboardingAdminDashboard: React.FC = () => {
   const [selectedVerificationId, setSelectedVerificationId] = useState<string | null>(null);
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("pending");
 
   const handleViewVerificationDetails = (verificationId: string) => {
     setSelectedVerificationId(verificationId);
-    onOpen();
+    setIsModalOpen(true);
   };
 
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedVerificationId(null);
+  };
+
+  const tabs = [
+    { id: "pending", label: "Pending", statusFilter: "pending" },
+    { id: "review", label: "In Review", statusFilter: "in_review" },
+    { id: "info-needed", label: "Info Needed", statusFilter: "additional_info_needed" },
+    { id: "approved", label: "Approved", statusFilter: "approved" },
+    { id: "rejected", label: "Rejected", statusFilter: "rejected" },
+    { id: "all", label: "All", statusFilter: "" },
+  ];
+
   return (
-    <Box p={4}>
-      <Heading as="h1" size="lg" mb={6}>
-        Seller Onboarding Administration
-      </Heading>
+    <div className="p-6 space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold">
+            Seller Onboarding Administration
+          </CardTitle>
+        </CardHeader>
+      </Card>
 
       <SellerVerificationStats />
 
-      <Tabs variant="enclosed" colorScheme="blue" mt={8}>
-        <TabList>
-          <Tab>Pending Verifications</Tab>
-          <Tab>In Review</Tab>
-          <Tab>Additional Info Needed</Tab>
-          <Tab>Approved</Tab>
-          <Tab>Rejected</Tab>
-          <Tab>All Verifications</Tab>
-        </TabList>
+      <Card>
+        <CardContent className="p-6">
+          {/* Custom Tab Navigation */}
+          <div className="border-b border-gray-200 mb-6">
+            <nav className="-mb-px flex space-x-8">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+          </div>
 
-        <TabPanels>
-          <TabPanel>
+          {/* Tab Content */}
+          <div className="mt-6">
             <SellerVerificationList
               onViewDetails={handleViewVerificationDetails}
-              // These props would be passed to a real implementation
-              // statusFilter="pending"
+            // statusFilter={tabs.find(tab => tab.id === activeTab)?.statusFilter}
             />
-          </TabPanel>
-          <TabPanel>
-            <SellerVerificationList
-              onViewDetails={handleViewVerificationDetails}
-              // statusFilter="in_review"
-            />
-          </TabPanel>
-          <TabPanel>
-            <SellerVerificationList
-              onViewDetails={handleViewVerificationDetails}
-              // statusFilter="additional_info_needed"
-            />
-          </TabPanel>
-          <TabPanel>
-            <SellerVerificationList
-              onViewDetails={handleViewVerificationDetails}
-              // statusFilter="approved"
-            />
-          </TabPanel>
-          <TabPanel>
-            <SellerVerificationList
-              onViewDetails={handleViewVerificationDetails}
-              // statusFilter="rejected"
-            />
-          </TabPanel>
-          <TabPanel>
-            <SellerVerificationList
-              onViewDetails={handleViewVerificationDetails}
-              // statusFilter=""  // No filter means all
-            />
-          </TabPanel>
-        </TabPanels>
-      </Tabs>
+          </div>
+        </CardContent>
+      </Card>
 
-      <Modal
-        isOpen={isOpen}
-        onClose={onClose}
-        size="xl"
-        scrollBehavior="inside"
-      >
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Verification Details</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody pb={6}>
-            {selectedVerificationId && (
-              <SellerVerificationDetail
-                verificationId={selectedVerificationId}
-                onClose={onClose}
-              />
-            )}
-          </ModalBody>
-        </ModalContent>
-      </Modal>
-    </Box>
+      {/* Simple modal overlay */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl max-h-[80vh] overflow-y-auto w-full">
+            <div className="p-6 border-b">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Verification Details</h2>
+                <button
+                  onClick={handleCloseModal}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            <div className="p-6">
+              {selectedVerificationId && (
+                <SellerVerificationDetail
+                  verificationId={selectedVerificationId}
+                  onClose={handleCloseModal}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
