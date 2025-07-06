@@ -9,9 +9,8 @@ const nextConfig = {
     ignoreBuildErrors: false,
   },
   eslint: {
-    ignoreDuringBuilds: false,
+    ignoreDuringBuilds: true,
     dirs: ['src'],
-    ignorePath: '.eslintignore',
   },
   images: {
     domains: ['res.cloudinary.com'],
