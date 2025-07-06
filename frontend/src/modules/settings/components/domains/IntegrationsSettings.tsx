@@ -1,39 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Heading,
-  Text,
-  Spinner,
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  AlertDescription,
-  Tabs,
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel,
-  Grid,
-  GridItem,
-  Card,
-  CardHeader,
-  CardBody,
-  CardFooter,
-  Stack,
-  Button,
-  Icon,
-  Badge,
-  Image,
-  Flex,
-  Link,
-  Divider,
-  useColorModeValue,
-  useToast,
-} from '@chakra-ui/react';
-import { FiPlus, FiRefreshCw, FiExternalLink, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 import { SettingsService } from '../../services/SettingsService';
 import SettingsForm from '../SettingsForm';
 import { Setting } from '../../models/settings';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/components/ui/use-toast';
+import {
+  Plus,
+  RefreshCw,
+  ExternalLink,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Clock
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 // Integration interface
 interface Integration {
@@ -52,23 +37,23 @@ const IntegrationsSettings: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null);
-  const toast = useToast();
-  
+  const { toast } = useToast();
+
   // Filter integrations by category
   const getIntegrationsByCategory = (category: Integration['category']) => {
     return integrations.filter(integration => integration.category === category);
   };
-  
+
   // Load integration settings
   useEffect(() => {
     const loadSettings = async () => {
       setIsLoading(true);
       setError(null);
-      
+
       try {
         const integrationsSettingsDomain = await new SettingsService().getDomainByNameWithSettings('integrations');
         setSettings(integrationsSettingsDomain.settings);
-        
+
         // In a real implementation, you would load integrations from the API
         // For this example, we'll use dummy data
         setIntegrations([
@@ -170,20 +155,17 @@ const IntegrationsSettings: React.FC = () => {
         setIsLoading(false);
       }
     };
-    
+
     loadSettings();
   }, []);
-  
+
   const handleConnect = (integration: Integration) => {
     // In a real implementation, this would open an OAuth flow or settings panel
     toast({
       title: 'Connecting...',
       description: `Opening connection flow for ${integration.name}`,
-      status: 'info',
-      duration: 3000,
-      isClosable: true,
     });
-    
+
     // Simulate connection process
     setTimeout(() => {
       setIntegrations(prevIntegrations =>
@@ -193,27 +175,21 @@ const IntegrationsSettings: React.FC = () => {
             : item
         )
       );
-      
+
       toast({
         title: 'Connected!',
         description: `Successfully connected to ${integration.name}`,
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
       });
     }, 2000);
   };
-  
+
   const handleDisconnect = (integration: Integration) => {
-    // In a real implementation, this would revoke OAuth tokens or disable the integration
+    // In a real implementation, this would revoke the integration
     toast({
       title: 'Disconnecting...',
       description: `Disconnecting from ${integration.name}`,
-      status: 'info',
-      duration: 2000,
-      isClosable: true,
     });
-    
+
     // Simulate disconnection process
     setTimeout(() => {
       setIntegrations(prevIntegrations =>
@@ -223,92 +199,90 @@ const IntegrationsSettings: React.FC = () => {
             : item
         )
       );
-      
+
       toast({
         title: 'Disconnected',
         description: `Successfully disconnected from ${integration.name}`,
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
       });
     }, 1000);
   };
-  
+
   const handleConfigureIntegration = (integration: Integration) => {
     setSelectedIntegration(integration);
   };
-  
+
   const renderIntegrationCard = (integration: Integration) => {
-    const cardBg = useColorModeValue('white', 'gray.700');
-    const borderColor = useColorModeValue('gray.200', 'gray.600');
-    
     const getStatusBadge = (status: Integration['status']) => {
       switch (status) {
         case 'connected':
-          return <Badge colorScheme="green">Connected</Badge>;
+          return (
+            <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
+              <CheckCircle className="w-3 h-3 mr-1" />
+              Connected
+            </Badge>
+          );
         case 'disconnected':
-          return <Badge colorScheme="gray">Disconnected</Badge>;
+          return (
+            <Badge variant="secondary" className="bg-gray-100 text-gray-600 border-gray-200">
+              <XCircle className="w-3 h-3 mr-1" />
+              Disconnected
+            </Badge>
+          );
         case 'pending':
-          return <Badge colorScheme="yellow">Pending</Badge>;
+          return (
+            <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+              <Clock className="w-3 h-3 mr-1" />
+              Pending
+            </Badge>
+          );
         case 'error':
-          return <Badge colorScheme="red">Error</Badge>;
+          return (
+            <Badge variant="destructive" className="bg-red-100 text-red-800 border-red-200">
+              <AlertCircle className="w-3 h-3 mr-1" />
+              Error
+            </Badge>
+          );
         default:
           return null;
       }
     };
-    
+
     return (
-      <Card
-        key={integration.id}
-        variant="outline"
-        borderColor={borderColor}
-        bg={cardBg}
-        mb={4}
-      >
-        <CardHeader pb={2}>
-          <Flex justify="space-between" align="center">
-            <Flex align="center" gap={4}>
-              <Box width="40px" height="40px" overflow="hidden">
-                <Image 
-                  src={integration.logoUrl} 
-                  alt={`${integration.name} logo`}
-                  fallbackSrc="https://via.placeholder.com/40"
-                  objectFit="contain"
-                  width="100%"
-                  height="100%"
-                />
-              </Box>
-              <Box>
-                <Heading size="sm">{integration.name}</Heading>
-                <Text fontSize="sm" color="gray.500" mt={1}>
-                  {integration.description}
-                </Text>
-              </Box>
-            </Flex>
+      <Card key={integration.id} className="hover:shadow-md transition-shadow">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <img
+                src={integration.logoUrl}
+                alt={`${integration.name} logo`}
+                className="w-8 h-8 object-contain"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+              <div>
+                <CardTitle className="text-base">{integration.name}</CardTitle>
+                <p className="text-sm text-gray-600">{integration.description}</p>
+              </div>
+            </div>
             {getStatusBadge(integration.status)}
-          </Flex>
+          </div>
         </CardHeader>
-        <Divider />
-        <CardFooter pt={3} pb={3}>
-          <Flex justify="flex-end" width="100%">
+        <CardContent>
+          <div className="flex space-x-2">
             {integration.status === 'connected' ? (
               <>
-                <Button 
-                  size="sm" 
-                  rightIcon={<FiXCircle />} 
-                  variant="outline" 
-                  colorScheme="red"
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => handleDisconnect(integration)}
-                  mr={2}
                 >
                   Disconnect
                 </Button>
                 {integration.hasSettings && (
-                  <Button 
-                    size="sm" 
-                    rightIcon={<FiSettings />} 
-                    variant="solid" 
-                    colorScheme="blue"
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => handleConfigureIntegration(integration)}
                   >
                     Configure
@@ -316,176 +290,134 @@ const IntegrationsSettings: React.FC = () => {
                 )}
               </>
             ) : (
-              <Button 
-                size="sm" 
-                rightIcon={<FiExternalLink />} 
-                colorScheme="blue"
+              <Button
+                size="sm"
                 onClick={() => handleConnect(integration)}
+                disabled={integration.status === 'pending'}
               >
+                <Plus className="w-4 h-4 mr-1" />
                 Connect
               </Button>
             )}
-          </Flex>
-        </CardFooter>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => window.open(`#`, '_blank')}
+            >
+              <ExternalLink className="w-4 h-4" />
+            </Button>
+          </div>
+        </CardContent>
       </Card>
     );
   };
-  
+
   if (isLoading) {
     return (
-      <Box textAlign="center" py={10}>
-        <Spinner size="xl" />
-        <Text mt={4}>Loading integration settings...</Text>
-      </Box>
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+        </div>
+      </div>
     );
   }
-  
+
   if (error) {
     return (
-      <Alert status="error">
-        <AlertIcon />
-        <AlertTitle mr={2}>Error!</AlertTitle>
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
         <AlertDescription>{error}</AlertDescription>
       </Alert>
     );
   }
-  
-  // If an integration is selected, show its settings
-  if (selectedIntegration) {
-    const integrationSettings = settings.filter(s => s.key.startsWith(`integrations.${selectedIntegration.name.toLowerCase().replace(/\s+/g, '_')}`));
-    
-    return (
-      <Box>
-        <Button 
-          leftIcon={<Icon as={FiRefreshCw} />} 
-          variant="outline" 
-          mb={6}
-          onClick={() => setSelectedIntegration(null)}
-        >
-          Back to All Integrations
-        </Button>
-        
-        <Heading mb={4} size="lg">{selectedIntegration.name} Settings</Heading>
-        <Text mb={8}>Configure your integration with {selectedIntegration.name}.</Text>
-        
-        <SettingsForm
-          domainName="integrations"
-          settings={integrationSettings}
-          title="Integration Configuration"
-          description={`Configure your ${selectedIntegration.name} integration settings.`}
-        />
-      </Box>
-    );
-  }
-  
+
   return (
-    <Box>
-      <Heading mb={6}>Integrations Settings</Heading>
-      <Text mb={8}>Connect and configure integrations with external services and platforms.</Text>
-      
-      <Tabs variant="enclosed" isLazy>
-        <TabList mb={4}>
-          <Tab>All</Tab>
-          <Tab>Marketing</Tab>
-          <Tab>Payment</Tab>
-          <Tab>Shipping</Tab>
-          <Tab>Accounting</Tab>
-          <Tab>CRM</Tab>
-          <Tab>Analytics</Tab>
-          <Tab>Marketplace</Tab>
-        </TabList>
-        
-        <TabPanels>
-          {/* All Integrations */}
-          <TabPanel>
-            <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6}>
-              {integrations.map((integration) => (
-                <GridItem key={integration.id} colSpan={1}>
-                  {renderIntegrationCard(integration)}
-                </GridItem>
-              ))}
-            </Grid>
-          </TabPanel>
-          
-          {/* Marketing Integrations */}
-          <TabPanel>
-            <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6}>
-              {getIntegrationsByCategory('marketing').map((integration) => (
-                <GridItem key={integration.id} colSpan={1}>
-                  {renderIntegrationCard(integration)}
-                </GridItem>
-              ))}
-            </Grid>
-          </TabPanel>
-          
-          {/* Payment Integrations */}
-          <TabPanel>
-            <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6}>
-              {getIntegrationsByCategory('payment').map((integration) => (
-                <GridItem key={integration.id} colSpan={1}>
-                  {renderIntegrationCard(integration)}
-                </GridItem>
-              ))}
-            </Grid>
-          </TabPanel>
-          
-          {/* Shipping Integrations */}
-          <TabPanel>
-            <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6}>
-              {getIntegrationsByCategory('shipping').map((integration) => (
-                <GridItem key={integration.id} colSpan={1}>
-                  {renderIntegrationCard(integration)}
-                </GridItem>
-              ))}
-            </Grid>
-          </TabPanel>
-          
-          {/* Accounting Integrations */}
-          <TabPanel>
-            <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6}>
-              {getIntegrationsByCategory('accounting').map((integration) => (
-                <GridItem key={integration.id} colSpan={1}>
-                  {renderIntegrationCard(integration)}
-                </GridItem>
-              ))}
-            </Grid>
-          </TabPanel>
-          
-          {/* CRM Integrations */}
-          <TabPanel>
-            <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6}>
-              {getIntegrationsByCategory('crm').map((integration) => (
-                <GridItem key={integration.id} colSpan={1}>
-                  {renderIntegrationCard(integration)}
-                </GridItem>
-              ))}
-            </Grid>
-          </TabPanel>
-          
-          {/* Analytics Integrations */}
-          <TabPanel>
-            <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6}>
-              {getIntegrationsByCategory('analytics').map((integration) => (
-                <GridItem key={integration.id} colSpan={1}>
-                  {renderIntegrationCard(integration)}
-                </GridItem>
-              ))}
-            </Grid>
-          </TabPanel>
-          
-          {/* Marketplace Integrations */}
-          <TabPanel>
-            <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6}>
-              {getIntegrationsByCategory('marketplace').map((integration) => (
-                <GridItem key={integration.id} colSpan={1}>
-                  {renderIntegrationCard(integration)}
-                </GridItem>
-              ))}
-            </Grid>
-          </TabPanel>
-        </TabPanels>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold mb-2">Integrations</h1>
+        <p className="text-gray-600">Connect your store to third-party services and platforms.</p>
+      </div>
+
+      <Tabs defaultValue="all" className="w-full">
+        <TabsList className="grid w-full grid-cols-8">
+          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="marketing">Marketing</TabsTrigger>
+          <TabsTrigger value="payment">Payment</TabsTrigger>
+          <TabsTrigger value="shipping">Shipping</TabsTrigger>
+          <TabsTrigger value="accounting">Accounting</TabsTrigger>
+          <TabsTrigger value="crm">CRM</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="all" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {integrations.map(renderIntegrationCard)}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="marketing" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {getIntegrationsByCategory('marketing').map(renderIntegrationCard)}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="payment" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {getIntegrationsByCategory('payment').map(renderIntegrationCard)}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="shipping" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {getIntegrationsByCategory('shipping').map(renderIntegrationCard)}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="accounting" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {getIntegrationsByCategory('accounting').map(renderIntegrationCard)}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="crm" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {getIntegrationsByCategory('crm').map(renderIntegrationCard)}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {getIntegrationsByCategory('analytics').map(renderIntegrationCard)}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="marketplace" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {getIntegrationsByCategory('marketplace').map(renderIntegrationCard)}
+          </div>
+        </TabsContent>
       </Tabs>
-    </Box>
+
+      {selectedIntegration && (
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-4">
+            Configure {selectedIntegration.name}
+          </h2>
+          <SettingsForm
+            domainName="integrations"
+            settings={settings.filter(s => s.key.includes(selectedIntegration.id))}
+            title={`${selectedIntegration.name} Settings`}
+            description={`Configure your ${selectedIntegration.name} integration.`}
+            onSaved={() => setSelectedIntegration(null)}
+          />
+        </div>
+      )}
+    </div>
   );
 };
 

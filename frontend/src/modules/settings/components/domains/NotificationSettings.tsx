@@ -1,33 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Heading,
-  Text,
-  Spinner,
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  AlertDescription,
-  Tabs,
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel,
-  Grid,
-  GridItem,
-  Card,
-  CardHeader,
-  CardBody,
-  Stack,
-  Switch,
-  Flex,
-  Badge,
-  Divider,
-  useColorModeValue,
-} from '@chakra-ui/react';
 import { SettingsService } from '../../services/SettingsService';
 import SettingsForm from '../SettingsForm';
 import { Setting } from '../../models/settings';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
+import { AlertCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 // NotificationType interface
 interface NotificationType {
@@ -55,17 +38,17 @@ const NotificationSettings: React.FC = () => {
   const smsSettings = settings.filter(s => s.key.startsWith('notifications.channels.sms'));
   const pushSettings = settings.filter(s => s.key.startsWith('notifications.channels.push'));
   const templateSettings = settings.filter(s => s.key.startsWith('notifications.templates'));
-  
+
   // Load notification settings
   useEffect(() => {
     const loadSettings = async () => {
       setIsLoading(true);
       setError(null);
-      
+
       try {
         const notificationSettingsDomain = await new SettingsService().getDomainByNameWithSettings('notifications');
         setSettings(notificationSettingsDomain.settings);
-        
+
         // In a real implementation, you would load notification types from the API
         // For this example, we'll use dummy data
         setNotificationTypes([
@@ -126,254 +109,242 @@ const NotificationSettings: React.FC = () => {
         setIsLoading(false);
       }
     };
-    
+
     loadSettings();
   }, []);
-  
+
   // Toggle notification channel
   const toggleNotificationChannel = (notificationId: string, channel: keyof NotificationType['channels']) => {
-    setNotificationTypes(types => 
-      types.map(type => 
-        type.id === notificationId 
-          ? { 
-              ...type, 
-              channels: { 
-                ...type.channels, 
-                [channel]: !type.channels[channel] 
-              } 
-            } 
+    setNotificationTypes(types =>
+      types.map(type =>
+        type.id === notificationId
+          ? {
+            ...type,
+            channels: {
+              ...type.channels,
+              [channel]: !type.channels[channel]
+            }
+          }
           : type
       )
     );
   };
-  
+
   // Filter notification types by category
   const getNotificationsByCategory = (category: NotificationType['category']) => {
     return notificationTypes.filter(type => type.category === category);
   };
-  
+
   // Render notification type controls
   const renderNotificationTypeCard = (notificationType: NotificationType) => {
-    const cardBg = useColorModeValue('white', 'gray.700');
-    const borderColor = useColorModeValue('gray.200', 'gray.600');
-    
+    const getCategoryBadgeColor = (category: string) => {
+      switch (category) {
+        case 'orders':
+          return 'bg-blue-100 text-blue-800 border-blue-200';
+        case 'customers':
+          return 'bg-green-100 text-green-800 border-green-200';
+        case 'products':
+          return 'bg-purple-100 text-purple-800 border-purple-200';
+        case 'system':
+          return 'bg-red-100 text-red-800 border-red-200';
+        case 'marketing':
+          return 'bg-orange-100 text-orange-800 border-orange-200';
+        default:
+          return 'bg-gray-100 text-gray-800 border-gray-200';
+      }
+    };
+
     return (
-      <Card 
-        key={notificationType.id}
-        variant="outline"
-        borderColor={borderColor}
-        bg={cardBg}
-        mb={4}
-      >
-        <CardHeader pb={2}>
-          <Stack direction="row" justify="space-between" align="center">
-            <Box>
-              <Heading size="sm">{notificationType.name}</Heading>
-              <Text fontSize="sm" color="gray.500" mt={1}>
-                {notificationType.description}
-              </Text>
-            </Box>
-            <Badge colorScheme={notificationType.category === 'orders' ? 'blue' : 
-                            notificationType.category === 'customers' ? 'green' :
-                            notificationType.category === 'products' ? 'purple' :
-                            notificationType.category === 'system' ? 'red' : 'orange'}>
+      <Card key={notificationType.id} className="mb-4">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base">{notificationType.name}</CardTitle>
+              <p className="text-sm text-gray-500 mt-1">{notificationType.description}</p>
+            </div>
+            <Badge className={cn("text-xs", getCategoryBadgeColor(notificationType.category))}>
               {notificationType.category.charAt(0).toUpperCase() + notificationType.category.slice(1)}
             </Badge>
-          </Stack>
+          </div>
         </CardHeader>
-        <Divider />
-        <CardBody pt={4}>
-          <Stack direction={{ base: 'column', md: 'row' }} spacing={6}>
-            <Flex align="center">
-              <Text fontSize="sm" fontWeight="medium" mr={3}>Email</Text>
-              <Switch 
-                isChecked={notificationType.channels.email}
-                onChange={() => toggleNotificationChannel(notificationType.id, 'email')}
-                colorScheme="blue"
+        <Separator />
+        <CardContent className="pt-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="flex items-center space-x-3">
+              <span className="text-sm font-medium">Email</span>
+              <Switch
+                checked={notificationType.channels.email}
+                onCheckedChange={() => toggleNotificationChannel(notificationType.id, 'email')}
               />
-            </Flex>
-            <Flex align="center">
-              <Text fontSize="sm" fontWeight="medium" mr={3}>SMS</Text>
-              <Switch 
-                isChecked={notificationType.channels.sms}
-                onChange={() => toggleNotificationChannel(notificationType.id, 'sms')}
-                colorScheme="green"
+            </div>
+            <div className="flex items-center space-x-3">
+              <span className="text-sm font-medium">SMS</span>
+              <Switch
+                checked={notificationType.channels.sms}
+                onCheckedChange={() => toggleNotificationChannel(notificationType.id, 'sms')}
               />
-            </Flex>
-            <Flex align="center">
-              <Text fontSize="sm" fontWeight="medium" mr={3}>Push</Text>
-              <Switch 
-                isChecked={notificationType.channels.push}
-                onChange={() => toggleNotificationChannel(notificationType.id, 'push')}
-                colorScheme="purple"
+            </div>
+            <div className="flex items-center space-x-3">
+              <span className="text-sm font-medium">Push</span>
+              <Switch
+                checked={notificationType.channels.push}
+                onCheckedChange={() => toggleNotificationChannel(notificationType.id, 'push')}
               />
-            </Flex>
-            <Flex align="center">
-              <Text fontSize="sm" fontWeight="medium" mr={3}>In App</Text>
-              <Switch 
-                isChecked={notificationType.channels.inApp}
-                onChange={() => toggleNotificationChannel(notificationType.id, 'inApp')}
-                colorScheme="orange"
+            </div>
+            <div className="flex items-center space-x-3">
+              <span className="text-sm font-medium">In-App</span>
+              <Switch
+                checked={notificationType.channels.inApp}
+                onCheckedChange={() => toggleNotificationChannel(notificationType.id, 'inApp')}
               />
-            </Flex>
-          </Stack>
-        </CardBody>
+            </div>
+          </div>
+        </CardContent>
       </Card>
     );
   };
-  
+
   if (isLoading) {
     return (
-      <Box textAlign="center" py={10}>
-        <Spinner size="xl" />
-        <Text mt={4}>Loading notification settings...</Text>
-      </Box>
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <div className="space-y-4">
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+        </div>
+      </div>
     );
   }
-  
+
   if (error) {
     return (
-      <Alert status="error">
-        <AlertIcon />
-        <AlertTitle mr={2}>Error!</AlertTitle>
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
         <AlertDescription>{error}</AlertDescription>
       </Alert>
     );
   }
-  
+
   return (
-    <Box>
-      <Heading mb={6}>Notification Settings</Heading>
-      <Text mb={8}>Configure how and when notifications are sent to you, your team, and your customers.</Text>
-      
-      <Tabs variant="enclosed" isLazy>
-        <TabList mb={4}>
-          <Tab>General</Tab>
-          <Tab>Email Settings</Tab>
-          <Tab>SMS Settings</Tab>
-          <Tab>Push Notifications</Tab>
-          <Tab>Notification Types</Tab>
-          <Tab>Templates</Tab>
-        </TabList>
-        
-        <TabPanels>
-          {/* General Settings */}
-          <TabPanel>
-            <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6}>
-              <GridItem colSpan={{ base: 1, md: 2 }}>
-                <SettingsForm
-                  domainName="notifications"
-                  settings={generalSettings}
-                  title="General Notification Settings"
-                  description="Configure notification defaults and preferences."
-                />
-              </GridItem>
-            </Grid>
-          </TabPanel>
-          
-          {/* Email Settings */}
-          <TabPanel>
-            <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6}>
-              <GridItem colSpan={{ base: 1, md: 2 }}>
-                <SettingsForm
-                  domainName="notifications"
-                  settings={emailSettings}
-                  title="Email Notification Settings"
-                  description="Configure email sender, SMTP settings, and default email templates."
-                />
-              </GridItem>
-            </Grid>
-          </TabPanel>
-          
-          {/* SMS Settings */}
-          <TabPanel>
-            <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6}>
-              <GridItem colSpan={{ base: 1, md: 2 }}>
-                <SettingsForm
-                  domainName="notifications"
-                  settings={smsSettings}
-                  title="SMS Notification Settings"
-                  description="Configure SMS provider, sender ID, and message templates."
-                />
-              </GridItem>
-            </Grid>
-          </TabPanel>
-          
-          {/* Push Notifications */}
-          <TabPanel>
-            <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6}>
-              <GridItem colSpan={{ base: 1, md: 2 }}>
-                <SettingsForm
-                  domainName="notifications"
-                  settings={pushSettings}
-                  title="Push Notification Settings"
-                  description="Configure push notification providers and defaults."
-                />
-              </GridItem>
-            </Grid>
-          </TabPanel>
-          
-          {/* Notification Types */}
-          <TabPanel>
-            <Tabs variant="soft-rounded" colorScheme="blue" isLazy>
-              <TabList mb={4}>
-                <Tab>Orders</Tab>
-                <Tab>Customers</Tab>
-                <Tab>Products</Tab>
-                <Tab>System</Tab>
-                <Tab>Marketing</Tab>
-              </TabList>
-              
-              <TabPanels>
-                <TabPanel>
-                  <Box>
-                    {getNotificationsByCategory('orders').map(renderNotificationTypeCard)}
-                  </Box>
-                </TabPanel>
-                
-                <TabPanel>
-                  <Box>
-                    {getNotificationsByCategory('customers').map(renderNotificationTypeCard)}
-                  </Box>
-                </TabPanel>
-                
-                <TabPanel>
-                  <Box>
-                    {getNotificationsByCategory('products').map(renderNotificationTypeCard)}
-                  </Box>
-                </TabPanel>
-                
-                <TabPanel>
-                  <Box>
-                    {getNotificationsByCategory('system').map(renderNotificationTypeCard)}
-                  </Box>
-                </TabPanel>
-                
-                <TabPanel>
-                  <Box>
-                    {getNotificationsByCategory('marketing').map(renderNotificationTypeCard)}
-                  </Box>
-                </TabPanel>
-              </TabPanels>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold mb-2">Notification Settings</h1>
+        <p className="text-gray-600">Configure how and when notifications are sent.</p>
+      </div>
+
+      <Tabs defaultValue="general" className="w-full">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="email">Email</TabsTrigger>
+          <TabsTrigger value="sms">SMS</TabsTrigger>
+          <TabsTrigger value="push">Push</TabsTrigger>
+          <TabsTrigger value="templates">Templates</TabsTrigger>
+          <TabsTrigger value="types">Types</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="general" className="space-y-4">
+          <SettingsForm
+            domainName="notifications"
+            settings={generalSettings}
+            title="General Notification Settings"
+            description="Configure general notification preferences and behavior."
+          />
+        </TabsContent>
+
+        <TabsContent value="email" className="space-y-4">
+          <SettingsForm
+            domainName="notifications"
+            settings={emailSettings}
+            title="Email Configuration"
+            description="Configure email notification settings and SMTP details."
+          />
+        </TabsContent>
+
+        <TabsContent value="sms" className="space-y-4">
+          <SettingsForm
+            domainName="notifications"
+            settings={smsSettings}
+            title="SMS Configuration"
+            description="Configure SMS notification settings and provider details."
+          />
+        </TabsContent>
+
+        <TabsContent value="push" className="space-y-4">
+          <SettingsForm
+            domainName="notifications"
+            settings={pushSettings}
+            title="Push Notification Configuration"
+            description="Configure push notification settings and service details."
+          />
+        </TabsContent>
+
+        <TabsContent value="templates" className="space-y-4">
+          <SettingsForm
+            domainName="notifications"
+            settings={templateSettings}
+            title="Notification Templates"
+            description="Customize notification templates and content."
+          />
+        </TabsContent>
+
+        <TabsContent value="types" className="space-y-4">
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-lg font-semibold mb-2">Notification Types</h2>
+              <p className="text-gray-600">Configure which notifications are sent through which channels.</p>
+            </div>
+
+            <Tabs defaultValue="all" className="w-full">
+              <TabsList className="grid w-full grid-cols-6">
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="orders">Orders</TabsTrigger>
+                <TabsTrigger value="customers">Customers</TabsTrigger>
+                <TabsTrigger value="products">Products</TabsTrigger>
+                <TabsTrigger value="system">System</TabsTrigger>
+                <TabsTrigger value="marketing">Marketing</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="all" className="space-y-4">
+                <div className="space-y-4">
+                  {notificationTypes.map(renderNotificationTypeCard)}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="orders" className="space-y-4">
+                <div className="space-y-4">
+                  {getNotificationsByCategory('orders').map(renderNotificationTypeCard)}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="customers" className="space-y-4">
+                <div className="space-y-4">
+                  {getNotificationsByCategory('customers').map(renderNotificationTypeCard)}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="products" className="space-y-4">
+                <div className="space-y-4">
+                  {getNotificationsByCategory('products').map(renderNotificationTypeCard)}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="system" className="space-y-4">
+                <div className="space-y-4">
+                  {getNotificationsByCategory('system').map(renderNotificationTypeCard)}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="marketing" className="space-y-4">
+                <div className="space-y-4">
+                  {getNotificationsByCategory('marketing').map(renderNotificationTypeCard)}
+                </div>
+              </TabsContent>
             </Tabs>
-          </TabPanel>
-          
-          {/* Templates */}
-          <TabPanel>
-            <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6}>
-              <GridItem colSpan={{ base: 1, md: 2 }}>
-                <SettingsForm
-                  domainName="notifications"
-                  settings={templateSettings}
-                  title="Notification Templates"
-                  description="Manage templates for different notification types."
-                />
-              </GridItem>
-            </Grid>
-          </TabPanel>
-        </TabPanels>
+          </div>
+        </TabsContent>
       </Tabs>
-    </Box>
+    </div>
   );
 };
 

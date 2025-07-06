@@ -29,12 +29,12 @@ export const useRealTimeData = (options: RealTimeDataOptions) => {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const websocketRef = useRef<WebSocket | null>(null);
-    
+
   // Track reconnection attempts
   const reconnectAttemptRef = useRef(0);
   const maxReconnectAttempts = 5;
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   // Memoize the query parameters to avoid unnecessary reconnections
   const queryParams = JSON.stringify({
     metrics: options.metrics,
@@ -45,6 +45,21 @@ export const useRealTimeData = (options: RealTimeDataOptions) => {
     limit: options.limit || 100,
   });
 
+  // Function to show notification using modern browser API
+  const showNotification = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    // Use browser's notification API if available and permitted
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('Analytics Update', {
+        body: message,
+        icon: '/favicon.ico',
+        tag: 'analytics-update'
+      });
+    } else {
+      // Fallback to console log
+      console.log(`[Analytics ${type.toUpperCase()}]:`, message);
+    }
+  }, []);
+
   // Function to establish WebSocket connection
   const connect = useCallback(async () => {
     // Don't connect if feature is disabled
@@ -52,29 +67,29 @@ export const useRealTimeData = (options: RealTimeDataOptions) => {
       setIsLoading(false);
       return;
     }
-    
+
     try {
       // Clean up existing connection if any
       if (websocketRef.current) {
         websocketRef.current.close();
         websocketRef.current = null;
       }
-      
+
       // Get JWT token for authentication
       const token = await getToken();
       if (!token) {
         throw new Error('Authentication required');
       }
-      
+
       // Create WebSocket URL with token and query parameters
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const host = window.location.host;
       const wsUrl = `${protocol}//${host}/api/analytics/ws?token=${token}&query=${encodeURIComponent(queryParams)}`;
-      
+
       // Create WebSocket
       const ws = new WebSocket(wsUrl);
       websocketRef.current = ws;
-      
+
       // Set up WebSocket event listeners
       ws.onopen = () => {
         setIsConnected(true);
@@ -82,27 +97,27 @@ export const useRealTimeData = (options: RealTimeDataOptions) => {
         setError(null);
         reconnectAttemptRef.current = 0; // Reset reconnection attempts on successful connection
       };
-      
+
       ws.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
-          
+
           switch (message.type) {
             case 'update':
               setData(message.data);
               setColumns(message.columns);
               setLastUpdated(new Date());
               break;
-              
+
             case 'error':
               console.error('WebSocket error:', message.message);
               setError(message.message);
               break;
-              
+
             case 'pong':
               // Handle pong response to keep connection alive
               break;
-              
+
             default:
               console.log('Unhandled WebSocket message type:', message.type);
           }
@@ -110,22 +125,22 @@ export const useRealTimeData = (options: RealTimeDataOptions) => {
           console.error('Error parsing WebSocket message:', e);
         }
       };
-      
+
       ws.onerror = (event) => {
         console.error('WebSocket error:', event);
         setError('Connection error');
         setIsConnected(false);
       };
-      
+
       ws.onclose = (event) => {
         setIsConnected(false);
-        
+
         // Attempt to reconnect if not a normal closure
         if (event.code !== 1000) {
           handleReconnect();
         }
       };
-      
+
       // Set up periodic ping to keep connection alive
       const pingInterval = setInterval(() => {
         if (ws && ws.readyState === WebSocket.OPEN) {
@@ -135,10 +150,10 @@ export const useRealTimeData = (options: RealTimeDataOptions) => {
           }));
         }
       }, 30000); // Send ping every 30 seconds
-      
+
       // Clean up ping interval on unmount
       return () => clearInterval(pingInterval);
-      
+
     } catch (error) {
       console.error('WebSocket connection error:', error);
       setError(error instanceof Error ? error.message : 'Connection error');
@@ -147,7 +162,7 @@ export const useRealTimeData = (options: RealTimeDataOptions) => {
     }
     return;
   }, [getToken, queryParams, options.enabled]);
-  
+
   // Handle reconnection with exponential backoff
   const handleReconnect = useCallback(() => {
     // Clean up any existing reconnection timeout
@@ -155,18 +170,18 @@ export const useRealTimeData = (options: RealTimeDataOptions) => {
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = null;
     }
-    
+
     // Check if we've exceeded max reconnection attempts
     if (reconnectAttemptRef.current >= maxReconnectAttempts) {
       setError('Failed to connect after multiple attempts');
-      window.alert('Connection failed: Could not establish real-time data connection. Please refresh the page.');
+      showNotification('Connection failed: Could not establish real-time data connection. Please refresh the page.', 'error');
       return;
     }
-    
+
     // Calculate delay with exponential backoff (1s, 2s, 4s, 8s, 16s)
     const delay = Math.pow(2, reconnectAttemptRef.current) * 1000;
     reconnectAttemptRef.current += 1;
-    
+
     // Schedule reconnection
     reconnectTimeoutRef.current = setTimeout(() => {
       if (options.enabled !== false) {
@@ -174,43 +189,63 @@ export const useRealTimeData = (options: RealTimeDataOptions) => {
         connect();
       }
     }, delay);
-  }, [connect, toast, options.enabled]);
-  
+  }, [connect, showNotification, options.enabled]);
+
   // Update WebSocket connection on queryParams change
   useEffect(() => {
     connect();
-    
+
     // Clean up function
     return () => {
       if (websocketRef.current) {
         websocketRef.current.close();
         websocketRef.current = null;
       }
-      
+
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
         reconnectTimeoutRef.current = null;
       }
     };
   }, [connect, queryParams]);
-  
+
   // Function to manually update the query parameters
   const updateQuery = useCallback((newQueryParams: Partial<RealTimeDataOptions>) => {
     if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN) {
       websocketRef.current.send(JSON.stringify({
         type: 'update_query',
         query: {
-          metrics: newQueryParams.metrics || options.metrics,
-          dimensions: newQueryParams.dimensions || options.dimensions || [],
-          filters: newQueryParams.filters || options.filters || {},
-          sortBy: newQueryParams.sortBy || options.sortBy,
-          sortDesc: newQueryParams.sortDesc ?? options.sortDesc,
-          limit: newQueryParams.limit || options.limit || 100,
-        },
+          ...options,
+          ...newQueryParams
+        }
       }));
     }
-  }, [options.dimensions, options.filters, options.limit, options.metrics, options.sortBy, options.sortDesc]);
-  
+  }, [options]);
+
+  // Function to manually disconnect
+  const disconnect = useCallback(() => {
+    if (websocketRef.current) {
+      websocketRef.current.close(1000, 'Manual disconnect');
+      websocketRef.current = null;
+    }
+
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+
+    setIsConnected(false);
+    setIsLoading(false);
+  }, []);
+
+  // Function to manually reconnect
+  const reconnect = useCallback(() => {
+    disconnect();
+    reconnectAttemptRef.current = 0;
+    setIsLoading(true);
+    connect();
+  }, [connect, disconnect]);
+
   return {
     data,
     columns,
@@ -219,6 +254,8 @@ export const useRealTimeData = (options: RealTimeDataOptions) => {
     error,
     lastUpdated,
     updateQuery,
+    disconnect,
+    reconnect
   };
 };
 
