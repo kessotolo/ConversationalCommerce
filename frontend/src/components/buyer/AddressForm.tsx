@@ -1,21 +1,10 @@
-import React, { useEffect } from "react";
-import {
-  Box,
-  Button,
-  FormControl,
-  FormLabel,
-  FormErrorMessage,
-  Input,
-  VStack,
-  Heading,
-  SimpleGrid,
-  Select,
-  Checkbox,
-  useToast,
-} from "@chakra-ui/react";
+import React, { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { useForm } from "react-hook-form";
-import { useMutation, useQueryClient } from "react-query";
-import { AddressRequest, Address, createAddress, updateAddress } from "../../services/addressService";
+import type { AddressRequest, Address } from "../../services/addressService";
+import { createAddress, updateAddress } from "../../services/addressService";
 
 interface AddressFormProps {
   address?: Address;
@@ -23,19 +12,18 @@ interface AddressFormProps {
   isDefault?: boolean;
 }
 
-const AddressForm: React.FC<AddressFormProps> = ({ 
+const AddressForm: React.FC<AddressFormProps> = ({
   address,
   onSuccess,
-  isDefault = false 
+  isDefault = false
 }) => {
-  const toast = useToast();
-  const queryClient = useQueryClient();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const isEditMode = !!address;
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
     reset,
     setValue,
   } = useForm<AddressRequest>({
@@ -68,220 +56,215 @@ const AddressForm: React.FC<AddressFormProps> = ({
     }
   }, [address, setValue]);
 
-  const createMutation = useMutation(createAddress, {
-    onSuccess: () => {
-      toast({
-        title: "Address created",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-      queryClient.invalidateQueries("userAddresses");
+  const onSubmit = async (data: AddressRequest) => {
+    setIsSubmitting(true);
+    try {
+      if (isEditMode && address) {
+        await updateAddress(address.id, data);
+      } else {
+        await createAddress(data);
+      }
       reset();
       if (onSuccess) onSuccess();
-    },
-    onError: (err: any) => {
-      toast({
-        title: "Error creating address",
-        description: err.message || "An error occurred",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    },
-  });
-
-  const updateMutation = useMutation(
-    (data: { id: string; address: AddressRequest }) =>
-      updateAddress(data.id, data.address),
-    {
-      onSuccess: () => {
-        toast({
-          title: "Address updated",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
-        queryClient.invalidateQueries("userAddresses");
-        if (onSuccess) onSuccess();
-      },
-      onError: (err: any) => {
-        toast({
-          title: "Error updating address",
-          description: err.message || "An error occurred",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-      },
-    }
-  );
-
-  const onSubmit = (data: AddressRequest) => {
-    if (isEditMode && address) {
-      updateMutation.mutate({ id: address.id, address: data });
-    } else {
-      createMutation.mutate(data);
+    } catch (error) {
+      console.error('Error saving address:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <Box p={4} borderWidth="1px" borderRadius="lg" bg="white" width="100%">
-      <VStack spacing={6} align="stretch">
-        <Heading size="md">{isEditMode ? "Edit Address" : "Add New Address"}</Heading>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>{isEditMode ? "Edit Address" : "Add New Address"}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Address Nickname */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Address Nickname *
+            </label>
+            <Input
+              placeholder="Home, Work, etc."
+              {...register("nickname", {
+                required: "Nickname is required",
+              })}
+              className={errors.nickname ? "border-red-500" : ""}
+            />
+            {errors.nickname && (
+              <p className="text-red-500 text-sm mt-1">{errors.nickname.message}</p>
+            )}
+          </div>
 
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <VStack spacing={4} align="stretch">
-            <FormControl isRequired isInvalid={!!errors.nickname}>
-              <FormLabel>Address Nickname</FormLabel>
+          {/* Recipient Name */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Recipient Name *
+            </label>
+            <Input
+              placeholder="Full Name"
+              {...register("recipient_name", {
+                required: "Recipient name is required",
+              })}
+              className={errors.recipient_name ? "border-red-500" : ""}
+            />
+            {errors.recipient_name && (
+              <p className="text-red-500 text-sm mt-1">{errors.recipient_name.message}</p>
+            )}
+          </div>
+
+          {/* Street Address 1 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Street Address *
+            </label>
+            <Input
+              placeholder="Street Address Line 1"
+              {...register("street_address_1", {
+                required: "Street address is required",
+              })}
+              className={errors.street_address_1 ? "border-red-500" : ""}
+            />
+            {errors.street_address_1 && (
+              <p className="text-red-500 text-sm mt-1">{errors.street_address_1.message}</p>
+            )}
+          </div>
+
+          {/* Street Address 2 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Street Address Line 2
+            </label>
+            <Input
+              placeholder="Apt, Suite, Unit, etc. (optional)"
+              {...register("street_address_2")}
+              className={errors.street_address_2 ? "border-red-500" : ""}
+            />
+            {errors.street_address_2 && (
+              <p className="text-red-500 text-sm mt-1">{errors.street_address_2.message}</p>
+            )}
+          </div>
+
+          {/* City and State */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                City *
+              </label>
               <Input
-                placeholder="Home, Work, etc."
-                {...register("nickname", {
-                  required: "Nickname is required",
+                placeholder="City"
+                {...register("city", {
+                  required: "City is required",
                 })}
+                className={errors.city ? "border-red-500" : ""}
               />
-              <FormErrorMessage>
-                {errors.nickname?.message}
-              </FormErrorMessage>
-            </FormControl>
+              {errors.city && (
+                <p className="text-red-500 text-sm mt-1">{errors.city.message}</p>
+              )}
+            </div>
 
-            <FormControl isRequired isInvalid={!!errors.recipient_name}>
-              <FormLabel>Recipient Name</FormLabel>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                State / Province *
+              </label>
               <Input
-                placeholder="Full Name"
-                {...register("recipient_name", {
-                  required: "Recipient name is required",
+                placeholder="State/Province"
+                {...register("state", {
+                  required: "State is required",
                 })}
+                className={errors.state ? "border-red-500" : ""}
               />
-              <FormErrorMessage>
-                {errors.recipient_name?.message}
-              </FormErrorMessage>
-            </FormControl>
+              {errors.state && (
+                <p className="text-red-500 text-sm mt-1">{errors.state.message}</p>
+              )}
+            </div>
+          </div>
 
-            <FormControl isRequired isInvalid={!!errors.street_address_1}>
-              <FormLabel>Street Address</FormLabel>
+          {/* Postal Code and Country */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Postal / Zip Code *
+              </label>
               <Input
-                placeholder="Street Address Line 1"
-                {...register("street_address_1", {
-                  required: "Street address is required",
+                placeholder="Postal/Zip Code"
+                {...register("postal_code", {
+                  required: "Postal code is required",
                 })}
+                className={errors.postal_code ? "border-red-500" : ""}
               />
-              <FormErrorMessage>
-                {errors.street_address_1?.message}
-              </FormErrorMessage>
-            </FormControl>
+              {errors.postal_code && (
+                <p className="text-red-500 text-sm mt-1">{errors.postal_code.message}</p>
+              )}
+            </div>
 
-            <FormControl isInvalid={!!errors.street_address_2}>
-              <FormLabel>Street Address Line 2</FormLabel>
-              <Input
-                placeholder="Apt, Suite, Unit, etc. (optional)"
-                {...register("street_address_2")}
-              />
-              <FormErrorMessage>
-                {errors.street_address_2?.message}
-              </FormErrorMessage>
-            </FormControl>
-
-            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
-              <FormControl isRequired isInvalid={!!errors.city}>
-                <FormLabel>City</FormLabel>
-                <Input
-                  placeholder="City"
-                  {...register("city", {
-                    required: "City is required",
-                  })}
-                />
-                <FormErrorMessage>
-                  {errors.city?.message}
-                </FormErrorMessage>
-              </FormControl>
-
-              <FormControl isRequired isInvalid={!!errors.state}>
-                <FormLabel>State / Province</FormLabel>
-                <Input
-                  placeholder="State/Province"
-                  {...register("state", {
-                    required: "State is required",
-                  })}
-                />
-                <FormErrorMessage>
-                  {errors.state?.message}
-                </FormErrorMessage>
-              </FormControl>
-            </SimpleGrid>
-
-            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
-              <FormControl isRequired isInvalid={!!errors.postal_code}>
-                <FormLabel>Postal / Zip Code</FormLabel>
-                <Input
-                  placeholder="Postal/Zip Code"
-                  {...register("postal_code", {
-                    required: "Postal code is required",
-                  })}
-                />
-                <FormErrorMessage>
-                  {errors.postal_code?.message}
-                </FormErrorMessage>
-              </FormControl>
-
-              <FormControl isRequired isInvalid={!!errors.country}>
-                <FormLabel>Country</FormLabel>
-                <Select
-                  {...register("country", {
-                    required: "Country is required",
-                  })}
-                >
-                  <option value="US">United States</option>
-                  <option value="CA">Canada</option>
-                  <option value="MX">Mexico</option>
-                  <option value="GB">United Kingdom</option>
-                  {/* Add more country options as needed */}
-                </Select>
-                <FormErrorMessage>
-                  {errors.country?.message}
-                </FormErrorMessage>
-              </FormControl>
-            </SimpleGrid>
-
-            <FormControl isInvalid={!!errors.phone}>
-              <FormLabel>Phone Number (Optional)</FormLabel>
-              <Input
-                placeholder="Phone Number"
-                type="tel"
-                {...register("phone", {
-                  pattern: {
-                    value: /^\+?[0-9]{10,15}$/,
-                    message: "Invalid phone number",
-                  },
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Country *
+              </label>
+              <select
+                {...register("country", {
+                  required: "Country is required",
                 })}
-              />
-              <FormErrorMessage>
-                {errors.phone?.message}
-              </FormErrorMessage>
-            </FormControl>
-
-            <FormControl>
-              <Checkbox
-                {...register("is_default")}
-                colorScheme="blue"
-                size="md"
+                className={`w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.country ? "border-red-500" : ""
+                  }`}
               >
-                Set as default address
-              </Checkbox>
-            </FormControl>
+                <option value="US">United States</option>
+                <option value="CA">Canada</option>
+                <option value="MX">Mexico</option>
+                <option value="GB">United Kingdom</option>
+              </select>
+              {errors.country && (
+                <p className="text-red-500 text-sm mt-1">{errors.country.message}</p>
+              )}
+            </div>
+          </div>
 
-            <Button
-              mt={4}
-              colorScheme="blue"
-              isLoading={isSubmitting || createMutation.isLoading || updateMutation.isLoading}
-              type="submit"
-            >
-              {isEditMode ? "Save Changes" : "Add Address"}
-            </Button>
-          </VStack>
+          {/* Phone Number */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Phone Number (Optional)
+            </label>
+            <Input
+              placeholder="Phone Number"
+              type="tel"
+              {...register("phone", {
+                pattern: {
+                  value: /^\+?[0-9]{10,15}$/,
+                  message: "Invalid phone number",
+                },
+              })}
+              className={errors.phone ? "border-red-500" : ""}
+            />
+            {errors.phone && (
+              <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
+            )}
+          </div>
+
+          {/* Default Address Checkbox */}
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              {...register("is_default")}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label className="ml-2 block text-sm text-gray-900">
+              Set as default address
+            </label>
+          </div>
+
+          {/* Submit Button */}
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            {isSubmitting ? "Saving..." : isEditMode ? "Save Changes" : "Add Address"}
+          </Button>
         </form>
-      </VStack>
-    </Box>
+      </CardContent>
+    </Card>
   );
 };
 

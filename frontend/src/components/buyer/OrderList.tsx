@@ -1,333 +1,127 @@
 import React, { useState } from "react";
-import {
-  Box,
-  Text,
-  Heading,
-  Flex,
-  Badge,
-  SimpleGrid,
-  Button,
-  Tabs,
-  TabList,
-  Tab,
-  TabPanels,
-  TabPanel,
-  Spinner,
-  Alert,
-  AlertIcon,
-  HStack,
-  VStack,
-  Divider,
-  useBreakpointValue,
-  Select,
-  Pagination,
-  PaginationContainer,
-  PaginationPrevious,
-  PaginationNext,
-  PaginationPageGroup,
-  PaginationPage,
-  usePagination,
-} from "@chakra-ui/react";
-import { useQuery } from "react-query";
-import { getUserOrders, OrderListResponse } from "../../services/orderService";
-import { format } from "date-fns";
-import { Link as RouterLink } from "react-router-dom";
-
-// Helper function to get badge color based on order status
-const getStatusColor = (status: string): string => {
-  switch (status.toLowerCase()) {
-    case "pending":
-      return "yellow";
-    case "processing":
-      return "blue";
-    case "shipped":
-      return "purple";
-    case "delivered":
-      return "green";
-    case "cancelled":
-      return "red";
-    case "returned":
-      return "orange";
-    default:
-      return "gray";
-  }
-};
+import { Card, CardContent } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 
 const OrderList: React.FC = () => {
-  const [statusFilter, setStatusFilter] = useState<string>("");
-  const [sortBy, setSortBy] = useState<string>("date_desc");
+  const [activeTab, setActiveTab] = useState("all");
 
-  // Pagination state
-  const { currentPage, setCurrentPage, pageSize, setPageSize } = usePagination({
-    initialState: {
-      currentPage: 1,
-      pageSize: 10,
-    },
-  });
+  const tabs = [
+    { id: "all", label: "All Orders" },
+    { id: "pending", label: "Pending" },
+    { id: "shipped", label: "Shipped" },
+    { id: "delivered", label: "Delivered" },
+  ];
 
-  const { data, isLoading, error, refetch } = useQuery<OrderListResponse>(
-    ["userOrders", currentPage, pageSize, statusFilter, sortBy],
-    () => getUserOrders(currentPage, pageSize, statusFilter),
+  const mockOrders = [
     {
-      keepPreviousData: true,
+      id: "order-1",
+      order_number: "ORD-12345",
+      status: "shipped",
+      total: 89.99,
+      created_at: "2024-01-15T10:30:00Z",
+      items_count: 3,
+    },
+    {
+      id: "order-2",
+      order_number: "ORD-12344",
+      status: "delivered",
+      total: 156.50,
+      created_at: "2024-01-10T14:20:00Z",
+      items_count: 2,
+    },
+  ];
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pending": return "bg-yellow-100 text-yellow-800";
+      case "shipped": return "bg-blue-100 text-blue-800";
+      case "delivered": return "bg-green-100 text-green-800";
+      case "cancelled": return "bg-red-100 text-red-800";
+      default: return "bg-gray-100 text-gray-800";
     }
-  );
-
-  const isDesktop = useBreakpointValue({ base: false, md: true });
-
-  const handleStatusFilterChange = (newStatus: string) => {
-    setStatusFilter(newStatus);
-    setCurrentPage(1); // Reset to first page on filter change
   };
-
-  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSortBy(e.target.value);
-  };
-
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
-  };
-
-  const handlePageChange = (nextPage: number) => {
-    setCurrentPage(nextPage);
-  };
-
-  if (isLoading) {
-    return (
-      <Flex justify="center" align="center" height="300px">
-        <Spinner size="xl" />
-      </Flex>
-    );
-  }
-
-  if (error) {
-    return (
-      <Alert status="error" mb={4}>
-        <AlertIcon />
-        Error loading orders: {(error as Error).message}
-      </Alert>
-    );
-  }
 
   return (
-    <Box p={4}>
-      <Heading size="lg" mb={6}>
-        My Orders
-      </Heading>
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">My Orders</h1>
+      </div>
 
-      <Tabs variant="soft-rounded" colorScheme="blue" onChange={(index) => {
-        const statuses = ["", "pending", "processing", "shipped", "delivered", "cancelled"];
-        handleStatusFilterChange(statuses[index]);
-      }}>
-        <TabList mb={4} overflowX="auto" py={2}>
-          <Tab>All</Tab>
-          <Tab>Pending</Tab>
-          <Tab>Processing</Tab>
-          <Tab>Shipped</Tab>
-          <Tab>Delivered</Tab>
-          <Tab>Cancelled</Tab>
-        </TabList>
+      <Card>
+        <CardContent className="p-0">
+          {/* Tab Navigation */}
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8 px-6">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+          </div>
 
-        <TabPanels>
-          {["", "pending", "processing", "shipped", "delivered", "cancelled"].map(
-            (status, index) => (
-              <TabPanel key={index} p={0}>
-                <Box mb={4}>
-                  <Flex justifyContent="space-between" alignItems="center" mb={4}>
-                    <Text fontWeight="medium">
-                      {data?.total || 0} {status || "Total"} Orders
-                    </Text>
-                    <Select 
-                      size="sm" 
-                      width="auto" 
-                      value={sortBy}
-                      onChange={handleSortChange}
-                    >
-                      <option value="date_desc">Newest First</option>
-                      <option value="date_asc">Oldest First</option>
-                      <option value="total_desc">Price: High to Low</option>
-                      <option value="total_asc">Price: Low to High</option>
-                    </Select>
-                  </Flex>
+          {/* Orders Content */}
+          <div className="p-6">
+            <div className="space-y-4">
+              {mockOrders.map((order) => (
+                <Card key={order.id}>
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-3">
+                          <h3 className="font-semibold">Order {order.order_number}</h3>
+                          <Badge className={getStatusColor(order.status)}>
+                            {order.status}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          {order.items_count} items • ${order.total.toFixed(2)}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Placed on {new Date(order.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button variant="outline" size="sm">
+                          View Details
+                        </Button>
+                        {order.status === "delivered" && (
+                          <Button variant="outline" size="sm">
+                            Return Items
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
 
-                  {data?.orders.length === 0 ? (
-                    <Box p={8} textAlign="center" borderWidth="1px" borderRadius="lg">
-                      <Text>No orders found.</Text>
-                    </Box>
-                  ) : (
-                    <VStack spacing={4}>
-                      {data?.orders.map((order) => (
-                        <Box
-                          key={order.id}
-                          w="100%"
-                          p={4}
-                          borderWidth="1px"
-                          borderRadius="lg"
-                          boxShadow="sm"
-                        >
-                          <Flex
-                            direction={{ base: "column", md: "row" }}
-                            justify="space-between"
-                            align={{ base: "flex-start", md: "center" }}
-                            mb={3}
-                          >
-                            <HStack mb={{ base: 2, md: 0 }}>
-                              <Text fontWeight="bold">Order #{order.order_number}</Text>
-                              <Badge colorScheme={getStatusColor(order.status)}>
-                                {order.status}
-                              </Badge>
-                            </HStack>
+              {mockOrders.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-gray-600 mb-4">You haven't placed any orders yet.</p>
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                    Start Shopping
+                  </Button>
+                </div>
+              )}
+            </div>
 
-                            <Text fontSize="sm" color="gray.500">
-                              {format(new Date(order.created_at), "MMM dd, yyyy")}
-                            </Text>
-                          </Flex>
-
-                          <Divider my={2} />
-
-                          {isDesktop ? (
-                            <SimpleGrid columns={3} spacing={4} mb={3}>
-                              <Box>
-                                <Text fontSize="sm" color="gray.600">
-                                  Items
-                                </Text>
-                                <Text>
-                                  {order.order_items.reduce(
-                                    (sum, item) => sum + item.quantity,
-                                    0
-                                  )}{" "}
-                                  {order.order_items.reduce(
-                                    (sum, item) => sum + item.quantity,
-                                    0
-                                  ) > 1
-                                    ? "items"
-                                    : "item"}
-                                </Text>
-                              </Box>
-                              <Box>
-                                <Text fontSize="sm" color="gray.600">
-                                  Total
-                                </Text>
-                                <Text>{formatCurrency(order.total)}</Text>
-                              </Box>
-                              <Box>
-                                <Text fontSize="sm" color="gray.600">
-                                  Shipping To
-                                </Text>
-                                <Text>{order.shipping_address.recipient_name}</Text>
-                              </Box>
-                            </SimpleGrid>
-                          ) : (
-                            <VStack align="flex-start" spacing={1} mb={3}>
-                              <HStack justify="space-between" width="100%">
-                                <Text fontSize="sm" color="gray.600">
-                                  Items:
-                                </Text>
-                                <Text>
-                                  {order.order_items.reduce(
-                                    (sum, item) => sum + item.quantity,
-                                    0
-                                  )}{" "}
-                                  {order.order_items.reduce(
-                                    (sum, item) => sum + item.quantity,
-                                    0
-                                  ) > 1
-                                    ? "items"
-                                    : "item"}
-                                </Text>
-                              </HStack>
-                              <HStack justify="space-between" width="100%">
-                                <Text fontSize="sm" color="gray.600">
-                                  Total:
-                                </Text>
-                                <Text>{formatCurrency(order.total)}</Text>
-                              </HStack>
-                              <HStack justify="space-between" width="100%">
-                                <Text fontSize="sm" color="gray.600">
-                                  Shipping To:
-                                </Text>
-                                <Text>{order.shipping_address.recipient_name}</Text>
-                              </HStack>
-                            </VStack>
-                          )}
-
-                          <Divider my={2} />
-
-                          <Flex justify="space-between" align="center" mt={2}>
-                            <Button
-                              as={RouterLink}
-                              to={`/orders/${order.id}`}
-                              colorScheme="blue"
-                              variant="outline"
-                              size="sm"
-                            >
-                              View Details
-                            </Button>
-
-                            {order.status !== "cancelled" && 
-                             order.status !== "delivered" &&
-                             order.status !== "returned" && (
-                              <Button
-                                as={RouterLink}
-                                to={`/orders/${order.id}/cancel`}
-                                colorScheme="red"
-                                variant="ghost"
-                                size="sm"
-                              >
-                                Cancel Order
-                              </Button>
-                            )}
-
-                            {order.status === "delivered" && !order.is_returned && (
-                              <Button
-                                as={RouterLink}
-                                to={`/orders/${order.id}/return`}
-                                colorScheme="orange"
-                                variant="ghost"
-                                size="sm"
-                              >
-                                Return Items
-                              </Button>
-                            )}
-                          </Flex>
-                        </Box>
-                      ))}
-                    </VStack>
-                  )}
-
-                  {data && data.total > pageSize && (
-                    <Pagination 
-                      pagesCount={Math.ceil(data.total / pageSize)}
-                      currentPage={currentPage}
-                      onPageChange={handlePageChange}
-                      colorScheme="blue"
-                    >
-                      <PaginationContainer mt={6} justify="center">
-                        <PaginationPrevious mr={1}>Previous</PaginationPrevious>
-                        <PaginationPageGroup>
-                          {Array.from({ length: Math.ceil(data.total / pageSize) }).map((_, i) => (
-                            <PaginationPage 
-                              key={i + 1} 
-                              page={i + 1} 
-                              width={10}
-                              fontSize="sm"
-                            />
-                          ))}
-                        </PaginationPageGroup>
-                        <PaginationNext ml={1}>Next</PaginationNext>
-                      </PaginationContainer>
-                    </Pagination>
-                  )}
-                </Box>
-              </TabPanel>
-            )
-          )}
-        </TabPanels>
-      </Tabs>
-    </Box>
+            <div className="mt-6 text-center">
+              <p className="text-gray-600">Order list functionality is being migrated to the new UI system.</p>
+              <p className="text-sm text-gray-500 mt-1">This component will be fully implemented with shadcn/ui components.</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

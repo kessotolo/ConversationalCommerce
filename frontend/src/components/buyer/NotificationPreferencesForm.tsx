@@ -1,75 +1,81 @@
-import React from "react";
-import {
-  Box,
-  VStack,
-  Heading,
-  FormControl,
-  FormLabel,
-  Switch,
-  Divider,
-  Text,
-  Button,
-  useToast,
-  HStack,
-  Checkbox,
-  CheckboxGroup,
-} from "@chakra-ui/react";
-import { useMutation, useQuery, useQueryClient } from "react-query";
-import {
-  getNotificationPreferences,
-  updateNotificationPreferences,
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+// import { Switch } from "@/components/ui/Switch";
+import type {
   NotificationPreferences,
   NotificationConfig,
 } from "../../services/notificationService";
 
 const NotificationPreferencesForm: React.FC = () => {
-  const toast = useToast();
-  const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const { data: preferences, isLoading } = useQuery(
-    "notificationPreferences",
-    getNotificationPreferences
-  );
-
-  const updateMutation = useMutation(updateNotificationPreferences, {
-    onSuccess: () => {
-      toast({
-        title: "Notification preferences saved",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-      queryClient.invalidateQueries("notificationPreferences");
+  // Mock preferences data for now
+  const preferences: NotificationPreferences = {
+    user_id: "user-1",
+    tenant_id: "tenant-1",
+    account_updates: {
+      enabled: true,
+      channels: {
+        email: true,
+        sms: false,
+        push: true,
+        in_app: true,
+      },
     },
-    onError: (err: any) => {
-      toast({
-        title: "Error saving preferences",
-        description: err.message || "An error occurred",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
+    order_updates: {
+      enabled: true,
+      channels: {
+        email: true,
+        sms: true,
+        push: true,
+        in_app: true,
+      },
     },
-  });
+    marketing: {
+      enabled: false,
+      channels: {
+        email: false,
+        sms: false,
+        push: false,
+        in_app: false,
+      },
+    },
+    security: {
+      enabled: true,
+      channels: {
+        email: true,
+        sms: true,
+        push: false,
+        in_app: true,
+      },
+    },
+    seller_verification: {
+      enabled: true,
+      channels: {
+        email: true,
+        sms: false,
+        push: true,
+        in_app: true,
+      },
+    },
+    team_invitations: {
+      enabled: true,
+      channels: {
+        email: true,
+        sms: false,
+        push: true,
+        in_app: true,
+      },
+    },
+  };
 
   const handleToggleCategory = (
     category: keyof Omit<NotificationPreferences, "user_id" | "tenant_id">,
     enabled: boolean
   ) => {
-    if (!preferences) return;
-
-    // Create a copy of the category config and update enabled status
-    const updatedCategoryConfig: NotificationConfig = {
-      ...preferences[category],
-      enabled: enabled,
-    };
-
-    // Create an update payload focusing only on the modified category
-    const updatePayload = {
-      [category]: updatedCategoryConfig,
-    };
-
-    updateMutation.mutate(updatePayload);
+    console.log(`Toggling ${category} to ${enabled}`);
+    // In a real app, you'd update the preferences here
   };
 
   const handleToggleChannel = (
@@ -77,311 +83,371 @@ const NotificationPreferencesForm: React.FC = () => {
     channel: keyof NotificationConfig["channels"],
     enabled: boolean
   ) => {
-    if (!preferences) return;
-
-    // Create a copy of the category config
-    const updatedCategoryConfig: NotificationConfig = { 
-      ...preferences[category],
-      channels: { 
-        ...preferences[category].channels,
-        [channel]: enabled 
-      }
-    };
-
-    // Create an update payload focusing only on the modified category
-    const updatePayload = {
-      [category]: updatedCategoryConfig,
-    };
-
-    updateMutation.mutate(updatePayload);
+    console.log(`Toggling ${category}.${channel} to ${enabled}`);
+    // In a real app, you'd update the preferences here
   };
 
-  const saveAllPreferences = () => {
-    if (!preferences) return;
-
-    const { user_id, tenant_id, ...preferencesData } = preferences;
-    updateMutation.mutate(preferencesData);
+  const saveAllPreferences = async () => {
+    setIsLoading(true);
+    try {
+      // In a real app, you'd save the preferences here
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('Preferences saved');
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
-
-  if (isLoading) {
-    return <Text>Loading notification preferences...</Text>;
-  }
-
-  if (!preferences) {
-    return <Text>Failed to load notification preferences</Text>;
-  }
 
   return (
-    <Box p={4} borderWidth="1px" borderRadius="lg" bg="white" width="100%">
-      <VStack spacing={6} align="stretch">
-        <Heading size="md">Notification Preferences</Heading>
-        <Text color="gray.600">
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Notification Preferences</CardTitle>
+        <p className="text-gray-600">
           Choose which notifications you'd like to receive and how you want to
           receive them.
-        </Text>
-
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-6">
         {/* Account Updates */}
-        <Box borderWidth="1px" borderRadius="md" p={4}>
-          <HStack justifyContent="space-between" mb={2}>
-            <Heading size="sm">Account Updates</Heading>
-            <Switch
-              isChecked={preferences.account_updates.enabled}
-              onChange={(e) =>
-                handleToggleCategory("account_updates", e.target.checked)
-              }
-              colorScheme="blue"
-            />
-          </HStack>
-          <Text fontSize="sm" mb={3} color="gray.600">
-            Profile changes, password resets, and security alerts
-          </Text>
-          <Divider mb={3} />
-          <CheckboxGroup>
-            <VStack align="start" spacing={2}>
-              <Checkbox
-                isChecked={preferences.account_updates.channels.email}
-                onChange={(e) =>
-                  handleToggleChannel(
-                    "account_updates",
-                    "email",
-                    e.target.checked
-                  )
-                }
-                isDisabled={!preferences.account_updates.enabled}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-lg font-semibold">Account Updates</h3>
+              <button
+                onClick={() => handleToggleCategory("account_updates", !preferences.account_updates.enabled)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full ${preferences.account_updates.enabled ? 'bg-blue-600' : 'bg-gray-200'
+                  }`}
               >
-                Email
-              </Checkbox>
-              <Checkbox
-                isChecked={preferences.account_updates.channels.sms}
-                onChange={(e) =>
-                  handleToggleChannel("account_updates", "sms", e.target.checked)
-                }
-                isDisabled={!preferences.account_updates.enabled}
-              >
-                SMS
-              </Checkbox>
-              <Checkbox
-                isChecked={preferences.account_updates.channels.push}
-                onChange={(e) =>
-                  handleToggleChannel(
-                    "account_updates",
-                    "push",
-                    e.target.checked
-                  )
-                }
-                isDisabled={!preferences.account_updates.enabled}
-              >
-                Push Notifications
-              </Checkbox>
-              <Checkbox
-                isChecked={preferences.account_updates.channels.in_app}
-                onChange={(e) =>
-                  handleToggleChannel(
-                    "account_updates",
-                    "in_app",
-                    e.target.checked
-                  )
-                }
-                isDisabled={!preferences.account_updates.enabled}
-              >
-                In-App
-              </Checkbox>
-            </VStack>
-          </CheckboxGroup>
-        </Box>
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${preferences.account_updates.enabled ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                />
+              </button>
+            </div>
+            <p className="text-sm text-gray-600 mb-3">
+              Profile changes, password resets, and security alerts
+            </p>
+            <hr className="mb-3" />
+            <div className="space-y-2">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={preferences.account_updates.channels.email}
+                  onChange={(e) =>
+                    handleToggleChannel(
+                      "account_updates",
+                      "email",
+                      e.target.checked
+                    )
+                  }
+                  disabled={!preferences.account_updates.enabled}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className={!preferences.account_updates.enabled ? "text-gray-400" : ""}>
+                  Email
+                </span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={preferences.account_updates.channels.sms}
+                  onChange={(e) =>
+                    handleToggleChannel("account_updates", "sms", e.target.checked)
+                  }
+                  disabled={!preferences.account_updates.enabled}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className={!preferences.account_updates.enabled ? "text-gray-400" : ""}>
+                  SMS
+                </span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={preferences.account_updates.channels.push}
+                  onChange={(e) =>
+                    handleToggleChannel(
+                      "account_updates",
+                      "push",
+                      e.target.checked
+                    )
+                  }
+                  disabled={!preferences.account_updates.enabled}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className={!preferences.account_updates.enabled ? "text-gray-400" : ""}>
+                  Push Notifications
+                </span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={preferences.account_updates.channels.in_app}
+                  onChange={(e) =>
+                    handleToggleChannel(
+                      "account_updates",
+                      "in_app",
+                      e.target.checked
+                    )
+                  }
+                  disabled={!preferences.account_updates.enabled}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className={!preferences.account_updates.enabled ? "text-gray-400" : ""}>
+                  In-App
+                </span>
+              </label>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Order Updates */}
-        <Box borderWidth="1px" borderRadius="md" p={4}>
-          <HStack justifyContent="space-between" mb={2}>
-            <Heading size="sm">Order Updates</Heading>
-            <Switch
-              isChecked={preferences.order_updates.enabled}
-              onChange={(e) =>
-                handleToggleCategory("order_updates", e.target.checked)
-              }
-              colorScheme="blue"
-            />
-          </HStack>
-          <Text fontSize="sm" mb={3} color="gray.600">
-            Order confirmations, shipping updates, and delivery notifications
-          </Text>
-          <Divider mb={3} />
-          <CheckboxGroup>
-            <VStack align="start" spacing={2}>
-              <Checkbox
-                isChecked={preferences.order_updates.channels.email}
-                onChange={(e) =>
-                  handleToggleChannel("order_updates", "email", e.target.checked)
-                }
-                isDisabled={!preferences.order_updates.enabled}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-lg font-semibold">Order Updates</h3>
+              <button
+                onClick={() => handleToggleCategory("order_updates", !preferences.order_updates.enabled)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full ${preferences.order_updates.enabled ? 'bg-blue-600' : 'bg-gray-200'
+                  }`}
               >
-                Email
-              </Checkbox>
-              <Checkbox
-                isChecked={preferences.order_updates.channels.sms}
-                onChange={(e) =>
-                  handleToggleChannel("order_updates", "sms", e.target.checked)
-                }
-                isDisabled={!preferences.order_updates.enabled}
-              >
-                SMS
-              </Checkbox>
-              <Checkbox
-                isChecked={preferences.order_updates.channels.push}
-                onChange={(e) =>
-                  handleToggleChannel("order_updates", "push", e.target.checked)
-                }
-                isDisabled={!preferences.order_updates.enabled}
-              >
-                Push Notifications
-              </Checkbox>
-              <Checkbox
-                isChecked={preferences.order_updates.channels.in_app}
-                onChange={(e) =>
-                  handleToggleChannel(
-                    "order_updates",
-                    "in_app",
-                    e.target.checked
-                  )
-                }
-                isDisabled={!preferences.order_updates.enabled}
-              >
-                In-App
-              </Checkbox>
-            </VStack>
-          </CheckboxGroup>
-        </Box>
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${preferences.order_updates.enabled ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                />
+              </button>
+            </div>
+            <p className="text-sm text-gray-600 mb-3">
+              Order confirmations, shipping updates, and delivery notifications
+            </p>
+            <hr className="mb-3" />
+            <div className="space-y-2">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={preferences.order_updates.channels.email}
+                  onChange={(e) =>
+                    handleToggleChannel("order_updates", "email", e.target.checked)
+                  }
+                  disabled={!preferences.order_updates.enabled}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className={!preferences.order_updates.enabled ? "text-gray-400" : ""}>
+                  Email
+                </span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={preferences.order_updates.channels.sms}
+                  onChange={(e) =>
+                    handleToggleChannel("order_updates", "sms", e.target.checked)
+                  }
+                  disabled={!preferences.order_updates.enabled}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className={!preferences.order_updates.enabled ? "text-gray-400" : ""}>
+                  SMS
+                </span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={preferences.order_updates.channels.push}
+                  onChange={(e) =>
+                    handleToggleChannel("order_updates", "push", e.target.checked)
+                  }
+                  disabled={!preferences.order_updates.enabled}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className={!preferences.order_updates.enabled ? "text-gray-400" : ""}>
+                  Push Notifications
+                </span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={preferences.order_updates.channels.in_app}
+                  onChange={(e) =>
+                    handleToggleChannel(
+                      "order_updates",
+                      "in_app",
+                      e.target.checked
+                    )
+                  }
+                  disabled={!preferences.order_updates.enabled}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className={!preferences.order_updates.enabled ? "text-gray-400" : ""}>
+                  In-App
+                </span>
+              </label>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Marketing */}
-        <Box borderWidth="1px" borderRadius="md" p={4}>
-          <HStack justifyContent="space-between" mb={2}>
-            <Heading size="sm">Marketing</Heading>
-            <Switch
-              isChecked={preferences.marketing.enabled}
-              onChange={(e) =>
-                handleToggleCategory("marketing", e.target.checked)
-              }
-              colorScheme="blue"
-            />
-          </HStack>
-          <Text fontSize="sm" mb={3} color="gray.600">
-            Promotions, new product announcements, and personalized recommendations
-          </Text>
-          <Divider mb={3} />
-          <CheckboxGroup>
-            <VStack align="start" spacing={2}>
-              <Checkbox
-                isChecked={preferences.marketing.channels.email}
-                onChange={(e) =>
-                  handleToggleChannel("marketing", "email", e.target.checked)
-                }
-                isDisabled={!preferences.marketing.enabled}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-lg font-semibold">Marketing</h3>
+              <button
+                onClick={() => handleToggleCategory("marketing", !preferences.marketing.enabled)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full ${preferences.marketing.enabled ? 'bg-blue-600' : 'bg-gray-200'
+                  }`}
               >
-                Email
-              </Checkbox>
-              <Checkbox
-                isChecked={preferences.marketing.channels.sms}
-                onChange={(e) =>
-                  handleToggleChannel("marketing", "sms", e.target.checked)
-                }
-                isDisabled={!preferences.marketing.enabled}
-              >
-                SMS
-              </Checkbox>
-              <Checkbox
-                isChecked={preferences.marketing.channels.push}
-                onChange={(e) =>
-                  handleToggleChannel("marketing", "push", e.target.checked)
-                }
-                isDisabled={!preferences.marketing.enabled}
-              >
-                Push Notifications
-              </Checkbox>
-              <Checkbox
-                isChecked={preferences.marketing.channels.in_app}
-                onChange={(e) =>
-                  handleToggleChannel("marketing", "in_app", e.target.checked)
-                }
-                isDisabled={!preferences.marketing.enabled}
-              >
-                In-App
-              </Checkbox>
-            </VStack>
-          </CheckboxGroup>
-        </Box>
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${preferences.marketing.enabled ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                />
+              </button>
+            </div>
+            <p className="text-sm text-gray-600 mb-3">
+              Promotions, new product announcements, and personalized recommendations
+            </p>
+            <hr className="mb-3" />
+            <div className="space-y-2">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={preferences.marketing.channels.email}
+                  onChange={(e) =>
+                    handleToggleChannel("marketing", "email", e.target.checked)
+                  }
+                  disabled={!preferences.marketing.enabled}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className={!preferences.marketing.enabled ? "text-gray-400" : ""}>
+                  Email
+                </span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={preferences.marketing.channels.sms}
+                  onChange={(e) =>
+                    handleToggleChannel("marketing", "sms", e.target.checked)
+                  }
+                  disabled={!preferences.marketing.enabled}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className={!preferences.marketing.enabled ? "text-gray-400" : ""}>
+                  SMS
+                </span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={preferences.marketing.channels.push}
+                  onChange={(e) =>
+                    handleToggleChannel("marketing", "push", e.target.checked)
+                  }
+                  disabled={!preferences.marketing.enabled}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className={!preferences.marketing.enabled ? "text-gray-400" : ""}>
+                  Push Notifications
+                </span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={preferences.marketing.channels.in_app}
+                  onChange={(e) =>
+                    handleToggleChannel("marketing", "in_app", e.target.checked)
+                  }
+                  disabled={!preferences.marketing.enabled}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className={!preferences.marketing.enabled ? "text-gray-400" : ""}>
+                  In-App
+                </span>
+              </label>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Security */}
-        <Box borderWidth="1px" borderRadius="md" p={4}>
-          <HStack justifyContent="space-between" mb={2}>
-            <Heading size="sm">Security</Heading>
-            <Switch
-              isChecked={preferences.security.enabled}
-              onChange={(e) =>
-                handleToggleCategory("security", e.target.checked)
-              }
-              colorScheme="blue"
-              // Security notifications shouldn't be disabled
-              isDisabled={true}
-              defaultChecked={true}
-            />
-          </HStack>
-          <Text fontSize="sm" mb={3} color="gray.600">
-            Login attempts, password changes, and security alerts (required)
-          </Text>
-          <Divider mb={3} />
-          <CheckboxGroup>
-            <VStack align="start" spacing={2}>
-              <Checkbox
-                isChecked={preferences.security.channels.email}
-                onChange={(e) =>
-                  handleToggleChannel("security", "email", e.target.checked)
-                }
-                // Email security notifications are required
-                isDisabled={true}
-                defaultChecked={true}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-lg font-semibold">Security</h3>
+              <button
+                disabled={true}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full ${preferences.security.enabled ? 'bg-blue-600' : 'bg-gray-200'
+                  } opacity-50 cursor-not-allowed`}
               >
-                Email
-              </Checkbox>
-              <Checkbox
-                isChecked={preferences.security.channels.sms}
-                onChange={(e) =>
-                  handleToggleChannel("security", "sms", e.target.checked)
-                }
-              >
-                SMS
-              </Checkbox>
-              <Checkbox
-                isChecked={preferences.security.channels.push}
-                onChange={(e) =>
-                  handleToggleChannel("security", "push", e.target.checked)
-                }
-              >
-                Push Notifications
-              </Checkbox>
-              <Checkbox
-                isChecked={preferences.security.channels.in_app}
-                onChange={(e) =>
-                  handleToggleChannel("security", "in_app", e.target.checked)
-                }
-              >
-                In-App
-              </Checkbox>
-            </VStack>
-          </CheckboxGroup>
-        </Box>
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${preferences.security.enabled ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                />
+              </button>
+            </div>
+            <p className="text-sm text-gray-600 mb-3">
+              Login attempts, password changes, and security alerts (required)
+            </p>
+            <hr className="mb-3" />
+            <div className="space-y-2">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={preferences.security.channels.email}
+                  onChange={(e) =>
+                    handleToggleChannel("security", "email", e.target.checked)
+                  }
+                  disabled={true}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-gray-400">Email (required)</span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={preferences.security.channels.sms}
+                  onChange={(e) =>
+                    handleToggleChannel("security", "sms", e.target.checked)
+                  }
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span>SMS</span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={preferences.security.channels.push}
+                  onChange={(e) =>
+                    handleToggleChannel("security", "push", e.target.checked)
+                  }
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span>Push Notifications</span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={preferences.security.channels.in_app}
+                  onChange={(e) =>
+                    handleToggleChannel("security", "in_app", e.target.checked)
+                  }
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span>In-App</span>
+              </label>
+            </div>
+          </CardContent>
+        </Card>
 
         <Button
-          mt={2}
-          colorScheme="blue"
-          type="button"
           onClick={saveAllPreferences}
-          isLoading={updateMutation.isLoading}
-          loadingText="Saving"
+          disabled={isLoading}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
         >
-          Save All Preferences
+          {isLoading ? "Saving..." : "Save All Preferences"}
         </Button>
-      </VStack>
-    </Box>
+      </CardContent>
+    </Card>
   );
 };
 

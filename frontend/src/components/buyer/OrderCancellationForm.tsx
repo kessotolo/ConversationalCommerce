@@ -1,18 +1,7 @@
-import React from "react";
-import {
-  Button,
-  FormControl,
-  FormLabel,
-  FormHelperText,
-  Textarea,
-  Select,
-  VStack,
-  Box,
-  Heading,
-  useToast,
-} from "@chakra-ui/react";
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 import { useForm } from "react-hook-form";
-import { useMutation, useQueryClient } from "react-query";
 import { cancelOrder } from "../../services/orderService";
 
 interface OrderCancellationFormProps {
@@ -40,97 +29,103 @@ const OrderCancellationForm: React.FC<OrderCancellationFormProps> = ({
   onSuccess,
   onCancel,
 }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<CancellationFormData>();
 
-  const toast = useToast();
-  const queryClient = useQueryClient();
-
-  const cancelMutation = useMutation(cancelOrder, {
-    onSuccess: () => {
-      toast({
-        title: "Order cancelled successfully",
-        description: "Your cancellation request has been processed",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-      });
-      queryClient.invalidateQueries(['order', orderId]);
-      queryClient.invalidateQueries(['orders']);
-      if (onSuccess) onSuccess();
-    },
-    onError: (error) => {
-      toast({
-        title: "Failed to cancel order",
-        description: error instanceof Error ? error.message : "Please try again later",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    },
-  });
-
   const onSubmit = async (data: CancellationFormData) => {
-    await cancelMutation.mutateAsync({
-      order_id: orderId,
-      cancellation_reason: data.reason,
-      cancellation_details: data.details,
-    });
+    setIsSubmitting(true);
+    try {
+      await cancelOrder({
+        order_id: orderId,
+        reason: data.reason,
+        additional_details: data.details,
+      });
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      console.error('Failed to cancel order:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <Box p={4} borderRadius="md" boxShadow="sm" bg="white">
-      <Heading size="md" mb={4}>
-        Cancel Order
-      </Heading>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <VStack spacing={4} align="stretch">
-          <FormControl isRequired isInvalid={!!errors.reason}>
-            <FormLabel>Cancellation Reason</FormLabel>
-            <Select placeholder="Select reason" {...register("reason", { required: true })}>
+    <Card>
+      <CardHeader>
+        <CardTitle>Cancel Order</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Cancellation Reason */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Cancellation Reason *
+            </label>
+            <select
+              {...register("reason", { required: "Please select a reason" })}
+              className={`w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.reason ? "border-red-500" : ""
+                }`}
+            >
+              <option value="">Select reason</option>
               {CANCELLATION_REASONS.map((reason) => (
                 <option key={reason} value={reason}>
-                  {reason.split("_").map(word => 
+                  {reason.split("_").map(word =>
                     word.charAt(0).toUpperCase() + word.slice(1)
                   ).join(" ")}
                 </option>
               ))}
-            </Select>
-            <FormHelperText>
+            </select>
+            <p className="text-sm text-gray-500 mt-1">
               Please select the reason for cancelling your order
-            </FormHelperText>
-          </FormControl>
+            </p>
+            {errors.reason && (
+              <p className="text-red-500 text-sm mt-1">{errors.reason.message}</p>
+            )}
+          </div>
 
-          <FormControl isInvalid={!!errors.details}>
-            <FormLabel>Additional Details</FormLabel>
-            <Textarea
-              placeholder="Please provide any additional details about your cancellation"
+          {/* Additional Details */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Additional Details
+            </label>
+            <textarea
               {...register("details")}
+              placeholder="Please provide any additional details about your cancellation"
+              rows={4}
+              className={`w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.details ? "border-red-500" : ""
+                }`}
             />
-            <FormHelperText>
+            <p className="text-sm text-gray-500 mt-1">
               Any additional information that might help us improve our service
-            </FormHelperText>
-          </FormControl>
+            </p>
+            {errors.details && (
+              <p className="text-red-500 text-sm mt-1">{errors.details.message}</p>
+            )}
+          </div>
 
-          <Box display="flex" justifyContent="space-between" mt={4}>
-            <Button variant="outline" onClick={onCancel}>
+          {/* Action Buttons */}
+          <div className="flex justify-between space-x-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={onCancel}
+              type="button"
+            >
               Back to Order
             </Button>
-            <Button 
-              colorScheme="red" 
+            <Button
               type="submit"
-              isLoading={isSubmitting || cancelMutation.isLoading}
-              loadingText="Cancelling"
+              disabled={isSubmitting}
+              className="bg-red-600 hover:bg-red-700 text-white"
             >
-              Cancel Order
+              {isSubmitting ? "Cancelling..." : "Cancel Order"}
             </Button>
-          </Box>
-        </VStack>
-      </form>
-    </Box>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 
