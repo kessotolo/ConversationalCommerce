@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Admin Dashboard Global Styles */
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Loading animations */
+.animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Context-aware styling */
+.admin-context {
+    --primary-color: #3a36e0;
+    --secondary-color: #6c63ff;
+    --accent-color: #2d2b9a;
+}
+
+/* Security indicators */
+.security-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.security-badge.active {
+    @apply bg-green-100 text-green-800;
+}
+
+.security-badge.warning {
+    @apply bg-yellow-100 text-yellow-800;
+}
+
+.security-badge.error {
+    @apply bg-red-100 text-red-800;
+}
