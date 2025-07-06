@@ -1,22 +1,18 @@
-import SuccessIcon from '@mui/icons-material/CheckCircle';
-import CloseIcon from '@mui/icons-material/Close';
-import ErrorIcon from '@mui/icons-material/Error';
-import InfoIcon from '@mui/icons-material/Info';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import WarningIcon from '@mui/icons-material/Warning';
-import Badge from '@mui/material/Badge';
-import Box from '@mui/material/Box';
-import Chip from '@mui/material/Chip';
-import Divider from '@mui/material/Divider';
-import Drawer from '@mui/material/Drawer';
-import IconButton from '@mui/material/IconButton';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import Typography from '@mui/material/Typography';
-import { formatDistanceToNow } from 'date-fns';
 import React, { useEffect, useState } from 'react';
+import { formatDistanceToNow } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import {
+  Bell,
+  X,
+  AlertCircle,
+  AlertTriangle,
+  Info,
+  CheckCircle,
+  Clock
+} from 'lucide-react';
 
 import { useWebSocket } from '@/hooks/useWebSocket';
 
@@ -116,122 +112,147 @@ const NotificationCenter: React.FC = () => {
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
       case 'urgent':
-        return <ErrorIcon color="error" />;
+        return <AlertCircle className="h-4 w-4 text-red-500" />;
       case 'high':
-        return <WarningIcon color="warning" />;
+        return <AlertTriangle className="h-4 w-4 text-orange-500" />;
       case 'medium':
-        return <InfoIcon color="info" />;
+        return <Info className="h-4 w-4 text-blue-500" />;
       case 'low':
-        return <SuccessIcon color="success" />;
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
       default:
-        return <InfoIcon />;
+        return <Info className="h-4 w-4 text-gray-500" />;
     }
   };
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityBorderColor = (priority: string) => {
     switch (priority) {
       case 'urgent':
-        return 'error';
+        return 'border-l-red-500';
       case 'high':
-        return 'warning';
+        return 'border-l-orange-500';
       case 'medium':
-        return 'info';
+        return 'border-l-blue-500';
       case 'low':
-        return 'success';
+        return 'border-l-green-500';
       default:
-        return 'default';
+        return 'border-l-gray-500';
     }
   };
 
   return (
     <>
-      <IconButton color="inherit" onClick={() => setIsOpen(true)} sx={{ position: 'relative' }}>
-        <Badge badgeContent={unreadCount} color="error">
-          <NotificationsIcon />
-        </Badge>
-      </IconButton>
-
-      <Drawer
-        anchor="right"
-        open={isOpen}
-        onClose={() => setIsOpen(false)}
-        PaperProps={{
-          sx: { width: 400 },
-        }}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setIsOpen(true)}
+        className="relative p-2"
       >
-        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6">Notifications</Typography>
+        <div className="relative">
+          <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <Chip
-              label={`${unreadCount} unread`}
-              color="primary"
-              size="small"
-              onClick={handleMarkAllRead}
-            />
-          )}
-        </Box>
-        <Divider />
-        <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
-          {notifications.map((notification) => (
-            <ListItem
-              key={notification.id}
-              alignItems="flex-start"
-              sx={{
-                borderLeft: 4,
-                borderColor: `${getPriorityColor(notification.priority)}.main`,
-                mb: 1,
-              }}
+            <Badge
+              variant="destructive"
+              className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
             >
-              <ListItemIcon>{getPriorityIcon(notification.priority)}</ListItemIcon>
-              <ListItemText
-                primary={
-                  <Box
-                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                  >
-                    <Typography variant="subtitle1">{notification.title}</Typography>
-                    <IconButton size="small" onClick={() => handleClose(notification.id)}>
-                      <CloseIcon fontSize="small" />
-                    </IconButton>
-                  </Box>
-                }
-                secondary={
-                  <>
-                    <Typography
-                      component="span"
-                      variant="body2"
-                      color="text.primary"
-                      sx={{ display: 'block', mb: 1 }}
-                    >
-                      {notification.message}
-                    </Typography>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-                      {String(notification.metadata['source'] ?? 'system')}
-                    </Typography>
-                    <Typography component="span" variant="caption" color="text.secondary">
-                      {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
-                    </Typography>
-                    {Object.entries(notification.metadata).map(([key, value]) => (
-                      <Typography
-                        key={key}
-                        component="span"
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ display: 'block' }}
-                      >
-                        {key}: {String(value)}
-                      </Typography>
-                    ))}
-                  </>
-                }
-              />
-            </ListItem>
-          ))}
-          {notifications.length === 0 && (
-            <ListItem>
-              <ListItemText primary="No notifications" secondary="You're all caught up!" />
-            </ListItem>
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </Badge>
           )}
-        </List>
+        </div>
+      </Button>
+
+      <Drawer open={isOpen} onOpenChange={setIsOpen}>
+        <DrawerContent className="h-[80vh] max-w-md mx-auto">
+          <DrawerHeader className="flex items-center justify-between">
+            <DrawerTitle className="flex items-center space-x-2">
+              <Bell className="h-5 w-5" />
+              <span>Notifications</span>
+            </DrawerTitle>
+            {unreadCount > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleMarkAllRead}
+                className="text-xs"
+              >
+                Mark all read ({unreadCount})
+              </Button>
+            )}
+          </DrawerHeader>
+
+          <Separator />
+
+          <div className="flex-1 overflow-y-auto p-4">
+            {notifications.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-center space-y-3">
+                <Bell className="h-12 w-12 text-gray-300" />
+                <div>
+                  <h3 className="font-medium text-gray-900">No notifications</h3>
+                  <p className="text-sm text-gray-500">You're all caught up!</p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {notifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    className={`p-4 border border-gray-200 rounded-lg border-l-4 ${getPriorityBorderColor(notification.priority)} bg-white shadow-sm`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start space-x-3 flex-1">
+                        {getPriorityIcon(notification.priority)}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-medium text-gray-900 truncate">
+                              {notification.title}
+                            </h4>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleClose(notification.id)}
+                              className="p-1 h-6 w-6"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+
+                          <p className="text-sm text-gray-600 mt-1">
+                            {notification.message}
+                          </p>
+
+                          <div className="flex items-center justify-between mt-2">
+                            <Badge variant="secondary" className="text-xs">
+                              {String(notification.metadata['source'] ?? 'system')}
+                            </Badge>
+
+                            <div className="flex items-center space-x-1 text-xs text-gray-500">
+                              <Clock className="h-3 w-3" />
+                              <span>
+                                {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Additional metadata */}
+                          {Object.entries(notification.metadata).length > 1 && (
+                            <div className="mt-2 space-y-1">
+                              {Object.entries(notification.metadata)
+                                .filter(([key]) => key !== 'source')
+                                .map(([key, value]) => (
+                                  <div key={key} className="text-xs text-gray-500">
+                                    <span className="font-medium">{key}:</span> {String(value)}
+                                  </div>
+                                ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </DrawerContent>
       </Drawer>
     </>
   );

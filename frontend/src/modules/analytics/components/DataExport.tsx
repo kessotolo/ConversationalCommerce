@@ -30,7 +30,7 @@ const DataExport: React.FC<DataExportProps> = ({
     const date = new Date();
     const dateStr = date.toISOString().slice(0, 10);
     const timeStr = date.toTimeString().slice(0, 8).replace(/:/g, '-');
-    
+
     const metrics = query.metrics.join('-');
     return `analytics-${metrics}-${dateStr}-${timeStr}.${format.toLowerCase()}`;
   };
@@ -39,18 +39,18 @@ const DataExport: React.FC<DataExportProps> = ({
   const handleExport = async (format: 'csv' | 'excel' | 'json') => {
     try {
       setIsExporting(true);
-      
+
       const exportOptions: ExportOptions = {
         format,
         includeHeaders,
       };
-      
+
       const response = await analyticsService.exportAnalytics(query, exportOptions);
-      
+
       // Create a blob from the response data
       let blob;
       let contentType;
-      
+
       if (format === 'csv') {
         contentType = 'text/csv';
       } else if (format === 'excel') {
@@ -58,23 +58,23 @@ const DataExport: React.FC<DataExportProps> = ({
       } else {
         contentType = 'application/json';
       }
-      
-      blob = new Blob([response.data], { type: contentType });
-      
+
+      blob = new Blob([response.data as BlobPart], { type: contentType });
+
       // Create a temporary URL for the blob
       const url = window.URL.createObjectURL(blob);
-      
+
       // Create a link element to trigger the download
       const a = document.createElement('a');
       a.href = url;
       a.download = getExportFileName(format);
       document.body.appendChild(a);
       a.click();
-      
+
       // Clean up
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
+
       window.alert(`Export successful! Your data has been exported as ${format.toUpperCase()}`);
     } catch (error) {
       console.error('Export failed', error);
@@ -90,8 +90,8 @@ const DataExport: React.FC<DataExportProps> = ({
     <div className="relative inline-block text-left">
       <Button
         type="button"
-        variant={['default','link','destructive','outline','secondary','ghost'].includes(variant) ? variant as any : 'default'}
-        size={['default','sm','lg','icon'].includes(size) ? size as any : 'default'}
+        variant={['default', 'link', 'destructive', 'outline', 'secondary', 'ghost'].includes(variant) ? variant as any : 'default'}
+        size={['default', 'sm', 'lg', 'icon'].includes(size) ? size as any : 'default'}
         className="inline-flex items-center gap-2"
         disabled={disabled || isExporting}
         onClick={() => setOpen((open) => !open as boolean)}

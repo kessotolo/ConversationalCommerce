@@ -1,45 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import {
-  Box,
-  Typography,
-  CircularProgress,
-  Alert,
-  AlertTitle,
-  Tabs,
-  Tab,
-  Grid,
-  Card,
-  CardHeader,
-  CardContent,
-  CardActions,
-  Stack,
-  Button,
-  IconButton,
-  Table,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-  Switch,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  FormControlLabel,
-  Divider,
-  Container,
-} from '@mui/material';
-import { styled } from '@mui/material/styles';
-import { 
-  Add as AddIcon, 
-  Edit as EditIcon, 
-  Delete as DeleteIcon, 
-  LocalShipping as TruckIcon,
-  Inventory as PackageIcon,
-  Map as MapIcon,
+  Plus,
+  Edit,
+  Trash2,
+  Truck,
+  Package,
+  MapPin,
   Settings as SettingsIcon
-} from '@mui/icons-material';
+} from 'lucide-react';
 import { SettingsService } from '../../services/SettingsService';
 import SettingsForm from '../SettingsForm';
 import type { Setting } from '../../models/settings';
@@ -80,10 +59,10 @@ const DUMMY_METHODS: ShippingMethod[] = [
 
 // Sample settings for different tabs
 const dummyGeneralSettings: Setting[] = [
-  { 
-    id: 'shipping_calculator', 
-    key: 'shipping.general.calculator', 
-    value: 'true', 
+  {
+    id: 'shipping_calculator',
+    key: 'shipping.general.calculator',
+    value: 'true',
     valueType: 'boolean',
     domainId: 'shipping',
     isEncrypted: false,
@@ -94,10 +73,10 @@ const dummyGeneralSettings: Setting[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
-  { 
-    id: 'shipping_cost_display', 
-    key: 'shipping.general.cost_display', 
-    value: 'true', 
+  {
+    id: 'shipping_cost_display',
+    key: 'shipping.general.cost_display',
+    value: 'true',
     valueType: 'boolean',
     domainId: 'shipping',
     isEncrypted: false,
@@ -108,10 +87,10 @@ const dummyGeneralSettings: Setting[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
-  { 
-    id: 'default_shipping_country', 
-    key: 'shipping.general.default_country', 
-    value: 'US', 
+  {
+    id: 'default_shipping_country',
+    key: 'shipping.general.default_country',
+    value: 'US',
     valueType: 'string',
     domainId: 'shipping',
     isEncrypted: false,
@@ -125,10 +104,10 @@ const dummyGeneralSettings: Setting[] = [
 ];
 
 const dummyCarrierSettings: Setting[] = [
-  { 
-    id: 'usps_enabled', 
-    key: 'shipping.carriers.usps', 
-    value: 'true', 
+  {
+    id: 'usps_enabled',
+    key: 'shipping.carriers.usps',
+    value: 'true',
     valueType: 'boolean',
     domainId: 'shipping',
     isEncrypted: false,
@@ -139,10 +118,10 @@ const dummyCarrierSettings: Setting[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
-  { 
-    id: 'fedex_enabled', 
-    key: 'shipping.carriers.fedex', 
-    value: 'true', 
+  {
+    id: 'fedex_enabled',
+    key: 'shipping.carriers.fedex',
+    value: 'true',
     valueType: 'boolean',
     domainId: 'shipping',
     isEncrypted: false,
@@ -153,10 +132,10 @@ const dummyCarrierSettings: Setting[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
-  { 
-    id: 'ups_enabled', 
-    key: 'shipping.carriers.ups', 
-    value: 'false', 
+  {
+    id: 'ups_enabled',
+    key: 'shipping.carriers.ups',
+    value: 'false',
     valueType: 'boolean',
     domainId: 'shipping',
     isEncrypted: false,
@@ -167,10 +146,10 @@ const dummyCarrierSettings: Setting[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
-  { 
-    id: 'dhl_enabled', 
-    key: 'shipping.carriers.dhl', 
-    value: 'false', 
+  {
+    id: 'dhl_enabled',
+    key: 'shipping.carriers.dhl',
+    value: 'false',
     valueType: 'boolean',
     domainId: 'shipping',
     isEncrypted: false,
@@ -184,10 +163,10 @@ const dummyCarrierSettings: Setting[] = [
 ];
 
 const dummyPackagingSettings: Setting[] = [
-  { 
-    id: 'default_box_size', 
-    key: 'shipping.packaging.default_size', 
-    value: 'medium', 
+  {
+    id: 'default_box_size',
+    key: 'shipping.packaging.default_size',
+    value: 'medium',
     valueType: 'string',
     domainId: 'shipping',
     isEncrypted: false,
@@ -198,10 +177,10 @@ const dummyPackagingSettings: Setting[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
-  { 
-    id: 'use_flat_rate_boxes', 
-    key: 'shipping.packaging.flat_rate', 
-    value: 'true', 
+  {
+    id: 'use_flat_rate_boxes',
+    key: 'shipping.packaging.flat_rate',
+    value: 'true',
     valueType: 'boolean',
     domainId: 'shipping',
     isEncrypted: false,
@@ -212,10 +191,10 @@ const dummyPackagingSettings: Setting[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
-  { 
-    id: 'include_packaging_weight', 
-    key: 'shipping.packaging.include_weight', 
-    value: 'true', 
+  {
+    id: 'include_packaging_weight',
+    key: 'shipping.packaging.include_weight',
+    value: 'true',
     valueType: 'boolean',
     domainId: 'shipping',
     isEncrypted: false,
@@ -229,10 +208,10 @@ const dummyPackagingSettings: Setting[] = [
 ];
 
 const dummyFulfillmentSettings: Setting[] = [
-  { 
-    id: 'auto_fulfill_paid_orders', 
-    key: 'shipping.fulfillment.auto_fulfill', 
-    value: 'false', 
+  {
+    id: 'auto_fulfill_paid_orders',
+    key: 'shipping.fulfillment.auto_fulfill',
+    value: 'false',
     valueType: 'boolean',
     domainId: 'shipping',
     isEncrypted: false,
@@ -243,10 +222,10 @@ const dummyFulfillmentSettings: Setting[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
-  { 
-    id: 'send_tracking_emails', 
-    key: 'shipping.fulfillment.tracking_emails', 
-    value: 'true', 
+  {
+    id: 'send_tracking_emails',
+    key: 'shipping.fulfillment.tracking_emails',
+    value: 'true',
     valueType: 'boolean',
     domainId: 'shipping',
     isEncrypted: false,
@@ -257,10 +236,10 @@ const dummyFulfillmentSettings: Setting[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
-  { 
-    id: 'ship_to_billing', 
-    key: 'shipping.fulfillment.ship_to_billing', 
-    value: 'false', 
+  {
+    id: 'ship_to_billing',
+    key: 'shipping.fulfillment.ship_to_billing',
+    value: 'false',
     valueType: 'boolean',
     domainId: 'shipping',
     isEncrypted: false,
@@ -292,9 +271,9 @@ function TabPanel(props: TabPanelProps) {
       {...other}
     >
       {value === index && (
-        <Box sx={{ pt: 3 }}>
+        <div className="pt-6">
           {children}
-        </Box>
+        </div>
       )}
     </div>
   );
@@ -312,142 +291,139 @@ const ShippingSettings: React.FC = () => {
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>(DUMMY_METHODS);
   const [activeZone, setActiveZone] = useState<ShippingZone | null>(null);
   const [zoneFormData, setZoneFormData] = useState<Partial<ShippingZone>>({});
-  
+
   // Tab handling
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
+  const handleTabChange = (newValue: string) => {
+    setTabValue(parseInt(newValue));
   };
 
   // Dialog handlers
   const onClose = () => {
     setDialogOpen(false);
+    setActiveZone(null);
     setError(null);
   };
-  
+
   // Zone handlers
   const openNewZoneForm = () => {
     setActiveZone(null);
     setZoneFormData({
+      id: '',
       name: '',
       countries: [],
-      isActive: true
+      isActive: true,
+      description: ''
     });
     setDialogOpen(true);
   };
-  
+
   const openZoneDetails = (zone: ShippingZone) => {
     setActiveZone(zone);
-    setZoneFormData({ ...zone });
+    setZoneFormData(zone);
     setDialogOpen(true);
   };
-  
+
   const toggleZoneActive = (zoneId: string) => {
-    setShippingZones(zones => zones.map(zone => 
+    setShippingZones(prev => prev.map(zone =>
       zone.id === zoneId ? { ...zone, isActive: !zone.isActive } : zone
     ));
   };
-  
+
   const deleteZone = (zoneId: string) => {
-    if (window.confirm('Are you sure you want to delete this shipping zone? This action cannot be undone.')) {
-      try {
-        setShippingZones(zones => zones.filter(zone => zone.id !== zoneId));
-        // Also remove any shipping methods associated with this zone
-        setShippingMethods(methods => methods.filter(method => method.zoneId !== zoneId));
-      } catch (err) {
-        console.error('Failed to delete shipping zone:', err);
-        setError('Failed to delete shipping zone. Please try again.');
-      }
+    if (window.confirm('Are you sure you want to delete this zone?')) {
+      setShippingZones(prev => prev.filter(zone => zone.id !== zoneId));
     }
   };
-  
+
   // Method handlers
   const toggleMethodActive = (methodId: string) => {
-    setShippingMethods(methods => methods.map(method => 
+    setShippingMethods(prev => prev.map(method =>
       method.id === methodId ? { ...method, isActive: !method.isActive } : method
     ));
   };
-  
+
   const addShippingMethod = () => {
-    window.alert('Shipping method form would open here.');
-    // Implementation would depend on your modal/form structure
+    // Implementation for adding shipping method
+    window.alert('Add shipping method functionality would be implemented here');
   };
-  
+
   const deleteShippingMethod = (methodId: string) => {
-    if (window.confirm('Are you sure you want to delete this shipping method? This action cannot be undone.')) {
-      try {
-        setShippingMethods(methods => methods.filter(method => method.id !== methodId));
-      } catch (err) {
-        console.error('Failed to delete shipping method:', err);
-        setError('Failed to delete shipping method. Please try again.');
-      }
+    if (window.confirm('Are you sure you want to delete this shipping method?')) {
+      setShippingMethods(prev => prev.filter(method => method.id !== methodId));
     }
   };
-  
+
   // Save zone form data
   const handleSaveZone = () => {
-    // Validation
     if (!zoneFormData.name || !zoneFormData.countries || zoneFormData.countries.length === 0) {
       setError('Please fill in all required fields');
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       if (activeZone) {
         // Update existing zone
-        setShippingZones(zones => zones.map(zone => 
-          zone.id === activeZone.id ? { ...zone, ...zoneFormData } as ShippingZone : zone
-        ));
-      } else {
-        // Add new zone
-        const newZone: ShippingZone = {
-          id: Date.now().toString(), // Simple ID generation
+        const updatedZone: ShippingZone = {
+          id: activeZone.id,
           name: zoneFormData.name || '',
           countries: zoneFormData.countries || [],
           isActive: zoneFormData.isActive || false,
-          description: zoneFormData.description
+          description: zoneFormData.description || ''
         };
-        setShippingZones(zones => [...zones, newZone]);
+        setShippingZones(prev => prev.map(zone =>
+          zone.id === activeZone.id ? updatedZone : zone
+        ));
+      } else {
+        // Create new zone
+        const newZone: ShippingZone = {
+          id: Date.now().toString(),
+          name: zoneFormData.name || '',
+          countries: zoneFormData.countries || [],
+          isActive: zoneFormData.isActive || false,
+          description: zoneFormData.description || ''
+        };
+        setShippingZones(prev => [...prev, newZone]);
       }
-      
+
       setDialogOpen(false);
+      setActiveZone(null);
       setError(null);
-    } catch (err) {
-      console.error('Failed to save shipping zone:', err);
-      setError('Failed to save shipping zone. Please try again.');
+    } catch (error) {
+      setError('Failed to save zone. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   // Group settings by category for better organization - using real settings if available, or dummy data otherwise
-  const generalSettings = settings.filter(s => s.key?.startsWith('shipping.general')).length > 0 
+  const generalSettings = settings.filter(s => s.key?.startsWith('shipping.general')).length > 0
     ? settings.filter(s => s.key?.startsWith('shipping.general'))
     : dummyGeneralSettings;
-    
+
   const fulfillmentSettings = settings.filter(s => s.key?.startsWith('shipping.fulfillment')).length > 0
     ? settings.filter(s => s.key?.startsWith('shipping.fulfillment'))
     : dummyFulfillmentSettings;
-    
+
   const packagingSettings = settings.filter(s => s.key?.startsWith('shipping.packaging')).length > 0
     ? settings.filter(s => s.key?.startsWith('shipping.packaging'))
     : dummyPackagingSettings;
-    
+
   const carrierSettings = settings.filter(s => s.key?.startsWith('shipping.carriers')).length > 0
     ? settings.filter(s => s.key?.startsWith('shipping.carriers'))
     : dummyCarrierSettings;
-  
+
   // Load shipping settings
   useEffect(() => {
     const loadSettings = async () => {
       setIsLoading(true);
       setError(null);
-      
+
       try {
         const shippingSettingsDomain = await new SettingsService().getDomainByNameWithSettings('shipping');
         setSettings(shippingSettingsDomain.settings);
-        
+
         // In a real implementation, you would load shipping zones and methods from the API
         // For this example, we're already using the dummy data defined at the top
       } catch (err) {
@@ -457,10 +433,10 @@ const ShippingSettings: React.FC = () => {
         setIsLoading(false);
       }
     };
-    
+
     loadSettings();
   }, []);
-  
+
   // Handle zone form input changes
   const handleZoneFormChange = (field: keyof ShippingZone, value: any) => {
     setZoneFormData(prev => ({
@@ -468,420 +444,430 @@ const ShippingSettings: React.FC = () => {
       [field]: value
     }));
   };
-  
+
   // Render loading state
   if (isLoading) {
     return (
-      <Box sx={{ textAlign: 'center', py: 10 }}>
-        <CircularProgress />
-        <Typography sx={{ mt: 2 }}>Loading shipping settings...</Typography>
-      </Box>
+      <div className="flex items-center justify-center py-10">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-primary"></div>
+        <p className="ml-4 text-primary">Loading shipping settings...</p>
+      </div>
     );
   }
-  
+
   // Render error state
   if (error && !dialogOpen) {
     return (
-      <Box sx={{ p: 2 }}>
-        <Alert severity="error">
-          <AlertTitle>Error</AlertTitle>
-          {error}
-        </Alert>
-      </Box>
+      <div className="p-4">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <strong className="font-bold">Error</strong>
+          <span className="block sm:inline">{error}</span>
+        </div>
+      </div>
     );
   }
 
   // Main render
   return (
-    <Box sx={{ p: 2 }}>
-    <Typography variant="h4" sx={{ mb: 4 }}>Shipping & Fulfillment Settings</Typography>
-    <Typography sx={{ mb: 4 }}>Configure shipping zones, methods, and fulfillment options for your store.</Typography>
+    <div className="p-4">
+      <h2 className="text-2xl font-bold mb-4">Shipping & Fulfillment Settings</h2>
+      <p className="mb-4">Configure shipping zones, methods, and fulfillment options for your store.</p>
 
-    <Tabs
-      value={tabValue}
-      onChange={handleTabChange}
-      textColor="primary"
-      indicatorColor="primary"
-      aria-label="shipping settings tabs"
-      sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}
-    >
-      <Tab label="Zones" icon={<MapIcon />} iconPosition="start" id="shipping-tab-0" aria-controls="shipping-tabpanel-0" />
-      <Tab label="Methods" icon={<TruckIcon />} iconPosition="start" id="shipping-tab-1" aria-controls="shipping-tabpanel-1" />
-      <Tab label="General" icon={<SettingsIcon />} iconPosition="start" id="shipping-tab-2" aria-controls="shipping-tabpanel-2" />
-      <Tab label="Carriers" icon={<TruckIcon />} iconPosition="start" id="shipping-tab-3" aria-controls="shipping-tabpanel-3" />
-      <Tab label="Packaging" icon={<PackageIcon />} iconPosition="start" id="shipping-tab-4" aria-controls="shipping-tabpanel-4" />
-      <Tab label="Fulfillment" icon={<PackageIcon />} iconPosition="start" id="shipping-tab-5" aria-controls="shipping-tabpanel-5" />
-    </Tabs>
+      <Tabs value={tabValue.toString()} onValueChange={handleTabChange} className="border-b-2 border-gray-200">
+        <TabsList className="w-full">
+          <TabsTrigger value="0" className="w-full">
+            <MapPin className="h-4 w-4 mr-2" />
+            Zones
+          </TabsTrigger>
+          <TabsTrigger value="1" className="w-full">
+            <Truck className="h-4 w-4 mr-2" />
+            Methods
+          </TabsTrigger>
+          <TabsTrigger value="2" className="w-full">
+            <SettingsIcon className="h-4 w-4 mr-2" />
+            General
+          </TabsTrigger>
+          <TabsTrigger value="3" className="w-full">
+            <Truck className="h-4 w-4 mr-2" />
+            Carriers
+          </TabsTrigger>
+          <TabsTrigger value="4" className="w-full">
+            <Package className="h-4 w-4 mr-2" />
+            Packaging
+          </TabsTrigger>
+          <TabsTrigger value="5" className="w-full">
+            <Package className="h-4 w-4 mr-2" />
+            Fulfillment
+          </TabsTrigger>
+        </TabsList>
 
-    {/* Tab Panel Content */}
-    <TabPanel value={tabValue} index={0}>
-      <Card variant="outlined" sx={{ mb: 4 }}>
-        <CardHeader
-          title="Shipping Zones"
-          action={
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-              onClick={openNewZoneForm}
-            >
-              Add Zone
-            </Button>
-          }
-        />
-        <CardContent>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Zone Name</TableCell>
-                <TableCell>Countries</TableCell>
-                <TableCell align="center">Active</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {shippingZones.map((zone) => (
-                <TableRow
-                  key={zone.id}
-                  sx={{
-                    '&:last-child td, &:last-child th': { border: 0 },
-                    opacity: zone.isActive ? 1 : 0.6,
-                  }}
+        <TabsContent value="0">
+          <Card className="mb-4">
+            <CardHeader>
+              <CardTitle>Shipping Zones</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between mb-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={openNewZoneForm}
                 >
-                  <TableCell component="th" scope="row">
-                    {zone.name}
-                  </TableCell>
-                  <TableCell>{zone.countries.join(', ')}</TableCell>
-                  <TableCell align="center">
-                    <Switch
-                      checked={zone.isActive}
-                      onChange={() => toggleZoneActive(zone.id)}
-                      color="primary"
-                    />
-                  </TableCell>
-                  <TableCell align="right">
-                    <Stack direction="row" spacing={1} justifyContent="flex-end">
-                      <IconButton
-                        size="small"
-                        color="primary"
-                        onClick={() => openZoneDetails(zone)}
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Zone
+                </Button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-200">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="border border-gray-200 px-4 py-2 text-left">Zone Name</th>
+                      <th className="border border-gray-200 px-4 py-2 text-left">Countries</th>
+                      <th className="border border-gray-200 px-4 py-2 text-center">Active</th>
+                      <th className="border border-gray-200 px-4 py-2 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {shippingZones.map((zone) => (
+                      <tr
+                        key={zone.id}
+                        className={`${zone.isActive ? '' : 'opacity-50'}`}
                       >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => deleteZone(zone.id)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </TabPanel>
-    
-    <TabPanel value={tabValue} index={1}>
-      <Card variant="outlined" sx={{ mb: 4 }}>
-        <CardHeader
-          title="Shipping Methods"
-          action={
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-              onClick={addShippingMethod}
-            >
-              Add Method
-            </Button>
-          }
-        />
-        <CardContent>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Method Name</TableCell>
-                <TableCell>Zone</TableCell>
-                <TableCell>Price</TableCell>
-                <TableCell>Calculation</TableCell>
-                <TableCell>Delivery Time</TableCell>
-                <TableCell align="center">Active</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {shippingMethods.map((method) => {
-                const zone = shippingZones.find(z => z.id === method.zoneId);
-                return (
-                  <TableRow
-                    key={method.id}
-                    sx={{
-                      '&:last-child td, &:last-child th': { border: 0 },
-                      opacity: method.isActive ? 1 : 0.6,
-                    }}
-                  >
-                    <TableCell component="th" scope="row">
-                      {method.name}
-                    </TableCell>
-                    <TableCell>{zone?.name || 'Global'}</TableCell>
-                    <TableCell>${method.price.toFixed(2)}</TableCell>
-                    <TableCell>
-                      {method.calculationType === 'flat_rate' ? 'Flat Rate' : 
-                       method.calculationType === 'weight_based' ? 'Weight Based' : 
-                       'Price Based'}
-                    </TableCell>
-                    <TableCell>{method.estimatedDelivery}</TableCell>
-                    <TableCell align="center">
-                      <Switch
-                        checked={method.isActive}
-                        onChange={() => toggleMethodActive(method.id)}
-                        color="primary"
-                      />
-                    </TableCell>
-                    <TableCell align="right">
-                      <Stack direction="row" spacing={1} justifyContent="flex-end">
-                        <IconButton
-                          size="small"
-                          color="primary"
-                          // Edit method would be implemented here
-                          onClick={() => window.alert('Edit method: ' + method.name)}
+                        <td className="border border-gray-200 px-4 py-2">{zone.name}</td>
+                        <td className="border border-gray-200 px-4 py-2">{zone.countries.join(', ')}</td>
+                        <td className="border border-gray-200 px-4 py-2 text-center">
+                          <Switch
+                            checked={zone.isActive}
+                            onCheckedChange={() => toggleZoneActive(zone.id)}
+                          />
+                        </td>
+                        <td className="border border-gray-200 px-4 py-2 text-right">
+                          <div className="flex items-center justify-end space-x-2">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => openZoneDetails(zone)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => deleteZone(zone.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="1">
+          <Card className="mb-4">
+            <CardHeader>
+              <CardTitle>Shipping Methods</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between mb-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={addShippingMethod}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Method
+                </Button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-200">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="border border-gray-200 px-4 py-2 text-left">Method Name</th>
+                      <th className="border border-gray-200 px-4 py-2 text-left">Zone</th>
+                      <th className="border border-gray-200 px-4 py-2 text-left">Price</th>
+                      <th className="border border-gray-200 px-4 py-2 text-left">Calculation</th>
+                      <th className="border border-gray-200 px-4 py-2 text-left">Delivery Time</th>
+                      <th className="border border-gray-200 px-4 py-2 text-center">Active</th>
+                      <th className="border border-gray-200 px-4 py-2 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {shippingMethods.map((method) => {
+                      const zone = shippingZones.find(z => z.id === method.zoneId);
+                      return (
+                        <tr
+                          key={method.id}
+                          className={`${method.isActive ? '' : 'opacity-50'}`}
                         >
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => deleteShippingMethod(method.id)}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </TabPanel>
+                          <td className="border border-gray-200 px-4 py-2">{method.name}</td>
+                          <td className="border border-gray-200 px-4 py-2">{zone?.name || 'Global'}</td>
+                          <td className="border border-gray-200 px-4 py-2">${method.price.toFixed(2)}</td>
+                          <td className="border border-gray-200 px-4 py-2">
+                            {method.calculationType === 'flat_rate' ? 'Flat Rate' :
+                              method.calculationType === 'weight_based' ? 'Weight Based' :
+                                'Price Based'}
+                          </td>
+                          <td className="border border-gray-200 px-4 py-2">{method.estimatedDelivery}</td>
+                          <td className="border border-gray-200 px-4 py-2 text-center">
+                            <Switch
+                              checked={method.isActive}
+                              onCheckedChange={() => toggleMethodActive(method.id)}
+                            />
+                          </td>
+                          <td className="border border-gray-200 px-4 py-2 text-right">
+                            <div className="flex items-center justify-end space-x-2">
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => window.alert('Edit method: ' + method.name)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => deleteShippingMethod(method.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-    <TabPanel value={tabValue} index={2}>
-      <Card variant="outlined">
-        <CardHeader title="General Shipping Settings" />
-        <CardContent>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Setting</TableCell>
-                <TableCell>Value</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {generalSettings.map((setting) => (
-                <TableRow key={setting.id}>
-                  <TableCell>{setting.key.replace('shipping.general.', '')}</TableCell>
-                  <TableCell>{setting.value}</TableCell>
-                  <TableCell align="right">
-                    <IconButton size="small" color="primary">
-                      <EditIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </TabPanel>
+        <TabsContent value="2">
+          <Card>
+            <CardHeader>
+              <CardTitle>General Shipping Settings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-200">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="border border-gray-200 px-4 py-2 text-left">Setting</th>
+                      <th className="border border-gray-200 px-4 py-2 text-left">Value</th>
+                      <th className="border border-gray-200 px-4 py-2 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {generalSettings.map((setting) => (
+                      <tr key={setting.id}>
+                        <td className="border border-gray-200 px-4 py-2">{setting.key.replace('shipping.general.', '')}</td>
+                        <td className="border border-gray-200 px-4 py-2">{setting.value}</td>
+                        <td className="border border-gray-200 px-4 py-2 text-right">
+                          <Button variant="outline" size="icon">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-    <TabPanel value={tabValue} index={3}>
-      <Card variant="outlined">
-        <CardHeader title="Carrier Settings" />
-        <CardContent>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Carrier</TableCell>
-                <TableCell>Enabled</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {carrierSettings.map((setting) => (
-                <TableRow key={setting.id}>
-                  <TableCell>{setting.key.replace('shipping.carriers.', '')}</TableCell>
-                  <TableCell>
-                    <Switch checked={setting.value === 'true'} color="primary" />
-                  </TableCell>
-                  <TableCell align="right">
-                    <IconButton size="small" color="primary">
-                      <EditIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </TabPanel>
+        <TabsContent value="3">
+          <Card>
+            <CardHeader>
+              <CardTitle>Carrier Settings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-200">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="border border-gray-200 px-4 py-2 text-left">Carrier</th>
+                      <th className="border border-gray-200 px-4 py-2 text-left">Enabled</th>
+                      <th className="border border-gray-200 px-4 py-2 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {carrierSettings.map((setting) => (
+                      <tr key={setting.id}>
+                        <td className="border border-gray-200 px-4 py-2">{setting.key.replace('shipping.carriers.', '')}</td>
+                        <td className="border border-gray-200 px-4 py-2">
+                          <Switch checked={setting.value === 'true'} />
+                        </td>
+                        <td className="border border-gray-200 px-4 py-2 text-right">
+                          <Button variant="outline" size="icon">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-    <TabPanel value={tabValue} index={4}>
-      <Card variant="outlined">
-        <CardHeader title="Packaging Settings" />
-        <CardContent>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Setting</TableCell>
-                <TableCell>Value</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {packagingSettings.map((setting) => (
-                <TableRow key={setting.id}>
-                  <TableCell>{setting.key.replace('shipping.packaging.', '')}</TableCell>
-                  <TableCell>{setting.value}</TableCell>
-                  <TableCell align="right">
-                    <IconButton size="small" color="primary">
-                      <EditIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </TabPanel>
+        <TabsContent value="4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Packaging Settings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-200">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="border border-gray-200 px-4 py-2 text-left">Setting</th>
+                      <th className="border border-gray-200 px-4 py-2 text-left">Value</th>
+                      <th className="border border-gray-200 px-4 py-2 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {packagingSettings.map((setting) => (
+                      <tr key={setting.id}>
+                        <td className="border border-gray-200 px-4 py-2">{setting.key.replace('shipping.packaging.', '')}</td>
+                        <td className="border border-gray-200 px-4 py-2">{setting.value}</td>
+                        <td className="border border-gray-200 px-4 py-2 text-right">
+                          <Button variant="outline" size="icon">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-    <TabPanel value={tabValue} index={5}>
-      <Card variant="outlined">
-        <CardHeader title="Fulfillment Settings" />
-        <CardContent>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Setting</TableCell>
-                <TableCell>Value</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {fulfillmentSettings.map((setting) => (
-                <TableRow key={setting.id}>
-                  <TableCell>{setting.key.replace('shipping.fulfillment.', '')}</TableCell>
-                  <TableCell>
-                    <Switch checked={setting.value === 'true'} color="primary" />
-                  </TableCell>
-                  <TableCell align="right">
-                    <IconButton size="small" color="primary">
-                      <EditIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </TabPanel>
+        <TabsContent value="5">
+          <Card>
+            <CardHeader>
+              <CardTitle>Fulfillment Settings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-200">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="border border-gray-200 px-4 py-2 text-left">Setting</th>
+                      <th className="border border-gray-200 px-4 py-2 text-left">Value</th>
+                      <th className="border border-gray-200 px-4 py-2 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {fulfillmentSettings.map((setting) => (
+                      <tr key={setting.id}>
+                        <td className="border border-gray-200 px-4 py-2">{setting.key.replace('shipping.fulfillment.', '')}</td>
+                        <td className="border border-gray-200 px-4 py-2">
+                          <Switch checked={setting.value === 'true'} />
+                        </td>
+                        <td className="border border-gray-200 px-4 py-2 text-right">
+                          <Button variant="outline" size="icon">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
-    {/* Zone Details Modal */}
-    <Dialog 
-      open={dialogOpen} 
-      onClose={onClose}
-      maxWidth="md"
-      fullWidth
-    >
-      <DialogTitle>
-        {activeZone ? `Edit ${activeZone.name} Zone` : 'New Shipping Zone'}
-      </DialogTitle>
-      <DialogContent>
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
-          
-        {/* Zone Form */}
-        <Typography variant="h6" sx={{ mb: 2 }}>Zone Information</Typography>
-        <Stack spacing={3} sx={{ mt: 2 }}>
-          {/* Name Field */}
-          <TextField
-            label="Zone Name"
-            required
-            placeholder="e.g. North America"
-            value={zoneFormData.name || ''}
-            onChange={(e) => setZoneFormData({...zoneFormData, name: e.target.value})}
-            fullWidth
-          />
-            
-          {/* Description Field */}
-          <TextField
-            label="Description"
-            placeholder="Zone description"
-            value={zoneFormData.description || ''}
-            onChange={(e) => setZoneFormData({...zoneFormData, description: e.target.value})}
-            multiline
-            rows={2}
-            fullWidth
-          />
-            
-          {/* Countries Field */}
-          <TextField
-            label="Countries"
-            required
-            placeholder="Enter country codes separated by commas (e.g. US, CA, MX)"
-            value={zoneFormData.countries?.join(', ') || ''}
-            onChange={(e) => {
-              const countryCodes = e.target.value
-                .split(',')
-                .map(code => code.trim())
-                .filter(Boolean);
-              setZoneFormData({...zoneFormData, countries: countryCodes});
-            }}
-            helperText="Enter country codes separated by commas"
-            multiline
-            rows={2}
-            fullWidth
-          />
-            
-          {/* Active Status */}
-          <FormControlLabel
-            control={
-              <Switch 
-                checked={zoneFormData.isActive || false}
-                onChange={(e) => setZoneFormData({...zoneFormData, isActive: e.target.checked})}
-                color="primary"
+      {/* Zone Details Modal */}
+      <Dialog open={dialogOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>
+              {activeZone ? `Edit ${activeZone.name} Zone` : 'New Shipping Zone'}
+            </DialogTitle>
+          </DialogHeader>
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {error}
+            </div>
+          )}
+
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Zone Name
+              </Label>
+              <Input
+                id="name"
+                value={zoneFormData.name || ''}
+                onChange={(e) => setZoneFormData({ ...zoneFormData, name: e.target.value })}
+                className="col-span-3"
               />
-            }
-            label="Active"
-          />
-        </Stack>
-      </DialogContent>
-        
-      <DialogActions>
-        <Button variant="outlined" onClick={onClose}>Cancel</Button>
-        <Button 
-          variant="contained" 
-          color="primary"
-          disabled={isSubmitting}
-          onClick={handleSaveZone}
-        >
-          Save Zone
-        </Button>
-      </DialogActions>
-    </Dialog>
-  </Box>
-);
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="description" className="text-right">
+                Description
+              </Label>
+              <Textarea
+                id="description"
+                value={zoneFormData.description || ''}
+                onChange={(e) => setZoneFormData({ ...zoneFormData, description: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="countries" className="text-right">
+                Countries
+              </Label>
+              <Input
+                id="countries"
+                placeholder="Enter country codes separated by commas (e.g. US, CA, MX)"
+                value={zoneFormData.countries?.join(', ') || ''}
+                onChange={(e) => {
+                  const countryCodes = e.target.value
+                    .split(',')
+                    .map((code: string) => code.trim())
+                    .filter(Boolean);
+                  setZoneFormData({ ...zoneFormData, countries: countryCodes });
+                }}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="active" className="text-right">
+                Active
+              </Label>
+              <Switch
+                id="active"
+                checked={zoneFormData.isActive || false}
+                onCheckedChange={(checked) => setZoneFormData({ ...zoneFormData, isActive: checked })}
+              />
+            </div>
+          </div>
+          <div className="flex items-center justify-end space-x-2">
+            <Button variant="outline" onClick={onClose}>Cancel</Button>
+            <Button
+              disabled={isSubmitting}
+              onClick={handleSaveZone}
+            >
+              Save Zone
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
 };
 
 export default ShippingSettings;

@@ -1,9 +1,9 @@
 import { csvService } from '@/modules/core/utils/csv-service';
-import type { 
-  Order, 
-  OrderStatus, 
-  PaymentStatus, 
-  ShippingMethod 
+import type {
+  Order,
+  OrderStatus,
+  PaymentStatus,
+  ShippingMethod
 } from '../models/order';
 
 /**
@@ -27,6 +27,8 @@ export interface OrderCsvFormat {
   source?: string;
   item_count?: string;
   products?: string;
+  // Index signature to make it compatible with Record<string, unknown>
+  [key: string]: string | undefined;
 }
 
 /**
@@ -38,7 +40,7 @@ export class OrderCsvService {
     'order_number',
     'created_at',
     'customer_name',
-    'customer_email', 
+    'customer_email',
     'customer_phone',
     'status',
     'payment_status',
@@ -52,7 +54,7 @@ export class OrderCsvService {
     'item_count',
     'products'
   ];
-  
+
   /**
    * Convert orders to CSV format for export
    * @param orders - Array of orders to export
@@ -62,7 +64,7 @@ export class OrderCsvService {
     const csvData = this.ordersToFlatFormat(orders);
     return csvService.objectsToCsv(csvData, this.csvHeaders);
   }
-  
+
   /**
    * Download orders as CSV file
    * @param orders - Array of orders to export
@@ -72,7 +74,7 @@ export class OrderCsvService {
     const csvString = this.exportOrdersToCsv(orders);
     csvService.downloadCsv(csvString, filename);
   }
-  
+
   /**
    * Parse CSV string into order data for import
    * @param csvContent - CSV string containing order data
@@ -81,7 +83,7 @@ export class OrderCsvService {
   public importOrdersFromCsv(csvContent: string): OrderCsvFormat[] {
     return csvService.csvToObjects<OrderCsvFormat>(csvContent, this.csvHeaders);
   }
-  
+
   /**
    * Validate imported order data from CSV
    * @param orderData - Array of order data from CSV import
@@ -93,10 +95,10 @@ export class OrderCsvService {
   } {
     const valid: OrderCsvFormat[] = [];
     const errors: Array<{ index: number; message: string }> = [];
-    
+
     orderData.forEach((order, index) => {
       const validationErrors = this.validateOrderData(order);
-      
+
       if (validationErrors.length) {
         errors.push({
           index,
@@ -106,10 +108,10 @@ export class OrderCsvService {
         valid.push(order);
       }
     });
-    
+
     return { valid, errors };
   }
-  
+
   /**
    * Convert raw CSV import data to valid order data format
    * This method can be expanded to include conversion logic
@@ -119,10 +121,10 @@ export class OrderCsvService {
   public convertImportedDataToApiFormat(
     importedData: OrderCsvFormat[]
   ): Partial<Order>[] {
-    // This would contain logic for converting the flat CSV format to 
+    // This would contain logic for converting the flat CSV format to
     // the structured Order format required by the API
     // Implementation depends on backend API expectations for bulk imports
-    
+
     // Basic implementation - would need to be expanded based on API requirements
     return importedData.map(data => {
       const partialOrder: Partial<Order> = {
@@ -136,13 +138,13 @@ export class OrderCsvService {
           is_guest: false, // Default value, might need adjustment based on API
         },
       };
-      
+
       // Add other conversions as needed
-      
+
       return partialOrder;
     });
   }
-  
+
   /**
    * Convert orders to flat format suitable for CSV export
    * @param orders - Array of orders to convert
@@ -155,15 +157,15 @@ export class OrderCsvService {
         order.shipping.address.street,
         order.shipping.address.city,
         order.shipping.address.state,
-        order.shipping.address.postal_code,
+        order.shipping.address.postalCode,
         order.shipping.address.country,
       ].filter(Boolean);
-      
+
       // Format products for CSV (summary format)
       const products = order.items.map(
         item => `${item.product_name} (${item.quantity})`
       ).join('; ');
-      
+
       // Create flattened order object
       return {
         order_number: order.order_number,
@@ -185,7 +187,7 @@ export class OrderCsvService {
       };
     });
   }
-  
+
   /**
    * Validate a single order record from CSV
    * @param order - Order data to validate
@@ -193,39 +195,39 @@ export class OrderCsvService {
    */
   private validateOrderData(order: OrderCsvFormat): string[] {
     const errors: string[] = [];
-    
+
     // Required fields
     if (!order.order_number) {
       errors.push('Missing order number');
     }
-    
+
     if (!order.customer_name) {
       errors.push('Missing customer name');
     }
-    
+
     if (!order.customer_email) {
       errors.push('Missing customer email');
     } else if (!this.isValidEmail(order.customer_email)) {
       errors.push('Invalid email format');
     }
-    
+
     if (!order.customer_phone) {
       errors.push('Missing customer phone');
     }
-    
+
     // Validate status if present
     if (order.status && !this.isValidOrderStatus(order.status)) {
       errors.push(`Invalid order status: ${order.status}`);
     }
-    
+
     // Validate payment status if present
     if (order.payment_status && !this.isValidPaymentStatus(order.payment_status)) {
       errors.push(`Invalid payment status: ${order.payment_status}`);
     }
-    
+
     return errors;
   }
-  
+
   /**
    * Validate email format
    * @param email - Email to validate
@@ -235,7 +237,7 @@ export class OrderCsvService {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   }
-  
+
   /**
    * Check if a status value is a valid OrderStatus
    * @param status - Status to validate
@@ -252,10 +254,10 @@ export class OrderCsvService {
       'REFUNDED',
       'FAILED',
     ];
-    
+
     return validStatuses.includes(status);
   }
-  
+
   /**
    * Check if a status value is a valid PaymentStatus
    * @param status - Status to validate
@@ -269,7 +271,7 @@ export class OrderCsvService {
       'REFUNDED',
       'PARTIALLY_REFUNDED',
     ];
-    
+
     return validStatuses.includes(status);
   }
 }

@@ -1,15 +1,15 @@
 import type { NextPage } from 'next';
 import { useUser } from '@clerk/nextjs';
-import { Container, Box, CircularProgress, Typography } from '@mui/material';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import React, { useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 
 import { MobileNav } from '@/components/layout/MobileNav';
 import AnalyticsDashboard from '@/components/analytics/AnalyticsDashboard';
 
 /**
- * Dashboard page that includes analytics components 
+ * Dashboard page that includes analytics components
  * Protected by authentication check
  */
 const DashboardPage: NextPage = () => {
@@ -26,19 +26,12 @@ const DashboardPage: NextPage = () => {
   // Show loading state while checking auth
   if (!isLoaded || !isSignedIn) {
     return (
-      <Box 
-        display="flex" 
-        flexDirection="column"
-        alignItems="center" 
-        justifyContent="center" 
-        minHeight="100vh"
-        py={4}
-      >
-        <CircularProgress size={40} />
-        <Typography mt={2} variant="body1" color="text.secondary">
+      <div className="flex flex-col items-center justify-center min-h-screen py-4">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <p className="mt-4 text-sm text-muted-foreground">
           Loading dashboard...
-        </Typography>
-      </Box>
+        </p>
+      </div>
     );
   }
 
@@ -49,15 +42,15 @@ const DashboardPage: NextPage = () => {
         <meta name="description" content="Business analytics and performance dashboard" />
       </Head>
 
-      <Box component="main" sx={{ pb: 8, pt: 2 }}>
-        <Container maxWidth="xl">
-          <Typography variant="h4" component="h1" sx={{ mb: 4, mt: 2 }}>
+      <main className="pb-20 pt-4">
+        <div className="container mx-auto max-w-7xl px-4">
+          <h1 className="text-3xl font-bold mb-6 mt-2">
             Analytics Dashboard
-          </Typography>
+          </h1>
           <AnalyticsDashboard />
-        </Container>
-      </Box>
-      
+        </div>
+      </main>
+
       <MobileNav />
     </>
   );

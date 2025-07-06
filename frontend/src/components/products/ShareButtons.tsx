@@ -1,27 +1,10 @@
-import CheckIcon from '@mui/icons-material/Check';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import FacebookIcon from '@mui/icons-material/Facebook';
-import QrCodeIcon from '@mui/icons-material/QrCode';
-import ShareIcon from '@mui/icons-material/Share';
-import TwitterIcon from '@mui/icons-material/Twitter';
-import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import ButtonGroup from '@mui/material/ButtonGroup';
-import Card from '@mui/material/Card';
-import CircularProgress from '@mui/material/CircularProgress';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
-import Grid from '@mui/material/Grid';
-import IconButton from '@mui/material/IconButton';
-import Snackbar from '@mui/material/Snackbar';
-import Typography from '@mui/material/Typography';
-import { MessageCircle, Send, Camera } from 'lucide-react';
+import { Check, Copy, Facebook, QrCode, Share, Twitter, MessageCircle, Send, Camera, AlertCircle, Loader2 } from 'lucide-react';
 import React, { useState } from 'react';
 
-import { CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ConversationEventType } from '@/modules/conversation/models/event';
 import { ConversationEventLogger } from '@/modules/conversation/utils/eventLogger';
 
@@ -79,14 +62,14 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
     {
       id: 'facebook',
       name: 'Facebook',
-      icon: <FacebookIcon />,
+      icon: <Facebook />,
       color: '#1877F2',
       endpoint: '/api/v1/share/facebook-link',
     },
     {
       id: 'twitter',
       name: 'Twitter',
-      icon: <TwitterIcon />,
+      icon: <Twitter />,
       color: '#1DA1F2',
       endpoint: '/api/v1/share/twitter-link',
     },
@@ -114,7 +97,7 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
     {
       id: 'qr-code',
       name: 'QR Code',
-      icon: <QrCodeIcon />,
+      icon: <QrCode />,
       color: '#555555',
       endpoint: '/api/v1/share/qr-code',
     },
@@ -214,11 +197,14 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
     const data = shareData[platformId];
 
     if (!data && platformId !== 'qr-code') {
-      return <CircularProgress />;
+      return <Loader2 className="h-4 w-4 animate-spin" />;
     }
 
     if (data?.error) {
-      return <Alert severity="error">{data.error}</Alert>;
+      return <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>{data.error}</AlertDescription>
+      </Alert>;
     }
 
     switch (platformId) {
@@ -227,72 +213,56 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
       case 'twitter':
       case 'telegram':
         return (
-          <Box sx={{ textAlign: 'center' }}>
+          <div className="text-center">
             <Button
-              variant="contained"
-              color="primary"
-              href={data?.link || '#'}
-              target="_blank"
-              startIcon={platforms.find((p) => p.id === platformId)?.icon}
-              sx={{ mb: 2 }}
-              disabled={!data?.link}
+              variant="outline"
+              className="w-full justify-start text-sm font-medium"
+              onClick={() => getShareLink(platformId)}
+              disabled={loading}
             >
-              Open in {platforms.find((p) => p.id === platformId)?.name}
+              {platforms.find((p) => p.id === platformId)?.name}
             </Button>
 
             {data?.link && (
               <>
-                <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
+                <p className="text-sm text-muted-foreground mt-2 mb-1">
                   Or copy this link:
-                </Typography>
+                </p>
 
-                <Box
-                  sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}
-                >
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      p: 1,
-                      bgcolor: 'background.paper',
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      borderRadius: 1,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      maxWidth: '300px',
-                    }}
+                <div className="flex items-center justify-center gap-1">
+                  <span
+                    className="px-2 py-1 bg-background text-sm"
                   >
                     {data.link}
-                  </Typography>
-                  <IconButton
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="icon"
                     onClick={() => copyToClipboard(data.link || '')}
-                    color="primary"
-                    size="small"
+                    disabled={loading}
                   >
                     {copySuccess ? (
-                      <CheckIcon fontSize="small" />
+                      <Check className="h-4 w-4" />
                     ) : (
-                      <ContentCopyIcon fontSize="small" />
+                      <Copy className="h-4 w-4" />
                     )}
-                  </IconButton>
-                </Box>
+                  </Button>
+                </div>
               </>
             )}
-          </Box>
+          </div>
         );
 
       case 'instagram':
       case 'tiktok':
         return (
-          <Box sx={{ textAlign: 'center' }}>
+          <div className="text-center">
             {typeof data?.['profile_link'] === 'string' && data['profile_link'] && (
               <Button
-                variant="contained"
-                color="primary"
-                href={data['profile_link']}
-                target="_blank"
-                startIcon={platforms.find((p) => p.id === platformId)?.icon}
-                sx={{ mb: 2 }}
+                variant="outline"
+                className="w-full justify-start text-sm font-medium"
+                onClick={() => getShareLink(platformId)}
+                disabled={loading}
               >
                 Open {platforms.find((p) => p.id === platformId)?.name} Profile
               </Button>
@@ -300,104 +270,90 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
 
             {typeof data?.['caption'] === 'string' && data['caption'] && (
               <>
-                <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
+                <p className="text-sm text-muted-foreground mt-2 mb-1">
                   Caption for your post:
-                </Typography>
-                <Box
-                  sx={{
-                    p: 2,
-                    bgcolor: 'background.paper',
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: 1,
-                    mb: 2,
-                    position: 'relative',
-                  }}
-                >
-                  <Typography variant="body2" align="left">
-                    {data['caption']}
-                  </Typography>
-                  <IconButton
+                </p>
+                <div className="p-2 bg-background border border-border rounded-lg mb-2 position-relative">
+                  <p className="text-sm leading-none">{data['caption']}</p>
+                  <Button
+                    variant="outline"
+                    size="icon"
                     onClick={() =>
                       copyToClipboard(typeof data['caption'] === 'string' ? data['caption'] : '')
                     }
-                    color="primary"
-                    size="small"
-                    sx={{ position: 'absolute', top: 8, right: 8 }}
+                    disabled={loading}
+                    className="absolute top-2 right-2"
                   >
                     {copySuccess ? (
-                      <CheckIcon fontSize="small" />
+                      <Check className="h-4 w-4" />
                     ) : (
-                      <ContentCopyIcon fontSize="small" />
+                      <Copy className="h-4 w-4" />
                     )}
-                  </IconButton>
-                </Box>
+                  </Button>
+                </div>
               </>
             )}
 
             {data && data['instructions'] && (
-              <Alert severity="info" sx={{ mt: 2, textAlign: 'left' }}>
-                <Typography variant="body2">{data && data['instructions']}</Typography>
+              <Alert variant="default">
+                <p className="text-sm">{data && data['instructions']}</p>
               </Alert>
             )}
-          </Box>
+          </div>
         );
 
       case 'qr-code':
         return (
-          <Box sx={{ textAlign: 'center' }}>
-            <Box sx={{ mb: 2 }}>
+          <div className="text-center">
+            <div className="mb-2">
               <img
                 src={`/api/v1/share/qr-code?product_id=${productId}&size=${qrSize}&logo=${qrWithLogo}`}
                 alt="Product QR Code"
-                style={{
-                  maxWidth: '100%',
-                  height: 'auto',
-                  border: '1px solid #eee',
-                  borderRadius: '4px',
-                  padding: '8px',
-                }}
+                className="max-w-[100%] h-auto border border-border rounded-lg p-2"
               />
-            </Box>
+            </div>
 
-            <Grid container spacing={2}>
-              <Grid sx={{ display: 'flex', flexDirection: 'column' }}>
-                <Typography variant="body2">QR Code Size:</Typography>
-                <ButtonGroup size="small" sx={{ mt: 1 }}>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-col">
+                <p className="text-sm">QR Code Size:</p>
+                <div className="mt-1">
                   {[6, 10, 14].map((size) => (
                     <Button
                       key={size}
-                      variant={qrSize === size ? 'contained' : 'outlined'}
+                      variant={qrSize === size ? 'outline' : 'ghost'}
+                      size="sm"
                       onClick={() => setQrSize(size)}
                     >
                       {size < 10 ? 'S' : size < 14 ? 'M' : 'L'}
                     </Button>
                   ))}
-                </ButtonGroup>
-              </Grid>
+                </div>
+              </div>
 
-              <Grid sx={{ display: 'flex', flexDirection: 'column' }}>
-                <Typography variant="body2">Include Logo:</Typography>
-                <ButtonGroup size="small" sx={{ mt: 1 }}>
+              <div className="flex flex-col">
+                <p className="text-sm">Include Logo:</p>
+                <div className="mt-1">
                   <Button
-                    variant={qrWithLogo ? 'contained' : 'outlined'}
+                    variant={qrWithLogo ? 'outline' : 'ghost'}
+                    size="sm"
                     onClick={() => setQrWithLogo(true)}
                   >
                     Yes
                   </Button>
                   <Button
-                    variant={!qrWithLogo ? 'contained' : 'outlined'}
+                    variant={!qrWithLogo ? 'outline' : 'ghost'}
+                    size="sm"
                     onClick={() => setQrWithLogo(false)}
                   >
                     No
                   </Button>
-                </ButtonGroup>
-              </Grid>
-            </Grid>
+                </div>
+              </div>
+            </div>
 
             <Button
-              variant="outlined"
-              sx={{ mt: 2 }}
+              variant="outline"
+              className="mt-2"
               onClick={() => {
                 const img = document.createElement('a');
                 img.href = `/api/v1/share/qr-code?product_id=${productId}&size=${qrSize}&logo=${qrWithLogo}`;
@@ -406,183 +362,155 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({
                 img.click();
                 document.body.removeChild(img);
               }}
+              disabled={loading}
             >
               Download QR Code
             </Button>
-          </Box>
+          </div>
         );
 
       default:
-        return <Typography>No content available for this platform.</Typography>;
+        return <p>No content available for this platform.</p>;
     }
   };
 
   // Compact view renders just icons
   if (compact) {
     return (
-      <Box className={className}>
+      <div className={`${className} flex flex-col`}>
         {title && (
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+          <h2 className="text-sm font-medium leading-none mb-1">
             {title}
-          </Typography>
+          </h2>
         )}
-        <ButtonGroup size="small" variant="outlined">
+        <div className="flex items-center gap-2">
           {platforms.slice(0, 4).map((platform) => (
-            <IconButton
+            <Button
               key={platform.id}
+              variant="outline"
+              size="icon"
               onClick={() => getShareLink(platform.id)}
-              sx={{ color: platform.color }}
               disabled={loading}
             >
               {platform.icon}
-            </IconButton>
+            </Button>
           ))}
-          <IconButton
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => {
               getAllShareLinks();
               setActiveDialog('all');
             }}
             disabled={loading}
           >
-            <ShareIcon />
-          </IconButton>
-        </ButtonGroup>
+            <Share />
+          </Button>
+        </div>
 
         {/* Dialogs */}
-        <Dialog open={!!activeDialog} onClose={() => setActiveDialog(null)} maxWidth="sm" fullWidth>
-          <DialogTitle>
-            {activeDialog === 'all'
-              ? 'Share This Product'
-              : `Share on ${platforms.find((p) => p.id === activeDialog)?.name || ''}`}
-          </DialogTitle>
+        <Dialog open={!!activeDialog} onOpenChange={() => setActiveDialog(null)}>
+          <DialogHeader>
+            <DialogTitle>
+              {title} - {platforms.find((p) => p.id === activeDialog)?.name}
+            </DialogTitle>
+          </DialogHeader>
           <DialogContent>
             {activeDialog === 'all' ? (
-              <Grid container spacing={2} sx={{ mt: 1 }}>
+              <div className="grid grid-cols-2 gap-2">
                 {platforms.map((platform) => (
-                  <Grid sx={{ display: 'flex', flexDirection: 'column' }} key={platform.id}>
-                    <Card
-                      variant="outlined"
-                      sx={{
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                          boxShadow: 2,
-                        },
-                      }}
+                  <div key={platform.id} className="flex flex-col">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-sm font-medium"
                       onClick={() => setActiveDialog(platform.id)}
                     >
-                      <Box sx={{ textAlign: 'center' }}>
-                        <CardContent>
-                          <Box sx={{ color: platform.color, mb: 1 }}>{platform.icon}</Box>
-                          <Typography variant="body2">{platform.name}</Typography>
-                        </CardContent>
-                      </Box>
-                    </Card>
-                  </Grid>
+                      {platform.name}
+                    </Button>
+                  </div>
                 ))}
-              </Grid>
+              </div>
             ) : (
               renderDialogContent(activeDialog || '')
             )}
           </DialogContent>
-          <DialogActions>
+          <DialogFooter>
             <Button onClick={() => setActiveDialog(null)}>Close</Button>
-          </DialogActions>
+          </DialogFooter>
         </Dialog>
 
-        <Snackbar
-          open={copySuccess}
-          autoHideDuration={2000}
-          onClose={() => setCopySuccess(false)}
-          message="Copied to clipboard!"
-        />
-      </Box>
+        <div className={`${copySuccess ? 'opacity-100' : 'opacity-0'} fixed bottom-4 right-4`}>
+          <Alert className="w-full">
+            <Copy className="h-4 w-4" />
+            <AlertDescription>Copied to clipboard!</AlertDescription>
+          </Alert>
+        </div>
+      </div>
     );
   }
 
   // Full view with labeled buttons
   return (
-    <Box className={className}>
+    <div className={`${className} flex flex-col`}>
       {title && (
-        <Typography variant="h6" sx={{ mb: 2 }}>
+        <h2 className="text-base font-semibold leading-none mb-2">
           {title}
-        </Typography>
+        </h2>
       )}
 
-      <Grid container spacing={2}>
+      <div className="grid grid-cols-2 gap-2">
         {platforms.map((platform) => (
-          <Grid sx={{ display: 'flex', flexDirection: 'column' }} key={platform.id}>
+          <div key={platform.id} className="flex flex-col">
             <Button
-              variant="outlined"
-              startIcon={platform.icon}
+              variant="outline"
+              className="w-full justify-start text-sm font-medium"
               onClick={() => getShareLink(platform.id)}
-              fullWidth
-              sx={{
-                justifyContent: 'flex-start',
-                color: platform.color,
-                borderColor: 'divider',
-                '&:hover': {
-                  borderColor: platform.color,
-                  backgroundColor: `${platform.color}10`,
-                },
-              }}
               disabled={loading}
             >
               {platform.name}
             </Button>
-          </Grid>
+          </div>
         ))}
-      </Grid>
+      </div>
 
       {/* Dialogs */}
-      <Dialog open={!!activeDialog} onClose={() => setActiveDialog(null)} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {activeDialog === 'all'
-            ? 'Share This Product'
-            : `Share on ${platforms.find((p) => p.id === activeDialog)?.name || ''}`}
-        </DialogTitle>
+      <Dialog open={!!activeDialog} onOpenChange={() => setActiveDialog(null)}>
+        <DialogHeader>
+          <DialogTitle>
+            {title} - {platforms.find((p) => p.id === activeDialog)?.name}
+          </DialogTitle>
+        </DialogHeader>
         <DialogContent>
           {activeDialog === 'all' ? (
-            <Grid container spacing={2} sx={{ mt: 1 }}>
+            <div className="grid grid-cols-2 gap-2">
               {platforms.map((platform) => (
-                <Grid sx={{ display: 'flex', flexDirection: 'column' }} key={platform.id}>
-                  <Card
-                    variant="outlined"
-                    sx={{
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      '&:hover': {
-                        boxShadow: 2,
-                      },
-                    }}
+                <div key={platform.id} className="flex flex-col">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-sm font-medium"
                     onClick={() => setActiveDialog(platform.id)}
                   >
-                    <Box sx={{ textAlign: 'center' }}>
-                      <CardContent>
-                        <Box sx={{ color: platform.color, mb: 1 }}>{platform.icon}</Box>
-                        <Typography variant="body2">{platform.name}</Typography>
-                      </CardContent>
-                    </Box>
-                  </Card>
-                </Grid>
+                    {platform.name}
+                  </Button>
+                </div>
               ))}
-            </Grid>
+            </div>
           ) : (
             renderDialogContent(activeDialog || '')
           )}
         </DialogContent>
-        <DialogActions>
+        <DialogFooter>
           <Button onClick={() => setActiveDialog(null)}>Close</Button>
-        </DialogActions>
+        </DialogFooter>
       </Dialog>
 
-      <Snackbar
-        open={copySuccess}
-        autoHideDuration={2000}
-        onClose={() => setCopySuccess(false)}
-        message="Copied to clipboard!"
-      />
-    </Box>
+      <div className={`${copySuccess ? 'opacity-100' : 'opacity-0'} fixed bottom-4 right-4`}>
+        <Alert className="w-full">
+          <Copy className="h-4 w-4" />
+          <AlertDescription>Copied to clipboard!</AlertDescription>
+        </Alert>
+      </div>
+    </div>
   );
 };
 

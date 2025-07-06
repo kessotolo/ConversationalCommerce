@@ -23,10 +23,9 @@ const ScheduledReportForm: React.FC<ScheduledReportFormProps> = ({
 
   // Helper to ensure a DateRange object with string fields, never undefined
   const getSafeDateRange = (dateRange: unknown): { start_date: string; end_date: string } => {
-    const fallbackStart = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    const fallbackEnd = new Date().toISOString().split('T')[0];
-    let start_date = fallbackStart;
-    let end_date = fallbackEnd;
+    let start_date: string = '';
+    let end_date: string = '';
+
     if (dateRange && typeof dateRange === 'object') {
       const dr = dateRange as Record<string, unknown>;
       if (typeof dr.start_date === 'string' && dr.start_date.trim() !== '') {
@@ -48,7 +47,9 @@ const ScheduledReportForm: React.FC<ScheduledReportFormProps> = ({
     recipient_emails: initialValues?.recipient_emails || [],
     export_format: initialValues?.export_format || AnalyticsExportFormat.excel,
     enabled: initialValues?.enabled === undefined ? true : initialValues.enabled,
-    next_run_date: (initialValues?.next_run_date && initialValues.next_run_date !== '' ? initialValues.next_run_date : getDefaultNextRunDate()),
+    next_run_date: (initialValues?.next_run_date && typeof initialValues.next_run_date === 'string' && initialValues.next_run_date.trim() !== '')
+      ? initialValues.next_run_date
+      : getDefaultNextRunDate() as string,
     query_params: {
       metrics: Array.isArray(initialValues?.query_params?.metrics) ? initialValues.query_params.metrics : [],
       dimensions: Array.isArray(initialValues?.query_params?.dimensions) ? initialValues.query_params.dimensions : [],

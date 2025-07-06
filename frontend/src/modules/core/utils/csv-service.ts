@@ -18,7 +18,7 @@ export class CsvService {
     }
 
     // If headers aren't provided, use all keys from the first object
-    const keys = headers || Object.keys(data[0]);
+    const keys = headers || Object.keys(data[0] || {});
 
     // Create the header row
     const headerRow = keys.join(',');
@@ -69,8 +69,13 @@ export class CsvService {
       dataRows = lines;
     } else {
       // Use first row as headers
-      columnHeaders = this.parseCsvLine(lines[0]);
-      dataRows = lines.slice(1);
+      const firstLine = lines[0];
+      if (lines.length > 0 && firstLine && typeof firstLine === 'string') {
+        columnHeaders = this.parseCsvLine(firstLine);
+        dataRows = lines.slice(1);
+      } else {
+        return [];
+      }
     }
 
     return dataRows.map(row => {
@@ -94,19 +99,19 @@ export class CsvService {
   public downloadCsv(csvData: string, filename: string): void {
     const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    
+
     // Create downloadable link
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
     link.setAttribute('download', filename);
     link.style.visibility = 'hidden';
-    
+
     // Trigger download
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   }
-  
+
   /**
    * Parse a single CSV line into an array of values
    * Handles quoted values with commas inside them
@@ -117,10 +122,10 @@ export class CsvService {
     const values: string[] = [];
     let currentValue = '';
     let insideQuote = false;
-    
+
     for (let i = 0; i < line.length; i++) {
       const char = line[i];
-      
+
       if (char === '"') {
         if (i + 1 < line.length && line[i + 1] === '"') {
           // Handle escaped quotes (double quotes)
@@ -138,13 +143,13 @@ export class CsvService {
         currentValue += char;
       }
     }
-    
+
     // Add the last value
     values.push(currentValue.trim());
-    
+
     return values;
   }
-  
+
   /**
    * Format a value for CSV output
    * @param value - Value to format
@@ -154,14 +159,14 @@ export class CsvService {
     if (value === null || value === undefined) {
       return '';
     }
-    
+
     let stringValue = String(value);
-    
+
     // Check if value needs to be quoted (contains comma, newline, or quotes)
     if (
-      stringValue.includes(',') || 
-      stringValue.includes('\n') || 
-      stringValue.includes('"') || 
+      stringValue.includes(',') ||
+      stringValue.includes('\n') ||
+      stringValue.includes('"') ||
       stringValue.includes('\r')
     ) {
       // Escape quotes by doubling them
@@ -169,7 +174,7 @@ export class CsvService {
       // Wrap in quotes
       stringValue = `"${stringValue}"`;
     }
-    
+
     return stringValue;
   }
 }

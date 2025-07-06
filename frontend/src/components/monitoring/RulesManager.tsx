@@ -1,25 +1,14 @@
-import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
-import FormControl from '@mui/material/FormControl';
-import IconButton from '@mui/material/IconButton';
-import InputLabel from '@mui/material/InputLabel';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
-import MenuItem from '@mui/material/MenuItem';
-import Paper from '@mui/material/Paper';
-import Select from '@mui/material/Select';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
 import React, { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Plus, Edit2, Trash2, Settings } from 'lucide-react';
 
 import type { Rule } from '@/modules/monitoring/models/rule';
 import { RuleSeverity } from '@/modules/monitoring/models/rule';
@@ -32,6 +21,8 @@ const RulesManager: React.FC<RulesManagerProps> = ({ tenantId }) => {
   const [rules, setRules] = useState<Rule<unknown>[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingRule, setEditingRule] = useState<Rule<unknown> | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [ruleToDelete, setRuleToDelete] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<Rule<unknown>>>({
     name: '',
     description: '',
@@ -103,119 +94,184 @@ const RulesManager: React.FC<RulesManagerProps> = ({ tenantId }) => {
     }
   };
 
-  const handleDelete = async (ruleId: string) => {
-    if (window.confirm('Are you sure you want to delete this rule?')) {
-      try {
-        const response = await fetch(`/api/v1/monitoring/rules/${ruleId}?tenant_id=${tenantId}`, {
-          method: 'DELETE',
-        });
+  const handleDeleteClick = (ruleId: string) => {
+    setRuleToDelete(ruleId);
+    setDeleteDialogOpen(true);
+  };
 
-        if (response.ok) {
-          fetchRules();
-        }
-      } catch (error) {
-        console.error('Error deleting rule:', error);
+  const handleDeleteConfirm = async () => {
+    if (!ruleToDelete) return;
+
+    try {
+      const response = await fetch(`/api/v1/monitoring/rules/${ruleToDelete}?tenant_id=${tenantId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        fetchRules();
       }
+    } catch (error) {
+      console.error('Error deleting rule:', error);
+    } finally {
+      setDeleteDialogOpen(false);
+      setRuleToDelete(null);
     }
   };
 
-  const getSeverityColor = (severity: RuleSeverity) => {
+  const getSeverityVariant = (severity: RuleSeverity): "default" | "secondary" | "destructive" | "outline" => {
     switch (severity) {
       case RuleSeverity.LOW:
-        return 'info';
+        return 'outline';
       case RuleSeverity.MEDIUM:
-        return 'warning';
+        return 'secondary';
       case RuleSeverity.HIGH:
-        return 'error';
+        return 'destructive';
       default:
         return 'default';
     }
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <Typography variant="h5">Alert Rules</Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()}>
-          Add Rule
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Settings className="h-6 w-6" />
+          <h1 className="text-2xl font-bold">Alert Rules</h1>
+        </div>
+        <Button onClick={() => handleOpenDialog()} className="flex items-center space-x-2">
+          <Plus className="h-4 w-4" />
+          <span>Add Rule</span>
         </Button>
-      </Box>
+      </div>
 
-      <Paper>
-        <List>
-          {rules.map((rule) => (
-            <ListItem
-              key={rule.id}
-              secondaryAction={
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Chip
-                    label={rule.severity}
-                    color={getSeverityColor(rule.severity)}
-                    size="small"
-                    sx={{ mr: 1 }}
-                  />
-                  <IconButton
-                    edge="end"
-                    aria-label="edit"
-                    onClick={() => handleOpenDialog(rule)}
-                    sx={{ mr: 1 }}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(rule.id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>
-              }
-            >
-              <ListItemText primary={rule.name} secondary={rule.description} />
-            </ListItem>
-          ))}
-        </List>
-      </Paper>
+      <Card>
+        <CardContent className="p-0">
+          {rules.length === 0 ? (
+            <div className="text-center py-12">
+              <Settings className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No rules configured</h3>
+              <p className="text-gray-500 mb-4">Get started by creating your first alert rule.</p>
+              <Button onClick={() => handleOpenDialog()}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Rule
+              </Button>
+            </div>
+          ) : (
+            <div className="divide-y">
+              {rules.map((rule) => (
+                <div key={rule.id} className="p-4 flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3">
+                      <h3 className="text-lg font-medium text-gray-900">{rule.name}</h3>
+                      <Badge variant={getSeverityVariant(rule.severity)}>
+                        {rule.severity}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">{rule.description}</p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleOpenDialog(rule)}
+                      className="flex items-center space-x-1"
+                    >
+                      <Edit2 className="h-3 w-3" />
+                      <span>Edit</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteClick(rule.id)}
+                      className="flex items-center space-x-1 text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                      <span>Delete</span>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingRule ? 'Edit Rule' : 'Create Rule'}</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
-            <TextField
-              label="Name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              fullWidth
-            />
-            <TextField
-              label="Description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              fullWidth
-              multiline
-              rows={3}
-            />
-            <FormControl fullWidth>
-              <InputLabel>Severity</InputLabel>
+      {/* Create/Edit Dialog */}
+      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editingRule ? 'Edit Rule' : 'Create Rule'}</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                value={formData.name || ''}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Enter rule name"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description || ''}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Enter rule description"
+                rows={3}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="severity">Severity</Label>
               <Select
                 value={formData.severity}
-                label="Severity"
-                onChange={(e) =>
-                  setFormData({ ...formData, severity: e.target.value as RuleSeverity })
-                }
+                onValueChange={(value) => setFormData({ ...formData, severity: value as RuleSeverity })}
               >
-                <MenuItem value={RuleSeverity.LOW}>Low</MenuItem>
-                <MenuItem value={RuleSeverity.MEDIUM}>Medium</MenuItem>
-                <MenuItem value={RuleSeverity.HIGH}>High</MenuItem>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select severity" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={RuleSeverity.LOW}>Low</SelectItem>
+                  <SelectItem value={RuleSeverity.MEDIUM}>Medium</SelectItem>
+                  <SelectItem value={RuleSeverity.HIGH}>High</SelectItem>
+                </SelectContent>
               </Select>
-            </FormControl>
-          </Box>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCloseDialog}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave}>
+              {editingRule ? 'Update' : 'Create'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSave} variant="contained">
-            Save
-          </Button>
-        </DialogActions>
       </Dialog>
-    </Box>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the alert rule.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 };
 

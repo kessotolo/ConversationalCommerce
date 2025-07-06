@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Card } from '../../components/ui/Card';
+import { Card } from '../../components/ui/card';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { getBuyerOrders } from '../../lib/api/orderHistory';
 import type { Order } from '../../modules/order/models/order';

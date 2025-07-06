@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Card } from '../../components/ui/Card';
+import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { useToast } from '../../components/ui/use-toast';
-import { getPaymentMethods, createPaymentMethod, deletePaymentMethod } from '../../../lib/api/paymentMethods';
+import { getPaymentMethods, createPaymentMethod, deletePaymentMethod } from '../../lib/api/paymentMethods';
 
 interface PaymentMethod {
     id: string;

@@ -14,10 +14,10 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/Form';
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/Textarea';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -25,10 +25,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/Checkbox';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { ProductStatus, ProductType } from '../models/product';
 import { productBulkOperationsService } from '../services/ProductBulkOperationsService';
@@ -109,11 +113,11 @@ export function BatchEditProductForm({ tenantId }: BatchEditProductFormProps) {
 
     // Filter out null values to only update fields that were changed
     const updates: Record<string, any> = {};
-    
+
     if (values.status) {
       updates.status = values.status;
     }
-    
+
     if (values.price !== null) {
       const priceValue = parseFloat(values.price);
       if (!isNaN(priceValue)) {
@@ -121,11 +125,11 @@ export function BatchEditProductForm({ tenantId }: BatchEditProductFormProps) {
           amount: priceValue,
           // Note: This assumes all products use the same currency
           // In a real app, you might want to specify currency in the form
-          currency: 'USD', 
+          currency: 'USD',
         };
       }
     }
-    
+
     if (values.sale_price !== null) {
       if (values.sale_price === '') {
         // Handle removing sale price
@@ -140,31 +144,31 @@ export function BatchEditProductForm({ tenantId }: BatchEditProductFormProps) {
         }
       }
     }
-    
+
     if (values.track_inventory !== null) {
       updates.track_inventory = values.track_inventory;
     }
-    
+
     if (values.categories !== null) {
       updates.categories = values.categories
         .split(',')
         .map(category => category.trim())
         .filter(category => category !== '');
     }
-    
+
     if (values.tags !== null) {
       updates.tags = values.tags
         .split(',')
         .map(tag => tag.trim())
         .filter(tag => tag !== '');
     }
-    
+
     // Only proceed if there are actual updates
     if (Object.keys(updates).length === 0) {
       toast({
         title: "No changes",
         description: "No fields were modified for batch update",
-        variant: "info",
+        variant: "default",
       });
       return;
     }
@@ -176,14 +180,14 @@ export function BatchEditProductForm({ tenantId }: BatchEditProductFormProps) {
         updates,
         tenantId
       );
-      
+
       if (result.success) {
         toast({
           title: "Products Updated",
           description: `Successfully updated ${selectedProductIds.length} products`,
           variant: "success",
         });
-        
+
         // Clear session storage and redirect back to products page
         sessionStorage.removeItem('batchEditProductIds');
         router.push('/dashboard/products');
@@ -262,7 +266,7 @@ export function BatchEditProductForm({ tenantId }: BatchEditProductFormProps) {
                 </FormItem>
               )}
             />
-            
+
             {/* Price Field */}
             <FormField
               control={form.control}
@@ -290,7 +294,7 @@ export function BatchEditProductForm({ tenantId }: BatchEditProductFormProps) {
                 </FormItem>
               )}
             />
-            
+
             {/* Sale Price Field */}
             <FormField
               control={form.control}
@@ -318,7 +322,7 @@ export function BatchEditProductForm({ tenantId }: BatchEditProductFormProps) {
                 </FormItem>
               )}
             />
-            
+
             {/* Track Inventory */}
             <FormField
               control={form.control}
@@ -343,7 +347,7 @@ export function BatchEditProductForm({ tenantId }: BatchEditProductFormProps) {
                 </FormItem>
               )}
             />
-            
+
             {/* Categories Field */}
             <FormField
               control={form.control}
@@ -368,7 +372,7 @@ export function BatchEditProductForm({ tenantId }: BatchEditProductFormProps) {
                 </FormItem>
               )}
             />
-            
+
             {/* Tags Field */}
             <FormField
               control={form.control}
@@ -393,7 +397,7 @@ export function BatchEditProductForm({ tenantId }: BatchEditProductFormProps) {
                 </FormItem>
               )}
             />
-            
+
             {/* Action Buttons */}
             <div className="flex justify-end gap-2">
               <Button

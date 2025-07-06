@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Label } from '@/components/ui/Label';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import type { VariantOption } from '../../models/product';
 import { VariantOptionType } from '../../models/product';
@@ -50,7 +50,7 @@ export function VariantManager({
     const updatedOptions = options.map((opt) =>
       opt.id === updatedOption.id ? updatedOption : opt
     );
-    
+
     setOptions(updatedOptions);
     onChange(updatedOptions);
   };
@@ -76,18 +76,18 @@ export function VariantManager({
       });
       return;
     }
-    
+
     const newOption: VariantOption = {
       id: `temp-${Date.now()}`, // This would be replaced with a server-generated ID
       name: newOptionName.trim(),
       type: newOptionType,
       values: [],
     };
-    
+
     const updatedOptions = [...options, newOption];
     setOptions(updatedOptions);
     onChange(updatedOptions);
-    
+
     setNewOptionName('');
     setShowAddOption(false);
   };
@@ -97,7 +97,7 @@ export function VariantManager({
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium">Product Variants</h3>
       </div>
-      
+
       <div className="space-y-4">
         {options.map((option) => (
           <VariantOptionItem
@@ -107,7 +107,7 @@ export function VariantManager({
             onDelete={handleDeleteOption}
           />
         ))}
-        
+
         {showAddOption ? (
           <Card>
             <CardContent className="pt-6">
@@ -122,7 +122,7 @@ export function VariantManager({
                     className="mt-1"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="optionType">Option Type</Label>
                   <Select
@@ -141,7 +141,7 @@ export function VariantManager({
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="flex justify-end gap-2 mt-2">
                   <Button
                     variant="outline"

@@ -1,18 +1,14 @@
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  TextField,
-  Button,
-  Alert,
-  Divider,
-  CircularProgress,
-  Stack,
-} from '@mui/material';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { SubmitHandler } from 'react-hook-form';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
+import { Loader2, CheckCircle, AlertCircle, Upload } from 'lucide-react';
 
 import type { Order } from '@/modules/order/models/order';
 import type { ManualPaymentProof, BankAccountDetails } from '@/modules/payment/models/payment';
@@ -89,156 +85,166 @@ export const BankTransferPaymentForm: React.FC<BankTransferPaymentFormProps> = (
   };
 
   return (
-    <Card variant="outlined">
-      <CardContent>
-        <Typography variant="h6" gutterBottom>
-          Submit Bank Transfer Payment Proof
-        </Typography>
-
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center space-x-2">
+          <Upload className="h-5 w-5" />
+          <span>Submit Payment Proof</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
         {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
         {success ? (
-          <Alert severity="success" sx={{ mb: 3 }}>
-            Your payment proof has been submitted successfully! We'll confirm your payment shortly.
+          <Alert>
+            <CheckCircle className="h-4 w-4" />
+            <AlertDescription>
+              Payment proof submitted successfully! Your order will be processed once we verify your payment.
+            </AlertDescription>
           </Alert>
         ) : (
           <>
-            <Box sx={{ width: '100%' }}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Payment Amount: {order.total_amount.currency} {order.total_amount.amount.toFixed(2)}
-              </Typography>
+            {/* Bank Details Display */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Bank Transfer Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                <div className="space-y-2">
+                  <Label className="text-sm text-gray-600">Bank Name</Label>
+                  <p className="font-medium">{bankDetails.bank_name}</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-gray-600">Account Name</Label>
+                  <p className="font-medium">{bankDetails.account_name}</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-gray-600">Account Number</Label>
+                  <p className="font-bold text-lg">{bankDetails.account_number}</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-gray-600">Amount to Transfer</Label>
+                  <p className="font-bold text-lg text-green-600">
+                    ₦{order.total_amount.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+              {bankDetails.instructions && (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    <strong>Instructions:</strong> {bankDetails.instructions}
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
 
-              <Divider sx={{ my: 2 }} />
+            <Separator />
 
-              <Typography variant="subtitle2" gutterBottom>
-                Bank Transfer Details
-              </Typography>
-
-              <Stack spacing={1} mt={1}>
-                <Box>
-                  <Typography variant="body2" color="text.secondary">
-                    Bank Name
-                  </Typography>
-                  <Typography variant="body1">{bankDetails.bank_name || ''}</Typography>
-                </Box>
-
-                <Box>
-                  <Typography variant="body2" color="text.secondary">
-                    Account Name
-                  </Typography>
-                  <Typography variant="body1">{bankDetails.account_name || ''}</Typography>
-                </Box>
-
-                <Box>
-                  <Typography variant="body2" color="text.secondary">
-                    Account Number
-                  </Typography>
-                  <Typography variant="body1" fontWeight="medium">
-                    {bankDetails.account_number || ''}
-                  </Typography>
-                </Box>
-
-                {bankDetails.instructions && (
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Instructions
-                    </Typography>
-                    <Typography variant="body2">{bankDetails.instructions || ''}</Typography>
-                  </Box>
-                )}
-              </Stack>
-            </Box>
-
-            <Divider sx={{ my: 3 }} />
-
-            <Typography variant="subtitle1" gutterBottom>
-              Payment Confirmation
-            </Typography>
-
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 2 }}>
-                <Box sx={{ width: '100%', gridColumn: 'span 12' }}>
-                  <TextField
-                    label="Payment Reference/Transaction ID"
-                    fullWidth
-                    margin="normal"
-                    {...register('reference', { required: 'Payment reference is required' })}
-                    error={!!errors.reference}
-                    helperText={errors.reference?.message}
+            {/* Payment Proof Form */}
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="reference">
+                    Transfer Reference/Transaction ID <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="reference"
+                    {...register('reference', { required: 'Transfer reference is required' })}
+                    placeholder="Enter transaction reference"
                   />
-                </Box>
+                  {errors.reference && (
+                    <p className="text-sm text-red-500">{errors.reference.message}</p>
+                  )}
+                </div>
 
-                <Box sx={{ width: '100%', gridColumn: { xs: 'span 12', sm: 'span 6' } }}>
-                  <TextField
-                    label="Transfer Date"
+                <div className="space-y-2">
+                  <Label htmlFor="transfer_date">
+                    Transfer Date <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="transfer_date"
                     type="date"
-                    fullWidth
-                    margin="normal"
-                    InputLabelProps={{ shrink: true }}
                     {...register('transfer_date', { required: 'Transfer date is required' })}
-                    error={!!errors.transfer_date}
-                    helperText={errors.transfer_date?.message}
                   />
-                </Box>
+                  {errors.transfer_date && (
+                    <p className="text-sm text-red-500">{errors.transfer_date.message}</p>
+                  )}
+                </div>
 
-                <Box sx={{ width: '100%', gridColumn: { xs: 'span 12', sm: 'span 6' } }}>
-                  <TextField
-                    label="Bank Used"
-                    fullWidth
-                    margin="normal"
+                <div className="space-y-2">
+                  <Label htmlFor="bank_name">Bank Name</Label>
+                  <Input
+                    id="bank_name"
                     {...register('bank_name')}
                     placeholder="Your bank name"
                   />
-                </Box>
+                </div>
 
-                <Box sx={{ width: '100%', gridColumn: 'span 12' }}>
-                  <TextField
-                    label="Additional Notes"
-                    fullWidth
-                    margin="normal"
-                    multiline
-                    rows={3}
-                    {...register('notes')}
+                <div className="space-y-2">
+                  <Label htmlFor="account_name">Account Name</Label>
+                  <Input
+                    id="account_name"
+                    {...register('account_name')}
+                    placeholder="Your account name"
                   />
-                </Box>
+                </div>
+              </div>
 
-                <Box sx={{ width: '100%' }}>
-                  <Typography variant="subtitle2" gutterBottom>
+              <div className="space-y-2">
+                <Label htmlFor="notes">Additional Notes (Optional)</Label>
+                <Textarea
+                  id="notes"
+                  {...register('notes')}
+                  placeholder="Any additional information about the transfer"
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium">
                     Upload Payment Screenshot (Optional)
-                  </Typography>
-
+                  </Label>
+                  <p className="text-sm text-gray-600 mb-2">
+                    Upload a screenshot of your transfer receipt for faster verification
+                  </p>
                   <UploadButton onImageUploaded={handleImageUpload} label="Upload Screenshot" />
+                </div>
 
-                  {uploadedImageUrl && (
-                    <Box mt={2} textAlign="center">
-                      <img
-                        src={uploadedImageUrl}
-                        alt="Payment screenshot"
-                        style={{
-                          maxWidth: '100%',
-                          maxHeight: '200px',
-                          border: '1px solid #eee',
-                          borderRadius: '4px',
-                        }}
-                      />
-                    </Box>
-                  )}
-                </Box>
-              </Box>
+                {uploadedImageUrl && (
+                  <div className="text-center">
+                    <img
+                      src={uploadedImageUrl}
+                      alt="Payment screenshot"
+                      className="max-w-full max-h-48 border border-gray-200 rounded-lg mx-auto"
+                    />
+                  </div>
+                )}
+              </div>
 
-              <Box mt={3} display="flex" justifyContent="space-between">
-                <Button variant="text" color="inherit" onClick={onCancel} disabled={loading}>
+              <div className="flex flex-col sm:flex-row gap-3 justify-between pt-4">
+                <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
                   Cancel
                 </Button>
 
-                <Button type="submit" variant="contained" color="primary" disabled={loading}>
-                  {loading ? <CircularProgress size={24} /> : 'Submit Payment Proof'}
+                <Button type="submit" disabled={loading} className="flex items-center space-x-2">
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Submitting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4" />
+                      <span>Submit Payment Proof</span>
+                    </>
+                  )}
                 </Button>
-              </Box>
+              </div>
             </form>
           </>
         )}

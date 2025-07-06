@@ -28,12 +28,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Label } from '@/components/ui/Label';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import type { 
-  VariantOption, 
-  VariantOptionType, 
-  VariantOptionValue 
+import type {
+  VariantOption,
+  VariantOptionType,
+  VariantOptionValue
 } from '../../models/product';
 import { SortableOptionValueItem } from './SortableOptionValueItem';
 
@@ -53,10 +53,10 @@ interface VariantOptionItemProps {
  * Component for managing a variant option with its values
  * Handles editing the option name/type and managing its values
  */
-export function VariantOptionItem({ 
-  option, 
-  onUpdate, 
-  onDelete 
+export function VariantOptionItem({
+  option,
+  onUpdate,
+  onDelete
 }: VariantOptionItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [optionName, setOptionName] = useState(option.name);
@@ -79,16 +79,16 @@ export function VariantOptionItem({
    */
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    
+
     if (over && active.id !== over.id) {
       const oldIndex = option.values.findIndex((v) => v.id === active.id);
       const newIndex = option.values.findIndex((v) => v.id === over.id);
-      
+
       if (oldIndex !== -1 && newIndex !== -1) {
         const updatedValues = arrayMove(option.values, oldIndex, newIndex).map(
           (value, index) => ({ ...value, display_order: index })
         );
-        
+
         onUpdate({
           ...option,
           values: updatedValues,
@@ -109,13 +109,13 @@ export function VariantOptionItem({
       });
       return;
     }
-    
+
     onUpdate({
       ...option,
       name: optionName.trim(),
       type: optionType,
     });
-    
+
     setIsEditing(false);
   };
 
@@ -131,18 +131,18 @@ export function VariantOptionItem({
       });
       return;
     }
-    
+
     const newValue: VariantOptionValue = {
       id: `temp-${Date.now()}`, // This would be replaced with a server-generated ID
       name: newValueName.trim(),
       display_order: option.values.length,
     };
-    
+
     onUpdate({
       ...option,
       values: [...option.values, newValue],
     });
-    
+
     setNewValueName('');
     setShowAddValue(false);
   };
@@ -159,16 +159,16 @@ export function VariantOptionItem({
       });
       return;
     }
-    
+
     const updatedValues = option.values.map((v) =>
       v.id === editingValue.id ? editingValue : v
     );
-    
+
     onUpdate({
       ...option,
       values: updatedValues,
     });
-    
+
     setEditingValue(null);
   };
 
@@ -179,7 +179,7 @@ export function VariantOptionItem({
     const updatedValues = option.values
       .filter((v) => v.id !== valueId)
       .map((value, index) => ({ ...value, display_order: index }));
-    
+
     onUpdate({
       ...option,
       values: updatedValues,
@@ -266,7 +266,7 @@ export function VariantOptionItem({
               ))}
             </SortableContext>
           </DndContext>
-          
+
           {editingValue && (
             <div className="border p-3 rounded-md mb-3 bg-gray-50">
               <div className="flex flex-col gap-2">

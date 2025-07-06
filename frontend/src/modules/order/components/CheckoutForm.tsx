@@ -135,7 +135,7 @@ export function CheckoutForm({
     getAddresses()
       .then((data) => {
         setAddresses(data);
-        const def = data.find((a) => a.is_default);
+        const def = data.find((a: SavedAddress) => a.is_default);
         if (def) {
           setSelectedAddressId(def.id);
           setValue('shippingStreet', def.street);

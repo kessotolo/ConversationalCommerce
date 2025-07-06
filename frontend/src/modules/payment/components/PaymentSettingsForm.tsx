@@ -1,11 +1,14 @@
-import { Alert } from '@/components/ui/alert';
-import { Card, CardContent } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import React, { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, CreditCard, AlertCircle, CheckCircle } from 'lucide-react';
 
 import { PaymentProvider } from '@/modules/payment/models/payment';
 import type { PaymentSettings } from '@/modules/payment/models/payment';
@@ -85,31 +88,16 @@ export const PaymentSettingsForm: React.FC<PaymentSettingsFormProps> = ({ tenant
     setSuccess(false);
 
     try {
-      // Clean up the data to remove credentials for disabled providers
-      const providers = data.providers.map((provider) => {
-        if (!provider.enabled) {
-          return {
-            ...provider,
-            credentials: {
-              public_key: '',
-              secret_key: '',
-              encryption_key: '',
-            },
-          };
-        }
-        return provider;
-      });
-
-      const result = await paymentService.updatePaymentSettings(tenantId, {
-        ...data,
-        providers,
-      });
-
+      const result = await paymentService.updatePaymentSettings(tenantId, data);
       if (result.success) {
         setSuccess(true);
-        if (onSaved) onSaved();
+        if (onSaved) {
+          onSaved();
+        }
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccess(false), 3000);
       } else {
-        setError(`Failed to save settings: ${result.error?.message || 'Unknown error'}`);
+        setError(result.error?.message || 'Failed to save payment settings');
       }
     } catch (err: unknown) {
       setError(`Error saving settings: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -120,363 +108,321 @@ export const PaymentSettingsForm: React.FC<PaymentSettingsFormProps> = ({ tenant
 
   return (
     <Card>
-      <CardContent>
-        <Typography variant="h5" gutterBottom>
-          Payment Settings
-        </Typography>
-
+      <CardHeader>
+        <CardTitle className="flex items-center space-x-2">
+          <CreditCard className="h-5 w-5" />
+          <span>Payment Settings</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
         {success && (
-          <Alert severity="success" sx={{ mb: 2 }}>
-            Payment settings saved successfully!
+          <Alert>
+            <CheckCircle className="h-4 w-4" />
+            <AlertDescription>Payment settings saved successfully!</AlertDescription>
           </Alert>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <Box mb={4}>
-            <FormControlLabel
-              control={
-                <Controller
-                  name="online_payments_enabled"
-                  control={control}
-                  render={({ field: { onChange, value } }) => (
-                    <Switch
-                      checked={value}
-                      onChange={(e) => onChange(e.target.checked)}
-                      color="primary"
-                    />
-                  )}
-                />
-              }
-              label="Enable Online Payments"
-            />
-            <FormHelperText>
-              Allow customers to pay online through integrated payment gateways
-            </FormHelperText>
-          </Box>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Online Payments Toggle */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <Controller
+                name="online_payments_enabled"
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <Switch checked={value} onCheckedChange={onChange} />
+                )}
+              />
+              <div>
+                <Label className="text-base font-medium">Enable Online Payments</Label>
+                <p className="text-sm text-gray-600">
+                  Allow customers to pay online through integrated payment gateways
+                </p>
+              </div>
+            </div>
+          </div>
 
-          {/* Security Feature Toggles */}
-          <Box mb={4}>
-            <FormControlLabel
-              control={
-                <Controller
-                  name="fraud_detection_enabled"
-                  control={control}
-                  render={({ field: { onChange, value } }) => (
-                    <Switch
-                      checked={value ?? true}
-                      onChange={(e) => onChange(e.target.checked)}
-                      color="primary"
-                    />
-                  )}
-                />
-              }
-              label="Enable Fraud Detection"
-            />
-            <FormHelperText>
-              Enable advanced fraud detection for this seller (recommended)
-            </FormHelperText>
-            <FormControlLabel
-              control={
-                <Controller
-                  name="rate_limiting_enabled"
-                  control={control}
-                  render={({ field: { onChange, value } }) => (
-                    <Switch
-                      checked={value ?? true}
-                      onChange={(e) => onChange(e.target.checked)}
-                      color="primary"
-                    />
-                  )}
-                />
-              }
-              label="Enable Rate Limiting"
-            />
-            <FormHelperText>
-              Protect payment endpoints from abuse and suspicious activity
-            </FormHelperText>
-            <FormControlLabel
-              control={
-                <Controller
-                  name="webhook_security_enabled"
-                  control={control}
-                  render={({ field: { onChange, value } }) => (
-                    <Switch
-                      checked={value ?? true}
-                      onChange={(e) => onChange(e.target.checked)}
-                      color="primary"
-                    />
-                  )}
-                />
-              }
-              label="Enable Webhook Security"
-            />
-            <FormHelperText>
-              Enforce webhook signature validation and security for this seller
-            </FormHelperText>
-          </Box>
+          <Separator />
 
+          {/* Payment Providers */}
           {onlinePaymentsEnabled && (
-            <>
-              <Typography variant="h6" gutterBottom>
-                Select Payment Provider(s)
-              </Typography>
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Payment Providers</h3>
 
-              <Grid sx={{ display: 'flex', gap: 3, mb: 4 }}>
-                <Grid sx={{ flex: 1 }}>
-                  <Card variant="outlined">
-                    <CardContent>
-                      <FormControlLabel
-                        control={
-                          <Controller
-                            name="providers.0.enabled"
-                            control={control}
-                            render={({ field: { onChange, value } }) => (
-                              <Switch
-                                checked={value}
-                                onChange={(e) => onChange(e.target.checked)}
-                                color="primary"
-                              />
-                            )}
-                          />
-                        }
-                        label="Paystack"
+              {/* Paystack Provider */}
+              <Card className="border border-gray-200">
+                <CardContent className="p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Controller
+                        name="providers.0.enabled"
+                        control={control}
+                        render={({ field: { onChange, value } }) => (
+                          <Switch checked={value} onCheckedChange={onChange} />
+                        )}
                       />
+                      <div>
+                        <Label className="text-base font-medium">Paystack</Label>
+                        <p className="text-sm text-gray-600">Accept payments via Paystack</p>
+                      </div>
+                    </div>
+                    <Badge variant={paystackEnabled ? "default" : "secondary"}>
+                      {paystackEnabled ? "Enabled" : "Disabled"}
+                    </Badge>
+                  </div>
 
-                      <FormControlLabel
-                        control={
-                          <Controller
-                            name="providers.0.test_mode"
-                            control={control}
-                            render={({ field: { onChange, value } }) => (
-                              <Switch
-                                checked={!!value}
-                                onChange={(e) => onChange(e.target.checked)}
-                                color="secondary"
-                              />
-                            )}
-                          />
-                        }
-                        label="Enable Test Mode"
-                      />
-                      <FormHelperText>Allow test cards and fake payments for this provider (no real charges).</FormHelperText>
+                  {paystackEnabled && (
+                    <div className="space-y-4 pt-4 border-t">
+                      <div className="flex items-center gap-3">
+                        <Controller
+                          name="providers.0.test_mode"
+                          control={control}
+                          render={({ field: { onChange, value } }) => (
+                            <Switch checked={!!value} onCheckedChange={onChange} />
+                          )}
+                        />
+                        <Label className="text-sm">Test Mode</Label>
+                      </div>
 
-                      {paystackEnabled && (
-                        <Box mt={2}>
-                          <TextField
-                            label="Public Key"
-                            fullWidth
-                            margin="normal"
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="paystack_public_key">Public Key *</Label>
+                          <Input
+                            id="paystack_public_key"
                             {...register('providers.0.credentials.public_key', {
-                              required: paystackEnabled ? 'Public Key is required' : false,
+                              required: paystackEnabled ? 'Public key is required' : false,
                             })}
-                            error={!!errors.providers?.[0]?.credentials?.public_key}
-                            helperText={errors.providers?.[0]?.credentials?.public_key?.message}
+                            placeholder="pk_test_..."
                           />
+                          {errors.providers?.[0]?.credentials?.public_key && (
+                            <p className="text-sm text-red-500">
+                              {errors.providers[0].credentials.public_key.message}
+                            </p>
+                          )}
+                        </div>
 
-                          <TextField
-                            label="Secret Key"
-                            fullWidth
-                            margin="normal"
+                        <div className="space-y-2">
+                          <Label htmlFor="paystack_secret_key">Secret Key *</Label>
+                          <Input
+                            id="paystack_secret_key"
                             type="password"
                             {...register('providers.0.credentials.secret_key', {
-                              required: paystackEnabled ? 'Secret Key is required' : false,
+                              required: paystackEnabled ? 'Secret key is required' : false,
                             })}
-                            error={!!errors.providers?.[0]?.credentials?.secret_key}
-                            helperText={errors.providers?.[0]?.credentials?.secret_key?.message}
+                            placeholder="sk_test_..."
                           />
-                        </Box>
-                      )}
-                    </CardContent>
-                  </Card>
-                </Grid>
+                          {errors.providers?.[0]?.credentials?.secret_key && (
+                            <p className="text-sm text-red-500">
+                              {errors.providers[0].credentials.secret_key.message}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-                <Grid sx={{ flex: 1 }}>
-                  <Card variant="outlined">
-                    <CardContent>
-                      <FormControlLabel
-                        control={
-                          <Controller
-                            name="providers.1.enabled"
-                            control={control}
-                            render={({ field: { onChange, value } }) => (
-                              <Switch
-                                checked={value}
-                                onChange={(e) => onChange(e.target.checked)}
-                                color="primary"
-                              />
-                            )}
-                          />
-                        }
-                        label="Flutterwave"
+              {/* Flutterwave Provider */}
+              <Card className="border border-gray-200">
+                <CardContent className="p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Controller
+                        name="providers.1.enabled"
+                        control={control}
+                        render={({ field: { onChange, value } }) => (
+                          <Switch checked={value} onCheckedChange={onChange} />
+                        )}
                       />
+                      <div>
+                        <Label className="text-base font-medium">Flutterwave</Label>
+                        <p className="text-sm text-gray-600">Accept payments via Flutterwave</p>
+                      </div>
+                    </div>
+                    <Badge variant={flutterwaveEnabled ? "default" : "secondary"}>
+                      {flutterwaveEnabled ? "Enabled" : "Disabled"}
+                    </Badge>
+                  </div>
 
-                      <FormControlLabel
-                        control={
-                          <Controller
-                            name="providers.1.test_mode"
-                            control={control}
-                            render={({ field: { onChange, value } }) => (
-                              <Switch
-                                checked={!!value}
-                                onChange={(e) => onChange(e.target.checked)}
-                                color="secondary"
-                              />
-                            )}
-                          />
-                        }
-                        label="Enable Test Mode"
-                      />
-                      <FormHelperText>Allow test cards and fake payments for this provider (no real charges).</FormHelperText>
+                  {flutterwaveEnabled && (
+                    <div className="space-y-4 pt-4 border-t">
+                      <div className="flex items-center gap-3">
+                        <Controller
+                          name="providers.1.test_mode"
+                          control={control}
+                          render={({ field: { onChange, value } }) => (
+                            <Switch checked={!!value} onCheckedChange={onChange} />
+                          )}
+                        />
+                        <Label className="text-sm">Test Mode</Label>
+                      </div>
 
-                      {flutterwaveEnabled && (
-                        <Box mt={2}>
-                          <TextField
-                            label="Public Key"
-                            fullWidth
-                            margin="normal"
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="flutterwave_public_key">Public Key *</Label>
+                          <Input
+                            id="flutterwave_public_key"
                             {...register('providers.1.credentials.public_key', {
-                              required: flutterwaveEnabled ? 'Public Key is required' : false,
+                              required: flutterwaveEnabled ? 'Public key is required' : false,
                             })}
-                            error={!!errors.providers?.[1]?.credentials?.public_key}
-                            helperText={errors.providers?.[1]?.credentials?.public_key?.message}
+                            placeholder="FLWPUBK_TEST-..."
                           />
+                          {errors.providers?.[1]?.credentials?.public_key && (
+                            <p className="text-sm text-red-500">
+                              {errors.providers[1].credentials.public_key.message}
+                            </p>
+                          )}
+                        </div>
 
-                          <TextField
-                            label="Secret Key"
-                            fullWidth
-                            margin="normal"
+                        <div className="space-y-2">
+                          <Label htmlFor="flutterwave_secret_key">Secret Key *</Label>
+                          <Input
+                            id="flutterwave_secret_key"
                             type="password"
                             {...register('providers.1.credentials.secret_key', {
-                              required: flutterwaveEnabled ? 'Secret Key is required' : false,
+                              required: flutterwaveEnabled ? 'Secret key is required' : false,
                             })}
-                            error={!!errors.providers?.[1]?.credentials?.secret_key}
-                            helperText={errors.providers?.[1]?.credentials?.secret_key?.message}
+                            placeholder="FLWSECK_TEST-..."
                           />
+                          {errors.providers?.[1]?.credentials?.secret_key && (
+                            <p className="text-sm text-red-500">
+                              {errors.providers[1].credentials.secret_key.message}
+                            </p>
+                          )}
+                        </div>
 
-                          <TextField
-                            label="Encryption Key (Optional)"
-                            fullWidth
-                            margin="normal"
+                        <div className="space-y-2 md:col-span-2">
+                          <Label htmlFor="flutterwave_encryption_key">Encryption Key</Label>
+                          <Input
+                            id="flutterwave_encryption_key"
                             type="password"
                             {...register('providers.1.credentials.encryption_key')}
-                            error={!!errors.providers?.[1]?.credentials?.encryption_key}
-                            helperText={errors.providers?.[1]?.credentials?.encryption_key?.message}
+                            placeholder="FLWSECK_TEST..."
                           />
-                        </Box>
-                      )}
-                    </CardContent>
-                  </Card>
-                </Grid>
-              </Grid>
-            </>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           )}
 
-          <Divider sx={{ my: 4 }} />
+          <Separator />
 
-          <Typography variant="h6" gutterBottom>
-            Bank Transfer Setup
-          </Typography>
+          {/* Bank Transfer Details */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Bank Transfer Details</h3>
+            <p className="text-sm text-gray-600">
+              Configure bank details for manual payment transfers
+            </p>
 
-          <Box mb={4}>
-            <TextField
-              label="Bank Name"
-              fullWidth
-              margin="normal"
-              {...register('bank_transfer_details.bank_name', {
-                required: 'Bank name is required',
-              })}
-              error={!!errors.bank_transfer_details?.bank_name}
-              helperText={errors.bank_transfer_details?.bank_name?.message}
-            />
-
-            <TextField
-              label="Account Name"
-              fullWidth
-              margin="normal"
-              {...register('bank_transfer_details.account_name', {
-                required: 'Account name is required',
-              })}
-              error={!!errors.bank_transfer_details?.account_name}
-              helperText={errors.bank_transfer_details?.account_name?.message}
-            />
-
-            <TextField
-              label="Account Number"
-              fullWidth
-              margin="normal"
-              {...register('bank_transfer_details.account_number', {
-                required: 'Account number is required',
-              })}
-              error={!!errors.bank_transfer_details?.account_number}
-              helperText={errors.bank_transfer_details?.account_number?.message}
-            />
-
-            <TextField
-              label="Transfer Instructions (Optional)"
-              fullWidth
-              margin="normal"
-              multiline
-              rows={3}
-              {...register('bank_transfer_details.instructions')}
-            />
-          </Box>
-
-          <Divider sx={{ my: 4 }} />
-
-          <Typography variant="h6" gutterBottom>
-            Platform Fee Configuration
-          </Typography>
-
-          <Box mb={4}>
-            <TextField
-              label="Platform Fee Percentage"
-              fullWidth
-              margin="normal"
-              type="number"
-              InputProps={{
-                endAdornment: <InputAdornment position="end">%</InputAdornment>,
-              }}
-              {...register('platform_fee_percentage', {
-                required: 'Platform fee is required',
-                min: { value: 0, message: 'Fee cannot be negative' },
-                max: { value: 100, message: 'Fee cannot exceed 100%' },
-              })}
-              error={!!errors.platform_fee_percentage}
-              helperText={errors.platform_fee_percentage?.message}
-            />
-
-            <FormControlLabel
-              control={
-                <Controller
-                  name="auto_calculate_payout"
-                  control={control}
-                  render={({ field: { onChange, value } }) => (
-                    <Switch
-                      checked={value}
-                      onChange={(e) => onChange(e.target.checked)}
-                      color="primary"
-                    />
-                  )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="bank_name">Bank Name</Label>
+                <Input
+                  id="bank_name"
+                  {...register('bank_transfer_details.bank_name')}
+                  placeholder="Enter bank name"
                 />
-              }
-              label="Auto-calculate net payout amount"
-            />
-            <FormHelperText>
-              Automatically deduct platform fees when calculating seller payouts
-            </FormHelperText>
-          </Box>
+              </div>
 
-          <Box display="flex" justifyContent="flex-end" mt={4}>
-            <Button type="submit" variant="contained" color="primary" disabled={loading}>
-              {loading ? 'Saving...' : 'Save Settings'}
+              <div className="space-y-2">
+                <Label htmlFor="account_name">Account Name</Label>
+                <Input
+                  id="account_name"
+                  {...register('bank_transfer_details.account_name')}
+                  placeholder="Enter account name"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="account_number">Account Number</Label>
+                <Input
+                  id="account_number"
+                  {...register('bank_transfer_details.account_number')}
+                  placeholder="Enter account number"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="platform_fee">Platform Fee (%)</Label>
+                <Input
+                  id="platform_fee"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="100"
+                  {...register('platform_fee_percentage', {
+                    valueAsNumber: true,
+                    min: { value: 0, message: 'Fee cannot be negative' },
+                    max: { value: 100, message: 'Fee cannot exceed 100%' },
+                  })}
+                  placeholder="5.0"
+                />
+                {errors.platform_fee_percentage && (
+                  <p className="text-sm text-red-500">{errors.platform_fee_percentage.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="transfer_instructions">Transfer Instructions</Label>
+                <Input
+                  id="transfer_instructions"
+                  {...register('bank_transfer_details.instructions')}
+                  placeholder="Additional instructions for bank transfers"
+                />
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Additional Settings */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Additional Settings</h3>
+
+            <div className="flex items-center gap-3">
+              <Controller
+                name="auto_calculate_payout"
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <Switch checked={value} onCheckedChange={onChange} />
+                )}
+              />
+              <div>
+                <Label className="text-base">Auto Calculate Payout</Label>
+                <p className="text-sm text-gray-600">
+                  Automatically calculate merchant payout after platform fees
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <div className="flex justify-end pt-6">
+            <Button type="submit" disabled={loading} className="flex items-center space-x-2">
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="h-4 w-4" />
+                  <span>Save Settings</span>
+                </>
+              )}
             </Button>
-          </Box>
+          </div>
         </form>
       </CardContent>
     </Card>

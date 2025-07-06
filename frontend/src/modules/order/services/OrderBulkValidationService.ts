@@ -1,4 +1,5 @@
-import type { Order, OrderStatus, PaymentStatus, ShippingMethod } from '../models/order';
+import type { Order } from '../models/order';
+import { OrderStatus, PaymentStatus, ShippingMethod } from '../models/order';
 import type { OrderCsvFormat } from './OrderCsvService';
 
 /**
@@ -64,16 +65,16 @@ export class OrderBulkValidationService {
       }
 
       if (fieldsToUpdate.shipping) {
-        if (fieldsToUpdate.shipping.method && 
-            !this.isValidShippingMethod(fieldsToUpdate.shipping.method)) {
+        if (fieldsToUpdate.shipping.method &&
+          !this.isValidShippingMethod(fieldsToUpdate.shipping.method)) {
           errors.push({
             field: 'shipping.method',
             message: `Invalid shipping method: ${fieldsToUpdate.shipping.method}`,
           });
         }
 
-        if (fieldsToUpdate.shipping.tracking_number && 
-            fieldsToUpdate.shipping.tracking_number.length > 100) {
+        if (fieldsToUpdate.shipping.tracking_number &&
+          fieldsToUpdate.shipping.tracking_number.length > 100) {
           errors.push({
             field: 'shipping.tracking_number',
             message: 'Tracking number exceeds maximum length',
@@ -81,9 +82,9 @@ export class OrderBulkValidationService {
         }
       }
 
-      if (fieldsToUpdate.payment && 
-          fieldsToUpdate.payment.status && 
-          !this.isValidPaymentStatus(fieldsToUpdate.payment.status)) {
+      if (fieldsToUpdate.payment &&
+        fieldsToUpdate.payment.status &&
+        !this.isValidPaymentStatus(fieldsToUpdate.payment.status)) {
         errors.push({
           field: 'payment.status',
           message: `Invalid payment status: ${fieldsToUpdate.payment.status}`,

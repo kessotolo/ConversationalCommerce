@@ -1,25 +1,15 @@
-import RefreshIcon from '@mui/icons-material/Refresh';
-import Box from '@mui/material/Box';
-import Chip from '@mui/material/Chip';
-import Grid from '@mui/material/Grid';
-import IconButton from '@mui/material/IconButton';
-import Paper from '@mui/material/Paper';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Typography from '@mui/material/Typography';
-import { formatDistanceToNow } from 'date-fns';
 import React, { useEffect, useState } from 'react';
+import { formatDistanceToNow } from 'date-fns';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { RefreshCw, Activity as ActivityIcon, Users, Globe } from 'lucide-react';
 
 import { useWebSocket } from '@/hooks/useWebSocket';
 
 import AuditLogTable from './AuditLogTable';
 import NotificationCenter from './NotificationCenter';
-
-import type { ChipProps } from '@mui/material/Chip';
 
 interface Activity {
   id: string;
@@ -44,20 +34,6 @@ interface ActivityStats {
   byUser: Record<string, number>;
 }
 
-type ChipColor = ChipProps['color'];
-function toChipColor(val: string): ChipColor {
-  const allowed: ChipColor[] = [
-    'default',
-    'error',
-    'warning',
-    'info',
-    'primary',
-    'success',
-    'secondary',
-  ];
-  return allowed.includes(val as ChipColor) ? (val as ChipColor) : 'default';
-}
-
 const ActivityDashboard: React.FC = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [stats, setStats] = useState<ActivityStats>({
@@ -65,14 +41,6 @@ const ActivityDashboard: React.FC = () => {
     byType: {},
     byStatus: {},
     byUser: {},
-  });
-  const [
-    ,/* filter */
-    /* setFilter */
-  ] = useState<{ resourceType: string; statusCode: string; user: string }>({
-    resourceType: '',
-    statusCode: '',
-    user: '',
   });
 
   const [tenantId, setTenantId] = useState<string>('');
@@ -136,123 +104,160 @@ const ActivityDashboard: React.FC = () => {
     });
   };
 
-  const getSeverityColor = (severity: string) => {
+  const getSeverityVariant = (severity: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (severity) {
       case 'high':
-        return 'error';
+        return 'destructive';
       case 'medium':
-        return 'warning';
+        return 'secondary';
       default:
-        return 'info';
+        return 'outline';
     }
   };
 
-  const getMethodColor = (method: string) => {
+  const getMethodVariant = (method: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (method.toUpperCase()) {
       case 'GET':
-        return 'primary';
+        return 'default';
       case 'POST':
-        return 'success';
+        return 'secondary';
       case 'PUT':
       case 'PATCH':
-        return 'warning';
+        return 'outline';
       case 'DELETE':
-        return 'error';
+        return 'destructive';
       default:
-        return 'default';
+        return 'outline';
     }
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <h1 className="text-2xl font-bold mb-4">Activity Dashboard</h1>
-      <div className="mb-8">{mounted && <NotificationCenter />}</div>
-      <div>{mounted && tenantId && <AuditLogTable tenantId={tenantId} />}</div>
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Activity Dashboard</h1>
+        <div className="flex items-center space-x-4">
+          {mounted && <NotificationCenter />}
+        </div>
+      </div>
+
       {/* Stats Cards */}
-      <Grid container spacing={3}>
-        <Grid component="div" sx={{ gridColumn: { xs: 'span 12', md: 'span 4' } }}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6">Total Activities</Typography>
-            <Typography variant="h3">{stats.total}</Typography>
-          </Paper>
-        </Grid>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Activities</CardTitle>
+            <ActivityIcon className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.total}</div>
+            <p className="text-xs text-muted-foreground">
+              Activities tracked in real-time
+            </p>
+          </CardContent>
+        </Card>
 
-        <Grid component="div" sx={{ gridColumn: { xs: 'span 12', md: 'span 4' } }}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6">Active Users</Typography>
-            <Typography variant="h3">{Object.keys(stats.byUser).length}</Typography>
-          </Paper>
-        </Grid>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{Object.keys(stats.byUser).length}</div>
+            <p className="text-xs text-muted-foreground">
+              Unique users with activity
+            </p>
+          </CardContent>
+        </Card>
 
-        <Grid component="div" sx={{ gridColumn: { xs: 'span 12', md: 'span 4' } }}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6">Resource Types</Typography>
-            <Typography variant="h3">{Object.keys(stats.byType).length}</Typography>
-          </Paper>
-        </Grid>
-      </Grid>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Resource Types</CardTitle>
+            <Globe className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{Object.keys(stats.byType).length}</div>
+            <p className="text-xs text-muted-foreground">
+              Different resource types accessed
+            </p>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Activity Table */}
-      <Paper sx={{ mt: 3, p: 2 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-          <Typography variant="h6">Activity Log</Typography>
-          <IconButton onClick={handleRefresh}>
-            <RefreshIcon />
-          </IconButton>
-        </Box>
-
-        <TableContainer>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Activity Log</CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              className="flex items-center space-x-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              <span>Refresh</span>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
           <Table>
-            <TableHead>
+            <TableHeader>
               <TableRow>
-                <TableCell>Time</TableCell>
-                <TableCell>User</TableCell>
-                <TableCell>Action</TableCell>
-                <TableCell>Resource</TableCell>
-                <TableCell>Method</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Severity</TableCell>
+                <TableHead>Time</TableHead>
+                <TableHead>User</TableHead>
+                <TableHead>Action</TableHead>
+                <TableHead>Resource</TableHead>
+                <TableHead>Method</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Severity</TableHead>
               </TableRow>
-            </TableHead>
+            </TableHeader>
             <TableBody>
               {activities.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} align="center">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     No activities to display
                   </TableCell>
                 </TableRow>
               ) : (
                 activities.map((activity) => (
                   <TableRow key={activity.id}>
-                    <TableCell>
+                    <TableCell className="font-mono text-sm">
                       {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
                     </TableCell>
-                    <TableCell>{activity.user_id}</TableCell>
+                    <TableCell className="font-medium">{activity.user_id}</TableCell>
                     <TableCell>{activity.action}</TableCell>
                     <TableCell>{activity.resource_type}</TableCell>
                     <TableCell>
-                      <Chip
-                        label={activity.method}
-                        color={toChipColor(getMethodColor(activity.method))}
-                        size="small"
-                      />
+                      <Badge variant={getMethodVariant(activity.method)}>
+                        {activity.method}
+                      </Badge>
                     </TableCell>
-                    <TableCell>{activity.status_code}</TableCell>
                     <TableCell>
-                      <Chip
-                        label={activity.severity}
-                        color={toChipColor(getSeverityColor(activity.severity))}
-                        size="small"
-                      />
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${activity.status_code >= 200 && activity.status_code < 300
+                          ? 'bg-green-100 text-green-800'
+                          : activity.status_code >= 400
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                        {activity.status_code}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={getSeverityVariant(activity.severity)}>
+                        {activity.severity}
+                      </Badge>
                     </TableCell>
                   </TableRow>
                 ))
               )}
             </TableBody>
           </Table>
-        </TableContainer>
-      </Paper>
-    </Box>
+        </CardContent>
+      </Card>
+
+      {/* Audit Log Table */}
+      <div>{mounted && tenantId && <AuditLogTable tenantId={tenantId} />}</div>
+    </div>
   );
 };
 

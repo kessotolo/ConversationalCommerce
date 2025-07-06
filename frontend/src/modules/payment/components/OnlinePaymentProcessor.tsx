@@ -1,5 +1,8 @@
-import { Box, Button, CircularProgress, Typography, Alert, Card, CardContent } from '@mui/material';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, CreditCard, ExternalLink, AlertCircle } from 'lucide-react';
 
 import type { Order } from '@/modules/order/models/order';
 import { PaymentProvider } from '@/modules/payment/models/payment';
@@ -71,7 +74,11 @@ export const OnlinePaymentProcessor: React.FC<OnlinePaymentProcessorProps> = ({
         if (result.success && result.data) {
           setPaymentLink(result.data.checkout_url || result.data.payment_link || null);
           setReference(result.data.reference);
-          setClientSecret(result.data.metadata?.client_secret);
+          setClientSecret(
+            typeof result.data.metadata?.client_secret === 'string'
+              ? result.data.metadata.client_secret
+              : null
+          );
         } else {
           setError(
             'Failed to initialize payment. Please try again or choose a different payment method.',
@@ -95,7 +102,8 @@ export const OnlinePaymentProcessor: React.FC<OnlinePaymentProcessorProps> = ({
   };
 
   const handleError = (error: unknown) => {
-    setError(`Payment error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    const errorMessage = `Payment error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+    setError(errorMessage);
     setLoading(false);
   };
 
@@ -123,18 +131,21 @@ export const OnlinePaymentProcessor: React.FC<OnlinePaymentProcessorProps> = ({
     };
 
     return (
-      <Box>
+      <div className="space-y-4">
         <div id="paystack-payment-container" />
         <Button
-          variant="contained"
-          color="primary"
-          fullWidth
           onClick={handleInitiateInlinePayment}
           disabled={loading}
+          className="w-full flex items-center space-x-2"
         >
-          {loading ? <CircularProgress size={24} /> : 'Pay with Paystack'}
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <CreditCard className="h-4 w-4" />
+          )}
+          <span>{loading ? 'Loading...' : 'Pay with Paystack'}</span>
         </Button>
-      </Box>
+      </div>
     );
   };
 
@@ -166,17 +177,20 @@ export const OnlinePaymentProcessor: React.FC<OnlinePaymentProcessorProps> = ({
     };
 
     return (
-      <Box>
+      <div className="space-y-4">
         <Button
-          variant="contained"
-          color="primary"
-          fullWidth
           onClick={handleInitiateInlinePayment}
           disabled={loading}
+          className="w-full flex items-center space-x-2"
         >
-          {loading ? <CircularProgress size={24} /> : 'Pay with Flutterwave'}
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <CreditCard className="h-4 w-4" />
+          )}
+          <span>{loading ? 'Loading...' : 'Pay with Flutterwave'}</span>
         </Button>
-      </Box>
+      </div>
     );
   };
 
@@ -187,67 +201,68 @@ export const OnlinePaymentProcessor: React.FC<OnlinePaymentProcessorProps> = ({
     }, [clientSecret]);
 
     return (
-      <form id="payment-form">
-        <div id="card-element" style={{ minHeight: 40, marginBottom: 16 }} />
-        <button type="submit" className="btn btn-primary">Pay</button>
+      <form id="payment-form" className="space-y-4">
+        <div id="card-element" className="min-h-10 mb-4 p-3 border border-gray-300 rounded-md" />
+        <Button type="submit" className="w-full">
+          Pay with Stripe
+        </Button>
       </form>
     );
   };
 
   const renderPaymentLink = () => {
     return (
-      <Box>
-        <Typography variant="body1" gutterBottom>
+      <div className="space-y-4">
+        <p className="text-sm text-gray-600">
           Use the payment link below to complete your payment:
-        </Typography>
-        <Box
-          mt={2}
-          p={2}
-          bgcolor="background.paper"
-          border={1}
-          borderColor="divider"
-          borderRadius={1}
-        >
-          <Typography
-            component="a"
+        </p>
+        <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+          <a
             href={paymentLink || '#'}
             target="_blank"
             rel="noopener noreferrer"
-            sx={{ wordBreak: 'break-all' }}
+            className="text-blue-600 hover:text-blue-800 break-all underline flex items-center space-x-2"
           >
-            {paymentLink}
-          </Typography>
-        </Box>
-      </Box>
+            <span>{paymentLink}</span>
+            <ExternalLink className="h-4 w-4" />
+          </a>
+        </div>
+      </div>
     );
   };
 
   if (loading && !paymentLink) {
     return (
-      <Box display="flex" justifyContent="center" my={4}>
-        <CircularProgress />
-      </Box>
+      <div className="flex justify-center items-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Initializing payment...</span>
+      </div>
     );
   }
 
   return (
-    <Card variant="outlined">
-      <CardContent>
-        <Typography variant="h6" gutterBottom>
-          Complete Your Payment
-        </Typography>
-
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center space-x-2">
+          <CreditCard className="h-5 w-5" />
+          <span>Complete Your Payment</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
         {!error && (
-          <Box>
-            <Typography variant="body2" color="text.secondary" mb={2}>
-              Payment Amount: {order.total_amount.currency} {order.total_amount.amount.toFixed(2)}
-            </Typography>
+          <div className="space-y-6">
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Payment Amount:</strong> {order.total_amount.currency} {order.total_amount.amount.toFixed(2)}
+              </p>
+            </div>
 
             {provider === PaymentProvider.PAYSTACK && renderPaystackInlinePayment()}
             {provider === PaymentProvider.FLUTTERWAVE && renderFlutterwaveInlinePayment()}
@@ -256,23 +271,30 @@ export const OnlinePaymentProcessor: React.FC<OnlinePaymentProcessorProps> = ({
             {!useInlineWidget && paymentLink && renderPaymentLink()}
 
             {useInlineWidget && paymentLink && (
-              <Box mt={2}>
-                <Typography variant="body2">
+              <div className="space-y-3">
+                <p className="text-sm text-gray-600">
                   If the payment widget doesn't load, you can also use the direct payment link:
-                </Typography>
-                <Button href={paymentLink} target="_blank" rel="noopener noreferrer" sx={{ mt: 1 }}>
-                  Open Payment Page
+                </p>
+                <Button
+                  variant="outline"
+                  asChild
+                  className="flex items-center space-x-2"
+                >
+                  <a href={paymentLink} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4" />
+                    <span>Open Payment Page</span>
+                  </a>
                 </Button>
-              </Box>
+              </div>
             )}
-          </Box>
+          </div>
         )}
 
-        <Box mt={3}>
-          <Button variant="text" color="inherit" onClick={onCancel}>
+        <div className="pt-4 border-t">
+          <Button variant="outline" onClick={onCancel} className="w-full">
             Cancel and go back
           </Button>
-        </Box>
+        </div>
       </CardContent>
     </Card>
   );

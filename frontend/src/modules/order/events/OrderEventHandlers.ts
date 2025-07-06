@@ -311,7 +311,7 @@ function processOfflineAnalytics(): void {
     if (events.length === 0) return;
 
     // Process each event
-    events.forEach((event) => {
+    events.forEach((event: { event: string; properties: Record<string, unknown>; timestamp: string }) => {
       window.analytics?.track(event.event, {
         ...event.properties,
         offline_tracked_at: event.timestamp,

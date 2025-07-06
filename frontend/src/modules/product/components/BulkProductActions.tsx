@@ -14,12 +14,12 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/Popover';
+} from '@/components/ui/popover';
 import { ProductStatus } from '@/modules/product/models/product';
 import { productBulkOperationsService } from '@/modules/product/services/ProductBulkOperationsService';
 import { productCsvService } from '@/modules/product/services/ProductCsvService';
@@ -27,7 +27,7 @@ import { useToast } from '@/components/ui/use-toast';
 
 /**
  * Props for the BulkProductActions component
- * 
+ *
  * @interface BulkProductActionsProps
  * @property {string[]} selectedProductIds - IDs of selected products
  * @property {Product[]} selectedProducts - Full product objects for selected products
@@ -51,7 +51,7 @@ interface BulkProductActionsProps {
 /**
  * BulkProductActions Component
  * Provides UI for performing bulk operations on selected products
- * 
+ *
  * @param {BulkProductActionsProps} props - Component props
  * @returns {JSX.Element} Rendered component with bulk action buttons
  */
@@ -80,7 +80,7 @@ export function BulkProductActions({
    */
   const handleUpdateStatus = async (status: ProductStatus) => {
     if (!hasSelection) return;
-    
+
     setIsProcessing(true);
     try {
       const result = await productBulkOperationsService.bulkUpdateStatus(
@@ -88,7 +88,7 @@ export function BulkProductActions({
         status,
         tenantId
       );
-      
+
       if (result.success) {
         toast({
           title: "Status Updated",
@@ -120,14 +120,14 @@ export function BulkProductActions({
    */
   const handleDeleteProducts = async () => {
     if (!hasSelection) return;
-    
+
     setIsDeleting(true);
     try {
       const result = await productBulkOperationsService.deleteProducts(
         selectedProductIds,
         tenantId
       );
-      
+
       if (result.success) {
         toast({
           title: "Products Deleted",
@@ -160,15 +160,15 @@ export function BulkProductActions({
    */
   const handleExportCsv = () => {
     if (!hasSelection) return;
-    
+
     setIsExporting(true);
     try {
       // Generate filename with timestamp
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const filename = `products-export-${timestamp}.csv`;
-      
+
       productCsvService.downloadProductsCsv(selectedProducts, filename);
-      
+
       toast({
         title: "Export Complete",
         description: `${selectedProducts.length} products exported to CSV`,
@@ -190,7 +190,9 @@ export function BulkProductActions({
    */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setCsvImportFile(e.target.files[0]);
+      setCsvImportFile(e.target.files[0] || null);
+    } else {
+      setCsvImportFile(null);
     }
   };
 
@@ -206,30 +208,30 @@ export function BulkProductActions({
       });
       return;
     }
-    
+
     setIsImporting(true);
     try {
       // Read file contents
       const text = await csvImportFile.text();
-      
+
       // Parse CSV
       const importedData = productCsvService.importProductsFromCsv(text);
-      
+
       // Validate imported data
       const validation = productCsvService.validateImportedProducts(importedData);
-      
+
       if (validation.errors.length) {
         toast({
           title: "Validation Error",
           description: `${validation.errors.length} validation errors found`,
           variant: "destructive",
         });
-        
+
         // Here you could show detailed errors in UI
         console.error("Validation errors:", validation.errors);
         return;
       }
-      
+
       // Here you would send the validated data to your API
       // This is just a placeholder to simulate success
       toast({
@@ -237,10 +239,10 @@ export function BulkProductActions({
         description: `Processing ${validation.valid.length} products for import`,
         variant: "success",
       });
-      
+
       // Navigate to import status page or refresh current page
       // router.push('/dashboard/products/import-status');
-      
+
       onOperationComplete();
     } catch (error) {
       toast({
@@ -259,18 +261,18 @@ export function BulkProductActions({
    */
   const handleBatchEdit = () => {
     if (!hasSelection) return;
-    
+
     // Store selected product IDs in session storage for the edit page
     sessionStorage.setItem('batchEditProductIds', JSON.stringify(selectedProductIds));
     router.push('/dashboard/products/batch-edit');
   };
-  
+
   /**
    * Navigate to bulk inventory update page for selected products
    */
   const handleBulkInventory = () => {
     if (!hasSelection) return;
-    
+
     // Store selected product IDs in session storage for the edit page
     sessionStorage.setItem('bulkInventoryProductIds', JSON.stringify(selectedProductIds));
     router.push('/dashboard/products/bulk-inventory');
@@ -295,13 +297,13 @@ export function BulkProductActions({
         <div className="text-sm font-medium">
           {selectedProductIds.length} {selectedProductIds.length === 1 ? 'product' : 'products'} selected
         </div>
-        
+
         <div className="flex flex-wrap gap-2">
           {/* Status Update */}
           <Popover>
             <PopoverTrigger asChild>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 className="flex items-center gap-1"
                 disabled={isProcessing}
@@ -328,8 +330,8 @@ export function BulkProductActions({
           </Popover>
 
           {/* Batch Edit */}
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             className="flex items-center gap-1"
             onClick={handleBatchEdit}
@@ -337,10 +339,10 @@ export function BulkProductActions({
             <Edit2 className="h-4 w-4 mr-1" />
             Batch Edit
           </Button>
-          
+
           {/* Bulk Inventory */}
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             className="flex items-center gap-1"
             onClick={handleBulkInventory}
@@ -350,8 +352,8 @@ export function BulkProductActions({
           </Button>
 
           {/* Export to CSV */}
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             className="flex items-center gap-1"
             onClick={handleExportCsv}
@@ -364,8 +366,8 @@ export function BulkProductActions({
           {/* Import from CSV */}
           <Popover>
             <PopoverTrigger asChild>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 className="flex items-center gap-1"
               >
@@ -382,7 +384,7 @@ export function BulkProductActions({
                   onChange={handleFileChange}
                   className="text-sm"
                 />
-                <Button 
+                <Button
                   onClick={handleImportCsv}
                   disabled={!csvImportFile || isImporting}
                   className="w-full"
@@ -394,8 +396,8 @@ export function BulkProductActions({
           </Popover>
 
           {/* Delete */}
-          <Button 
-            variant="destructive" 
+          <Button
+            variant="destructive"
             size="sm"
             className="flex items-center gap-1"
             onClick={() => setDeleteDialogOpen(true)}
@@ -406,7 +408,7 @@ export function BulkProductActions({
           </Button>
         </div>
       </div>
-      
+
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

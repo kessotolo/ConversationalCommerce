@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { Check, AlertCircle } from 'lucide-react';
-import { 
+import {
   Card,
   CardContent
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/Label';
-import { Separator } from '@/components/ui/Separator';
-import { Alert, AlertDescription } from '@/components/ui/Alert';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { formatCurrency } from '@/lib/utils/currency';
 import type { VariantOption, ProductVariant, Product, VariantOptionValue } from '../../models/product';
 import { ProductDomainMethods } from '../../models/product';
@@ -32,12 +32,12 @@ export function VariantSelector({ product, onVariantChange }: VariantSelectorPro
   useEffect(() => {
     if (product && product.variants && product.variants.length > 0) {
       // Find the default variant or use the first one
-      const defaultVariant = product.variants.find(v => v.is_default) || product.variants[0];
+      const defaultVariant = product.variants.find(v => v.is_default) || product.variants[0] || null;
       setSelectedVariant(defaultVariant);
       onVariantChange(defaultVariant);
-      
+
       // Set initial selected options based on default variant
-      if (defaultVariant.option_values) {
+      if (defaultVariant && defaultVariant.option_values) {
         const initialOptions: Record<string, string> = {};
         defaultVariant.option_values.forEach(ov => {
           initialOptions[ov.option_id] = ov.value_id;
@@ -52,68 +52,71 @@ export function VariantSelector({ product, onVariantChange }: VariantSelectorPro
     if (!product.variants || !product.variant_options) return;
 
     const availableValues: Record<string, string[]> = {};
-    
+
     // Initialize with all option values
     product.variant_options.forEach(option => {
       availableValues[option.id] = option.values.map(value => value.id);
     });
-    
+
     // Determine which values are available based on current selections
     product.variant_options.forEach(option => {
       // Skip the current option when determining availability
       const otherOptionIds = product.variant_options
         ?.filter(o => o.id !== option.id)
         .map(o => o.id) || [];
-      
+
       // Check if all other options are selected
       const allOtherOptionsSelected = otherOptionIds.every(
         optionId => selectedOptions[optionId]
       );
-      
+
       // If all other options are selected, we need to find valid combinations
       if (allOtherOptionsSelected && otherOptionIds.length > 0) {
         const validValueIds: string[] = [];
-        
+
         // For each variant, check if it matches the current selection pattern
         product.variants?.forEach(variant => {
           // Skip out-of-stock variants
           if (variant.inventory_quantity !== undefined && variant.inventory_quantity <= 0) {
             return;
           }
-          
+
           // Create a map of option_id to value_id from the variant
           const variantOptionMap: Record<string, string> = {};
           variant.option_values?.forEach(ov => {
             variantOptionMap[ov.option_id] = ov.value_id;
           });
-          
+
           // Check if this variant matches all other selected options
           const matchesOtherSelections = otherOptionIds.every(
             optionId => variantOptionMap[optionId] === selectedOptions[optionId]
           );
-          
+
           // If matches, add this option's value to valid values
           if (matchesOtherSelections && variantOptionMap[option.id]) {
-            validValueIds.push(variantOptionMap[option.id]);
+            const valueId = variantOptionMap[option.id];
+            if (valueId) {
+              validValueIds.push(valueId);
+            }
           }
         });
-        
+
         // Update available values for this option
         availableValues[option.id] = validValueIds;
       }
     });
-    
+
     setAvailableOptionValues(availableValues);
   }, [product.variants, product.variant_options, selectedOptions]);
 
   // Find matching variant when options change
   useEffect(() => {
     if (!product.variants) return;
-    
+
     const selectedOptionIds = Object.keys(selectedOptions);
     // Only try to find a variant if at least one option is selected
     if (selectedOptionIds.length === 0) return;
-    
+
     // Find a variant that matches all selected options
     const matchingVariant = product.variants.find(variant => {
       // Create a map of option_id to value_id from the variant
@@ -121,13 +124,13 @@ export function VariantSelector({ product, onVariantChange }: VariantSelectorPro
       variant.option_values?.forEach(ov => {
         variantOptionMap[ov.option_id] = ov.value_id;
       });
-      
+
       // Check if all selected options match this variant
       return selectedOptionIds.every(
         optionId => variantOptionMap[optionId] === selectedOptions[optionId]
       );
     });
-    
+
     setSelectedVariant(matchingVariant || null);
     onVariantChange(matchingVariant || null);
   }, [selectedOptions, product.variants, onVariantChange]);
@@ -151,7 +154,7 @@ export function VariantSelector({ product, onVariantChange }: VariantSelectorPro
   const isValueAvailable = (optionId: string, valueId: string): boolean => {
     return availableOptionValues[optionId]?.includes(valueId) || false;
   };
-  
+
   // Check if a value is selected
   const isValueSelected = (optionId: string, valueId: string): boolean => {
     return selectedOptions[optionId] === valueId;
@@ -160,7 +163,7 @@ export function VariantSelector({ product, onVariantChange }: VariantSelectorPro
   // Get stock status for the current variant
   const getStockStatus = (): JSX.Element | null => {
     if (!selectedVariant) return null;
-    
+
     if (selectedVariant.inventory_quantity !== undefined) {
       if (selectedVariant.inventory_quantity <= 0) {
         return (
@@ -173,7 +176,7 @@ export function VariantSelector({ product, onVariantChange }: VariantSelectorPro
         );
       } else if (selectedVariant.inventory_quantity < 5) {
         return (
-          <Alert variant="warning" className="mt-4">
+          <Alert variant="default" className="mt-4">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               Only {selectedVariant.inventory_quantity} items left in stock
@@ -182,7 +185,7 @@ export function VariantSelector({ product, onVariantChange }: VariantSelectorPro
         );
       }
     }
-    
+
     return (
       <Alert variant="default" className="mt-4">
         <Check className="h-4 w-4" />
@@ -241,10 +244,10 @@ export function VariantSelector({ product, onVariantChange }: VariantSelectorPro
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <div className="text-sm text-muted-foreground">
-                  Selected Variant: 
+                  Selected Variant:
                   <span className="ml-2 font-medium text-foreground">
-                    {selectedVariant.name || 
-                      selectedVariant.option_values?.map(ov => 
+                    {selectedVariant.name ||
+                      selectedVariant.option_values?.map(ov =>
                         getOptionValueName(ov.option_id, ov.value_id)
                       ).join(' / ')}
                   </span>
@@ -256,7 +259,7 @@ export function VariantSelector({ product, onVariantChange }: VariantSelectorPro
                 )}
               </div>
               <div className="text-xl font-bold">
-                {selectedVariant.price ? 
+                {selectedVariant.price ?
                   formatCurrency(selectedVariant.price.amount, selectedVariant.price.currency) :
                   formatCurrency(product.price.amount, product.price.currency)}
 
@@ -267,7 +270,7 @@ export function VariantSelector({ product, onVariantChange }: VariantSelectorPro
                 )}
               </div>
             </div>
-            
+
             {getStockStatus()}
           </div>
         ) : (

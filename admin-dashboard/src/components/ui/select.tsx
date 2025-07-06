@@ -21,7 +21,7 @@ export const SelectItem: React.FC<{
     value: string
     children: React.ReactNode
     onSelect?: () => void
-}> = ({ value, children, onSelect }) => {
+}> = ({ value: _value, children, onSelect }) => {
     return (
         <div
             className="px-3 py-2 hover:bg-gray-100 cursor-pointer"

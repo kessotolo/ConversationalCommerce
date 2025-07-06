@@ -30,12 +30,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Label } from '@/components/ui/Label';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { 
-  VariantOption, 
-  VariantOptionType, 
-  VariantOptionValue 
+import {
+  VariantOption,
+  VariantOptionType,
+  VariantOptionValue
 } from '../models/product';
 
 /**
@@ -135,16 +135,16 @@ function VariantOptionItem({ option, onUpdate, onDelete }: VariantOptionItemProp
    */
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    
+
     if (over && active.id !== over.id) {
       const oldIndex = option.values.findIndex((v) => v.id === active.id);
       const newIndex = option.values.findIndex((v) => v.id === over.id);
-      
+
       if (oldIndex !== -1 && newIndex !== -1) {
         const updatedValues = arrayMove(option.values, oldIndex, newIndex).map(
           (value, index) => ({ ...value, display_order: index })
         );
-        
+
         onUpdate({
           ...option,
           values: updatedValues,
@@ -165,13 +165,13 @@ function VariantOptionItem({ option, onUpdate, onDelete }: VariantOptionItemProp
       });
       return;
     }
-    
+
     onUpdate({
       ...option,
       name: optionName.trim(),
       type: optionType,
     });
-    
+
     setIsEditing(false);
   };
 
@@ -187,18 +187,18 @@ function VariantOptionItem({ option, onUpdate, onDelete }: VariantOptionItemProp
       });
       return;
     }
-    
+
     const newValue: VariantOptionValue = {
       id: `temp-${Date.now()}`, // This would be replaced with a server-generated ID
       name: newValueName.trim(),
       display_order: option.values.length,
     };
-    
+
     onUpdate({
       ...option,
       values: [...option.values, newValue],
     });
-    
+
     setNewValueName('');
     setShowAddValue(false);
   };
@@ -215,16 +215,16 @@ function VariantOptionItem({ option, onUpdate, onDelete }: VariantOptionItemProp
       });
       return;
     }
-    
+
     const updatedValues = option.values.map((v) =>
       v.id === editingValue.id ? editingValue : v
     );
-    
+
     onUpdate({
       ...option,
       values: updatedValues,
     });
-    
+
     setEditingValue(null);
   };
 
@@ -235,7 +235,7 @@ function VariantOptionItem({ option, onUpdate, onDelete }: VariantOptionItemProp
     const updatedValues = option.values
       .filter((v) => v.id !== valueId)
       .map((value, index) => ({ ...value, display_order: index }));
-    
+
     onUpdate({
       ...option,
       values: updatedValues,
@@ -256,7 +256,7 @@ function VariantOptionItem({ option, onUpdate, onDelete }: VariantOptionItemProp
                 />
               </div>
               <div className="w-40">
-                <Select value={optionType} onValueChange={setOptionType}>
+                <Select value={optionType} onValueChange={(value) => setOptionType(value as VariantOptionType)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
@@ -322,7 +322,7 @@ function VariantOptionItem({ option, onUpdate, onDelete }: VariantOptionItemProp
               ))}
             </SortableContext>
           </DndContext>
-          
+
           {editingValue && (
             <div className="border p-3 rounded-md mb-3 bg-gray-50">
               <div className="flex flex-col gap-2">
@@ -422,7 +422,7 @@ export function VariantManager({
     const updatedOptions = options.map((opt) =>
       opt.id === updatedOption.id ? updatedOption : opt
     );
-    
+
     setOptions(updatedOptions);
     onChange(updatedOptions);
   };
@@ -448,18 +448,18 @@ export function VariantManager({
       });
       return;
     }
-    
+
     const newOption: VariantOption = {
       id: `temp-${Date.now()}`, // This would be replaced with a server-generated ID
       name: newOptionName.trim(),
       type: newOptionType,
       values: [],
     };
-    
+
     const updatedOptions = [...options, newOption];
     setOptions(updatedOptions);
     onChange(updatedOptions);
-    
+
     setNewOptionName('');
     setShowAddOption(false);
   };
@@ -469,7 +469,7 @@ export function VariantManager({
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium">Product Variants</h3>
       </div>
-      
+
       <div className="space-y-4">
         {options.map((option) => (
           <VariantOptionItem
@@ -479,7 +479,7 @@ export function VariantManager({
             onDelete={handleDeleteOption}
           />
         ))}
-        
+
         {showAddOption ? (
           <Card>
             <CardContent className="pt-6">
@@ -494,7 +494,7 @@ export function VariantManager({
                     className="mt-1"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="optionType">Option Type</Label>
                   <Select
@@ -513,7 +513,7 @@ export function VariantManager({
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="flex justify-end gap-2 mt-2">
                   <Button
                     variant="outline"

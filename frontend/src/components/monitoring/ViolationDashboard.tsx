@@ -1,23 +1,11 @@
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
-import CircularProgress from '@mui/material/CircularProgress';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
-import MenuItem from '@mui/material/MenuItem';
-import Paper from '@mui/material/Paper';
-import Select from '@mui/material/Select';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Typography from '@mui/material/Typography';
 import React, { useEffect, useState } from 'react';
-
-import type { ChipProps } from '@mui/material/Chip';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Loader2, Shield, AlertTriangle, CheckCircle, Activity } from 'lucide-react';
 
 interface Violation {
   id: string;
@@ -46,20 +34,6 @@ interface ViolationStats {
 interface ViolationTrend {
   date: string;
   count: number;
-}
-
-type ChipColor = ChipProps['color'];
-function toChipColor(val: string): ChipColor {
-  const allowed: ChipColor[] = [
-    'default',
-    'error',
-    'warning',
-    'info',
-    'primary',
-    'success',
-    'secondary',
-  ];
-  return allowed.includes(val as ChipColor) ? (val as ChipColor) : 'default';
 }
 
 const ViolationDashboard: React.FC = () => {
@@ -126,223 +100,238 @@ const ViolationDashboard: React.FC = () => {
     setDetailDialogOpen(false);
   };
 
-  const getSeverityColor = (severity: string) => {
+  const getSeverityVariant = (severity: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (severity.toLowerCase()) {
       case 'critical':
-        return 'error';
       case 'high':
-        return 'error';
+        return 'destructive';
       case 'medium':
-        return 'warning';
+        return 'secondary';
       case 'low':
-        return 'info';
+        return 'outline';
       default:
         return 'default';
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (status.toLowerCase()) {
       case 'active':
-        return 'error';
+        return 'destructive';
       case 'resolved':
-        return 'success';
-      default:
         return 'default';
+      default:
+        return 'secondary';
     }
   };
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex justify-center items-center h-96">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
     );
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h5" sx={{ mb: 3 }}>
-        Security Violations Dashboard
-      </Typography>
+    <div className="p-6 space-y-6">
+      <div className="flex items-center space-x-2">
+        <Shield className="h-6 w-6" />
+        <h1 className="text-2xl font-bold">Security Violations Dashboard</h1>
+      </div>
 
       {stats && (
-        <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
-          <Paper sx={{ p: 2, flexGrow: 1 }}>
-            <Typography variant="subtitle1">Total Violations</Typography>
-            <Typography variant="h4">{stats.total}</Typography>
-          </Paper>
-          <Paper sx={{ p: 2, flexGrow: 1 }}>
-            <Typography variant="subtitle1">Active</Typography>
-            <Typography variant="h4">{stats.by_status['active'] ?? 0}</Typography>
-          </Paper>
-          <Paper sx={{ p: 2, flexGrow: 1 }}>
-            <Typography variant="subtitle1">Critical</Typography>
-            <Typography variant="h4">{stats.by_severity['critical'] ?? 0}</Typography>
-          </Paper>
-        </Box>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Violations</CardTitle>
+              <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.total}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active</CardTitle>
+              <Activity className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">{stats.by_status['active'] ?? 0}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Critical</CardTitle>
+              <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">{stats.by_severity['critical'] ?? 0}</div>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {trends.length > 0 && (
-        <Paper sx={{ p: 2, mb: 2 }}>
-          <Typography variant="h6">Trends (last 30 days)</Typography>
-          <Box sx={{ display: 'flex', gap: 2, overflowX: 'auto', py: 2 }}>
-            {trends.map((t) => (
-              <Box key={t.date} sx={{ textAlign: 'center', minWidth: '60px' }}>
-                <Typography variant="caption">{t.date}</Typography>
-                <Typography>{t.count}</Typography>
-              </Box>
-            ))}
-          </Box>
-        </Paper>
+        <Card>
+          <CardHeader>
+            <CardTitle>Trends (last 30 days)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2 overflow-x-auto py-2">
+              {trends.map((t) => (
+                <div key={t.date} className="text-center min-w-[60px]">
+                  <div className="text-xs text-gray-500">{t.date}</div>
+                  <div className="text-sm font-medium">{t.count}</div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      <Paper sx={{ p: 2 }}>
-        <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
-          <Select
-            value={filters.status}
-            onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
-            displayEmpty
-            size="small"
-          >
-            <MenuItem value="">All Status</MenuItem>
-            <MenuItem value="active">Active</MenuItem>
-            <MenuItem value="resolved">Resolved</MenuItem>
-          </Select>
+      <Card>
+        <CardHeader>
+          <CardTitle>Violations</CardTitle>
+          <div className="flex gap-2 flex-wrap">
+            <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value })}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="resolved">Resolved</SelectItem>
+              </SelectContent>
+            </Select>
 
-          <Select
-            value={filters.action}
-            onChange={(e) => setFilters((f) => ({ ...f, action: e.target.value }))}
-            displayEmpty
-            size="small"
-          >
-            <MenuItem value="">All Actions</MenuItem>
-            <MenuItem value="warning">Warning</MenuItem>
-            <MenuItem value="temp_ban">Temp Ban</MenuItem>
-            <MenuItem value="perm_ban">Perm Ban</MenuItem>
-          </Select>
-
-          <Select
-            value={filters.severity}
-            onChange={(e) => setFilters((f) => ({ ...f, severity: e.target.value }))}
-            displayEmpty
-            size="small"
-          >
-            <MenuItem value="">All Severity</MenuItem>
-            <MenuItem value="low">Low</MenuItem>
-            <MenuItem value="medium">Medium</MenuItem>
-            <MenuItem value="high">High</MenuItem>
-            <MenuItem value="critical">Critical</MenuItem>
-          </Select>
-
-          <Select
-            value={filters.type}
-            onChange={(e) => setFilters((f) => ({ ...f, type: e.target.value }))}
-            displayEmpty
-            size="small"
-          >
-            <MenuItem value="">All Types</MenuItem>
-            <MenuItem value="rate_limit">Rate Limit</MenuItem>
-            <MenuItem value="suspicious_access">Suspicious Access</MenuItem>
-            <MenuItem value="data_leak">Data Leak</MenuItem>
-          </Select>
-        </Box>
-
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Type</TableCell>
-              <TableCell>Severity</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>User</TableCell>
-              <TableCell>Created</TableCell>
-              <TableCell>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {violations.length === 0 ? (
+            <Select value={filters.severity} onValueChange={(value) => setFilters({ ...filters, severity: value })}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Severity" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All</SelectItem>
+                <SelectItem value="critical">Critical</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="low">Low</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={7} align="center">
-                  No violations found
-                </TableCell>
+                <TableHead>Type</TableHead>
+                <TableHead>Severity</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Action</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
-            ) : (
-              violations.map((v) => (
-                <TableRow key={v.id}>
-                  <TableCell>{v.id.substring(0, 8)}</TableCell>
-                  <TableCell>{v.type}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={v.severity}
-                      size="small"
-                      color={toChipColor(getSeverityColor(v.severity))}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={v.status}
-                      size="small"
-                      color={toChipColor(getStatusColor(v.status))}
-                    />
-                  </TableCell>
-                  <TableCell>{v.user_id ?? 'N/A'}</TableCell>
-                  <TableCell>{new Date(v.created_at).toLocaleString()}</TableCell>
-                  <TableCell>
-                    <Button size="small" variant="outlined" onClick={() => handleViewDetails(v)}>
-                      View
-                    </Button>
+            </TableHeader>
+            <TableBody>
+              {violations.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8">
+                    <div className="flex flex-col items-center space-y-2">
+                      <CheckCircle className="h-12 w-12 text-green-500" />
+                      <span className="text-lg font-medium">No violations found</span>
+                      <span className="text-sm text-gray-500">Your system is secure</span>
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </Paper>
+              ) : (
+                violations.map((violation) => (
+                  <TableRow key={violation.id}>
+                    <TableCell className="font-medium">{violation.type}</TableCell>
+                    <TableCell>
+                      <Badge variant={getSeverityVariant(violation.severity)}>
+                        {violation.severity}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusVariant(violation.status)}>
+                        {violation.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{violation.action}</TableCell>
+                    <TableCell className="text-sm text-gray-500">
+                      {new Date(violation.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewDetails(violation)}
+                      >
+                        View Details
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-      <Dialog open={detailDialogOpen} onClose={handleCloseDetails} maxWidth="md" fullWidth>
-        <DialogTitle>Violation Details</DialogTitle>
-        <DialogContent>
+      {/* Details Dialog */}
+      <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Violation Details</DialogTitle>
+          </DialogHeader>
           {selectedViolation && (
-            <Box sx={{ pt: 2 }}>
-              <Typography variant="subtitle1">ID: {selectedViolation.id}</Typography>
-              <Typography variant="subtitle1">Type: {selectedViolation.type}</Typography>
-              <Typography variant="subtitle1">Severity: {selectedViolation.severity}</Typography>
-              <Typography variant="subtitle1">Status: {selectedViolation.status}</Typography>
-              <Typography variant="subtitle1">Action: {selectedViolation.action}</Typography>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-medium">Type</h4>
+                  <p className="text-sm text-gray-600">{selectedViolation.type}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium">Severity</h4>
+                  <Badge variant={getSeverityVariant(selectedViolation.severity)}>
+                    {selectedViolation.severity}
+                  </Badge>
+                </div>
+                <div>
+                  <h4 className="font-medium">Status</h4>
+                  <Badge variant={getStatusVariant(selectedViolation.status)}>
+                    {selectedViolation.status}
+                  </Badge>
+                </div>
+                <div>
+                  <h4 className="font-medium">Action</h4>
+                  <p className="text-sm text-gray-600">{selectedViolation.action}</p>
+                </div>
+              </div>
+
               {selectedViolation.reason && (
-                <Typography variant="subtitle1">Reason: {selectedViolation.reason}</Typography>
+                <div>
+                  <h4 className="font-medium">Reason</h4>
+                  <p className="text-sm text-gray-600">{selectedViolation.reason}</p>
+                </div>
               )}
-              <Typography variant="subtitle1">
-                Start: {new Date(selectedViolation.start_at).toLocaleString()}
-              </Typography>
-              {selectedViolation.end_at && (
-                <Typography variant="subtitle1">
-                  End: {new Date(selectedViolation.end_at).toLocaleString()}
-                </Typography>
+
+              {selectedViolation.details !== undefined && selectedViolation.details !== null && (
+                <div>
+                  <h4 className="font-medium">Details</h4>
+                  <pre className="text-xs bg-gray-100 p-2 rounded overflow-auto">
+                    {typeof selectedViolation.details === 'string'
+                      ? selectedViolation.details
+                      : JSON.stringify(selectedViolation.details, null, 2)}
+                  </pre>
+                </div>
               )}
-              {selectedViolation.details !== undefined && (
-                <>
-                  <Typography variant="subtitle1" sx={{ mt: 2 }}>
-                    Details:
-                  </Typography>
-                  <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
-                    <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-                      {typeof selectedViolation.details === 'string'
-                        ? selectedViolation.details
-                        : JSON.stringify(selectedViolation.details, null, 2)}
-                    </pre>
-                  </Paper>
-                </>
-              )}
-            </Box>
+            </div>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDetails}>Close</Button>
-        </DialogActions>
       </Dialog>
-    </Box>
+    </div>
   );
 };
 

@@ -13,7 +13,7 @@ import { OrderStatusBadge } from './OrderStatusBadge';
 
 /**
  * Props for the OrdersTable component
- * 
+ *
  * @interface OrdersTableProps
  * @property {Order[]} orders - Array of order objects to display in the table
  * @property {string[]} selectedOrders - Array of order IDs that are currently selected
@@ -25,19 +25,19 @@ import { OrderStatusBadge } from './OrderStatusBadge';
 interface OrdersTableProps {
   /** Array of order objects to display in the table */
   orders: Order[];
-  
+
   /** Array of order IDs that are currently selected */
   selectedOrders: string[];
-  
+
   /** Function to toggle selection state of a single order */
   toggleSelectOrder: (id: string) => void;
-  
+
   /** Function to toggle selection state of all orders */
   toggleSelectAll: () => void;
-  
+
   /** Function to initiate communication with a customer */
   messageCustomer: (phone: string) => void;
-  
+
   /** Function to update the status of an order */
   updateOrderStatus: (orderId: string, newStatus: OrderStatus) => Promise<void>;
 }
@@ -46,7 +46,7 @@ interface OrdersTableProps {
  * OrdersTable Component
  * Displays a table of orders with selection capabilities, status indicators, and action buttons.
  * Implements responsive design patterns and optimized rendering for large order lists.
- * 
+ *
  * @param {OrdersTableProps} props - Component props
  * @returns {JSX.Element} Rendered table of orders with interactive elements
  */
@@ -139,11 +139,11 @@ export function OrdersTable({
                     <div className="text-sm text-gray-900">
                       {/* Handle both object-style and numeric total_amount formats for backward compatibility */}
                       {formatCurrency(
-                        typeof order.total_amount === 'object' 
-                          ? order.total_amount.amount 
-                          : order.total_amount || 0, 
-                        typeof order.total_amount === 'object' 
-                          ? order.total_amount.currency 
+                        typeof order.total_amount === 'object'
+                          ? order.total_amount.amount
+                          : order.total_amount || 0,
+                        typeof order.total_amount === 'object'
+                          ? order.total_amount.currency
                           : 'USD'
                       )}
                     </div>
@@ -152,8 +152,7 @@ export function OrdersTable({
                     {formatDate(
                       order.created_at
                         ? new Date(order.created_at)
-                        : new Date(),
-                      'full'
+                        : new Date()
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">

@@ -1,6 +1,6 @@
 import { AxiosInstance } from 'axios';
 import { format } from 'date-fns';
-import { createApiClient } from '../../../core/api/apiClient';
+import { createApiClient, ApiClient } from '../../core/api/apiClient';
 
 export interface AnalyticsQuery {
   metrics: string[];
@@ -22,7 +22,7 @@ export interface ExportOptions {
 }
 
 export class AnalyticsService {
-  private apiClient: AxiosInstance;
+  private apiClient: ApiClient;
 
   constructor() {
     this.apiClient = createApiClient();
@@ -128,15 +128,15 @@ export class AnalyticsService {
   async getReports(reportType?: string, isScheduled?: boolean) {
     let url = '/api/analytics/reports';
     const params: Record<string, any> = {};
-    
+
     if (reportType) {
       params.reportType = reportType;
     }
-    
+
     if (isScheduled !== undefined) {
       params.isScheduled = isScheduled;
     }
-    
+
     return this.apiClient.get(url, { params });
   }
 

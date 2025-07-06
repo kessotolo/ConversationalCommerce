@@ -1,19 +1,22 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
 import {
-  Card,
-  CardContent,
-  Typography,
-  Box,
-  Divider,
-  Chip,
-  Alert,
-  CircularProgress,
-  Stack,
-  LinearProgress,
-  Button
-} from '@mui/material';
+  Loader2,
+  Package,
+  MapPin,
+  Clock,
+  CheckCircle,
+  Truck,
+  AlertCircle
+} from 'lucide-react';
+
 import type { OrderService } from '@/modules/order/services/OrderService';
 import { OrderStatus, type Order } from '@/modules/order/models/order';
 
@@ -48,59 +51,57 @@ const OrderProgressBar = ({ status }: { status: OrderStatus }): JSX.Element => {
     }
   };
 
+  const progressSteps = [
+    { label: 'Order Placed', status: OrderStatus.PENDING },
+    { label: 'Processing', status: OrderStatus.PROCESSING },
+    { label: 'Shipped', status: OrderStatus.SHIPPED },
+    { label: 'Delivered', status: OrderStatus.DELIVERED },
+  ];
+
   return (
-    <Box sx={{ width: '100%', mt: 2, mb: 2 }}>
-      <LinearProgress 
-        variant="determinate" 
-        value={getProgressValue()} 
-        sx={{ height: 10, borderRadius: 5 }} 
-      />
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
-        <Typography variant="caption">Order Placed</Typography>
-        <Typography variant="caption">Processing</Typography>
-        <Typography variant="caption">Shipped</Typography>
-        <Typography variant="caption">Delivered</Typography>
-      </Box>
-    </Box>
+    <div className="w-full mt-4 mb-6">
+      <Progress value={getProgressValue()} className="h-3 mb-4" />
+      <div className="flex justify-between">
+        {progressSteps.map((step, index) => (
+          <div key={index} className="text-center flex-1">
+            <div className="text-xs text-gray-600">{step.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 };
 
 /**
- * Component for displaying order status as a chip
+ * Component for displaying order status as a badge
  */
-const OrderStatusChip = ({ status }: { status: OrderStatus }): JSX.Element => {
-  const getStatusColor = (status: OrderStatus): string => {
+const OrderStatusBadge = ({ status }: { status: OrderStatus }): JSX.Element => {
+  const getStatusVariant = (status: OrderStatus): "default" | "secondary" | "destructive" | "outline" => {
     switch (status) {
       case OrderStatus.PENDING:
-        return '#FFA726'; // Orange
+        return 'secondary';
       case OrderStatus.PAID:
-        return '#42A5F5'; // Blue
+        return 'default';
       case OrderStatus.PROCESSING:
-        return '#AB47BC'; // Purple
+        return 'default';
       case OrderStatus.SHIPPED:
-        return '#66BB6A'; // Green
+        return 'default';
       case OrderStatus.DELIVERED:
-        return '#2E7D32'; // Dark Green
+        return 'default';
       case OrderStatus.CANCELLED:
-        return '#EF5350'; // Red
-      case OrderStatus.REFUNDED:
-        return '#EC407A'; // Pink
       case OrderStatus.FAILED:
-        return '#D32F2F'; // Dark Red
+        return 'destructive';
+      case OrderStatus.REFUNDED:
+        return 'outline';
       default:
-        return '#9E9E9E'; // Gray
+        return 'secondary';
     }
   };
-  
+
   return (
-    <Chip 
-      label={status} 
-      sx={{ 
-        backgroundColor: getStatusColor(status),
-        color: 'white',
-        fontWeight: 'bold'
-      }} 
-    />
+    <Badge variant={getStatusVariant(status)} className="font-semibold">
+      {status}
+    </Badge>
   );
 };
 
@@ -121,21 +122,21 @@ const formatAddress = (address: {
     address.postal_code,
     address.country
   ].filter(Boolean);
-  
+
   return parts.join(', ');
 };
 
 /**
  * OrderTracking component for displaying order details and status
  */
-export const OrderTracking = ({ 
-  orderService, 
-  orderId, 
-  orderNumber, 
-  customerPhone, 
+export const OrderTracking = ({
+  orderService,
+  orderId,
+  orderNumber,
+  customerPhone,
   customerId,
-  tenantId, 
-  onOrderLoaded 
+  tenantId,
+  onOrderLoaded
 }: OrderTrackingProps): JSX.Element => {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -145,9 +146,9 @@ export const OrderTracking = ({
     try {
       setLoading(true);
       setError(null);
-      
+
       let fetchedOrder: Order | undefined;
-      
+
       if (orderId) {
         const result = await orderService.getOrderById(orderId, tenantId);
         if (result.success && result.data) {
@@ -163,7 +164,7 @@ export const OrderTracking = ({
             search: orderNumber,
             limit: 1
           });
-          
+
           if (ordersResult.success && ordersResult.data && ordersResult.data.items.length > 0) {
             fetchedOrder = ordersResult.data.items[0];
           }
@@ -193,7 +194,7 @@ export const OrderTracking = ({
           })[0];
         }
       }
-      
+
       if (fetchedOrder) {
         setOrder(fetchedOrder);
         if (onOrderLoaded) {
@@ -203,250 +204,220 @@ export const OrderTracking = ({
         setError('Order not found');
       }
     } catch (err) {
-      setError('Error loading order: ' + (err instanceof Error ? err.message : String(err)));
+      console.error('Error fetching order:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load order');
     } finally {
       setLoading(false);
     }
-  }, [orderId, orderNumber, customerPhone, customerId, orderService, tenantId, onOrderLoaded]);
+  }, [orderService, orderId, orderNumber, customerPhone, customerId, tenantId, onOrderLoaded]);
 
   useEffect(() => {
-    if (orderId || orderNumber || customerPhone || customerId) {
-      fetchOrder();
-    } else {
-      setError('No order identifier provided. Please provide an order ID, order number, customer phone, or customer ID.');
-      setLoading(false);
-    }
-  }, [orderId, orderNumber, customerPhone, customerId, fetchOrder]);
+    fetchOrder();
+  }, [fetchOrder]);
+
+  const handleRefresh = () => {
+    fetchOrder();
+  };
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-        <CircularProgress />
-      </Box>
+      <Card>
+        <CardContent className="flex items-center justify-center py-12">
+          <div className="flex items-center space-x-2">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span>Loading order details...</span>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   if (error) {
     return (
-      <Alert severity="error">{error}</Alert>
+      <Card>
+        <CardContent className="py-8">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+          <div className="mt-4">
+            <Button onClick={handleRefresh} variant="outline" size="sm">
+              Try Again
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   if (!order) {
     return (
-      <Alert severity="info">No order information available.</Alert>
+      <Card>
+        <CardContent className="text-center py-12">
+          <Package className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No order found</h3>
+          <p className="text-gray-500">Please check your order details and try again.</p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <Card>
-      <CardContent>
-        <Stack spacing={2}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h5">Order #{order.order_number}</Typography>
-            <OrderStatusChip status={order.status} />
-          </Box>
-          
-          {(order.status === OrderStatus.PENDING || 
-            order.status === OrderStatus.PAID || 
-            order.status === OrderStatus.PROCESSING || 
-            order.status === OrderStatus.SHIPPED || 
-            order.status === OrderStatus.DELIVERED) && (
-            <OrderProgressBar status={order.status} />
-          )}
-          
-          <Divider />
-          
-          <Typography variant="h6">Order Items</Typography>
-          <Stack spacing={1}>
-            {order.items.map((item) => (
-              <Box key={item.id} sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Box>
-                  <Typography variant="body1">
-                    {item.product_name} {item.variant_name ? `(${item.variant_name})` : ''}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    Qty: {item.quantity}
-                  </Typography>
-                </Box>
-                <Typography variant="body1">
-                  {item.total_price.currency} {item.total_price.amount.toFixed(2)}
-                </Typography>
-              </Box>
-            ))}
-          </Stack>
-          
-          <Divider />
-          
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="body1">Subtotal:</Typography>
-            <Typography variant="body1">
-              {order.subtotal.currency} {order.subtotal.amount.toFixed(2)}
-            </Typography>
-          </Box>
-          
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="body1">Tax:</Typography>
-            <Typography variant="body1">
-              {order.tax.currency} {order.tax.amount.toFixed(2)}
-            </Typography>
-          </Box>
-          
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="body1">Shipping:</Typography>
-            <Typography variant="body1">
-              {order.shipping.shipping_cost.currency} {order.shipping.shipping_cost.amount.toFixed(2)}
-            </Typography>
-          </Box>
-          
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="body1" fontWeight="bold">Total:</Typography>
-            <Typography variant="body1" fontWeight="bold">
-              {order.total_amount.currency} {order.total_amount.amount.toFixed(2)}
-            </Typography>
-          </Box>
-          
-          <Divider />
-          
-          <Typography variant="h6">Shipping Information</Typography>
-          <Box>
-            <Typography variant="body2">
-              <strong>Address:</strong> {formatAddress(order.shipping.address)}
-            </Typography>
-            <Typography variant="body2">
-              <strong>Method:</strong> {typeof order.shipping.method === 'string' 
-                ? order.shipping.method 
-                : 'Shipping' // Fallback if method is not a string
-              }
-            </Typography>
+    <div className="space-y-6">
+      {/* Order Header */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center space-x-2">
+              <Package className="h-5 w-5" />
+              <span>Order #{order.order_number}</span>
+            </CardTitle>
+            <OrderStatusBadge status={order.status} />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <OrderProgressBar status={order.status} />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-medium text-gray-900 mb-2">Order Information</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Order Date:</span>
+                  <span>{new Date(order.created_at).toLocaleDateString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Total Amount:</span>
+                  <span className="font-medium">
+                    {order.total_amount.currency} {order.total_amount.amount.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Payment Status:</span>
+                  <Badge variant={order.payment.status === 'COMPLETED' ? 'default' : 'secondary'}>
+                    {order.payment.status}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-medium text-gray-900 mb-2">Customer Information</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Name:</span>
+                  <span>{order.customer.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Email:</span>
+                  <span>{order.customer.email}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Phone:</span>
+                  <span>{order.customer.phone}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Shipping Information */}
+      {order.shipping.address && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <MapPin className="h-5 w-5" />
+              <span>Shipping Address</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm">{formatAddress(order.shipping.address)}</p>
             {order.shipping.tracking_number && (
-              <Typography variant="body2">
-                <strong>Tracking:</strong> {order.shipping.tracking_number}
-              </Typography>
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <Truck className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-900">
+                    Tracking Number: {order.shipping.tracking_number}
+                  </span>
+                </div>
+              </div>
             )}
-            {order.shipping.estimated_delivery && (
-              <Typography variant="body2">
-                <strong>Estimated Delivery:</strong> {order.shipping.estimated_delivery}
-              </Typography>
-            )}
-          </Box>
-          
-          <Divider />
-          
-          <Typography variant="h6">Payment Information</Typography>
-          <Box>
-            <Typography variant="body2">
-              <strong>Method:</strong> {order.payment.method}
-            </Typography>
-            <Typography variant="body2">
-              <strong>Status:</strong> {order.payment.status}
-            </Typography>
-            {order.payment.transaction_id && (
-              <Typography variant="body2">
-                <strong>Transaction ID:</strong> {order.payment.transaction_id}
-              </Typography>
-            )}
-            {order.payment.provider && (
-              <Typography variant="body2">
-                <strong>Provider:</strong> {order.payment.provider}
-              </Typography>
-            )}
-            {order.payment.payment_date && (
-              <Typography variant="body2">
-                <strong>Date:</strong> {order.payment.payment_date}
-              </Typography>
-            )}
-          </Box>
-          
-          <Divider />
-          
-          <Typography variant="h6">Customer Information</Typography>
-          <Box>
-            <Typography variant="body2">
-              <strong>Name:</strong> {order.customer.name}
-            </Typography>
-            <Typography variant="body2">
-              <strong>Email:</strong> {order.customer.email}
-            </Typography>
-            <Typography variant="body2">
-              <strong>Phone:</strong> {order.customer.phone}
-            </Typography>
-          </Box>
-          
-          {order.notes && (
-            <>
-              <Divider />
-              <Typography variant="h6">Notes</Typography>
-              <Typography variant="body2">{order.notes}</Typography>
-            </>
-          )}
+          </CardContent>
+        </Card>
+      )}
 
-          {/* Timeline section */}
-          {order.timeline && order.timeline.length > 0 && (
-            <>
-              <Divider />
-              <Typography variant="h6">Order Timeline</Typography>
-              <Stack spacing={2}>
-                {order.timeline.map((event) => (
-                  <Box key={event.id} sx={{ display: 'flex', gap: 2 }}>
-                    <Box 
-                      sx={{ 
-                        width: 10, 
-                        height: 10, 
-                        borderRadius: '50%', 
-                        bgcolor: 'primary.main', 
-                        mt: 1 
-                      }} 
-                    />
-                    <Box>
-                      <Typography variant="body2" fontWeight="medium">
-                        {event.status}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
+      {/* Order Items */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Order Items</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {order.items.map((item, index) => (
+              <div key={index}>
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h5 className="font-medium">{item.product_name}</h5>
+                    <p className="text-sm text-gray-600">
+                      Quantity: {item.quantity} × {item.unit_price.currency} {item.unit_price.amount.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium">
+                      {item.total_price.currency} {item.total_price.amount.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+                {index < order.items.length - 1 && <Separator className="mt-4" />}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Order Timeline */}
+      {order.timeline && order.timeline.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Clock className="h-5 w-5" />
+              <span>Order Timeline</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {order.timeline
+                .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                .map((event, index) => (
+                  <div key={index} className="flex items-start space-x-3">
+                    <div className="flex-shrink-0 mt-1">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{event.status}</p>
+                      <p className="text-xs text-gray-500">
                         {new Date(event.timestamp).toLocaleString()}
-                      </Typography>
+                      </p>
                       {event.note && (
-                        <Typography variant="body2">{event.note}</Typography>
+                        <p className="text-sm text-gray-600 mt-1">{event.note}</p>
                       )}
-                    </Box>
-                  </Box>
+                    </div>
+                  </div>
                 ))}
-              </Stack>
-            </>
-          )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-          {/* Actions */}
-          {order.status !== OrderStatus.CANCELLED && order.status !== OrderStatus.REFUNDED && (
-            <>
-              <Divider />
-              <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
-                <Button 
-                  variant="outlined"
-                  onClick={() => window.print()}
-                >
-                  Print Receipt
-                </Button>
-
-                {order.status === OrderStatus.PENDING && (
-                  <Button 
-                    variant="outlined" 
-                    color="error"
-                  >
-                    Cancel Order
-                  </Button>
-                )}
-
-                <Button 
-                  variant="contained"
-                >
-                  Contact Support
-                </Button>
-              </Stack>
-            </>
-          )}
-        </Stack>
-      </CardContent>
-    </Card>
+      {/* Refresh Button */}
+      <div className="flex justify-center">
+        <Button onClick={handleRefresh} variant="outline" className="flex items-center space-x-2">
+          <Package className="h-4 w-4" />
+          <span>Refresh Order Status</span>
+        </Button>
+      </div>
+    </div>
   );
 };
 

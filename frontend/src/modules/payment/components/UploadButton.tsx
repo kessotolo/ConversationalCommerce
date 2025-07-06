@@ -1,5 +1,7 @@
-import { Button, CircularProgress, Box, Typography } from '@mui/material';
 import React, { useState, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, Upload } from 'lucide-react';
 
 interface UploadButtonProps {
   onImageUploaded: (imageUrl: string) => void;
@@ -77,7 +79,7 @@ export const UploadButton: React.FC<UploadButtonProps> = ({
   };
 
   return (
-    <Box>
+    <div className="space-y-2">
       <input
         type="file"
         ref={fileInputRef}
@@ -87,20 +89,25 @@ export const UploadButton: React.FC<UploadButtonProps> = ({
       />
 
       <Button
-        variant="outlined"
+        variant="outline"
         onClick={handleClick}
         disabled={loading}
-        startIcon={loading ? <CircularProgress size={16} /> : null}
+        className="flex items-center space-x-2"
       >
-        {loading ? 'Uploading...' : label}
+        {loading ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Upload className="h-4 w-4" />
+        )}
+        <span>{loading ? 'Uploading...' : label}</span>
       </Button>
 
       {error && (
-        <Typography variant="caption" color="error" display="block" sx={{ mt: 1 }}>
-          {error}
-        </Typography>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
-    </Box>
+    </div>
   );
 };
 

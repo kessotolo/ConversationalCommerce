@@ -32,7 +32,7 @@ export class OrderBulkOperationsService {
           error: {
             message: validation.errors.map(err => err.message).join(', '),
             code: 'VALIDATION_ERROR',
-            details: validation.errors,
+            details: { errors: validation.errors } as Record<string, unknown>,
           },
         };
       }
@@ -49,7 +49,7 @@ export class OrderBulkOperationsService {
       );
 
       const failures = responses.filter(
-        response => response.status === 'rejected' || 
+        response => response.status === 'rejected' ||
           (response.status === 'fulfilled' && !response.value.ok)
       );
 
@@ -148,7 +148,7 @@ export class OrderBulkOperationsService {
           error: {
             message: validation.errors.map(err => err.message).join(', '),
             code: 'VALIDATION_ERROR',
-            details: validation.errors,
+            details: { errors: validation.errors } as Record<string, unknown>,
           },
         };
       }
@@ -216,7 +216,7 @@ export class OrderBulkOperationsService {
           error: {
             message: validation.errors.map(err => err.message).join(', '),
             code: 'VALIDATION_ERROR',
-            details: validation.errors,
+            details: { errors: validation.errors } as Record<string, unknown>,
           },
         };
       }

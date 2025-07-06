@@ -36,3 +36,13 @@ export const DialogHeader: React.FC<{ children: React.ReactNode }> = ({ children
 export const DialogTitle: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return <h2 className="text-lg font-semibold">{children}</h2>
 }
+
+export const DialogTrigger: React.FC<{
+    asChild?: boolean;
+    children: React.ReactNode
+}> = ({ asChild, children }) => {
+    if (asChild) {
+        return <>{children}</>
+    }
+    return <button>{children}</button>
+}
