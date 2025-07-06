@@ -44,7 +44,7 @@ const variantFormSchema = z.object({
   barcode: z.string().optional(),
   weight: z.coerce.number().min(0).optional(),
   weight_unit: z.string().optional(),
-  is_default: z.boolean().optional().default(false),
+  is_default: z.boolean().default(false),
   // Option value IDs will be handled separately
 });
 
@@ -74,7 +74,6 @@ export function VariantForm({
   const { toast } = useToast();
 
   // Initialize form with default values or variant data
-  // @ts-ignore - Complex form validation type mismatch - to be fixed in future iteration
   const form = useForm<VariantFormValues>({
     resolver: zodResolver(variantFormSchema),
     defaultValues: {
@@ -86,7 +85,7 @@ export function VariantForm({
       barcode: variant?.barcode || '',
       weight: variant?.weight,
       weight_unit: variant?.weight_unit || 'kg',
-      is_default: variant?.is_default || false,
+      is_default: Boolean(variant?.is_default),
     },
   });
 
