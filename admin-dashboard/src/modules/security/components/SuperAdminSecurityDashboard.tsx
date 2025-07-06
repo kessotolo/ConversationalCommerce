@@ -9,9 +9,9 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, Key, Globe, AlertTriangle, Activity, Clock, Users, Lock } from 'lucide-react';
+import { Shield, Key, Globe, AlertTriangle, Activity, } from 'lucide-react';
 import { superAdminSecurityService } from '../services/superAdminSecurityService';
 import type {
     SuperAdminTOTPStatus,
@@ -90,7 +90,7 @@ export function SuperAdminSecurityDashboard() {
                 setShowSetup2FA(true);
                 setSuccess('2FA setup initiated. Please scan the QR code with your authenticator app.');
             } else {
-                setError(result.error || 'Failed to setup 2FA');
+                setError(result.error?.message || 'Failed to setup 2FA');
             }
         } catch (err: any) {
             setError(err.message || 'Failed to setup 2FA');
@@ -111,7 +111,7 @@ export function SuperAdminSecurityDashboard() {
                 setTotpCode('');
                 await fetchData();
             } else {
-                setError(result.error || 'Invalid verification code');
+                setError(result.error?.message || 'Invalid verification code');
             }
         } catch (err: any) {
             setError(err.message || 'Failed to verify 2FA');
@@ -125,7 +125,7 @@ export function SuperAdminSecurityDashboard() {
                 setBackupCodes(result.data.backup_codes);
                 setSuccess('New backup codes generated successfully');
             } else {
-                setError(result.error || 'Failed to generate backup codes');
+                setError(result.error?.message || 'Failed to generate backup codes');
             }
         } catch (err: any) {
             setError(err.message || 'Failed to generate backup codes');
@@ -146,7 +146,7 @@ export function SuperAdminSecurityDashboard() {
                 setShowAddIP(false);
                 await fetchData();
             } else {
-                setError(result.error || 'Failed to add IP entry');
+                setError(result.error?.message || 'Failed to add IP entry');
             }
         } catch (err: any) {
             setError(err.message || 'Failed to add IP entry');
@@ -160,7 +160,7 @@ export function SuperAdminSecurityDashboard() {
                 setSuccess('IP allowlist entry removed successfully');
                 await fetchData();
             } else {
-                setError(result.error || 'Failed to remove IP entry');
+                setError(result.error?.message || 'Failed to remove IP entry');
             }
         } catch (err: any) {
             setError(err.message || 'Failed to remove IP entry');
@@ -186,7 +186,7 @@ export function SuperAdminSecurityDashboard() {
                 setShowCreateLockout(false);
                 await fetchData();
             } else {
-                setError(result.error || 'Failed to create emergency lockout');
+                setError(result.error?.message || 'Failed to create emergency lockout');
             }
         } catch (err: any) {
             setError(err.message || 'Failed to create emergency lockout');
@@ -200,7 +200,7 @@ export function SuperAdminSecurityDashboard() {
                 setSuccess('Emergency lockout deactivated successfully');
                 await fetchData();
             } else {
-                setError(result.error || 'Failed to deactivate lockout');
+                setError(result.error?.message || 'Failed to deactivate lockout');
             }
         } catch (err: any) {
             setError(err.message || 'Failed to deactivate lockout');
@@ -527,7 +527,7 @@ export function SuperAdminSecurityDashboard() {
                     <Dialog open={showCreateLockout} onOpenChange={setShowCreateLockout}>
                         <DialogContent>
                             <DialogHeader>
-                                <DialogTitle className="text-red-800">Create Emergency Lockout</DialogTitle>
+                                <DialogTitle>Create Emergency Lockout</DialogTitle>
                             </DialogHeader>
                             <div className="space-y-4">
                                 <div>

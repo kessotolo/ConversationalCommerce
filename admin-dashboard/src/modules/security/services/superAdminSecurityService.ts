@@ -1,4 +1,4 @@
-import type { Result, ApiResponse } from '@/modules/core';
+import type { Result } from '@/modules/core';
 import type {
     SuperAdminTOTPStatus,
     SuperAdminTOTPSetup,

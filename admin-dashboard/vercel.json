@@ -33,16 +33,12 @@
             ]
         }
     ],
-    "env": {
-        "NEXT_PUBLIC_API_URL": "@admin-api-url",
-        "NEXT_PUBLIC_ADMIN_DOMAIN": "@admin-domain",
-        "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "@clerk-publishable-key",
-        "NEXT_PUBLIC_CLERK_SIGN_IN_URL": "@clerk-sign-in-url",
-        "NEXT_PUBLIC_CLERK_SIGN_UP_URL": "@clerk-sign-up-url",
-        "NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL": "@clerk-after-sign-in-url",
-        "NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL": "@clerk-after-sign-up-url"
-    },
     "regions": [
         "iad1"
-    ]
+    ],
+    "functions": {
+        "app/**": {
+            "maxDuration": 30
+        }
+    }
 }
