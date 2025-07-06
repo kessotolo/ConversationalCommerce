@@ -1,18 +1,7 @@
 {
     "version": 2,
     "name": "admin-dashboard",
-    "builds": [
-        {
-            "src": "package.json",
-            "use": "@vercel/next"
-        }
-    ],
-    "routes": [
-        {
-            "src": "/(.*)",
-            "dest": "/"
-        }
-    ],
+    "framework": "nextjs",
     "headers": [
         {
             "source": "/(.*)",
@@ -55,6 +44,5 @@
     },
     "regions": [
         "iad1"
-    ],
-    "framework": "nextjs"
+    ]
 }

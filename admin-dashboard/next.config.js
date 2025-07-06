@@ -14,32 +14,7 @@ const nextConfig = {
         NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL,
     },
 
-    // Security headers for admin dashboard
-    async headers() {
-        return [
-            {
-                source: '/(.*)',
-                headers: [
-                    {
-                        key: 'X-Frame-Options',
-                        value: 'DENY',
-                    },
-                    {
-                        key: 'X-Content-Type-Options',
-                        value: 'nosniff',
-                    },
-                    {
-                        key: 'Referrer-Policy',
-                        value: 'strict-origin-when-cross-origin',
-                    },
-                    {
-                        key: 'Permissions-Policy',
-                        value: 'camera=(), microphone=(), geolocation=()',
-                    },
-                ],
-            },
-        ]
-    },
+
 
     // Rewrites for API proxy (only if API URL is defined)
     async rewrites() {
@@ -57,8 +32,7 @@ const nextConfig = {
         ];
     },
 
-    // Output configuration for Vercel
-    output: 'standalone',
+
 }
 
 module.exports = nextConfig
