@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useAuth } from '../../../hooks/useAuth';
-import { useToast } from '@chakra-ui/react';
+import { useAuth } from '@/modules/core/hooks/useAuth';
 
 interface RealTimeDataOptions {
   metrics: string[];
@@ -30,8 +29,7 @@ export const useRealTimeData = (options: RealTimeDataOptions) => {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const websocketRef = useRef<WebSocket | null>(null);
-  const toast = useToast();
-  
+    
   // Track reconnection attempts
   const reconnectAttemptRef = useRef(0);
   const maxReconnectAttempts = 5;
@@ -147,6 +145,7 @@ export const useRealTimeData = (options: RealTimeDataOptions) => {
       setIsLoading(false);
       handleReconnect();
     }
+    return;
   }, [getToken, queryParams, options.enabled]);
   
   // Handle reconnection with exponential backoff
@@ -160,13 +159,7 @@ export const useRealTimeData = (options: RealTimeDataOptions) => {
     // Check if we've exceeded max reconnection attempts
     if (reconnectAttemptRef.current >= maxReconnectAttempts) {
       setError('Failed to connect after multiple attempts');
-      toast({
-        title: 'Connection failed',
-        description: 'Could not establish real-time data connection. Please refresh the page.',
-        status: 'error',
-        duration: null,
-        isClosable: true,
-      });
+      window.alert('Connection failed: Could not establish real-time data connection. Please refresh the page.');
       return;
     }
     

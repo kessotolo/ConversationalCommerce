@@ -1,27 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  VStack,
-  HStack,
-  Text,
-  Badge,
-  IconButton,
-  Collapse,
-  useDisclosure,
-  Divider,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  Switch,
-  FormControl,
-  FormLabel,
-} from '@chakra-ui/react';
-import { FiBarChart2, FiX, FiRefreshCw } from 'react-icons/fi';
+import { BarChart2, X, RefreshCw } from 'lucide-react';
 import performanceMonitoring from '../../../utils/PerformanceMonitoring';
 import mobileOptimizationService from '../../../services/MobileOptimizationService';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { cn } from '@/lib/utils';
 
 interface PerformanceAuditOverlayProps {
   enabled?: boolean;
@@ -29,17 +16,17 @@ interface PerformanceAuditOverlayProps {
 
 /**
  * Performance Audit Overlay
- * 
+ *
  * A development tool that displays real-time performance metrics
  * for auditing and debugging, especially useful for mobile testing.
- * 
+ *
  * NOTE: This should only be used during development/testing and
  * disabled in production builds.
  */
 const PerformanceAuditOverlay: React.FC<PerformanceAuditOverlayProps> = ({
   enabled = process.env.NODE_ENV !== 'production',
 }) => {
-  const { isOpen, onToggle } = useDisclosure({ defaultIsOpen: false });
+  const [isOpen, setIsOpen] = useState<boolean>(false);
   const [metrics, setMetrics] = useState<any[]>([]);
   const [deviceInfo, setDeviceInfo] = useState<any>(null);
   const [isRecording, setIsRecording] = useState<boolean>(true);
@@ -50,193 +37,194 @@ const PerformanceAuditOverlay: React.FC<PerformanceAuditOverlayProps> = ({
   useEffect(() => {
     // Get device info
     setDeviceInfo(mobileOptimizationService.getDeviceInfo());
-    
+
     // Set up metrics listener
     const handleMetricsUpdate = (updatedMetrics: any[]) => {
       if (isRecording) {
         setMetrics(updatedMetrics);
       }
     };
-    
+
     performanceMonitoring.addListener(handleMetricsUpdate);
-    
+
     return () => {
       performanceMonitoring.removeListener(handleMetricsUpdate);
     };
   }, [isRecording]);
-  
+
   // Get color based on rating
-  const getRatingColor = (rating: string) => {
+  const getRatingVariant = (rating: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (rating) {
-      case 'good': return 'green';
-      case 'needs-improvement': return 'orange';
-      case 'poor': return 'red';
-      default: return 'gray';
+      case 'good': return 'default';
+      case 'needs-improvement': return 'secondary';
+      case 'poor': return 'destructive';
+      default: return 'outline';
     }
   };
-  
+
   // Format metric value for display
   const formatMetricValue = (name: string, value: number) => {
     if (name === 'CLS') return value.toFixed(3);
     return `${Math.round(value)}ms`;
   };
-  
+
   return (
-    <Box
-      position="fixed"
-      bottom={0}
-      right={0}
-      zIndex={9999}
-      width={isOpen ? "350px" : "auto"}
-      bg="gray.800"
-      color="white"
-      borderTopLeftRadius="md"
-      boxShadow="lg"
-      opacity={0.9}
-      transition="width 0.2s"
+    <div
+      className={cn(
+        "fixed bottom-0 right-0 z-[9999] bg-gray-800 text-white rounded-tl-md shadow-lg opacity-90 transition-all duration-200",
+        isOpen ? "w-[350px]" : "w-auto"
+      )}
     >
-      <HStack justifyContent="space-between" p={2}>
-        <IconButton
-          aria-label="Toggle performance overlay"
-          icon={isOpen ? <FiX /> : <FiBarChart2 />}
-          size="sm"
+      <div className="flex items-center justify-between p-2">
+        <Button
           variant="ghost"
-          onClick={onToggle}
-        />
-        
+          size="sm"
+          onClick={() => setIsOpen(!isOpen)}
+          className="text-white hover:bg-gray-700"
+        >
+          {isOpen ? <X className="h-4 w-4" /> : <BarChart2 className="h-4 w-4" />}
+        </Button>
+
         {!isOpen && (
-          <Badge colorScheme="purple" variant="solid">Perf</Badge>
+          <Badge variant="secondary" className="bg-purple-600 text-white">
+            Perf
+          </Badge>
         )}
-        
+
         {isOpen && (
           <>
-            <Text fontWeight="bold" fontSize="sm">Performance Audit</Text>
-            <HStack>
-              <IconButton
-                aria-label="Refresh metrics"
-                icon={<FiRefreshCw />}
-                size="xs"
+            <span className="font-bold text-sm">Performance Audit</span>
+            <div className="flex items-center space-x-2">
+              <Button
                 variant="ghost"
-                onClick={() => performanceMonitoring.clearMetrics()}
-              />
-              <Switch
                 size="sm"
-                isChecked={isRecording}
-                onChange={() => setIsRecording(!isRecording)}
+                onClick={() => performanceMonitoring.clearMetrics()}
+                className="text-white hover:bg-gray-700 p-1"
+              >
+                <RefreshCw className="h-3 w-3" />
+              </Button>
+              <Switch
+                checked={isRecording}
+                onCheckedChange={setIsRecording}
+                className="scale-75"
               />
-            </HStack>
+            </div>
           </>
         )}
-      </HStack>
-      
-      <Collapse in={isOpen} animateOpacity>
-        <Box p={3} maxH="500px" overflowY="auto">
+      </div>
+
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CollapsibleContent className="p-3 max-h-[500px] overflow-y-auto">
           {/* Core Web Vitals */}
-          <Box mb={4}>
-            <Text fontWeight="bold" mb={2}>Core Web Vitals</Text>
-            <Table size="sm" variant="simple">
-              <Thead>
-                <Tr>
-                  <Th color="gray.300" p={1}>Metric</Th>
-                  <Th color="gray.300" p={1} isNumeric>Value</Th>
-                  <Th color="gray.300" p={1}>Rating</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {['LCP', 'FID', 'CLS'].map(name => {
-                  const metric = metrics.find(m => m.name === name);
-                  return (
-                    <Tr key={name}>
-                      <Td p={1}>{name}</Td>
-                      <Td p={1} isNumeric>
-                        {metric ? formatMetricValue(name, metric.value) : '-'}
-                      </Td>
-                      <Td p={1}>
-                        {metric && (
+          <div className="mb-4">
+            <h4 className="font-bold mb-2">Core Web Vitals</h4>
+            <div className="rounded-md border border-gray-600">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-gray-600">
+                    <TableHead className="text-gray-300 p-1">Metric</TableHead>
+                    <TableHead className="text-gray-300 p-1 text-right">Value</TableHead>
+                    <TableHead className="text-gray-300 p-1">Rating</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {['LCP', 'FID', 'CLS'].map(name => {
+                    const metric = metrics.find(m => m.name === name);
+                    return (
+                      <TableRow key={name} className="border-gray-600">
+                        <TableCell className="p-1">{name}</TableCell>
+                        <TableCell className="p-1 text-right">
+                          {metric ? formatMetricValue(name, metric.value) : '-'}
+                        </TableCell>
+                        <TableCell className="p-1">
+                          {metric && (
+                            <Badge
+                              variant={getRatingVariant(metric.rating)}
+                              className="text-xs"
+                            >
+                              {metric.rating}
+                            </Badge>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+
+          <Separator className="my-3 bg-gray-600" />
+
+          {/* Custom Performance Metrics */}
+          <div className="mb-4">
+            <h4 className="font-bold mb-2">Custom Metrics</h4>
+            <div className="rounded-md border border-gray-600">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-gray-600">
+                    <TableHead className="text-gray-300 p-1">Metric</TableHead>
+                    <TableHead className="text-gray-300 p-1 text-right">Value</TableHead>
+                    <TableHead className="text-gray-300 p-1">Rating</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {metrics
+                    .filter(m => !['LCP', 'FID', 'CLS'].includes(m.name))
+                    .sort((a, b) => b.timestamp - a.timestamp)
+                    .slice(0, 5)
+                    .map(metric => (
+                      <TableRow key={metric.name} className="border-gray-600">
+                        <TableCell className="p-1 text-xs">{metric.name}</TableCell>
+                        <TableCell className="p-1 text-xs text-right">
+                          {formatMetricValue(metric.name, metric.value)}
+                        </TableCell>
+                        <TableCell className="p-1">
                           <Badge
-                            colorScheme={getRatingColor(metric.rating)}
-                            size="sm"
-                            variant="subtle"
+                            variant={getRatingVariant(metric.rating)}
+                            className="text-xs"
                           >
                             {metric.rating}
                           </Badge>
-                        )}
-                      </Td>
-                    </Tr>
-                  );
-                })}
-              </Tbody>
-            </Table>
-          </Box>
-          
-          <Divider my={3} />
-          
-          {/* Custom Performance Metrics */}
-          <Box mb={4}>
-            <Text fontWeight="bold" mb={2}>Custom Metrics</Text>
-            <Table size="sm" variant="simple">
-              <Thead>
-                <Tr>
-                  <Th color="gray.300" p={1}>Metric</Th>
-                  <Th color="gray.300" p={1} isNumeric>Value</Th>
-                  <Th color="gray.300" p={1}>Rating</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {metrics
-                  .filter(m => !['LCP', 'FID', 'CLS'].includes(m.name))
-                  .sort((a, b) => b.timestamp - a.timestamp)
-                  .slice(0, 5)
-                  .map(metric => (
-                    <Tr key={metric.name}>
-                      <Td p={1} fontSize="xs">{metric.name}</Td>
-                      <Td p={1} isNumeric fontSize="xs">
-                        {formatMetricValue(metric.name, metric.value)}
-                      </Td>
-                      <Td p={1}>
-                        <Badge
-                          colorScheme={getRatingColor(metric.rating)}
-                          size="sm"
-                          variant="subtle"
-                        >
-                          {metric.rating}
-                        </Badge>
-                      </Td>
-                    </Tr>
-                  ))
-                }
-              </Tbody>
-            </Table>
-          </Box>
-          
-          <Divider my={3} />
-          
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  }
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+
+          <Separator className="my-3 bg-gray-600" />
+
           {/* Device Info */}
-          <Box>
-            <Text fontWeight="bold" mb={2}>Device Info</Text>
+          <div>
+            <h4 className="font-bold mb-2">Device Info</h4>
             {deviceInfo && (
-              <VStack align="flex-start" spacing={1}>
-                <Text fontSize="xs">
+              <div className="space-y-1">
+                <p className="text-xs">
                   Device: {deviceInfo.isMobile ? 'Mobile' : deviceInfo.isTablet ? 'Tablet' : 'Desktop'}
-                </Text>
-                <Text fontSize="xs">
+                </p>
+                <p className="text-xs flex items-center">
                   Performance: {deviceInfo.performanceClass}
                   {deviceInfo.isLowEndDevice && (
-                    <Badge ml={1} colorScheme="red" size="xs">Low-End</Badge>
+                    <Badge variant="destructive" className="ml-1 text-xs">
+                      Low-End
+                    </Badge>
                   )}
-                </Text>
-                <Text fontSize="xs">
+                </p>
+                <p className="text-xs">
                   Screen: {deviceInfo.viewport.width}x{deviceInfo.viewport.height} ({deviceInfo.pixelRatio}x)
-                </Text>
-                <Text fontSize="xs">
+                </p>
+                <p className="text-xs">
                   Network: {mobileOptimizationService.getNetworkStatus().online ? 'Online' : 'Offline'}
-                </Text>
-              </VStack>
+                </p>
+              </div>
             )}
-          </Box>
-        </Box>
-      </Collapse>
-    </Box>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    </div>
   );
 };
 

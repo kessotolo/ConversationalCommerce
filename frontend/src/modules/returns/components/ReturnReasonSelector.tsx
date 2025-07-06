@@ -1,17 +1,10 @@
 import React from 'react';
-import {
-  FormControl,
-  FormLabel,
-  FormErrorMessage,
-  FormHelperText,
-  Select,
-  Input,
-  VStack,
-  Box,
-  Textarea
-} from '@chakra-ui/react';
 import { ReturnReason } from '../models/return';
 import { ReturnService } from '../services/ReturnService';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
 interface ReturnReasonSelectorProps {
   selectedReason: ReturnReason | '';
@@ -36,71 +29,78 @@ export const ReturnReasonSelector: React.FC<ReturnReasonSelectorProps> = ({
   errorMessage = 'Please select a reason for your return'
 }) => {
   const reasonDescriptions = ReturnService.getReasonDescriptions();
-  
+
   // Determine if an explanation is required based on the selected reason
   const isExplanationRequired = selectedReason === ReturnReason.OTHER;
-  
+
   // Handle reason selection
-  const handleReasonChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value as ReturnReason | '';
-    onReasonChange(value);
+  const handleReasonChange = (value: string) => {
+    onReasonChange(value as ReturnReason | '');
   };
-  
+
   // Handle explanation change
   const handleExplanationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onExplanationChange(e.target.value);
   };
-  
+
   return (
-    <VStack spacing={4} align="stretch" width="100%">
-      <FormControl isRequired={isRequired} isInvalid={isInvalid}>
-        <FormLabel>Reason for Return</FormLabel>
-        <Select 
-          placeholder="Select reason" 
-          value={selectedReason} 
-          onChange={handleReasonChange}
-        >
-          {Object.values(ReturnReason).map((reason) => (
-            <option key={reason} value={reason}>
-              {reasonDescriptions[reason]}
-            </option>
-          ))}
+    <div className="space-y-4 w-full">
+      <div className="space-y-2">
+        <Label htmlFor="return-reason" className={cn(isRequired && "after:content-['*'] after:ml-0.5 after:text-red-500")}>
+          Reason for Return
+        </Label>
+        <Select value={selectedReason} onValueChange={handleReasonChange}>
+          <SelectTrigger id="return-reason" className={cn(isInvalid && "border-red-500")}>
+            <SelectValue placeholder="Select reason" />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.values(ReturnReason).map((reason) => (
+              <SelectItem key={reason} value={reason}>
+                {reasonDescriptions[reason]}
+              </SelectItem>
+            ))}
+          </SelectContent>
         </Select>
         {isInvalid ? (
-          <FormErrorMessage>{errorMessage}</FormErrorMessage>
+          <p className="text-red-500 text-sm">{errorMessage}</p>
         ) : (
-          <FormHelperText>
+          <p className="text-gray-500 text-sm">
             Please select the reason that best describes why you're returning this item
-          </FormHelperText>
+          </p>
         )}
-      </FormControl>
-      
-      <FormControl isRequired={isExplanationRequired} isInvalid={isExplanationRequired && !explanation}>
-        <FormLabel>Additional Details</FormLabel>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="return-explanation" className={cn(isExplanationRequired && "after:content-['*'] after:ml-0.5 after:text-red-500")}>
+          Additional Details
+        </Label>
         <Textarea
+          id="return-explanation"
           value={explanation}
           onChange={handleExplanationChange}
           placeholder={
-            isExplanationRequired 
-              ? "Please explain why you're returning this item" 
+            isExplanationRequired
+              ? "Please explain why you're returning this item"
               : "Optional - Add any additional details about your return"
           }
-          size="md"
-          resize="vertical"
+          className={cn(
+            "resize-y",
+            isExplanationRequired && !explanation && "border-red-500"
+          )}
         />
         {isExplanationRequired && !explanation ? (
-          <FormErrorMessage>
+          <p className="text-red-500 text-sm">
             Please provide details about why you're returning this item
-          </FormErrorMessage>
+          </p>
         ) : (
-          <FormHelperText>
+          <p className="text-gray-500 text-sm">
             {isExplanationRequired
               ? "Required for 'Other' reason"
               : "Optional - Help us improve by providing more details"}
-          </FormHelperText>
+          </p>
         )}
-      </FormControl>
-    </VStack>
+      </div>
+    </div>
   );
 };
 

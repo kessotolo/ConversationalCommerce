@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '../../../../components/ui/button';
+import { Badge } from '../../../../components/ui/badge';
 // No modal, menu, or alert primitives found, so use semantic HTML and Tailwind for those.
 // Use native dialog for modals and window.alert for notifications.
 import { FiPlus, FiEdit2, FiTrash2, FiSend, FiMoreVertical } from 'react-icons/fi';
@@ -18,17 +18,23 @@ const ScheduledReportsManager: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [isRunningNow, setIsRunningNow] = useState<boolean>(false);
-  
-  const { isOpen: isFormOpen, onOpen: onFormOpen, onClose: onFormClose } = useDisclosure();
-  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
-  
-  const toast = useToast();
-  
+  const [showDropdown, setShowDropdown] = useState<number | null>(null);
+
+  // Modal states
+  const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
+
+  // Toast replacement - simple notification function
+  const showNotification = (title: string, description: string, type: 'success' | 'error' = 'success') => {
+    // For now, use window.alert - can be replaced with a proper toast component later
+    window.alert(`${title}: ${description}`);
+  };
+
   // Load scheduled reports
   useEffect(() => {
     fetchReports();
   }, []);
-  
+
   // Fetch reports from API
   const fetchReports = async () => {
     try {
@@ -43,7 +49,7 @@ const ScheduledReportsManager: React.FC = () => {
       setIsLoading(false);
     }
   };
-  
+
   // Format date for display
   const formatDate = (dateString: string) => {
     try {
@@ -52,7 +58,7 @@ const ScheduledReportsManager: React.FC = () => {
       return 'Invalid date';
     }
   };
-  
+
   // Get frequency display text
   const getFrequencyText = (frequency: ReportScheduleFrequency) => {
     const map: Record<ReportScheduleFrequency, string> = {
@@ -64,96 +70,76 @@ const ScheduledReportsManager: React.FC = () => {
     };
     return map[frequency] || 'Unknown';
   };
-  
+
   // Get export format display text
   const getExportFormatText = (format: AnalyticsExportFormat) => {
     const map: Record<AnalyticsExportFormat, string> = {
       [AnalyticsExportFormat.csv]: 'CSV',
       [AnalyticsExportFormat.excel]: 'Excel',
       [AnalyticsExportFormat.json]: 'JSON',
+      [AnalyticsExportFormat.pdf]: 'PDF',
     };
     return map[format] || 'Unknown';
   };
-  
+
   // Handle edit report
   const handleEditReport = (report: ScheduledReport) => {
     setSelectedReport(report);
-    onFormOpen();
+    setIsFormOpen(true);
+    setShowDropdown(null);
   };
-  
+
   // Handle create new report
   const handleCreateReport = () => {
     setSelectedReport(null);
-    onFormOpen();
+    setIsFormOpen(true);
   };
-  
+
   // Handle delete report button
   const handleDeleteClick = (report: ScheduledReport) => {
     setSelectedReport(report);
-    onDeleteOpen();
+    setIsDeleteOpen(true);
+    setShowDropdown(null);
   };
-  
+
   // Handle delete confirmation
   const handleDeleteConfirm = async () => {
     if (!selectedReport) return;
-    
+
     try {
       setIsDeleting(true);
       await ScheduledReportService.delete(selectedReport.id);
-      
+
       // Update UI
       setReports((prev) => prev.filter((r) => r.id !== selectedReport.id));
-      
-      toast({
-        title: 'Report deleted',
-        description: `${selectedReport.name} has been deleted.`,
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-      });
-      
-      onDeleteClose();
-      
+
+      showNotification('Report deleted', `${selectedReport.name} has been deleted.`);
+
+      setIsDeleteOpen(false);
+
     } catch (err: any) {
-      toast({
-        title: 'Failed to delete report',
-        description: err.message || 'An error occurred while deleting the report.',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
+      showNotification('Failed to delete report', err.message || 'An error occurred while deleting the report.', 'error');
     } finally {
       setIsDeleting(false);
     }
   };
-  
+
   // Handle run report now
   const handleRunNow = async (report: ScheduledReport) => {
     try {
       setIsRunningNow(true);
       await ScheduledReportService.runNow(report.id);
-      
-      toast({
-        title: 'Report scheduled',
-        description: `${report.name} has been scheduled for immediate execution.`,
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-      });
-      
+
+      showNotification('Report scheduled', `${report.name} has been scheduled for immediate execution.`);
+
     } catch (err: any) {
-      toast({
-        title: 'Failed to run report',
-        description: err.message || 'An error occurred while running the report.',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
+      showNotification('Failed to run report', err.message || 'An error occurred while running the report.', 'error');
     } finally {
       setIsRunningNow(false);
+      setShowDropdown(null);
     }
   };
-  
+
   // Handle save report (create or update)
   const handleSaveReport = async (reportData: any) => {
     try {
@@ -163,38 +149,20 @@ const ScheduledReportsManager: React.FC = () => {
         setReports((prev) =>
           prev.map((r) => (r.id === selectedReport.id ? updated : r))
         );
-        
-        toast({
-          title: 'Report updated',
-          description: `${updated.name} has been updated.`,
-          status: 'success',
-          duration: 5000,
-          isClosable: true,
-        });
+
+        showNotification('Report updated', `${updated.name} has been updated.`);
       } else {
         // Create new report
         const created = await ScheduledReportService.create(reportData);
         setReports((prev) => [...prev, created]);
-        
-        toast({
-          title: 'Report created',
-          description: `${created.name} has been created.`,
-          status: 'success',
-          duration: 5000,
-          isClosable: true,
-        });
+
+        showNotification('Report created', `${created.name} has been created.`);
       }
-      
-      onFormClose();
-      
+
+      setIsFormOpen(false);
+
     } catch (err: any) {
-      toast({
-        title: 'Failed to save report',
-        description: err.message || 'An error occurred while saving the report.',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
+      showNotification('Failed to save report', err.message || 'An error occurred while saving the report.', 'error');
     }
   };
 
@@ -257,22 +225,21 @@ const ScheduledReportsManager: React.FC = () => {
                   <td className="px-4 py-2">{getExportFormatText(report.export_format)}</td>
                   <td className="px-4 py-2">{formatDate(report.next_run_date)}</td>
                   <td className="px-4 py-2">
-                    <Badge variant={report.enabled ? 'success' : 'secondary'}>
-                      {report.enabled ? 'Active' : 'Paused'}
+                    <Badge variant={report.enabled ? 'default' : 'secondary'}>
+                      {report.enabled ? 'Active' : 'Inactive'}
                     </Badge>
                   </td>
                   <td className="px-4 py-2">
                     <div className="relative inline-block text-left">
                       <button
                         type="button"
-                        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-                        onClick={() => setSelectedReport(report)}
-                        aria-haspopup="menu"
-                        aria-expanded={selectedReport?.id === report.id}
+                        className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        onClick={() => setShowDropdown(showDropdown === report.id ? null : report.id)}
+                        aria-expanded={showDropdown === report.id}
                       >
                         <FiMoreVertical className="w-5 h-5" />
                       </button>
-                      {selectedReport?.id === report.id && (
+                      {showDropdown === report.id && (
                         <ul className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
                           <li>
                             <button
@@ -310,63 +277,67 @@ const ScheduledReportsManager: React.FC = () => {
         </div>
       )}
 
-      {/* Create/Edit Report Form Modal */}
-      <dialog open={isFormOpen} className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-2xl">
-          <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-            <h3 className="text-lg font-semibold">
-              {selectedReport ? 'Edit Report' : 'Create Report'}
-            </h3>
-            <button
-              className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-              onClick={onFormClose}
-              aria-label="Close"
-            >
-              ×
-            </button>
-          </div>
-          <div className="p-6">
-            <ScheduledReportForm
-              initialValues={selectedReport || undefined}
-              onSubmit={handleSaveReport}
-              onCancel={onFormClose}
-            />
+      {/* Form Modal */}
+      {isFormOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-2xl">
+            <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+              <h3 className="text-lg font-semibold">
+                {selectedReport ? 'Edit Report' : 'Create Report'}
+              </h3>
+              <button
+                className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                onClick={() => setIsFormOpen(false)}
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+            <div className="p-6">
+              <ScheduledReportForm
+                initialValues={selectedReport || undefined}
+                onSubmit={handleSaveReport}
+                onCancel={() => setIsFormOpen(false)}
+              />
+            </div>
           </div>
         </div>
-      </dialog>
+      )}
 
       {/* Delete Confirmation Modal */}
-      <dialog open={isDeleteOpen} className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-md">
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Delete Report</h3>
-            <button
-              className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-              onClick={onDeleteClose}
-              aria-label="Close"
-            >
-              ×
-            </button>
-          </div>
-          <div className="p-6">
-            <div className="mb-4">
-              Are you sure you want to delete the report "{selectedReport?.name}"? This action cannot be undone.
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="ghost" onClick={onDeleteClose}>
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDeleteConfirm}
-                disabled={isDeleting}
+      {isDeleteOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full max-w-md">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Delete Report</h3>
+              <button
+                className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                onClick={() => setIsDeleteOpen(false)}
+                aria-label="Close"
               >
-                Delete
-              </Button>
+                ×
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="mb-4">
+                Are you sure you want to delete "{selectedReport?.name}"? This action cannot be undone.
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="ghost" onClick={() => setIsDeleteOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleDeleteConfirm}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? 'Deleting...' : 'Delete'}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
-      </dialog>
+      )}
     </div>
   );
 };
