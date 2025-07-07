@@ -33,6 +33,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import AnalyticsDashboard from '@/components/analytics/AnalyticsDashboard';
+import type { DashboardStatsResponse } from '@/modules/core/models/dashboard';
 
 // Define types to match component requirements
 type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
@@ -135,23 +136,12 @@ function OnboardingChecklist({ steps, onOpenWizard }: { steps: Step[]; onOpenWiz
   );
 }
 
-interface DashboardStats {
-  totalRevenue: number;
-  totalOrders: number;
-  totalProducts: number;
-  totalCustomers: number;
-  revenueGrowth: number;
-  ordersGrowth: number;
-  productsGrowth: number;
-  customersGrowth: number;
-}
-
 export default function Dashboard() {
   const [period, setPeriod] = useState<'7days' | '30days' | '90days'>('7days');
   const [showWizard, setShowWizard] = useState(false);
   const { isLoading, isAuthenticated } = useAuth();
   const { tenant } = useTenant();
-  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [stats, setStats] = useState<DashboardStatsResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -513,9 +503,11 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">${stats.totalRevenue.toFixed(2)}</div>
-                <p className="text-xs text-muted-foreground">
-                  {stats.revenueGrowth > 0 ? '+' : ''}{stats.revenueGrowth.toFixed(1)}% from last month
-                </p>
+                {stats.revenueGrowth !== undefined && (
+                  <p className="text-xs text-muted-foreground">
+                    {stats.revenueGrowth > 0 ? '+' : ''}{stats.revenueGrowth.toFixed(1)}% from last month
+                  </p>
+                )}
               </CardContent>
             </Card>
 
@@ -526,9 +518,11 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.totalOrders}</div>
-                <p className="text-xs text-muted-foreground">
-                  {stats.ordersGrowth > 0 ? '+' : ''}{stats.ordersGrowth.toFixed(1)}% from last month
-                </p>
+                {stats.ordersGrowth !== undefined && (
+                  <p className="text-xs text-muted-foreground">
+                    {stats.ordersGrowth > 0 ? '+' : ''}{stats.ordersGrowth.toFixed(1)}% from last month
+                  </p>
+                )}
               </CardContent>
             </Card>
 
@@ -538,23 +532,27 @@ export default function Dashboard() {
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.totalProducts}</div>
-                <p className="text-xs text-muted-foreground">
-                  {stats.productsGrowth > 0 ? '+' : ''}{stats.productsGrowth.toFixed(1)}% from last month
-                </p>
+                <div className="text-2xl font-bold">{stats.totalProducts || 0}</div>
+                {stats.productsGrowth !== undefined && (
+                  <p className="text-xs text-muted-foreground">
+                    {stats.productsGrowth > 0 ? '+' : ''}{stats.productsGrowth.toFixed(1)}% from last month
+                  </p>
+                )}
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
+                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.totalCustomers}</div>
-                <p className="text-xs text-muted-foreground">
-                  {stats.customersGrowth > 0 ? '+' : ''}{stats.customersGrowth.toFixed(1)}% from last month
-                </p>
+                <div className="text-2xl font-bold">{stats.totalUsers || 0}</div>
+                {stats.customersGrowth !== undefined && (
+                  <p className="text-xs text-muted-foreground">
+                    {stats.customersGrowth > 0 ? '+' : ''}{stats.customersGrowth.toFixed(1)}% from last month
+                  </p>
+                )}
               </CardContent>
             </Card>
           </div>

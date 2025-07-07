@@ -34,7 +34,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
-// Form validation schema
+// Form validation schema - complex type inference with react-hook-form
 const variantFormSchema = z.object({
   sku: z.string().min(1, 'SKU is required'),
   name: z.string().optional(),
@@ -45,7 +45,6 @@ const variantFormSchema = z.object({
   weight: z.coerce.number().min(0).optional(),
   weight_unit: z.string().optional(),
   is_default: z.boolean().optional().default(false),
-  // Option value IDs will be handled separately
 });
 
 type VariantFormValues = z.infer<typeof variantFormSchema>;
@@ -74,7 +73,7 @@ export function VariantForm({
   const { toast } = useToast();
 
   // Initialize form with default values or variant data
-  // @ts-ignore - Complex type inference issue with react-hook-form and zod
+  // @ts-ignore - Complex type inference issue with react-hook-form and zod schemas
   const form = useForm<VariantFormValues>({
     resolver: zodResolver(variantFormSchema),
     defaultValues: {

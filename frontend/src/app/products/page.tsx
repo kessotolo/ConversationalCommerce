@@ -41,7 +41,8 @@ export default function ProductsPage() {
                 setError(null);
 
                 const response = await productService.getProducts();
-                const productData = response.data?.products || response.data?.items || [];
+                // Handle the proper response structure - products array is at response.data.products
+                const productData = response.data?.products || response.data || [];
                 setProducts(productData);
             } catch (e) {
                 const errorMessage = e instanceof Error ? e.message : 'Failed to fetch products';

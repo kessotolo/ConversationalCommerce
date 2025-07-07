@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Edit2, Trash2, Plus, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Edit, Trash2, Plus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -10,11 +10,20 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/Table';
+} from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/AlertDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import type { ProductVariant, VariantOption } from '../../models/product';
 import { ProductVariantService } from '../../services/ProductVariantService';
 import { useTenant } from '@/modules/tenant/hooks/useTenant';
@@ -49,20 +58,20 @@ export function VariantList({
   // Load variants and options
   useEffect(() => {
     if (!productId || !tenant?.id) return;
-    
+
     const fetchData = async () => {
       setLoading(true);
       try {
         // Fetch variants
         const variantData = await ProductVariantService.getProductVariants(
-          productId, 
+          productId,
           tenant.id
         );
         setVariants(variantData);
-        
+
         // Fetch options
         const optionData = await ProductVariantService.getVariantOptions(
-          productId, 
+          productId,
           tenant.id
         );
         setOptions(optionData);
@@ -92,7 +101,7 @@ export function VariantList({
 
     // Map option values to their names using options
     const valueNames: string[] = [];
-    
+
     variant.option_values.forEach(optionValue => {
       const option = options.find(o => o.id === optionValue.option_id);
       if (option) {
@@ -109,15 +118,15 @@ export function VariantList({
   // Handle delete variant
   const handleDelete = async () => {
     if (!variantToDelete || !tenant?.id) return;
-    
+
     try {
       await ProductVariantService.deleteProductVariant(
         variantToDelete.id,
         tenant.id
       );
-      
+
       setVariants(variants.filter(v => v.id !== variantToDelete.id));
-      
+
       toast({
         title: "Variant deleted",
         description: "Product variant was successfully deleted.",
@@ -158,8 +167,8 @@ export function VariantList({
         ) : variants.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <p>No variants found for this product.</p>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={onAdd}
               className="mt-4"
             >
@@ -202,12 +211,12 @@ export function VariantList({
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="sm"
                         onClick={() => onEdit(variant)}
                       >
-                        <Edit2 className="h-4 w-4" />
+                        <Edit className="h-4 w-4" />
                         <span className="sr-only">Edit</span>
                       </Button>
                       <Button

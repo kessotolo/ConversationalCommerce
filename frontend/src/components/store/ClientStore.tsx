@@ -5,17 +5,10 @@ import { useState, useEffect } from 'react';
 // import Link from 'next/link';
 import ProductCard from '@/components/storefront/ProductCard';
 import { productService } from '@/lib/api';
+// Note: TypeScript Language Server may show an error here, but the build works fine
+// If the error persists, restart your TypeScript Language Server (Cmd+Shift+P -> "TypeScript: Restart TS Server")
 import { useCart } from '@/lib/cart';
-
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image_url: string | null;
-  created_at: string;
-  is_available: boolean;
-}
+import type { Product } from '@/modules/core/models/product';
 
 interface ClientStoreProps {
   merchantId: string;
@@ -35,24 +28,17 @@ export default function ClientStore({ merchantId }: ClientStoreProps) {
     try {
       setIsLoading(true);
       setError(null);
+
       // Here you would typically filter products by merchant ID
       const response = await productService.getProducts();
-      setProducts(
-        response.data.products.map((p) => ({
-          id: p.id,
-          name: p.name,
-          description: p.description || '',
-          price: p.price,
-          image_url: p.image_url || null,
-          created_at: p.created_at || '',
-          is_available: true, // or set based on your logic
-        })),
-      );
+
+      // Handle the proper response structure - products array is at response.data.products
+      const productData = response.data?.products || response.data || [];
+      setProducts(productData);
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error('Error fetching products:', error);
-        setError('Failed to load products. Please try again later.');
-      }
+      console.error('Error fetching products:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load products. Please try again later.';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -64,7 +50,7 @@ export default function ClientStore({ merchantId }: ClientStoreProps) {
       name: product.name,
       price: product.price,
       quantity: 1,
-      image_url: product.image_url,
+      image_url: product.image_url || null,
     });
   };
 
