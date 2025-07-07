@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Loader2, RefreshCw, AlertCircle } from 'lucide-react'
 
 interface DashboardMetrics {
     totalConversations: number
@@ -12,50 +13,63 @@ interface DashboardMetrics {
     avgResponseTime: number
     systemStatus: 'healthy' | 'degraded' | 'down'
     securityEnabled: boolean
+    platformActivity: {
+        whatsapp: number
+        instagram: number
+        web: number
+        sms: number
+    }
+    recentActivity: Array<{
+        id: string
+        type: 'conversation' | 'order' | 'alert'
+        message: string
+        timestamp: string
+        status: 'success' | 'warning' | 'error'
+    }>
 }
 
 export default function AdminDashboard() {
     const [metrics, setMetrics] = useState<DashboardMetrics | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [refreshing, setRefreshing] = useState(false)
 
-    const fetchMetrics = async () => {
-        setLoading(true)
+    const fetchMetrics = async (isRefresh = false) => {
+        if (isRefresh) {
+            setRefreshing(true)
+        } else {
+            setLoading(true)
+        }
         setError(null)
 
         try {
-            // This will connect to your backend APIs
-            const response = await fetch('/api/admin/dashboard-metrics', {
+            // Connect to backend admin API
+            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:8000'
+            const response = await fetch(`${backendUrl}/api/admin/dashboard-metrics`, {
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`,
+                    'Content-Type': 'application/json',
                 }
             })
 
             if (!response.ok) {
-                throw new Error('Failed to fetch metrics')
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`)
             }
 
             const data = await response.json()
             setMetrics(data)
         } catch (err) {
-            // For now, show demo data when API is not available
-            setMetrics({
-                totalConversations: 1247,
-                activeConversations: 89,
-                conversionRate: 0.156,
-                avgResponseTime: 2300,
-                systemStatus: 'healthy',
-                securityEnabled: true
-            })
-            console.log('Using demo data:', err)
+            console.error('Error fetching admin metrics:', err)
+            setError(err instanceof Error ? err.message : 'Failed to fetch metrics')
         } finally {
             setLoading(false)
+            setRefreshing(false)
         }
     }
 
     useEffect(() => {
         fetchMetrics()
-        const interval = setInterval(fetchMetrics, 30000) // Refresh every 30 seconds
+        const interval = setInterval(() => fetchMetrics(true), 30000) // Refresh every 30 seconds
         return () => clearInterval(interval)
     }, [])
 
@@ -63,8 +77,8 @@ export default function AdminDashboard() {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Loading dashboard...</p>
+                    <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto" />
+                    <p className="mt-4 text-gray-600">Loading admin dashboard...</p>
                 </div>
             </div>
         )
@@ -75,11 +89,15 @@ export default function AdminDashboard() {
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <Card className="w-full max-w-md">
                     <CardHeader>
-                        <CardTitle className="text-red-600">Error Loading Dashboard</CardTitle>
+                        <CardTitle className="text-red-600 flex items-center gap-2">
+                            <AlertCircle className="h-5 w-5" />
+                            Error Loading Dashboard
+                        </CardTitle>
                         <CardDescription>{error}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Button onClick={fetchMetrics} className="w-full">
+                        <Button onClick={() => fetchMetrics()} className="w-full">
+                            <RefreshCw className="h-4 w-4 mr-2" />
                             Retry
                         </Button>
                     </CardContent>
@@ -100,8 +118,18 @@ export default function AdminDashboard() {
                             <Badge variant={metrics?.systemStatus === 'healthy' ? 'default' : 'destructive'}>
                                 {metrics?.systemStatus === 'healthy' ? '✅ Healthy' : '⚠️ Issues'}
                             </Badge>
-                            <Button onClick={fetchMetrics} variant="outline" size="sm">
-                                Refresh
+                            <Button
+                                onClick={() => fetchMetrics(true)}
+                                variant="outline"
+                                size="sm"
+                                disabled={refreshing}
+                            >
+                                {refreshing ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <RefreshCw className="h-4 w-4" />
+                                )}
+                                {refreshing ? 'Refreshing...' : 'Refresh'}
                             </Button>
                         </div>
                     </div>
@@ -185,19 +213,27 @@ export default function AdminDashboard() {
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm font-medium">📱 WhatsApp</span>
-                                        <Badge variant="secondary">847</Badge>
+                                        <Badge variant="secondary">
+                                            {metrics?.platformActivity?.whatsapp || 0}
+                                        </Badge>
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm font-medium">📸 Instagram</span>
-                                        <Badge variant="secondary">234</Badge>
+                                        <Badge variant="secondary">
+                                            {metrics?.platformActivity?.instagram || 0}
+                                        </Badge>
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm font-medium">🌐 Web</span>
-                                        <Badge variant="secondary">166</Badge>
+                                        <Badge variant="secondary">
+                                            {metrics?.platformActivity?.web || 0}
+                                        </Badge>
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm font-medium">📨 SMS</span>
-                                        <Badge variant="secondary">45</Badge>
+                                        <Badge variant="secondary">
+                                            {metrics?.platformActivity?.sms || 0}
+                                        </Badge>
                                     </div>
                                 </div>
                             </CardContent>
@@ -205,52 +241,49 @@ export default function AdminDashboard() {
 
                         <Card>
                             <CardHeader>
-                                <CardTitle>Security Status</CardTitle>
-                                <CardDescription>Current security configuration</CardDescription>
+                                <CardTitle>Recent Activity</CardTitle>
+                                <CardDescription>Latest system events</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div className="flex items-center space-x-3">
-                                        <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                                        <span className="text-sm font-medium">Staff Access</span>
-                                    </div>
-                                    <div className="flex items-center space-x-3">
-                                        <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                                        <span className="text-sm font-medium">IP Allowlisting</span>
-                                    </div>
-                                    <div className="flex items-center space-x-3">
-                                        <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                                        <span className="text-sm font-medium">2FA Enabled</span>
-                                    </div>
-                                    <div className="flex items-center space-x-3">
-                                        <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                                        <span className="text-sm font-medium">Audit Logging</span>
-                                    </div>
+                                <div className="space-y-3">
+                                    {metrics?.recentActivity?.length ? (
+                                        metrics.recentActivity.map((activity) => (
+                                            <div key={activity.id} className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <Badge
+                                                        variant={
+                                                            activity.status === 'success' ? 'default' :
+                                                                activity.status === 'warning' ? 'secondary' : 'destructive'
+                                                        }
+                                                        className="w-2 h-2 p-0 rounded-full"
+                                                    />
+                                                    <span className="text-sm">{activity.message}</span>
+                                                </div>
+                                                <span className="text-xs text-muted-foreground">
+                                                    {new Date(activity.timestamp).toLocaleTimeString()}
+                                                </span>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground">No recent activity</p>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>
                     </div>
 
-                    {/* Quick Actions - Commerce Focused */}
+                    {/* Security Status */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>Quick Actions</CardTitle>
-                            <CardDescription>Manage your conversational commerce platform</CardDescription>
+                            <CardTitle>System Security</CardTitle>
+                            <CardDescription>Security and compliance status</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                <Button className="bg-blue-600 hover:bg-blue-700">
-                                    View Live Chats
-                                </Button>
-                                <Button className="bg-green-600 hover:bg-green-700">
-                                    Manage Merchants
-                                </Button>
-                                <Button className="bg-purple-600 hover:bg-purple-700">
-                                    Analytics Report
-                                </Button>
-                                <Button className="bg-orange-600 hover:bg-orange-700">
-                                    Security Audit
-                                </Button>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium">Security Features</span>
+                                <Badge variant={metrics?.securityEnabled ? 'default' : 'destructive'}>
+                                    {metrics?.securityEnabled ? '🔒 Enabled' : '🔓 Disabled'}
+                                </Badge>
                             </div>
                         </CardContent>
                     </Card>

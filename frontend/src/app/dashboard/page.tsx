@@ -9,6 +9,8 @@ import {
   CheckCircle,
   BarChart3,
   Users,
+  Loader2,
+  TrendingUp,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -27,6 +29,10 @@ import type { Order } from '@/modules/order/models/order';
 import { onboardingApi } from '@/modules/tenant/api/onboardingApi';
 import type { OnboardingStatusResponse } from '@/modules/tenant/api/onboardingApi';
 import { getStoredAuthToken } from '@/utils/auth-utils';
+import { useToast } from '@/components/ui/use-toast';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import AnalyticsDashboard from '@/components/analytics/AnalyticsDashboard';
 
 // Define types to match component requirements
 type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
@@ -129,18 +135,31 @@ function OnboardingChecklist({ steps, onOpenWizard }: { steps: Step[]; onOpenWiz
   );
 }
 
+interface DashboardStats {
+  totalRevenue: number;
+  totalOrders: number;
+  totalProducts: number;
+  totalCustomers: number;
+  revenueGrowth: number;
+  ordersGrowth: number;
+  productsGrowth: number;
+  customersGrowth: number;
+}
+
 export default function Dashboard() {
   const [period, setPeriod] = useState<'7days' | '30days' | '90days'>('7days');
   const [showWizard, setShowWizard] = useState(false);
   const { isLoading, isAuthenticated } = useAuth();
   const { tenant } = useTenant();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   // State for real data
   const [orders, setOrders] = useState<Order[]>([]);
   const [customers, setCustomers] = useState<{ name: string; email: string; phone: string }[]>([]);
   const [analytics, setAnalytics] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [onboardingStatus, setOnboardingStatus] = useState<OnboardingStatusResponse | null>(null);
   const [onboardingError, setOnboardingError] = useState<string | null>(null);
 
@@ -194,6 +213,30 @@ export default function Dashboard() {
     };
     fetchOnboardingStatus();
   }, [tenant?.id]);
+
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await dashboardService.getStats();
+        setStats(response.data);
+      } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : 'Failed to fetch dashboard stats';
+        setError(errorMessage);
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardStats();
+  }, [toast]);
 
   // Handle loading state
   if (isLoading) {
@@ -459,6 +502,66 @@ export default function Dashboard() {
             <ChannelPerformance data={analytics?.channelData || []} />
           </div>
         </div>
+
+        {/* Stats Cards */}
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">${stats.totalRevenue.toFixed(2)}</div>
+                <p className="text-xs text-muted-foreground">
+                  {stats.revenueGrowth > 0 ? '+' : ''}{stats.revenueGrowth.toFixed(1)}% from last month
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+                <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalOrders}</div>
+                <p className="text-xs text-muted-foreground">
+                  {stats.ordersGrowth > 0 ? '+' : ''}{stats.ordersGrowth.toFixed(1)}% from last month
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalProducts}</div>
+                <p className="text-xs text-muted-foreground">
+                  {stats.productsGrowth > 0 ? '+' : ''}{stats.productsGrowth.toFixed(1)}% from last month
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalCustomers}</div>
+                <p className="text-xs text-muted-foreground">
+                  {stats.customersGrowth > 0 ? '+' : ''}{stats.customersGrowth.toFixed(1)}% from last month
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Analytics Dashboard Component */}
+        <AnalyticsDashboard />
       </div>
       {/* Mobile Bottom Nav */}
       <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-lg flex justify-around items-center py-2 z-50 sm:hidden">
