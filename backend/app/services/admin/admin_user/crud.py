@@ -12,7 +12,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.models.admin.admin_user import AdminUser
 from app.models.user import User
-from app.core.errors.exception import EntityNotFoundError, DuplicateEntityError
+from app.core.exceptions import ResourceNotFoundError, ValidationError
 
 
 async def create_admin_user(
@@ -38,14 +38,14 @@ async def create_admin_user(
         The created admin user
 
     Raises:
-        EntityNotFoundError: If the user does not exist
-        DuplicateEntityError: If an admin user already exists for this user
+        ResourceNotFoundError: If the user does not exist
+        ValidationError: If an admin user already exists for this user
     """
     # Verify user exists
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalars().first()
     if not user:
-        raise EntityNotFoundError("User", user_id)
+        raise ResourceNotFoundError("User", user_id)
         
     # Validate IP ranges if provided
     if allowed_ip_ranges:
@@ -65,7 +65,7 @@ async def create_admin_user(
         return admin_user
     except IntegrityError:
         await db.rollback()
-        raise DuplicateEntityError(f"Admin user already exists for user {user_id}")
+        raise ValidationError(f"Admin user already exists for user {user_id}")
 
 
 async def get_admin_user(
@@ -83,14 +83,14 @@ async def get_admin_user(
         The admin user
 
     Raises:
-        EntityNotFoundError: If the admin user does not exist
+        ResourceNotFoundError: If the admin user does not exist
     """
     result = await db.execute(
         select(AdminUser).where(AdminUser.id == admin_user_id)
     )
     admin_user = result.scalars().first()
     if not admin_user:
-        raise EntityNotFoundError("AdminUser", admin_user_id)
+        raise ResourceNotFoundError("AdminUser", admin_user_id)
     return admin_user
 
 
@@ -159,7 +159,7 @@ async def update_admin_user(
         The updated admin user
 
     Raises:
-        EntityNotFoundError: If the admin user does not exist
+        ResourceNotFoundError: If the admin user does not exist
     """
     # Get the admin user to update
     admin_user = await get_admin_user(db, admin_user_id)
@@ -190,7 +190,7 @@ async def delete_admin_user(
         admin_user_id: ID of the admin user to delete
 
     Raises:
-        EntityNotFoundError: If the admin user does not exist
+        ResourceNotFoundError: If the admin user does not exist
     """
     admin_user = await get_admin_user(db, admin_user_id)
     await db.delete(admin_user)

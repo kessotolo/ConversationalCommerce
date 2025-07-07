@@ -13,7 +13,7 @@ from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_db
+from app.core.db.session import get_db
 from app.core.security.clerk import verify_clerk_token, ClerkTokenData
 from app.core.security.clerk_organizations import clerk_organizations_service
 from app.core.security.session import super_admin_session_manager

@@ -8,7 +8,7 @@ from typing import Dict
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.admin.role import Role
-from app.core.errors.exception import DuplicateEntityError
+from app.core.errors.exception import ValidationError
 from app.services.admin.role.crud import create_role, get_role_by_name
 from app.services.admin.role.hierarchy import add_role_parent
 
@@ -68,7 +68,7 @@ async def create_system_roles(
                 is_tenant_scoped=role_data["is_tenant_scoped"]
             )
             created_roles[role_key] = role
-        except DuplicateEntityError:
+        except ValidationError:
             # If role already exists, get it instead
             role = await get_role_by_name(db, role_data["name"])
             if role:
@@ -108,6 +108,6 @@ async def _setup_role_hierarchy(
                     child_role_id=child_role.id,
                     parent_role_id=parent_role.id
                 )
-            except (DuplicateEntityError, ValueError):
+            except (ValidationError, ValueError):
                 # Skip if hierarchy already exists or would create circular dependency
                 pass

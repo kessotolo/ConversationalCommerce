@@ -9,7 +9,7 @@ from app.core.config.settings import get_settings
 from app.core.security.clerk import ClerkTokenData
 from app.core.security.dependencies import require_auth
 from app.db.async_session import get_async_session_local
-from app.models.audit_log import AuditLog
+from app.models.audit.audit_log import AuditLog
 
 settings = get_settings()
 logger = logging.getLogger(__name__)
@@ -45,7 +45,8 @@ class ConnectionManager:
             "connected_at": datetime.now(timezone.utc),
         }
 
-        logger.info(f"New WebSocket connection for tenant {tenant_id}, user {user_id}")
+        logger.info(
+            f"New WebSocket connection for tenant {tenant_id}, user {user_id}")
 
     def disconnect(self, websocket: WebSocket):
         """Remove a disconnected WebSocket client"""
@@ -64,7 +65,8 @@ class ConnectionManager:
         if str(websocket) in self.connection_metadata:
             del self.connection_metadata[str(websocket)]
 
-        logger.info(f"WebSocket disconnected for tenant {tenant_id}, user {user_id}")
+        logger.info(
+            f"WebSocket disconnected for tenant {tenant_id}, user {user_id}")
 
     async def broadcast_to_tenant(self, tenant_id: str, message: dict):
         """Broadcast a message to all connections in a tenant"""
@@ -73,7 +75,8 @@ class ConnectionManager:
                 try:
                     await connection.send_json(message)
                 except Exception as e:
-                    logger.error(f"Error broadcasting to tenant {tenant_id}: {str(e)}")
+                    logger.error(
+                        f"Error broadcasting to tenant {tenant_id}: {str(e)}")
                     await self.disconnect(connection)
 
     async def send_to_user(self, user_id: str, message: dict):
@@ -126,7 +129,8 @@ class ActivityMonitor:
 
             # Broadcast to tenant
             await self.connection_manager.broadcast_to_tenant(
-                str(activity["tenant_id"]), {"type": "activity", "data": activity}
+                str(activity["tenant_id"]), {
+                    "type": "activity", "data": activity}
             )
 
             # Check for alerts

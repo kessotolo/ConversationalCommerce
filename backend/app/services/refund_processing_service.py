@@ -10,7 +10,7 @@ from app.models.returns import ReturnRequest, ReturnStatus
 from app.services.refund_calculation_service import RefundCalculationService
 from app.repositories.payment_repository import PaymentRepository
 from app.repositories.return_repository import ReturnRepository
-from app.core.config import settings
+from app.core.config.settings import get_settings
 from app.integrations.payment.payment_provider_factory import PaymentProviderFactory
 
 logger = logging.getLogger(__name__)

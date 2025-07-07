@@ -11,13 +11,13 @@ from sqlalchemy import text, func, desc, and_
 from sqlalchemy.orm import selectinload
 
 from app.core.security.dependencies import get_current_super_admin
-from app.core.security.session.models import AdminUser
-from app.db.async_session import get_async_session
+from app.models.admin.admin_user import AdminUser
+from app.db.async_session import get_async_db
 from app.models.tenant import Tenant
 from app.models.user import User
 from app.models.order import Order
 from app.models.product import Product
-from app.models.security.audit_log import AuditLog
+from app.models.audit.audit_log import AuditLog
 from app.schemas.admin.dashboard import (
     DashboardMetrics,
     SystemHealthMetrics,
@@ -40,7 +40,7 @@ router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 @router.get("/metrics", response_model=DashboardMetrics)
 async def get_dashboard_metrics(
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session),
+    db: AsyncSession = Depends(get_async_db),
     days: int = Query(default=30, ge=1, le=365,
                       description="Number of days to analyze")
 ):
@@ -204,7 +204,7 @@ async def get_dashboard_metrics(
 @router.get("/kpis", response_model=DashboardKPIs)
 async def get_dashboard_kpis(
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Get key performance indicators for the dashboard.
@@ -269,7 +269,7 @@ async def get_dashboard_kpis(
 @router.get("/activity", response_model=List[ActivityFeedItem])
 async def get_activity_feed(
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session),
+    db: AsyncSession = Depends(get_async_db),
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     event_type: Optional[str] = Query(
@@ -323,7 +323,7 @@ async def get_activity_feed(
 @router.get("/health", response_model=SystemHealthMetrics)
 async def get_system_health(
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Get comprehensive system health metrics.
@@ -385,7 +385,7 @@ async def get_system_health(
 @router.get("/alerts", response_model=AlertSummary)
 async def get_alert_summary(
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Get summary of active alerts and notifications.

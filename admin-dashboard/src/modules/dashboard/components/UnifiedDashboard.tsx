@@ -40,6 +40,7 @@ import { SecurityOverview } from './SecurityOverview';
 import { QuickActions } from './QuickActions';
 import { GlobalSearch } from './GlobalSearch';
 import { NotificationCenter } from './NotificationCenter';
+import api from '@/lib/api';
 
 interface DashboardMetrics {
     tenant_metrics: {
@@ -131,27 +132,16 @@ export function UnifiedDashboard() {
         try {
             setRefreshing(true);
 
-            // Fetch all dashboard data in parallel
+            // Fetch all dashboard data in parallel using the configured API client
             const [metricsResponse, kpisResponse, healthResponse] = await Promise.all([
-                fetch('/api/admin/dashboard/metrics'),
-                fetch('/api/admin/dashboard/kpis'),
-                fetch('/api/admin/dashboard/health')
+                api.get('/api/admin/dashboard/metrics'),
+                api.get('/api/admin/dashboard/kpis'),
+                api.get('/api/admin/dashboard/health')
             ]);
 
-            if (metricsResponse.ok) {
-                const metricsData = await metricsResponse.json();
-                setMetrics(metricsData);
-            }
-
-            if (kpisResponse.ok) {
-                const kpisData = await kpisResponse.json();
-                setKPIs(kpisData);
-            }
-
-            if (healthResponse.ok) {
-                const healthData = await healthResponse.json();
-                setSystemHealth(healthData);
-            }
+            setMetrics(metricsResponse.data);
+            setKPIs(kpisResponse.data);
+            setSystemHealth(healthResponse.data);
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
         } finally {

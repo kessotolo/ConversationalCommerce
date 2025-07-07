@@ -6,6 +6,7 @@ import uuid
 from functools import lru_cache
 from typing import Any, Dict, Optional
 
+from app.core.db.session import get_db
 from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 

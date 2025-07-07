@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
 from app.models.admin.permission import Permission, PermissionScope
-from app.core.errors.exception import EntityNotFoundError, DuplicateEntityError
+from app.core.exceptions import ResourceNotFoundError, ValidationError
 
 
 async def create_permission(
@@ -38,7 +38,7 @@ async def create_permission(
         The created permission
 
     Raises:
-        DuplicateEntityError: If a permission with the same resource, action, and scope exists
+        ValidationError: If a permission with the same resource, action, and scope exists
     """
     try:
         permission = Permission(
@@ -54,7 +54,7 @@ async def create_permission(
         return permission
     except IntegrityError:
         await db.rollback()
-        raise DuplicateEntityError(
+        raise ValidationError(
             f"Permission for {resource}:{action}:{scope} already exists"
         )
 
@@ -74,14 +74,14 @@ async def get_permission(
         The permission
 
     Raises:
-        EntityNotFoundError: If the permission does not exist
+        ResourceNotFoundError: If the permission does not exist
     """
     result = await db.execute(
         select(Permission).where(Permission.id == permission_id)
     )
     permission = result.scalars().first()
     if not permission:
-        raise EntityNotFoundError("Permission", permission_id)
+        raise ResourceNotFoundError("Permission", permission_id)
     return permission
 
 
@@ -162,7 +162,7 @@ async def update_permission(
         The updated permission
 
     Raises:
-        EntityNotFoundError: If the permission does not exist
+        ResourceNotFoundError: If the permission does not exist
     """
     # Get the permission to update
     permission = await get_permission(db, permission_id)
@@ -192,7 +192,7 @@ async def delete_permission(
         permission_id: ID of the permission to delete
 
     Raises:
-        EntityNotFoundError: If the permission does not exist
+        ResourceNotFoundError: If the permission does not exist
         ValueError: If attempting to delete a system permission
     """
     # Check if permission exists and is not a system permission

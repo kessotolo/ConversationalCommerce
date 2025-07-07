@@ -12,13 +12,13 @@ from sqlalchemy import func, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security.dependencies import get_current_super_admin
-from app.db.async_session import get_async_session
+from app.db.async_session import get_async_db
 from app.models.admin.admin_user import AdminUser
 from app.models.security.ip_allowlist import IPAllowlistEntry
-from app.models.security.login_attempt import LoginAttempt
+from app.models.security.rate_limit import LoginAttempt
 from app.models.security.rate_limit import RateLimitEntry
-from app.models.security.admin_session import AdminSession
-from app.models.security.two_factor_auth import TwoFactorAuth
+# from app.models.security.admin_session import # AdminSession  # TODO: Define model  # TODO: Define # AdminSession  # TODO: Define model model
+# from app.models.security.two_factor_auth import TwoFactorAuth  # TODO: Define model
 from app.models.audit.audit_log import AuditLog
 from app.schemas.security.security_dashboard import (
     SecurityMetricsResponse,
@@ -34,7 +34,7 @@ router = APIRouter(prefix="/security", tags=["security-dashboard"])
 @router.get("/metrics", response_model=SecurityMetricsResponse)
 async def get_security_metrics(
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Get comprehensive security metrics for the dashboard.
@@ -55,10 +55,10 @@ async def get_security_metrics(
 
     # Count active sessions
     active_sessions_count = await db.scalar(
-        func.count(AdminSession.id).where(
+        func.count(  # AdminSession  # TODO: Define model.id).where(
             and_(
-                AdminSession.is_active == True,
-                AdminSession.expires_at > datetime.now(timezone.utc)
+                # AdminSession  # TODO: Define model.is_active == True,
+                # AdminSession  # TODO: Define model.expires_at > datetime.now(timezone.utc)
             )
         )
     )
@@ -149,7 +149,7 @@ async def get_security_events(
         None, regex="^(low|medium|high|critical)$"),
     event_type: Optional[str] = Query(None),
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Get recent security events with optional filtering.
@@ -217,7 +217,7 @@ async def get_security_events(
 @router.get("/alerts", response_model=List[SecurityAlertResponse])
 async def get_security_alerts(
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Get active security alerts that require attention.
@@ -323,10 +323,10 @@ async def get_security_alerts(
 
     # Check for expired sessions that should be cleaned up
     expired_sessions = await db.scalar(
-        func.count(AdminSession.id).where(
+        func.count(  # AdminSession  # TODO: Define model.id).where(
             and_(
-                AdminSession.is_active == True,
-                AdminSession.expires_at < datetime.now(timezone.utc)
+                # AdminSession  # TODO: Define model.is_active == True,
+                # AdminSession  # TODO: Define model.expires_at < datetime.now(timezone.utc)
             )
         )
     )
@@ -348,7 +348,7 @@ async def get_security_alerts(
 async def trigger_emergency_lockdown(
     reason: str,
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Trigger emergency lockdown of all admin accounts.
@@ -373,8 +373,8 @@ async def trigger_emergency_lockdown(
 
     # Invalidate all active sessions except current admin's
     await db.execute(
-        db.query(AdminSession)
-        .where(AdminSession.user_id != current_admin.id)
+        db.query(  # AdminSession  # TODO: Define model)
+        .where(  # AdminSession  # TODO: Define model.user_id != current_admin.id)
         .update({
             "is_active": False,
             "ended_at": datetime.now(timezone.utc)
@@ -382,7 +382,7 @@ async def trigger_emergency_lockdown(
     )
 
     # Log the emergency action
-    audit_log = AuditLog(
+    audit_log=AuditLog(
         event_type="emergency_lockdown",
         user_id=current_admin.id,
         ip_address=None,  # Would be set by middleware
@@ -397,10 +397,10 @@ async def trigger_emergency_lockdown(
     return {"message": "Emergency lockdown activated successfully"}
 
 
-@router.get("/health")
+@ router.get("/health")
 async def security_health_check(
-    current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session)
+    current_admin: AdminUser=Depends(get_current_super_admin),
+    db: AsyncSession=Depends(get_async_db)
 ):
     """
     Comprehensive security health check.
@@ -414,7 +414,7 @@ async def security_health_check(
     - CORS protection
     """
 
-    health_status = {
+    health_status={
         "overall_status": "healthy",
         "components": {},
         "timestamp": datetime.now(timezone.utc).isoformat()
@@ -423,36 +423,36 @@ async def security_health_check(
     # Check Clerk integration
     try:
         # This would make a test call to Clerk API
-        health_status["components"]["clerk_integration"] = "healthy"
+        health_status["components"]["clerk_integration"]="healthy"
     except Exception as e:
-        health_status["components"]["clerk_integration"] = "unhealthy"
-        health_status["overall_status"] = "degraded"
+        health_status["components"]["clerk_integration"]="unhealthy"
+        health_status["overall_status"]="degraded"
 
     # Check session management
     try:
-        session_count = await db.scalar(func.count(AdminSession.id))
-        health_status["components"]["session_management"] = "healthy"
-        health_status["components"]["active_sessions"] = session_count or 0
+        session_count=await db.scalar(func.count(  # AdminSession  # TODO: Define model.id))
+        health_status["components"]["session_management"]="healthy"
+        health_status["components"]["active_sessions"]=session_count or 0
     except Exception as e:
-        health_status["components"]["session_management"] = "unhealthy"
-        health_status["overall_status"] = "degraded"
+        health_status["components"]["session_management"]="unhealthy"
+        health_status["overall_status"]="degraded"
 
     # Check IP allowlist
     try:
-        allowlist_count = await db.scalar(func.count(IPAllowlistEntry.id))
-        health_status["components"]["ip_allowlist"] = "healthy"
-        health_status["components"]["allowlist_entries"] = allowlist_count or 0
+        allowlist_count=await db.scalar(func.count(IPAllowlistEntry.id))
+        health_status["components"]["ip_allowlist"]="healthy"
+        health_status["components"]["allowlist_entries"]=allowlist_count or 0
     except Exception as e:
-        health_status["components"]["ip_allowlist"] = "unhealthy"
-        health_status["overall_status"] = "degraded"
+        health_status["components"]["ip_allowlist"]="unhealthy"
+        health_status["overall_status"]="degraded"
 
     # Check 2FA system
     try:
-        twofa_count = await db.scalar(func.count(TwoFactorAuth.id))
-        health_status["components"]["two_factor_auth"] = "healthy"
-        health_status["components"]["enabled_2fa"] = twofa_count or 0
+        twofa_count=await db.scalar(func.count(TwoFactorAuth.id))
+        health_status["components"]["two_factor_auth"]="healthy"
+        health_status["components"]["enabled_2fa"]=twofa_count or 0
     except Exception as e:
-        health_status["components"]["two_factor_auth"] = "unhealthy"
-        health_status["overall_status"] = "degraded"
+        health_status["components"]["two_factor_auth"]="unhealthy"
+        health_status["overall_status"]="degraded"
 
     return health_status

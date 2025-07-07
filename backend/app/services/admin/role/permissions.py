@@ -12,7 +12,7 @@ from sqlalchemy.exc import IntegrityError
 from app.models.admin.role import Role
 from app.models.admin.role_permission import RolePermission
 from app.models.admin.permission import Permission
-from app.core.errors.exception import EntityNotFoundError, DuplicateEntityError
+from app.core.exceptions import ResourceNotFoundError, ValidationError
 from app.services.admin.role.crud import get_role
 from app.services.admin.role.hierarchy import get_all_ancestor_roles
 from app.services.admin.permission.crud import get_permission
@@ -37,8 +37,8 @@ async def assign_permission_to_role(
         The created role permission association
         
     Raises:
-        EntityNotFoundError: If either role or permission does not exist
-        DuplicateEntityError: If the permission is already assigned to the role
+        ResourceNotFoundError: If either role or permission does not exist
+        ValidationError: If the permission is already assigned to the role
     """
     # Verify role and permission exist
     role = await get_role(db, role_id)
@@ -56,7 +56,7 @@ async def assign_permission_to_role(
         return role_permission
     except IntegrityError:
         await db.rollback()
-        raise DuplicateEntityError(
+        raise ValidationError(
             f"Permission {permission.resource}:{permission.action} is already assigned to role {role.name}"
         )
 

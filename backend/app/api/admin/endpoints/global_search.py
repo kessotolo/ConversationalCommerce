@@ -12,8 +12,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text, func, desc, and_, or_
 
 from app.core.security.dependencies import get_current_super_admin
-from app.core.security.session.models import AdminUser
-from app.db.async_session import get_async_session
+from app.models.admin.admin_user import AdminUser
+from app.db.async_session import get_async_db
 from app.schemas.admin.dashboard import (
     SearchRequest,
     SearchFilter,
@@ -32,7 +32,7 @@ router = APIRouter(prefix="/search", tags=["global-search"])
 async def global_search(
     search_request: SearchRequest,
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Perform a global search across all modules and tenants.
@@ -120,7 +120,7 @@ async def get_search_suggestions(
     query: str = Query(..., min_length=1,
                        description="Search query for suggestions"),
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Get search suggestions based on query.
@@ -161,7 +161,7 @@ async def get_search_suggestions(
 @router.get("/history", response_model=List[SearchHistory])
 async def get_search_history(
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session),
+    db: AsyncSession = Depends(get_async_db),
     limit: int = Query(default=20, ge=1, le=100)
 ):
     """
@@ -208,7 +208,7 @@ async def get_search_history(
 async def delete_search_history_item(
     history_id: str,
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Delete a specific search history item.
@@ -220,7 +220,7 @@ async def delete_search_history_item(
 @router.delete("/history", status_code=status.HTTP_204_NO_CONTENT)
 async def clear_search_history(
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Clear all search history for the current user.
@@ -234,7 +234,7 @@ async def clear_search_history(
 @router.get("/favorites", response_model=List[SearchFavorite])
 async def get_search_favorites(
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Get user's saved search favorites.
@@ -276,7 +276,7 @@ async def get_search_favorites(
 async def create_search_favorite(
     favorite_data: dict = Body(...),
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Save a search as a favorite.
@@ -300,7 +300,7 @@ async def create_search_favorite(
 async def delete_search_favorite(
     favorite_id: str,
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Delete a search favorite.

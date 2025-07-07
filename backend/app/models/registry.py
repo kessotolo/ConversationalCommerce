@@ -2,7 +2,7 @@
 Model Registry
 
 This module provides a centralized place to register all models with SQLAlchemy's
-metadata. It carefully orders the imports to prevent circular dependencies and 
+metadata. It carefully orders the imports to prevent circular dependencies and
 ensure foreign key references are satisfied during migrations.
 
 This is used by Alembic to generate migrations with the correct table order.
@@ -11,7 +11,7 @@ from app.db import Base
 
 # Import core enums first (these don't depend on any models)
 from app.models.core.enums import (
-    KYCStatus, 
+    KYCStatus,
     PaymentMethodType,
     OrderSource,
     OrderStatus,
@@ -25,17 +25,20 @@ from app.models.core.enums import (
 # 1. First, import models with no foreign key dependencies
 from app.models.tenant import Tenant  # Base tenant entity
 from app.models.user import User  # Users aren't dependent on other entities
-from app.models.customer import Customer  # Customer basic info 
+from app.models.customer import Customer  # Customer basic info
 
 # 2. Then, models that depend on the base entities
 from app.models.address_book import AddressBook  # Depends on Customer
 from app.models.saved_payment_method import SavedPaymentMethod  # Depends on Customer
-from app.models.notification_preferences import NotificationPreferences  # Depends on Customer
+# Depends on Customer
+from app.models.notification_preferences import NotificationPreferences
 from app.models.seller_profile import SellerProfile  # Depends on Tenant and User
-from app.models.product import Product  # Depends on Tenant, needs to come before Order
+# Depends on Tenant, needs to come before Order
+from app.models.product import Product
 
 # 3. Then more complex entities that depend on multiple other entities
-from app.models.order import Order  # Depends on Customer, Tenant, possibly Product
+# Depends on Customer, Tenant, possibly Product
+from app.models.order import Order
 from app.models.order_item import OrderItem  # Depends on Order and Product
 from app.models.order_channel_meta import OrderChannelMeta  # Depends on Order
 from app.models.cart import Cart  # Depends on Customer and Product
@@ -60,7 +63,7 @@ from app.models.storefront_version import StorefrontVersion
 # 6. Other specialized models
 from app.models.ai_config import AIConfig
 from app.models.alert_config import AlertConfig
-from app.models.audit_log import AuditLog
+from app.models.audit.audit_log import AuditLog
 from app.models.behavior_analysis import BehaviorPattern, PatternDetection, Evidence
 from app.models.content_filter import ContentFilterRule, ContentAnalysisResult
 from app.models.kyc_document import KYCDocument

@@ -18,7 +18,7 @@ from sqlalchemy.exc import IntegrityError
 from app.models.admin.role import Role, RoleHierarchy
 from app.models.admin.role_permission import RolePermission
 from app.models.admin.permission import Permission
-from app.core.errors.exception import EntityNotFoundError, DuplicateEntityError
+from app.core.exceptions import ResourceNotFoundError, ValidationError
 
 
 class RoleService:
@@ -46,7 +46,7 @@ class RoleService:
             The created role
 
         Raises:
-            DuplicateEntityError: If a role with the same name exists
+            ValidationError: If a role with the same name exists
         """
         try:
             role = Role(
@@ -60,7 +60,8 @@ class RoleService:
             return role
         except IntegrityError:
             await db.rollback()
-            raise DuplicateEntityError(f"Role with name '{name}' already exists")
+            raise ValidationError(
+                f"Role with name '{name}' already exists")
 
     async def get_role(
         self,
@@ -78,14 +79,14 @@ class RoleService:
             The role
 
         Raises:
-            EntityNotFoundError: If the role does not exist
+            ResourceNotFoundError: If the role does not exist
         """
         result = await db.execute(
             select(Role).where(Role.id == role_id)
         )
         role = result.scalars().first()
         if not role:
-            raise EntityNotFoundError("Role", role_id)
+            raise ResourceNotFoundError("Role", role_id)
         return role
 
     async def get_role_by_name(
@@ -126,13 +127,13 @@ class RoleService:
             List of roles matching the criteria
         """
         query = select(Role)
-        
+
         # Apply filters if provided
         if is_system is not None:
             query = query.where(Role.is_system == is_system)
         if is_tenant_scoped is not None:
             query = query.where(Role.is_tenant_scoped == is_tenant_scoped)
-            
+
         result = await db.execute(query)
         return list(result.scalars().all())
 
@@ -154,20 +155,20 @@ class RoleService:
             The updated role
 
         Raises:
-            EntityNotFoundError: If the role does not exist
+            ResourceNotFoundError: If the role does not exist
         """
         # Get the role to update
         role = await self.get_role(db, role_id)
-        
+
         # Check if it's a system role that can't be modified
         if role.is_system and "is_system" not in update_data:
             raise ValueError("System roles cannot be modified")
-            
+
         # Update attributes that are provided
         for key, value in update_data.items():
             if hasattr(role, key):
                 setattr(role, key, value)
-                
+
         await db.flush()
         return role
 
@@ -184,19 +185,19 @@ class RoleService:
             role_id: ID of the role to delete
 
         Raises:
-            EntityNotFoundError: If the role does not exist
+            ResourceNotFoundError: If the role does not exist
             ValueError: If attempting to delete a system role
         """
         # Check if role exists and is not a system role
         role = await self.get_role(db, role_id)
         if role.is_system:
             raise ValueError("System roles cannot be deleted")
-            
+
         await db.delete(role)
         await db.flush()
 
     # Role Hierarchy Methods
-    
+
     async def add_role_parent(
         self,
         db: AsyncSession,
@@ -205,30 +206,30 @@ class RoleService:
     ) -> RoleHierarchy:
         """
         Add a parent role to a child role, establishing a hierarchy.
-        
+
         Args:
             db: Database session
             child_role_id: ID of the child role
             parent_role_id: ID of the parent role
-            
+
         Returns:
             The created role hierarchy relationship
-            
+
         Raises:
-            EntityNotFoundError: If either role does not exist
-            DuplicateEntityError: If the hierarchy relationship already exists
+            ResourceNotFoundError: If either role does not exist
+            ValidationError: If the hierarchy relationship already exists
             ValueError: If creating a circular dependency
         """
         # Verify both roles exist
         child_role = await self.get_role(db, child_role_id)
         parent_role = await self.get_role(db, parent_role_id)
-        
+
         # Check for circular dependency
         if await self.is_role_ancestor(db, child_role_id, parent_role_id):
             raise ValueError(
                 "Cannot add parent role: would create circular dependency"
             )
-        
+
         # Create hierarchy relationship
         try:
             hierarchy = RoleHierarchy(
@@ -240,7 +241,7 @@ class RoleService:
             return hierarchy
         except IntegrityError:
             await db.rollback()
-            raise DuplicateEntityError(
+            raise ValidationError(
                 f"Role hierarchy from {parent_role.name} to {child_role.name} already exists"
             )
 
@@ -252,12 +253,12 @@ class RoleService:
     ) -> None:
         """
         Remove a parent role from a child role.
-        
+
         Args:
             db: Database session
             child_role_id: ID of the child role
             parent_role_id: ID of the parent role
-            
+
         Returns:
             None
         """
@@ -279,11 +280,11 @@ class RoleService:
     ) -> List[Role]:
         """
         Get all immediate parent roles of a role.
-        
+
         Args:
             db: Database session
             role_id: ID of the role
-            
+
         Returns:
             List of parent roles
         """
@@ -304,11 +305,11 @@ class RoleService:
     ) -> List[Role]:
         """
         Get all immediate child roles of a role.
-        
+
         Args:
             db: Database session
             role_id: ID of the role
-            
+
         Returns:
             List of child roles
         """
@@ -330,12 +331,12 @@ class RoleService:
     ) -> Set[UUID]:
         """
         Get all ancestor roles (parents, grandparents, etc.) of a role.
-        
+
         Args:
             db: Database session
             role_id: ID of the role
             include_self: Whether to include the role itself
-            
+
         Returns:
             Set of ancestor role IDs
         """
@@ -343,14 +344,14 @@ class RoleService:
         ancestors = set()
         if include_self:
             ancestors.add(role_id)
-            
+
         async def collect_ancestors(current_role_id: UUID) -> None:
             parents = await self.get_parent_roles(db, current_role_id)
             for parent in parents:
                 if parent.id not in ancestors:
                     ancestors.add(parent.id)
                     await collect_ancestors(parent.id)
-                    
+
         await collect_ancestors(role_id)
         return ancestors
 
@@ -362,12 +363,12 @@ class RoleService:
     ) -> Set[UUID]:
         """
         Get all descendant roles (children, grandchildren, etc.) of a role.
-        
+
         Args:
             db: Database session
             role_id: ID of the role
             include_self: Whether to include the role itself
-            
+
         Returns:
             Set of descendant role IDs
         """
@@ -375,14 +376,14 @@ class RoleService:
         descendants = set()
         if include_self:
             descendants.add(role_id)
-            
+
         async def collect_descendants(current_role_id: UUID) -> None:
             children = await self.get_child_roles(db, current_role_id)
             for child in children:
                 if child.id not in descendants:
                     descendants.add(child.id)
                     await collect_descendants(child.id)
-                    
+
         await collect_descendants(role_id)
         return descendants
 
@@ -394,12 +395,12 @@ class RoleService:
     ) -> bool:
         """
         Check if a role is an ancestor of another role.
-        
+
         Args:
             db: Database session
             role_id: ID of the role
             potential_ancestor_id: ID of the potential ancestor role
-            
+
         Returns:
             True if the potential ancestor is an ancestor, False otherwise
         """
@@ -407,7 +408,7 @@ class RoleService:
         return potential_ancestor_id in ancestors
 
     # Role Permission Methods
-    
+
     async def assign_permission_to_role(
         self,
         db: AsyncSession,
@@ -417,28 +418,28 @@ class RoleService:
     ) -> RolePermission:
         """
         Assign a permission to a role.
-        
+
         Args:
             db: Database session
             role_id: ID of the role
             permission_id: ID of the permission
             condition: Optional condition expression
-            
+
         Returns:
             The created role permission association
-            
+
         Raises:
-            EntityNotFoundError: If either role or permission does not exist
-            DuplicateEntityError: If the permission is already assigned to the role
+            ResourceNotFoundError: If either role or permission does not exist
+            ValidationError: If the permission is already assigned to the role
         """
         # Verify role and permission exist
         role = await self.get_role(db, role_id)
-        
-        # Check if the permission exists (will raise EntityNotFoundError if not)
+
+        # Check if the permission exists (will raise ResourceNotFoundError if not)
         from app.services.admin.permission_service import PermissionService
         permission_service = PermissionService()
         permission = await permission_service.get_permission(db, permission_id)
-        
+
         # Create role permission association
         try:
             role_permission = RolePermission(
@@ -451,7 +452,7 @@ class RoleService:
             return role_permission
         except IntegrityError:
             await db.rollback()
-            raise DuplicateEntityError(
+            raise ValidationError(
                 f"Permission {permission.resource}:{permission.action} is already assigned to role {role.name}"
             )
 
@@ -463,12 +464,12 @@ class RoleService:
     ) -> None:
         """
         Remove a permission from a role.
-        
+
         Args:
             db: Database session
             role_id: ID of the role
             permission_id: ID of the permission
-            
+
         Returns:
             None
         """
@@ -491,12 +492,12 @@ class RoleService:
     ) -> List[Tuple[Permission, Optional[str]]]:
         """
         Get all permissions assigned to a role.
-        
+
         Args:
             db: Database session
             role_id: ID of the role
             include_ancestors: Whether to include permissions from ancestor roles
-            
+
         Returns:
             List of (permission, condition) tuples
         """
@@ -505,7 +506,7 @@ class RoleService:
             # Get all ancestor roles
             ancestor_ids = await self.get_all_ancestor_roles(db, role_id)
             role_ids.extend(ancestor_ids)
-            
+
         # Query for permissions and their conditions
         result = await db.execute(
             select(Permission, RolePermission.condition)
@@ -515,22 +516,22 @@ class RoleService:
             )
             .where(RolePermission.role_id.in_(role_ids))
         )
-        
+
         return [(permission, condition) for permission, condition in result.all()]
-            
+
     async def create_system_roles(
         self,
         db: AsyncSession
     ) -> Dict[str, Role]:
         """
         Create the default set of system roles.
-        
+
         This method should be called during system initialization to ensure
         all necessary roles exist and have the appropriate hierarchy.
-        
+
         Args:
             db: Database session
-            
+
         Returns:
             Dictionary mapping role names to role objects
         """
@@ -561,7 +562,7 @@ class RoleService:
                 "is_tenant_scoped": False
             }
         }
-        
+
         # Create roles or get existing ones
         created_roles = {}
         for role_key, role_data in system_roles.items():
@@ -574,12 +575,12 @@ class RoleService:
                     is_tenant_scoped=role_data["is_tenant_scoped"]
                 )
                 created_roles[role_key] = role
-            except DuplicateEntityError:
+            except ValidationError:
                 # If role already exists, get it instead
                 role = await self.get_role_by_name(db, role_data["name"])
                 if role:
                     created_roles[role_key] = role
-        
+
         # Set up role hierarchy
         # Super Admin > Domain Admin > Support Admin > Read Only Admin
         hierarchy = [
@@ -587,7 +588,7 @@ class RoleService:
             ("domain_admin", "support_admin"),
             ("support_admin", "read_only_admin")
         ]
-        
+
         for parent_key, child_key in hierarchy:
             if parent_key in created_roles and child_key in created_roles:
                 parent_role = created_roles[parent_key]
@@ -598,8 +599,8 @@ class RoleService:
                         child_role_id=child_role.id,
                         parent_role_id=parent_role.id
                     )
-                except (DuplicateEntityError, ValueError):
+                except (ValidationError, ValueError):
                     # Skip if hierarchy already exists or would create circular dependency
                     pass
-                    
+
         return created_roles

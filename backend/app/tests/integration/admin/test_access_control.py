@@ -18,13 +18,14 @@ from app.services.admin.admin_user.models import AdminUser
 from app.services.admin.admin_user.roles import AdminRole
 from app.services.admin.defaults.rbac import ADMIN_PERMISSIONS, PERMISSION_SETS
 from app.core.integration.context_switcher import get_current_context
-from app.core.config import settings
+from app.core.config.settings import get_settings
 from app.core.exceptions import PermissionDeniedError, InvalidContextError
 
 
 @pytest.fixture
 def test_client():
     return TestClient(app)
+
 
 @pytest_asyncio.fixture
 async def async_client():
@@ -112,7 +113,7 @@ def create_token_headers(admin_user: AdminUser) -> Dict[str, str]:
 
 class TestAdminAccessControl:
     """Test suite for admin access control verification."""
-    
+
     # API endpoint path constants - centralized for consistency
     ENDPOINTS = {
         "tenant_list": "/api/v1/admin/tenants",
@@ -132,23 +133,23 @@ class TestAdminAccessControl:
         """Test Super Admin has access to all endpoints."""
         mock_get_admin.return_value = mock_super_admin
         headers = create_token_headers(mock_super_admin)
-        
+
         # Test system configuration access
         response = test_client.get("/admin/system/config", headers=headers)
         assert response.status_code == 200
-        
+
         # Test tenant management access
         response = test_client.get("/admin/tenants", headers=headers)
         assert response.status_code == 200
-        
+
         # Test user management access
         response = test_client.get("/admin/users", headers=headers)
         assert response.status_code == 200
-        
+
         # Test security settings access
         response = test_client.get("/admin/security/settings", headers=headers)
         assert response.status_code == 200
-        
+
         # Test audit logs access
         response = test_client.get("/admin/audit-logs", headers=headers)
         assert response.status_code == 200
@@ -158,15 +159,15 @@ class TestAdminAccessControl:
         """Test System Admin has appropriate access limitations."""
         mock_get_admin.return_value = mock_system_admin
         headers = create_token_headers(mock_system_admin)
-        
+
         # Should have access to tenant management
         response = test_client.get("/admin/tenants", headers=headers)
         assert response.status_code == 200
-        
+
         # Should have access to user management
         response = test_client.get("/admin/users", headers=headers)
         assert response.status_code == 200
-        
+
         # Should NOT have access to security settings
         response = test_client.get("/admin/security/settings", headers=headers)
         assert response.status_code == 403
@@ -176,11 +177,12 @@ class TestAdminAccessControl:
         """Test Support Admin has appropriate access limitations."""
         mock_get_admin.return_value = mock_support_admin
         headers = create_token_headers(mock_support_admin)
-        
+
         # Should have access to tenant data for support purposes
-        response = test_client.get("/admin/tenants/support-view", headers=headers)
+        response = test_client.get(
+            "/admin/tenants/support-view", headers=headers)
         assert response.status_code == 200
-        
+
         # Should have access to impersonation
         response = test_client.post(
             "/admin/impersonate/start",
@@ -188,11 +190,11 @@ class TestAdminAccessControl:
             headers=headers
         )
         assert response.status_code == 200
-        
+
         # Should NOT have access to system configuration
         response = test_client.get("/admin/system/config", headers=headers)
         assert response.status_code == 403
-        
+
         # Should NOT have access to user management
         response = test_client.get("/admin/users", headers=headers)
         assert response.status_code == 403
@@ -202,19 +204,19 @@ class TestAdminAccessControl:
         """Test Security Admin has appropriate access limitations."""
         mock_get_admin.return_value = mock_security_admin
         headers = create_token_headers(mock_security_admin)
-        
+
         # Should have access to security settings
         response = test_client.get("/admin/security/settings", headers=headers)
         assert response.status_code == 200
-        
+
         # Should have access to audit logs
         response = test_client.get("/admin/audit-logs", headers=headers)
         assert response.status_code == 200
-        
+
         # Should NOT have access to tenant management
         response = test_client.get("/admin/tenants", headers=headers)
         assert response.status_code == 403
-        
+
         # Should NOT have access to impersonation
         response = test_client.post(
             "/admin/impersonate/start",
@@ -228,15 +230,15 @@ class TestAdminAccessControl:
         """Test Read-Only Admin has appropriate access limitations."""
         mock_get_admin.return_value = mock_readonly_admin
         headers = create_token_headers(mock_readonly_admin)
-        
+
         # Should have read access to system metrics
         response = test_client.get("/admin/system/metrics", headers=headers)
         assert response.status_code == 200
-        
+
         # Should have read access to audit logs
         response = test_client.get("/admin/audit-logs", headers=headers)
         assert response.status_code == 200
-        
+
         # Should NOT have write access to any resources
         response = test_client.post(
             "/admin/tenants",
@@ -244,7 +246,7 @@ class TestAdminAccessControl:
             headers=headers
         )
         assert response.status_code == 403
-        
+
         # Should NOT have access to security settings
         response = test_client.get("/admin/security/settings", headers=headers)
         assert response.status_code == 403
@@ -252,7 +254,7 @@ class TestAdminAccessControl:
 
 class TestPermissionMatrix:
     """Test specific permission combinations using the permission matrix."""
-    
+
     # Test data for permission matrix validation
     PERMISSION_TEST_CASES = [
         # Format: (role, endpoint, method, expected_status)
@@ -267,7 +269,7 @@ class TestPermissionMatrix:
         (AdminRole.READ_ONLY_ADMIN, "/api/v1/admin/tenants", "GET", 200),
         (AdminRole.READ_ONLY_ADMIN, "/api/v1/admin/tenants", "POST", 403),
     ]
-    
+
     @pytest.mark.parametrize("role,endpoint,method,expected_status", [
         (AdminRole.SUPER_ADMIN, "/admin/system/config", "GET", 200),
         (AdminRole.SUPER_ADMIN, "/admin/tenants", "POST", 200),
@@ -295,41 +297,46 @@ class TestPermissionMatrix:
         )
         mock_get_admin.return_value = admin
         headers = create_token_headers(admin)
-        
+
         # Make request based on method
         if method == "GET":
             response = test_client.get(endpoint, headers=headers)
         elif method == "POST":
-            response = test_client.post(endpoint, json={"test": "data"}, headers=headers)
+            response = test_client.post(
+                endpoint, json={"test": "data"}, headers=headers)
         elif method == "PUT":
-            response = test_client.put(endpoint, json={"test": "data"}, headers=headers)
+            response = test_client.put(
+                endpoint, json={"test": "data"}, headers=headers)
         elif method == "DELETE":
             response = test_client.delete(endpoint, headers=headers)
-        
+
         assert response.status_code == expected_status
 
 
 class TestContextAwarePermissions:
     """Test permission enforcement in different contexts."""
-    
+
     # Mock JWT payload for different contexts
-    ADMIN_CONTEXT = {"context": "admin", "tenant_id": None, "impersonating": False}
-    TENANT_CONTEXT = {"context": "tenant", "tenant_id": "test_tenant_1", "impersonating": False}
+    ADMIN_CONTEXT = {"context": "admin",
+                     "tenant_id": None, "impersonating": False}
+    TENANT_CONTEXT = {"context": "tenant",
+                      "tenant_id": "test_tenant_1", "impersonating": False}
     IMPERSONATION_CONTEXT = {
-        "context": "tenant", 
-        "tenant_id": "test_tenant_1", 
+        "context": "tenant",
+        "tenant_id": "test_tenant_1",
         "impersonating": True,
         "original_user_id": "admin_123"
     }
-    
+
     @patch("app.dependencies.admin.get_current_admin_user")
     @patch("app.core.integration.context_switcher.get_current_context")
     def test_admin_context_permissions(self, mock_context, mock_get_admin, test_client, mock_super_admin):
         """Test permissions when in admin context."""
         mock_get_admin.return_value = mock_super_admin
-        mock_context.return_value = {"type": "admin", "admin_id": mock_super_admin.id}
+        mock_context.return_value = {
+            "type": "admin", "admin_id": mock_super_admin.id}
         headers = create_token_headers(mock_super_admin)
-        
+
         # Should have full admin access in admin context
         response = test_client.get("/admin/system/config", headers=headers)
         assert response.status_code == 200
@@ -340,25 +347,26 @@ class TestContextAwarePermissions:
         """Test permissions when in impersonation context."""
         mock_get_admin.return_value = mock_super_admin
         mock_context.return_value = {
-            "type": "impersonation", 
+            "type": "impersonation",
             "admin_id": mock_super_admin.id,
             "tenant_id": "test-tenant",
             "user_id": "user-123"
         }
         headers = create_token_headers(mock_super_admin)
-        
+
         # Should NOT have admin access while impersonating
         response = test_client.get("/admin/system/config", headers=headers)
         assert response.status_code == 403
-        
+
         # Should have tenant user access
-        response = test_client.get("/api/tenants/test-tenant/dashboard", headers=headers)
+        response = test_client.get(
+            "/api/tenants/test-tenant/dashboard", headers=headers)
         assert response.status_code == 200
 
 
 class TestCustomRolePermissions:
     """Test custom role definitions and permission assignments."""
-    
+
     # Custom role definition for testing
     CUSTOM_ROLE_DATA = {
         "name": "Tenant Manager",
@@ -367,7 +375,7 @@ class TestCustomRolePermissions:
         "custom_permissions": ["system:metrics:view"],
         "parent_role": AdminRole.SUPPORT_ADMIN
     }
-    
+
     @patch("app.dependencies.admin.get_current_admin_user")
     def test_custom_role_permissions(self, mock_get_admin, test_client):
         """Test a custom role with specific permission sets."""
@@ -382,19 +390,19 @@ class TestCustomRolePermissions:
         )
         mock_get_admin.return_value = custom_admin
         headers = create_token_headers(custom_admin)
-        
+
         # Should have read access to tenants
         response = test_client.get("/admin/tenants", headers=headers)
         assert response.status_code == 200
-        
+
         # Should have read access to users
         response = test_client.get("/admin/users", headers=headers)
         assert response.status_code == 200
-        
+
         # Should have read access to audit logs
         response = test_client.get("/admin/audit-logs", headers=headers)
         assert response.status_code == 200
-        
+
         # Should NOT have write access to tenants
         response = test_client.post(
             "/admin/tenants",
@@ -402,7 +410,7 @@ class TestCustomRolePermissions:
             headers=headers
         )
         assert response.status_code == 403
-        
+
         # Should NOT have access to security settings
         response = test_client.get("/admin/security/settings", headers=headers)
         assert response.status_code == 403
@@ -410,32 +418,34 @@ class TestCustomRolePermissions:
 
 class TestPermissionInheritance:
     """Test permission inheritance and hierarchical role structures."""
-    
+
     # Permission inheritance test cases
     INHERITANCE_TEST_CASES = [
         ("tenant:create", [AdminRole.SUPER_ADMIN, AdminRole.SYSTEM_ADMIN]),
         ("admin:user:create", [AdminRole.SUPER_ADMIN]),
-        ("audit:read", [AdminRole.SUPER_ADMIN, AdminRole.SYSTEM_ADMIN, AdminRole.SECURITY_ADMIN, AdminRole.READ_ONLY_ADMIN]),
-        ("tenant:view", [AdminRole.SUPER_ADMIN, AdminRole.SYSTEM_ADMIN, AdminRole.SUPPORT_ADMIN, AdminRole.READ_ONLY_ADMIN]),
+        ("audit:read", [AdminRole.SUPER_ADMIN, AdminRole.SYSTEM_ADMIN,
+         AdminRole.SECURITY_ADMIN, AdminRole.READ_ONLY_ADMIN]),
+        ("tenant:view", [AdminRole.SUPER_ADMIN, AdminRole.SYSTEM_ADMIN,
+         AdminRole.SUPPORT_ADMIN, AdminRole.READ_ONLY_ADMIN]),
     ]
-    
+
     @pytest.mark.parametrize("permission,roles_with_access", [
         ("tenant_read", [
-            AdminRole.SUPER_ADMIN, 
-            AdminRole.SYSTEM_ADMIN, 
+            AdminRole.SUPER_ADMIN,
+            AdminRole.SYSTEM_ADMIN,
             AdminRole.SUPPORT_ADMIN
         ]),
         ("security_write", [
-            AdminRole.SUPER_ADMIN, 
+            AdminRole.SUPER_ADMIN,
             AdminRole.SECURITY_ADMIN
         ]),
         ("impersonation", [
-            AdminRole.SUPER_ADMIN, 
-            AdminRole.SYSTEM_ADMIN, 
+            AdminRole.SUPER_ADMIN,
+            AdminRole.SYSTEM_ADMIN,
             AdminRole.SUPPORT_ADMIN
         ]),
         ("system_config", [
-            AdminRole.SUPER_ADMIN, 
+            AdminRole.SUPER_ADMIN,
             AdminRole.SYSTEM_ADMIN
         ]),
     ])
@@ -448,14 +458,15 @@ class TestPermissionInheritance:
             else:
                 # Skip CUSTOM role as it's configurable
                 if role != AdminRole.CUSTOM:
-                    self.assertFalse(self._role_has_permission(role, permission))
-        
+                    self.assertFalse(
+                        self._role_has_permission(role, permission))
+
         # Check roles that should NOT have this permission
         all_roles = [r for r in AdminRole if r != AdminRole.CUSTOM]
         for role in all_roles:
             if role not in roles_with_access:
                 self.assertFalse(self._role_has_permission(role, permission))
-    
+
     def _role_has_permission(self, role, permission):
         """Helper to check if a role has a specific permission."""
         role_permissions = []

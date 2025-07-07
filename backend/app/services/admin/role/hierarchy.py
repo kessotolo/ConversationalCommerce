@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
 from app.models.admin.role import Role, RoleHierarchy
-from app.core.errors.exception import EntityNotFoundError, DuplicateEntityError
+from app.core.exceptions import ResourceNotFoundError, ValidationError
 from app.services.admin.role.crud import get_role
 
 
@@ -31,8 +31,8 @@ async def add_role_parent(
         The created role hierarchy relationship
         
     Raises:
-        EntityNotFoundError: If either role does not exist
-        DuplicateEntityError: If the hierarchy relationship already exists
+        ResourceNotFoundError: If either role does not exist
+        ValidationError: If the hierarchy relationship already exists
         ValueError: If creating a circular dependency
     """
     # Verify both roles exist
@@ -56,7 +56,7 @@ async def add_role_parent(
         return hierarchy
     except IntegrityError:
         await db.rollback()
-        raise DuplicateEntityError(
+        raise ValidationError(
             f"Role hierarchy from {parent_role.name} to {child_role.name} already exists"
         )
 

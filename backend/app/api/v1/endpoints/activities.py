@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
-from app.models.audit_log import AuditLog
+from app.models.audit.audit_log import AuditLog
 
 router = APIRouter()
 logger = logging.getLogger(__name__)

@@ -11,7 +11,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.models.admin.admin_user import AdminUser, AdminUserRole
 from app.models.admin.role import Role
-from app.core.errors.exception import EntityNotFoundError, DuplicateEntityError
+from app.core.exceptions import ResourceNotFoundError, ValidationError
 from app.services.admin.admin_user.crud import get_admin_user
 
 
@@ -36,9 +36,9 @@ async def assign_role_to_admin_user(
         The created admin user role association
         
     Raises:
-        EntityNotFoundError: If either admin user or role does not exist
+        ResourceNotFoundError: If either admin user or role does not exist
         ValueError: If the role is tenant-scoped but no tenant_id is provided
-        DuplicateEntityError: If the role is already assigned to the admin user
+        ValidationError: If the role is already assigned to the admin user
     """
     # Verify admin user exists
     admin_user = await get_admin_user(db, admin_user_id)
@@ -64,7 +64,7 @@ async def assign_role_to_admin_user(
     except IntegrityError:
         await db.rollback()
         tenant_str = f" for tenant {tenant_id}" if tenant_id else ""
-        raise DuplicateEntityError(
+        raise ValidationError(
             f"Role {role.name}{tenant_str} is already assigned to admin user {admin_user_id}"
         )
 

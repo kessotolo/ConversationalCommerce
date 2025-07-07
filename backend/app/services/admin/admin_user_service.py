@@ -20,7 +20,7 @@ from sqlalchemy.exc import IntegrityError
 from app.models.admin.admin_user import AdminUser, AdminUserRole
 from app.models.admin.role import Role
 from app.models.user import User
-from app.core.errors.exception import EntityNotFoundError, DuplicateEntityError
+from app.core.exceptions import ResourceNotFoundError, ValidationError
 
 
 class AdminUserService:
@@ -50,14 +50,14 @@ class AdminUserService:
             The created admin user
 
         Raises:
-            EntityNotFoundError: If the user does not exist
-            DuplicateEntityError: If an admin user already exists for this user
+            ResourceNotFoundError: If the user does not exist
+            ValidationError: If an admin user already exists for this user
         """
         # Verify user exists
         result = await db.execute(select(User).where(User.id == user_id))
         user = result.scalars().first()
         if not user:
-            raise EntityNotFoundError("User", user_id)
+            raise ResourceNotFoundError("User", user_id)
             
         # Validate IP ranges if provided
         if allowed_ip_ranges:
@@ -80,7 +80,7 @@ class AdminUserService:
             return admin_user
         except IntegrityError:
             await db.rollback()
-            raise DuplicateEntityError(f"Admin user already exists for user {user_id}")
+            raise ValidationError(f"Admin user already exists for user {user_id}")
 
     async def get_admin_user(
         self,
@@ -98,14 +98,14 @@ class AdminUserService:
             The admin user
 
         Raises:
-            EntityNotFoundError: If the admin user does not exist
+            ResourceNotFoundError: If the admin user does not exist
         """
         result = await db.execute(
             select(AdminUser).where(AdminUser.id == admin_user_id)
         )
         admin_user = result.scalars().first()
         if not admin_user:
-            raise EntityNotFoundError("AdminUser", admin_user_id)
+            raise ResourceNotFoundError("AdminUser", admin_user_id)
         return admin_user
 
     async def get_admin_user_by_user_id(
@@ -174,7 +174,7 @@ class AdminUserService:
             The updated admin user
 
         Raises:
-            EntityNotFoundError: If the admin user does not exist
+            ResourceNotFoundError: If the admin user does not exist
         """
         # Get the admin user to update
         admin_user = await self.get_admin_user(db, admin_user_id)
@@ -208,7 +208,7 @@ class AdminUserService:
             admin_user_id: ID of the admin user to delete
 
         Raises:
-            EntityNotFoundError: If the admin user does not exist
+            ResourceNotFoundError: If the admin user does not exist
         """
         admin_user = await self.get_admin_user(db, admin_user_id)
         await db.delete(admin_user)
@@ -291,9 +291,9 @@ class AdminUserService:
             The created admin user role association
             
         Raises:
-            EntityNotFoundError: If either admin user or role does not exist
+            ResourceNotFoundError: If either admin user or role does not exist
             ValueError: If the role is tenant-scoped but no tenant_id is provided
-            DuplicateEntityError: If the role is already assigned to the admin user
+            ValidationError: If the role is already assigned to the admin user
         """
         # Verify admin user and role exist
         admin_user = await self.get_admin_user(db, admin_user_id)
@@ -320,7 +320,7 @@ class AdminUserService:
         except IntegrityError:
             await db.rollback()
             tenant_str = f" for tenant {tenant_id}" if tenant_id else ""
-            raise DuplicateEntityError(
+            raise ValidationError(
                 f"Role {role.name}{tenant_str} is already assigned to admin user {admin_user_id}"
             )
 

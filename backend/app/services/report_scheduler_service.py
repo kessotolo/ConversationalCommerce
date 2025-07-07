@@ -10,7 +10,7 @@ from email.mime.application import MIMEApplication
 from fastapi import BackgroundTasks
 from sqlalchemy.orm import Session
 
-from app.core.config import settings
+from app.core.config.settings import get_settings
 from app.schemas.analytics import ScheduledReportCreate, ScheduledReportUpdate, ScheduledReport, ReportScheduleFrequency
 from app.repositories.analytics_repository import AnalyticsRepository
 from app.repositories.scheduled_report_repository import ScheduledReportRepository
@@ -18,10 +18,11 @@ from app.schemas.analytics import AnalyticsQuery, AnalyticsExportFormat
 
 logger = logging.getLogger(__name__)
 
+
 class ReportSchedulerService:
     @staticmethod
     async def create_scheduled_report(
-        db: Session, 
+        db: Session,
         report_data: ScheduledReportCreate,
         tenant_id: int
     ) -> ScheduledReport:
@@ -75,7 +76,7 @@ class ReportSchedulerService:
     async def process_scheduled_reports(db: Session, background_tasks: BackgroundTasks):
         """Process all scheduled reports that are due"""
         due_reports = await ReportSchedulerService.get_reports_due_for_processing(db)
-        
+
         for report in due_reports:
             # Schedule report generation and delivery as background task
             background_tasks.add_task(
@@ -83,41 +84,44 @@ class ReportSchedulerService:
                 db,
                 report
             )
-            
+
             # Update last_run time
             await ScheduledReportRepository.update_last_run(db, report.id, datetime.now())
-    
+
     @staticmethod
     async def _generate_and_send_report(db: Session, report: ScheduledReport):
         """Generate and send a scheduled report"""
         logger.info(f"Generating scheduled report {report.id}: {report.name}")
-        
+
         try:
             # Parse query parameters from report configuration
             query = AnalyticsQuery(**report.query_params)
-            
+
             # Get data for report
             data = await AnalyticsRepository.aggregate_metrics(
-                db, 
-                query, 
+                db,
+                query,
                 report.tenant_id
             )
-            
+
             if data.empty:
                 logger.warning(f"No data found for report {report.id}")
                 return
-            
+
             # Generate report file based on format
             report_file = None
             filename = f"{report.name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}"
-            
+
             if report.export_format == AnalyticsExportFormat.csv:
-                report_file = ReportSchedulerService._generate_csv(data, filename)
+                report_file = ReportSchedulerService._generate_csv(
+                    data, filename)
             elif report.export_format == AnalyticsExportFormat.excel:
-                report_file = ReportSchedulerService._generate_excel(data, filename)
+                report_file = ReportSchedulerService._generate_excel(
+                    data, filename)
             elif report.export_format == AnalyticsExportFormat.json:
-                report_file = ReportSchedulerService._generate_json(data, filename)
-                
+                report_file = ReportSchedulerService._generate_json(
+                    data, filename)
+
             # Send report to recipients
             if report_file:
                 await ReportSchedulerService._send_report_email(
@@ -127,32 +131,33 @@ class ReportSchedulerService:
                     report.export_format,
                     filename
                 )
-                
+
             logger.info(f"Successfully processed report {report.id}")
-            
+
         except Exception as e:
-            logger.error(f"Error processing scheduled report {report.id}: {str(e)}")
-    
+            logger.error(
+                f"Error processing scheduled report {report.id}: {str(e)}")
+
     @staticmethod
     def _generate_csv(data: pd.DataFrame, filename: str) -> bytes:
         """Generate CSV report"""
         return data.to_csv(index=False).encode('utf-8')
-    
+
     @staticmethod
     def _generate_excel(data: pd.DataFrame, filename: str) -> bytes:
         """Generate Excel report"""
         output = pd.ExcelWriter(f"{filename}.xlsx", engine='xlsxwriter')
         data.to_excel(output, index=False, sheet_name='Report')
         output.save()
-        
+
         with open(f"{filename}.xlsx", 'rb') as f:
             return f.read()
-    
+
     @staticmethod
     def _generate_json(data: pd.DataFrame, filename: str) -> bytes:
         """Generate JSON report"""
         return json.dumps(data.to_dict(orient='records'), default=str).encode('utf-8')
-    
+
     @staticmethod
     async def _send_report_email(
         report_data: bytes,
@@ -165,14 +170,14 @@ class ReportSchedulerService:
         if not settings.SMTP_HOST or not settings.SMTP_PORT:
             logger.error("SMTP settings not configured")
             return False
-            
+
         try:
             # Create email
             msg = MIMEMultipart()
             msg['Subject'] = f"Scheduled Report: {report_name}"
             msg['From'] = settings.SMTP_SENDER_EMAIL
             msg['To'] = ", ".join(recipient_emails)
-            
+
             # Email body
             body = f"""
             <html>
@@ -184,27 +189,28 @@ class ReportSchedulerService:
             </html>
             """
             msg.attach(MIMEText(body, 'html'))
-            
+
             # Add attachment
             file_extension = export_format.value
             attachment = MIMEApplication(report_data)
             attachment.add_header(
-                'Content-Disposition', 
-                'attachment', 
+                'Content-Disposition',
+                'attachment',
                 filename=f"{filename}.{file_extension}"
             )
             msg.attach(attachment)
-            
+
             # Send email
             with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
                 if settings.SMTP_TLS:
                     server.starttls()
                 if settings.SMTP_USERNAME and settings.SMTP_PASSWORD:
-                    server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
+                    server.login(settings.SMTP_USERNAME,
+                                 settings.SMTP_PASSWORD)
                 server.send_message(msg)
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"Error sending report email: {str(e)}")
             return False
@@ -214,7 +220,7 @@ class ReportSchedulerService:
         """Calculate the next run date based on frequency"""
         if current_date is None:
             current_date = datetime.now()
-            
+
         if frequency == ReportScheduleFrequency.daily:
             return current_date + timedelta(days=1)
         elif frequency == ReportScheduleFrequency.weekly:

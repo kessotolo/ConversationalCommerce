@@ -11,9 +11,9 @@ from sqlalchemy import text, func, desc, and_, or_
 from sqlalchemy.orm import selectinload
 
 from app.core.security.dependencies import get_current_super_admin
-from app.core.security.session.models import AdminUser
-from app.db.async_session import get_async_session
-from app.models.security.audit_log import AuditLog
+from app.models.admin.admin_user import AdminUser
+from app.db.async_session import get_async_db
+from app.models.audit.audit_log import AuditLog
 from app.schemas.admin.dashboard import (
     Permission,
     Role,
@@ -33,7 +33,7 @@ router = APIRouter(prefix="/rbac", tags=["rbac"])
 @router.get("/permissions", response_model=List[Permission])
 async def get_all_permissions(
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session),
+    db: AsyncSession = Depends(get_async_db),
     resource: Optional[str] = Query(None, description="Filter by resource"),
     scope: Optional[str] = Query(None, description="Filter by scope")
 ):
@@ -282,7 +282,7 @@ async def get_all_permissions(
 @router.get("/roles", response_model=List[Role])
 async def get_all_roles(
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session),
+    db: AsyncSession = Depends(get_async_db),
     include_system_roles: bool = Query(
         True, description="Include system-defined roles")
 ):
@@ -366,7 +366,7 @@ async def get_all_roles(
 async def create_role(
     role_data: RoleCreateRequest,
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Create a new custom role.
@@ -418,7 +418,7 @@ async def create_role(
 async def get_role(
     role_id: str,
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Get a specific role by ID.
@@ -440,7 +440,7 @@ async def update_role(
     role_id: str,
     role_data: RoleUpdateRequest,
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Update an existing role.
@@ -501,7 +501,7 @@ async def update_role(
 async def delete_role(
     role_id: str,
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Delete a custom role.
@@ -535,7 +535,7 @@ async def delete_role(
 @router.get("/user-roles", response_model=List[UserRole])
 async def get_user_roles(
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session),
+    db: AsyncSession = Depends(get_async_db),
     user_id: Optional[str] = Query(None, description="Filter by user ID"),
     role_id: Optional[str] = Query(None, description="Filter by role ID"),
     scope: Optional[str] = Query(None, description="Filter by scope")
@@ -589,7 +589,7 @@ async def get_user_roles(
 async def assign_user_role(
     assignment: UserRoleAssignRequest,
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Assign a role to a user.
@@ -632,7 +632,7 @@ async def revoke_user_role(
     scope: str = Query(..., description="Scope"),
     scope_id: Optional[str] = Query(None, description="Scope ID"),
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Revoke a role from a user.
@@ -656,7 +656,7 @@ async def revoke_user_role(
 @router.get("/audit-logs", response_model=List[PermissionAuditLog])
 async def get_permission_audit_logs(
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session),
+    db: AsyncSession = Depends(get_async_db),
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     action: Optional[str] = Query(None, description="Filter by action"),

@@ -8,7 +8,7 @@ from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.admin.permission import Permission, PermissionScope
-from app.core.errors.exception import DuplicateEntityError
+from app.core.errors.exception import ValidationError
 from app.services.admin.permission.crud import (
     create_permission,
     get_permission_by_attributes
@@ -55,7 +55,7 @@ async def create_system_permissions(
                     is_system=True
                 )
                 created_permissions.append(permission)
-            except DuplicateEntityError:
+            except ValidationError:
                 # If permission already exists, get it instead
                 permission = await get_permission_by_attributes(
                     db=db,
@@ -79,7 +79,7 @@ async def create_system_permissions(
                     is_system=True
                 )
                 created_permissions.append(permission)
-            except DuplicateEntityError:
+            except ValidationError:
                 # If permission already exists, get it instead
                 permission = await get_permission_by_attributes(
                     db=db,
@@ -157,7 +157,7 @@ async def _create_special_system_permissions(
                 is_system=True
             )
             created_permissions.append(permission)
-        except DuplicateEntityError:
+        except ValidationError:
             # If permission already exists, get it instead
             permission = await get_permission_by_attributes(
                 db=db,

@@ -50,6 +50,7 @@ from app.middleware.subdomain_middleware import SubdomainMiddleware
 from app.core.errors import order_failures, payment_failures
 from app.services.security.ip_allowlist_service import IPAllowlistService
 from app.api.admin.endpoints import ip_allowlist as admin_ip_allowlist_router
+from app.api.admin import router as admin_router
 
 # Configure Sentry only if DSN is available
 sentry_dsn = os.environ.get("SENTRY_DSN", "")
@@ -408,6 +409,9 @@ def create_app() -> FastAPI:
 
     # Include admin IP allowlist router for management
     app.include_router(admin_ip_allowlist_router.router, prefix="/api/admin")
+
+    # Include main admin router for unified dashboard
+    app.include_router(admin_router, prefix="/api/admin")
 
     # Test endpoint to verify environment variables
     @app.get("/test-env")

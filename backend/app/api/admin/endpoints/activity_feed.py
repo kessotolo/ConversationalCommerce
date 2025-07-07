@@ -12,8 +12,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text, func, desc, and_
 
 from app.core.security.dependencies import get_current_super_admin
-from app.core.security.session.models import AdminUser
-from app.db.async_session import get_async_session
+from app.models.admin.admin_user import AdminUser
+from app.db.async_session import get_async_db
 from app.schemas.admin.dashboard import (
     ActivityFeedItem,
     RecentActivity
@@ -167,7 +167,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
 @router.get("/feed", response_model=List[ActivityFeedItem])
 async def get_activity_feed(
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session),
+    db: AsyncSession = Depends(get_async_db),
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     event_types: Optional[List[str]] = Query(
@@ -256,7 +256,7 @@ async def get_activity_feed(
 @router.get("/recent", response_model=RecentActivity)
 async def get_recent_activity(
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session),
+    db: AsyncSession = Depends(get_async_db),
     hours: int = Query(default=24, ge=1, le=168,
                        description="Hours to look back")
 ):
@@ -316,7 +316,7 @@ async def get_recent_activity(
 @router.get("/stats")
 async def get_activity_stats(
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session),
+    db: AsyncSession = Depends(get_async_db),
     days: int = Query(default=7, ge=1, le=90, description="Days to analyze")
 ):
     """
@@ -397,7 +397,7 @@ async def get_activity_stats(
 async def broadcast_notification(
     notification: Dict[str, Any],
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Broadcast a notification to all connected users.
@@ -432,7 +432,7 @@ async def send_notification(
     notification: Dict[str, Any],
     user_id: str = Query(..., description="Target user ID"),
     current_admin: AdminUser = Depends(get_current_super_admin),
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Send a notification to a specific user.

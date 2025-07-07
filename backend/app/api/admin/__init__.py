@@ -9,7 +9,7 @@ from app.api.admin.endpoints import (
     rbac,
     global_search,
     activity_feed,
-    security_dashboard
+    # security_dashboard  # TODO: Fix missing models before enabling
 )
 
 router = APIRouter()
@@ -21,5 +21,5 @@ router.include_router(rbac.router, prefix="/rbac", tags=["rbac"])
 router.include_router(global_search.router, prefix="/search", tags=["search"])
 router.include_router(activity_feed.router,
                       prefix="/activity", tags=["activity"])
-router.include_router(security_dashboard.router,
-                      prefix="/security", tags=["security"])
+# router.include_router(security_dashboard.router,
+#                       prefix="/security", tags=["security"])  # TODO: Fix missing models

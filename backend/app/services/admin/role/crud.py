@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
 from app.models.admin.role import Role
-from app.core.errors.exception import EntityNotFoundError, DuplicateEntityError
+from app.core.exceptions import ResourceNotFoundError, ValidationError
 
 
 async def create_role(
@@ -34,7 +34,7 @@ async def create_role(
         The created role
 
     Raises:
-        DuplicateEntityError: If a role with the same name exists
+        ValidationError: If a role with the same name exists
     """
     try:
         role = Role(
@@ -48,7 +48,7 @@ async def create_role(
         return role
     except IntegrityError:
         await db.rollback()
-        raise DuplicateEntityError(f"Role with name '{name}' already exists")
+        raise ValidationError(f"Role with name '{name}' already exists")
 
 
 async def get_role(
@@ -66,14 +66,14 @@ async def get_role(
         The role
 
     Raises:
-        EntityNotFoundError: If the role does not exist
+        ResourceNotFoundError: If the role does not exist
     """
     result = await db.execute(
         select(Role).where(Role.id == role_id)
     )
     role = result.scalars().first()
     if not role:
-        raise EntityNotFoundError("Role", role_id)
+        raise ResourceNotFoundError("Role", role_id)
     return role
 
 
@@ -142,7 +142,7 @@ async def update_role(
         The updated role
 
     Raises:
-        EntityNotFoundError: If the role does not exist
+        ResourceNotFoundError: If the role does not exist
     """
     # Get the role to update
     role = await get_role(db, role_id)
@@ -172,7 +172,7 @@ async def delete_role(
         role_id: ID of the role to delete
 
     Raises:
-        EntityNotFoundError: If the role does not exist
+        ResourceNotFoundError: If the role does not exist
         ValueError: If attempting to delete a system role
     """
     # Check if role exists and is not a system role

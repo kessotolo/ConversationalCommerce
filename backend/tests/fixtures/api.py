@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 import httpx
 
-from app.core.config import settings
+from app.core.config.settings import get_settings
 from app.main import app
 from app.db.async_session import get_async_session_local
 
@@ -23,6 +23,8 @@ logger = logging.getLogger(__name__)
 _test_db_session = None
 
 # Test session provider for middleware
+
+
 async def get_test_async_session() -> AsyncGenerator[AsyncSession, None]:
     """Provide the test DB session to middleware during tests"""
     global _test_db_session
@@ -34,7 +36,8 @@ async def get_test_async_session() -> AsyncGenerator[AsyncSession, None]:
             raise
     else:
         # Fallback to regular session if not in test context
-        logger.warning("No test session available, falling back to regular session")
+        logger.warning(
+            "No test session available, falling back to regular session")
         session_factory = get_async_session_local()
         async with session_factory() as session:
             yield session
@@ -51,7 +54,7 @@ def patch_settings():
         "SECRET_KEY": "test_secret_key_for_jwt_tokens_in_tests_only",
         "ALGORITHM": "HS256",
     }
-    
+
     # Apply patches to settings module
     with mock.patch.multiple(settings, **test_settings):
         yield
@@ -68,11 +71,11 @@ def client(async_db_session) -> Generator:
     from app.api.deps import get_db
     from app.main import app as fastapi_app
     from app.db.async_session import get_async_session_local
-    
+
     # In case app is wrapped with middleware, access the original FastAPI instance
     # This handles cases where app might be wrapped with SentryAsgiMiddleware
     original_app = getattr(fastapi_app, "app", fastapi_app)
-    
+
     # Create dependency override to use our test session
     async def override_get_db():
         try:
@@ -80,14 +83,14 @@ def client(async_db_session) -> Generator:
         except Exception as e:
             logger.error(f"Error in override_get_db: {e}")
             raise
-    
+
     # Store the test session globally for middleware access
     global _test_db_session
     _test_db_session = async_db_session
-    
+
     # Create a patched version of get_async_session_local that returns a factory yielding our test session
     original_get_async_session_local = get_async_session_local
-    
+
     def patched_get_async_session_local():
         # Return a factory that will yield our test session
         async def factory():
@@ -97,10 +100,10 @@ def client(async_db_session) -> Generator:
                 logger.error(f"Error in patched session factory: {e}")
                 raise
         return factory
-    
+
     # Apply the overrides
     original_app.dependency_overrides[get_db] = override_get_db
-    
+
     # Patch the session factory used by middleware
     with mock.patch('app.db.async_session.get_async_session_local', patched_get_async_session_local):
         try:
@@ -111,7 +114,7 @@ def client(async_db_session) -> Generator:
             # Clean up the override after the test
             if get_db in original_app.dependency_overrides:
                 del original_app.dependency_overrides[get_db]
-            
+
     # Reset the global test session
     _test_db_session = None
 
@@ -132,30 +135,30 @@ def create_test_token(
 ) -> str:
     """
     Create a test JWT token with the specified subject and claims.
-    
+
     Args:
         subject: User ID or subject for the token
         tenant_id: Tenant ID for the token
         scopes: List of permission scopes
         is_superuser: Whether the user is a superuser
         expiration_minutes: Expiration time in minutes
-    
+
     Returns:
         JWT token string
     """
     expire = datetime.now(timezone.utc) + timedelta(minutes=expiration_minutes)
-    
+
     # Convert any UUIDs to strings to ensure JSON serialization works
     def serialize_value(value):
         import uuid
         if isinstance(value, uuid.UUID):
             return str(value)
         return value
-    
+
     # Ensure subject and tenant_id are strings
     subject_str = serialize_value(subject)
     tenant_id_str = serialize_value(tenant_id)
-    
+
     to_encode = {
         "sub": subject_str,
         "tenant_id": tenant_id_str,
@@ -164,17 +167,17 @@ def create_test_token(
         "is_superuser": is_superuser,
         "type": "access",
     }
-    
+
     # Use hardcoded test values instead of settings for tests
     test_secret_key = "test_secret_key_for_jwt_tokens_in_tests_only"
     test_algorithm = "HS256"
-    
+
     encoded_jwt = jwt.encode(
-        to_encode, 
-        test_secret_key, 
+        to_encode,
+        test_secret_key,
         algorithm=test_algorithm
     )
-    
+
     return encoded_jwt
 
 
@@ -182,7 +185,7 @@ def create_test_token(
 def auth_headers(test_user) -> Dict[str, str]:
     """
     Generate authentication headers for a regular user.
-    
+
     Returns:
         A dict with the Authorization header and X-Tenant-ID header
     """
@@ -191,10 +194,10 @@ def auth_headers(test_user) -> Dict[str, str]:
         tenant_id=test_user.tenant_id,
         is_superuser=False,
     )
-    
+
     # Convert any UUID to string to ensure it works correctly
     tenant_id_str = str(test_user.tenant_id) if test_user.tenant_id else ""
-    
+
     return {
         "Authorization": f"Bearer {token}",
         "X-Tenant-ID": tenant_id_str
@@ -205,7 +208,7 @@ def auth_headers(test_user) -> Dict[str, str]:
 def admin_auth_headers(test_admin_user) -> Dict[str, str]:
     """
     Generate authentication headers for an admin user.
-    
+
     Returns:
         A dict with the Authorization header containing a valid admin JWT
     """
@@ -221,7 +224,7 @@ def admin_auth_headers(test_admin_user) -> Dict[str, str]:
 def webhook_auth_headers() -> Dict[str, str]:
     """
     Generate authentication headers for webhook testing.
-    
+
     Returns:
         A dict with the webhook authorization header
     """
@@ -232,7 +235,7 @@ def webhook_auth_headers() -> Dict[str, str]:
 def test_idempotency_key() -> str:
     """
     Generate a unique idempotency key for testing idempotent endpoints.
-    
+
     Returns:
         A unique idempotency key string
     """

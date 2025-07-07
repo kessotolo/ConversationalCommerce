@@ -2,7 +2,7 @@
 Admin-specific configuration settings.
 """
 
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 
 class AdminSettings(BaseSettings):
