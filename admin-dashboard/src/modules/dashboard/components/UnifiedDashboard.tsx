@@ -44,6 +44,10 @@ import { TenantControlCenter } from '@/modules/tenant/components/TenantControlCe
 import { FeatureFlagManagement } from '@/modules/feature-flags/components/FeatureFlagManagement';
 import { ImpersonationManagement } from '@/modules/security/components/ImpersonationManagement';
 import { ContextManagement } from '@/modules/context/components/ContextManagement';
+import { SystemMonitoring } from '@/modules/monitoring/components/SystemMonitoring';
+import { EmergencyControls } from '@/modules/emergency/components/EmergencyControls';
+import { ComplianceDashboard } from '@/modules/compliance/components/ComplianceDashboard';
+import { DashboardOverview } from './DashboardOverview';
 import api from '@/lib/api';
 
 interface DashboardMetrics {
@@ -334,137 +338,20 @@ export function UnifiedDashboard() {
 
             {/* Main Dashboard Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
+                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-9">
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="analytics">Analytics</TabsTrigger>
                     <TabsTrigger value="security">Security</TabsTrigger>
                     <TabsTrigger value="activity">Activity</TabsTrigger>
                     <TabsTrigger value="tenants">Tenants</TabsTrigger>
                     <TabsTrigger value="features">Features</TabsTrigger>
+                    <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
+                    <TabsTrigger value="emergency">Emergency</TabsTrigger>
+                    <TabsTrigger value="compliance">Compliance</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-4">
-                    {/* KPI Cards */}
-                    {kpis && (
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                            <KPIWidget
-                                title="Total Tenants"
-                                value={formatNumber(kpis.total_tenants)}
-                                subValue={`${kpis.active_tenants} active`}
-                                icon={Building2}
-                                trend={kpis.avg_daily_tenants > 0 ? 'up' : 'stable'}
-                                trendValue={`+${kpis.avg_daily_tenants.toFixed(1)}/day`}
-                            />
-                            <KPIWidget
-                                title="Total Users"
-                                value={formatNumber(kpis.total_users)}
-                                subValue={`${kpis.active_users} active`}
-                                icon={Users}
-                                trend={kpis.avg_daily_users > 0 ? 'up' : 'stable'}
-                                trendValue={`+${kpis.avg_daily_users.toFixed(1)}/day`}
-                            />
-                            <KPIWidget
-                                title="Total Orders"
-                                value={formatNumber(kpis.total_orders)}
-                                subValue={`${kpis.avg_daily_orders.toFixed(0)}/day avg`}
-                                icon={ShoppingCart}
-                                trend={kpis.avg_daily_orders > 0 ? 'up' : 'stable'}
-                                trendValue={`+${kpis.avg_daily_orders.toFixed(1)}/day`}
-                            />
-                            <KPIWidget
-                                title="Total Revenue"
-                                value={formatCurrency(kpis.total_revenue)}
-                                subValue={`${formatCurrency(kpis.avg_daily_revenue)}/day avg`}
-                                icon={DollarSign}
-                                trend={kpis.avg_daily_revenue > 0 ? 'up' : 'stable'}
-                                trendValue={`+${formatCurrency(kpis.avg_daily_revenue)}/day`}
-                            />
-                        </div>
-                    )}
-
-                    {/* Detailed Metrics */}
-                    {metrics && (
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            {/* Tenant Metrics */}
-                            <Card>
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Tenant Overview</CardTitle>
-                                    <Building2 className="h-4 w-4 text-muted-foreground" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between">
-                                            <span className="text-sm">Verified Tenants</span>
-                                            <span className="text-sm font-medium">{metrics.tenant_metrics.verified_tenants}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-sm">New This Period</span>
-                                            <span className="text-sm font-medium">{metrics.tenant_metrics.new_tenants}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-sm">Growth Rate</span>
-                                            <span className={`text-sm font-medium ${metrics.tenant_metrics.growth_rate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                                {metrics.tenant_metrics.growth_rate.toFixed(1)}%
-                                            </span>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            {/* Order Metrics */}
-                            <Card>
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Order Performance</CardTitle>
-                                    <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between">
-                                            <span className="text-sm">Completion Rate</span>
-                                            <span className="text-sm font-medium">{metrics.order_metrics.completion_rate.toFixed(1)}%</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-sm">Avg Order Value</span>
-                                            <span className="text-sm font-medium">{formatCurrency(metrics.order_metrics.avg_order_value)}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-sm">Recent Orders</span>
-                                            <span className="text-sm font-medium">{metrics.order_metrics.recent_orders}</span>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            {/* Security Overview */}
-                            <Card>
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Security Status</CardTitle>
-                                    <Shield className="h-4 w-4 text-muted-foreground" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between">
-                                            <span className="text-sm">Threat Level</span>
-                                            <Badge className={getThreatLevelColor(metrics.security_metrics.threat_level)}>
-                                                {metrics.security_metrics.threat_level}
-                                            </Badge>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-sm">Failed Logins</span>
-                                            <span className="text-sm font-medium">{metrics.security_metrics.failed_logins}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-sm">Violations</span>
-                                            <span className="text-sm font-medium">{metrics.security_metrics.security_violations}</span>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    )}
-
-                    {/* Quick Actions */}
-                    <QuickActions />
+                    <DashboardOverview kpis={kpis} metrics={metrics} />
                 </TabsContent>
 
                 <TabsContent value="analytics" className="space-y-4">
@@ -524,6 +411,18 @@ export function UnifiedDashboard() {
                             <ContextManagement />
                         </div>
                     </div>
+                </TabsContent>
+
+                <TabsContent value="monitoring" className="space-y-4">
+                    <SystemMonitoring />
+                </TabsContent>
+
+                <TabsContent value="emergency" className="space-y-4">
+                    <EmergencyControls />
+                </TabsContent>
+
+                <TabsContent value="compliance" className="space-y-4">
+                    <ComplianceDashboard />
                 </TabsContent>
             </Tabs>
 

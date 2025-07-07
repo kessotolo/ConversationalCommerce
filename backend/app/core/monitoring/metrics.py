@@ -16,6 +16,7 @@ from prometheus_client import (
     REGISTRY, start_http_server
 )
 from fastapi import Request, Response
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.config.settings import get_settings
 
@@ -286,29 +287,38 @@ metrics_collector = MetricsCollector()
 
 
 # FastAPI middleware for request tracking
-async def metrics_middleware(request: Request, call_next):
+class MetricsMiddleware(BaseHTTPMiddleware):
     """FastAPI middleware to track request metrics"""
-    start_time = time.time()
 
-    try:
-        response = await call_next(request)
-        duration = time.time() - start_time
+    async def dispatch(self, request: Request, call_next):
+        start_time = time.time()
 
-        metrics_collector.track_request(request, response, duration)
+        try:
+            response = await call_next(request)
+            duration = time.time() - start_time
 
-        return response
-    except Exception as e:
-        duration = time.time() - start_time
-        logger.error(f"Error processing request: {e}")
+            metrics_collector.track_request(request, response, duration)
 
-        # Create a Response object for tracking
-        response = Response(
-            content=str(e),
-            status_code=500
-        )
-        metrics_collector.track_request(request, response, duration)
+            return response
+        except Exception as e:
+            duration = time.time() - start_time
+            logger.error(f"Error processing request: {e}")
 
-        raise
+            # Create a Response object for tracking
+            response = Response(
+                content=str(e),
+                status_code=500
+            )
+            metrics_collector.track_request(request, response, duration)
+
+            raise
+
+
+# Backward compatibility function
+async def metrics_middleware(request: Request, call_next):
+    """Legacy function for backward compatibility"""
+    middleware = MetricsMiddleware(None)
+    return await middleware.dispatch(request, call_next)
 
 
 def setup_metrics():

@@ -10,6 +10,8 @@ from typing import Dict, List, Optional, Any
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
+import json
+import logging
 
 from app.core.security.dependencies import get_current_super_admin
 from app.db.async_session import get_async_db
@@ -17,9 +19,10 @@ from app.models.admin.admin_user import AdminUser
 from app.models.security.ip_allowlist import IPAllowlistEntry
 from app.models.security.rate_limit import LoginAttempt
 from app.models.security.rate_limit import RateLimitEntry
-# from app.models.security.admin_session import # AdminSession  # TODO: Define model  # TODO: Define # AdminSession  # TODO: Define model model
-# from app.models.security.two_factor_auth import TwoFactorAuth  # TODO: Define model
+from app.models.security.two_factor import TOTPSecret
 from app.models.audit.audit_log import AuditLog
+from app.core.security.session.storage import SessionStorage
+from app.core.security.session.models import SessionConfig
 from app.schemas.security.security_dashboard import (
     SecurityMetricsResponse,
     SecurityEventResponse,
@@ -28,6 +31,7 @@ from app.schemas.security.security_dashboard import (
     SecurityAlert
 )
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/security", tags=["security-dashboard"])
 
 
@@ -53,15 +57,27 @@ async def get_security_metrics(
     # Get 24 hours ago timestamp
     twenty_four_hours_ago = datetime.now(timezone.utc) - timedelta(hours=24)
 
-    # Count active sessions
-    active_sessions_count = await db.scalar(
-        func.count(  # AdminSession  # TODO: Define model.id).where(
-            and_(
-                # AdminSession  # TODO: Define model.is_active == True,
-                # AdminSession  # TODO: Define model.expires_at > datetime.now(timezone.utc)
-            )
-        )
-    )
+    # Count active sessions using session service
+    session_storage = SessionStorage(SessionConfig())
+    active_sessions_count = 0
+    try:
+        # Get all active sessions from Redis
+        pattern = f"{session_storage.config.session_prefix}*"
+        # This also cleans up expired sessions
+        session_keys = await session_storage.cleanup_expired_sessions()
+        # Count remaining active sessions
+        all_sessions = []
+        for key in await session_storage.redis_cache.scan_keys(pattern):
+            session_data = await session_storage.redis_cache.get(key)
+            if session_data:
+                data = json.loads(session_data)
+                if data.get('is_active', False):
+                    all_sessions.append(data)
+        active_sessions_count = len(all_sessions)
+    except Exception as e:
+        # Log error but don't fail the endpoint
+        logger.error(f"Error getting active sessions count: {e}")
+        active_sessions_count = 0
 
     # Count failed login attempts in last 24 hours
     failed_login_attempts = await db.scalar(
@@ -81,10 +97,13 @@ async def get_security_metrics(
         )
     )
 
-    # Count users with 2FA enabled
+    # Count users with 2FA enabled (using TOTPSecret instead of TwoFactorAuth)
     enabled_2fa_count = await db.scalar(
-        func.count(TwoFactorAuth.id).where(
-            TwoFactorAuth.is_enabled == True
+        func.count(TOTPSecret.id).where(
+            and_(
+                TOTPSecret.is_enabled == True,
+                TOTPSecret.is_verified == True
+            )
         )
     )
 
@@ -131,7 +150,7 @@ async def get_security_metrics(
     )
 
     return SecurityMetricsResponse(
-        active_sessions=active_sessions_count or 0,
+        active_sessions=active_sessions_count,
         failed_login_attempts_24h=failed_login_attempts or 0,
         ip_allowlist_entries=ip_allowlist_count or 0,
         enabled_2fa_users=enabled_2fa_count or 0,
@@ -277,8 +296,11 @@ async def get_security_alerts(
     # Check for users without 2FA
     total_admins = await db.scalar(func.count(AdminUser.id))
     admins_with_2fa = await db.scalar(
-        func.count(TwoFactorAuth.id).where(
-            TwoFactorAuth.is_enabled == True
+        func.count(TOTPSecret.id).where(
+            and_(
+                TOTPSecret.is_enabled == True,
+                TOTPSecret.is_verified == True
+            )
         )
     )
 
@@ -322,14 +344,14 @@ async def get_security_alerts(
         ))
 
     # Check for expired sessions that should be cleaned up
-    expired_sessions = await db.scalar(
-        func.count(  # AdminSession  # TODO: Define model.id).where(
-            and_(
-                # AdminSession  # TODO: Define model.is_active == True,
-                # AdminSession  # TODO: Define model.expires_at < datetime.now(timezone.utc)
-            )
-        )
-    )
+    expired_sessions = 0
+    try:
+        session_storage = SessionStorage(SessionConfig())
+        # Clean up expired sessions and count them
+        expired_sessions = len(await session_storage.cleanup_expired_sessions())
+    except Exception as e:
+        logger.error(f"Error checking expired sessions: {e}")
+        expired_sessions = 0
 
     if expired_sessions and expired_sessions > 10:
         alerts.append(SecurityAlertResponse(
@@ -371,18 +393,26 @@ async def trigger_emergency_lockdown(
         })
     )
 
-    # Invalidate all active sessions except current admin's
-    await db.execute(
-        db.query(  # AdminSession  # TODO: Define model)
-        .where(  # AdminSession  # TODO: Define model.user_id != current_admin.id)
-        .update({
-            "is_active": False,
-            "ended_at": datetime.now(timezone.utc)
-        })
-    )
+    # Invalidate all active sessions except current admin's using session service
+    try:
+        session_storage = SessionStorage(SessionConfig())
+        # Get all sessions for all users except current admin
+        pattern = f"{session_storage.config.session_prefix}*"
+        session_keys = await session_storage.redis_cache.scan_keys(pattern)
+
+        for key in session_keys:
+            session_data = await session_storage.redis_cache.get(key)
+            if session_data:
+                data = json.loads(session_data)
+                if data.get('user_id') != current_admin.id:
+                    # Invalidate session
+                    await session_storage.delete_session(data['session_id'], data['user_id'])
+    except Exception as e:
+        logger.error(
+            f"Error invalidating sessions during emergency lockdown: {e}")
 
     # Log the emergency action
-    audit_log=AuditLog(
+    audit_log = AuditLog(
         event_type="emergency_lockdown",
         user_id=current_admin.id,
         ip_address=None,  # Would be set by middleware
@@ -397,10 +427,10 @@ async def trigger_emergency_lockdown(
     return {"message": "Emergency lockdown activated successfully"}
 
 
-@ router.get("/health")
+@router.get("/health")
 async def security_health_check(
-    current_admin: AdminUser=Depends(get_current_super_admin),
-    db: AsyncSession=Depends(get_async_db)
+    current_admin: AdminUser = Depends(get_current_super_admin),
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Comprehensive security health check.
@@ -414,7 +444,7 @@ async def security_health_check(
     - CORS protection
     """
 
-    health_status={
+    health_status = {
         "overall_status": "healthy",
         "components": {},
         "timestamp": datetime.now(timezone.utc).isoformat()
@@ -423,36 +453,47 @@ async def security_health_check(
     # Check Clerk integration
     try:
         # This would make a test call to Clerk API
-        health_status["components"]["clerk_integration"]="healthy"
+        health_status["components"]["clerk_integration"] = "healthy"
     except Exception as e:
-        health_status["components"]["clerk_integration"]="unhealthy"
-        health_status["overall_status"]="degraded"
+        health_status["components"]["clerk_integration"] = "unhealthy"
+        health_status["overall_status"] = "degraded"
 
     # Check session management
     try:
-        session_count=await db.scalar(func.count(  # AdminSession  # TODO: Define model.id))
-        health_status["components"]["session_management"]="healthy"
-        health_status["components"]["active_sessions"]=session_count or 0
+        session_storage = SessionStorage(SessionConfig())
+        # Count active sessions
+        pattern = f"{session_storage.config.session_prefix}*"
+        session_keys = await session_storage.redis_cache.scan_keys(pattern)
+        active_sessions = 0
+        for key in session_keys:
+            session_data = await session_storage.redis_cache.get(key)
+            if session_data:
+                data = json.loads(session_data)
+                if data.get('is_active', False):
+                    active_sessions += 1
+
+        health_status["components"]["session_management"] = "healthy"
+        health_status["components"]["active_sessions"] = active_sessions
     except Exception as e:
-        health_status["components"]["session_management"]="unhealthy"
-        health_status["overall_status"]="degraded"
+        health_status["components"]["session_management"] = "unhealthy"
+        health_status["overall_status"] = "degraded"
 
     # Check IP allowlist
     try:
-        allowlist_count=await db.scalar(func.count(IPAllowlistEntry.id))
-        health_status["components"]["ip_allowlist"]="healthy"
-        health_status["components"]["allowlist_entries"]=allowlist_count or 0
+        allowlist_count = await db.scalar(func.count(IPAllowlistEntry.id))
+        health_status["components"]["ip_allowlist"] = "healthy"
+        health_status["components"]["allowlist_entries"] = allowlist_count or 0
     except Exception as e:
-        health_status["components"]["ip_allowlist"]="unhealthy"
-        health_status["overall_status"]="degraded"
+        health_status["components"]["ip_allowlist"] = "unhealthy"
+        health_status["overall_status"] = "degraded"
 
     # Check 2FA system
     try:
-        twofa_count=await db.scalar(func.count(TwoFactorAuth.id))
-        health_status["components"]["two_factor_auth"]="healthy"
-        health_status["components"]["enabled_2fa"]=twofa_count or 0
+        twofa_count = await db.scalar(func.count(TOTPSecret.id))
+        health_status["components"]["two_factor_auth"] = "healthy"
+        health_status["components"]["enabled_2fa"] = twofa_count or 0
     except Exception as e:
-        health_status["components"]["two_factor_auth"]="unhealthy"
-        health_status["overall_status"]="degraded"
+        health_status["components"]["two_factor_auth"] = "unhealthy"
+        health_status["overall_status"] = "degraded"
 
     return health_status

@@ -27,7 +27,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.core.monitoring.metrics import metrics_middleware, setup_metrics
+from app.core.monitoring.metrics import MetricsMiddleware, setup_metrics
 
 import app.domain.events  # Ensure event handlers are registered
 from app.api.v1.api import api_router
@@ -338,7 +338,7 @@ def create_app() -> FastAPI:
     app.add_middleware(RateLimitMiddleware)
 
     # 3. Metrics middleware (for system monitoring)
-    app.add_middleware(metrics_middleware)
+    app.add_middleware(MetricsMiddleware)
 
     # 4. Request timing (for performance monitoring)
     app.add_middleware(RequestTimingMiddleware)

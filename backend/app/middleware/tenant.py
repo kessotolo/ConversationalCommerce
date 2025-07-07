@@ -3,7 +3,7 @@ from uuid import UUID
 
 from config import settings
 from fastapi import FastAPI, Request, Response, status
-from fastapi.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.responses import JSONResponse
 
 
