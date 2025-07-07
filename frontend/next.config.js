@@ -43,11 +43,21 @@ const nextConfig = {
   pageExtensions: ['tsx', 'ts'],
 
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
-    // Ensure proper module resolution for @/ paths
+    // Ensure proper module resolution for @/ paths - enhanced for Vercel
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': path.resolve(__dirname, 'src'),
+      '@/components': path.resolve(__dirname, 'src/components'),
+      '@/lib': path.resolve(__dirname, 'src/lib'),
+      '@/utils': path.resolve(__dirname, 'src/utils'),
+      '@/hooks': path.resolve(__dirname, 'src/hooks'),
+      '@/contexts': path.resolve(__dirname, 'src/contexts'),
+      '@/services': path.resolve(__dirname, 'src/services'),
+      '@/modules': path.resolve(__dirname, 'src/modules'),
     };
+
+    // Ensure proper module resolution extensions
+    config.resolve.extensions = ['.tsx', '.ts', '.jsx', '.js', '.json'];
 
     // Optimize for App Router
     if (!dev && !isServer) {
