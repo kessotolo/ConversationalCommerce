@@ -2,15 +2,21 @@
     "version": 2,
     "name": "frontend",
     "framework": "nextjs",
-    "buildCommand": "npm run build",
-    "outputDirectory": ".next",
-    "installCommand": "npm install",
+    "buildCommand": "cd frontend && npm run build",
+    "outputDirectory": "frontend/.next",
+    "installCommand": "cd frontend && npm install",
     "functions": {
-        "app/**": {
-            "maxDuration": 30
+        "frontend/src/app/api/**/*.ts": {
+            "runtime": "nodejs20.x"
         }
     },
     "regions": [
         "iad1"
+    ],
+    "rewrites": [
+        {
+            "source": "/api/(.*)",
+            "destination": "/api/$1"
+        }
     ]
 }
