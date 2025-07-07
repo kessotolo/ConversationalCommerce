@@ -71,6 +71,9 @@ export function ActivityFeed() {
             const interval = setInterval(fetchActivities, 30000);
             return () => clearInterval(interval);
         }
+
+        // Return empty cleanup function when autoRefresh is false
+        return () => { };
     }, [fetchActivities, autoRefresh]);
 
     // WebSocket connection for real-time updates
