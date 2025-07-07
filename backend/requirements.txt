@@ -38,6 +38,9 @@ rsa>=4.9.0
 # NLP & Content Analysis - Python 3.12 compatible
 spacy==3.7.2
 nltk==3.8.1
+
+# Monitoring & Metrics
+psutil>=5.9.0
 textblob==0.17.1
 detoxify==0.5.2
 # Install language models with: python -m spacy download en_core_web_sm
