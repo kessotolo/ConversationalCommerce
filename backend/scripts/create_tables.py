@@ -14,7 +14,7 @@ import backend.app
 sys.modules['app'] = sys.modules['backend.app']
 
 from sqlalchemy import create_engine, inspect, MetaData, Table
-from backend.app.core.config.settings import Settings
+from app.core.config.settings.settings import Settings
 
 # Import the Base from app.db to match what models are importing
 from app.db import Base
