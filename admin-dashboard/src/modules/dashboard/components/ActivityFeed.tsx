@@ -6,11 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
     Activity,
-    AlertTriangle,
-    Filter,
     RefreshCw,
     Search,
     User,
@@ -19,8 +16,6 @@ import {
     ShoppingCart,
     Building2,
     Package,
-    Clock,
-    ChevronDown,
     ExternalLink
 } from 'lucide-react';
 
@@ -257,8 +252,8 @@ export function ActivityFeed() {
                             >
                                 <div className="flex items-start space-x-3">
                                     <div className={`p-2 rounded-full ${activity.severity === 'critical' ? 'bg-red-100 text-red-600' :
-                                            activity.severity === 'warning' ? 'bg-yellow-100 text-yellow-600' :
-                                                'bg-blue-100 text-blue-600'
+                                        activity.severity === 'warning' ? 'bg-yellow-100 text-yellow-600' :
+                                            'bg-blue-100 text-blue-600'
                                         }`}>
                                         {getActivityIcon(activity.event_type)}
                                     </div>
