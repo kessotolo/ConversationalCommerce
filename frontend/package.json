@@ -9,14 +9,17 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "lint:strict": "next lint --max-warnings=0",
-    "lint:ignore-legacy": "eslint . --ext .js,.jsx,.ts,.tsx --ignore-pattern scripts/ --ignore-pattern tests/ --ignore-pattern legacy/",
     "verify": "node scripts/verify-build.js",
     "verify:architecture": "node scripts/verify-architecture.js",
     "check:circular": "ts-node scripts/check-circular-deps.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "analyze": "ANALYZE=true next build",
-    "depcruise": "dependency-cruiser --config .dependency-cruiser.js src"
+    "depcruise": "dependency-cruiser --config .dependency-cruiser.js src",
+    "build:app-router": "next build --experimental-app",
+    "preview": "next start",
+    "clean": "rm -rf .next out",
+    "build:clean": "npm run clean && npm run build"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.20.2",
