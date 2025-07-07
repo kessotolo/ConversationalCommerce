@@ -152,6 +152,35 @@ import { TenantService } from '@/modules/tenant/services/TenantService'; // WRON
 9. **NEVER violate multi-tenant data isolation**
 10. **ALWAYS follow TypeScript strict mode requirements**
 11. **NEVER create complex interfaces without proper documentation**
+12. **🚨 CRITICAL: NEVER delete real API functionality in favor of mock/placeholder code**
+13. **🚨 CRITICAL: ALWAYS verify that "legacy" code isn't actually the real implementation**
+14. **🚨 CRITICAL: When comparing implementations, prioritize real API calls over UI modernness**
+15. **🚨 CRITICAL: App Router is preferred, but ONLY when connected to real backend functionality**
+16. **🚨 CRITICAL: Before deleting any code, verify it's not the only working implementation**
+
+## 🔄 Enhanced Verification Methods
+
+### **Pre-Deletion Checklist**
+Before removing ANY code, AI agents MUST verify:
+1. **API Integration**: Does the code make real API calls vs mock data?
+2. **Functionality Comparison**: Is the "legacy" version actually more functional?
+3. **Dependencies**: Are other parts of the system depending on this code?
+4. **Build Impact**: Will removal break the build or remove working features?
+5. **User Impact**: Will users lose access to working functionality?
+
+### **Code Quality Assessment Priority**
+When comparing implementations, prioritize in this order:
+1. **Real API Integration** (highest priority)
+2. **Error Handling & User Feedback**
+3. **Type Safety & Documentation**
+4. **Modern Architecture (App Router, etc.)**
+5. **UI/UX Improvements** (lowest priority)
+
+### **Future-Proofing Standards**
+- **Real over Mock**: Always choose real API functionality over placeholder code
+- **Working over Modern**: Functional code takes precedence over architectural modernness
+- **Incremental Upgrades**: Upgrade architecture while preserving functionality
+- **Verification Required**: All architectural changes must maintain or improve functionality
 
 ## 🔄 Verification Methods
 

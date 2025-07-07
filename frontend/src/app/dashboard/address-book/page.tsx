@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react';
+import { getAddresses, createAddress, updateAddress, deleteAddress, setDefaultAddress } from '@/lib/api/addressBook';
+import { useToast } from '@/components/ui/use-toast';
 
 // Address type (should match backend and shared models)
 interface Address {
@@ -8,11 +10,12 @@ interface Address {
     street: string;
     city: string;
     state: string;
-    postalCode: string;
+    postal_code: string;
     country: string;
     apartment?: string;
     landmark?: string;
-    isDefault?: boolean;
+    coordinates?: { latitude: number; longitude: number };
+    is_default: boolean;
 }
 
 function AddressForm({
@@ -28,7 +31,8 @@ function AddressForm({
     const [error, setError] = useState<string | null>(null);
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+        const { name, value } = e.target;
+        setForm((f) => ({ ...f, [name]: value }));
     }
 
     function handleSubmit(e: React.FormEvent) {
@@ -45,31 +49,70 @@ function AddressForm({
         <form onSubmit={handleSubmit} className="space-y-3">
             <div>
                 <label className="block text-sm font-medium mb-1">Street *</label>
-                <input name="street" value={form.street || ''} onChange={handleChange} className="w-full border rounded px-3 py-2" required />
+                <input
+                    name="street"
+                    value={form.street || ''}
+                    onChange={handleChange}
+                    className="w-full border rounded px-3 py-2"
+                    required
+                />
             </div>
             <div>
                 <label className="block text-sm font-medium mb-1">Apartment</label>
-                <input name="apartment" value={form.apartment || ''} onChange={handleChange} className="w-full border rounded px-3 py-2" />
+                <input
+                    name="apartment"
+                    value={form.apartment || ''}
+                    onChange={handleChange}
+                    className="w-full border rounded px-3 py-2"
+                />
             </div>
             <div>
                 <label className="block text-sm font-medium mb-1">City *</label>
-                <input name="city" value={form.city || ''} onChange={handleChange} className="w-full border rounded px-3 py-2" required />
+                <input
+                    name="city"
+                    value={form.city || ''}
+                    onChange={handleChange}
+                    className="w-full border rounded px-3 py-2"
+                    required
+                />
             </div>
             <div>
                 <label className="block text-sm font-medium mb-1">State *</label>
-                <input name="state" value={form.state || ''} onChange={handleChange} className="w-full border rounded px-3 py-2" required />
+                <input
+                    name="state"
+                    value={form.state || ''}
+                    onChange={handleChange}
+                    className="w-full border rounded px-3 py-2"
+                    required
+                />
             </div>
             <div>
                 <label className="block text-sm font-medium mb-1">Postal Code</label>
-                <input name="postalCode" value={form.postalCode || ''} onChange={handleChange} className="w-full border rounded px-3 py-2" />
+                <input
+                    name="postal_code"
+                    value={form.postal_code || ''}
+                    onChange={handleChange}
+                    className="w-full border rounded px-3 py-2"
+                />
             </div>
             <div>
                 <label className="block text-sm font-medium mb-1">Country *</label>
-                <input name="country" value={form.country || ''} onChange={handleChange} className="w-full border rounded px-3 py-2" required />
+                <input
+                    name="country"
+                    value={form.country || ''}
+                    onChange={handleChange}
+                    className="w-full border rounded px-3 py-2"
+                    required
+                />
             </div>
             <div>
                 <label className="block text-sm font-medium mb-1">Landmark</label>
-                <input name="landmark" value={form.landmark || ''} onChange={handleChange} className="w-full border rounded px-3 py-2" />
+                <input
+                    name="landmark"
+                    value={form.landmark || ''}
+                    onChange={handleChange}
+                    className="w-full border rounded px-3 py-2"
+                />
             </div>
             {error && <div className="text-red-600 text-sm">{error}</div>}
             <div className="flex gap-2 mt-2">
@@ -81,6 +124,7 @@ function AddressForm({
 }
 
 export default function AddressBookPage() {
+    const { toast } = useToast();
     const [addresses, setAddresses] = useState<Address[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -88,24 +132,29 @@ export default function AddressBookPage() {
     const [editAddress, setEditAddress] = useState<Address | null>(null);
     const [saving, setSaving] = useState(false);
 
-    // Placeholder: Replace with real API calls
+    // Real API call to fetch addresses
     useEffect(() => {
-        setLoading(true);
-        setTimeout(() => {
-            setAddresses([
-                {
-                    id: '1',
-                    street: '123 Main St',
-                    city: 'Nairobi',
-                    state: 'Nairobi',
-                    postalCode: '00100',
-                    country: 'Kenya',
-                    isDefault: true,
-                },
-            ]);
-            setLoading(false);
-        }, 500);
+        fetchAddresses();
     }, []);
+
+    async function fetchAddresses() {
+        setLoading(true);
+        setError(null);
+        try {
+            const data = await getAddresses();
+            setAddresses(data);
+        } catch (e) {
+            const errorMessage = 'Failed to load addresses';
+            setError(errorMessage);
+            toast({
+                title: 'Error',
+                description: errorMessage,
+                variant: 'destructive'
+            });
+        } finally {
+            setLoading(false);
+        }
+    }
 
     function handleAdd() {
         setEditAddress(null);
@@ -117,67 +166,151 @@ export default function AddressBookPage() {
         setShowForm(true);
     }
 
-    function handleDelete(id: string) {
-        setAddresses((prev) => prev.filter((a) => a.id !== id));
+    async function handleDelete(id: string) {
+        setSaving(true);
+        try {
+            await deleteAddress(id);
+            toast({
+                title: 'Deleted',
+                description: 'Address deleted successfully'
+            });
+            await fetchAddresses(); // Refresh the list
+        } catch (e) {
+            toast({
+                title: 'Error',
+                description: 'Failed to delete address',
+                variant: 'destructive'
+            });
+        } finally {
+            setSaving(false);
+        }
     }
 
-    function handleSave(addr: Partial<Address>) {
+    async function handleSave(addr: Partial<Address>) {
         setSaving(true);
-        setTimeout(() => {
+        try {
             if (editAddress) {
-                setAddresses((prev) => prev.map((a) => (a.id === editAddress.id ? { ...a, ...addr } as Address : a)));
+                await updateAddress(editAddress.id, addr);
+                toast({
+                    title: 'Updated',
+                    description: 'Address updated successfully'
+                });
             } else {
-                setAddresses((prev) => [
-                    ...prev,
-                    { ...addr, id: Math.random().toString(36).slice(2), isDefault: prev.length === 0 } as Address,
-                ]);
+                await createAddress(addr);
+                toast({
+                    title: 'Created',
+                    description: 'Address added successfully'
+                });
             }
+            await fetchAddresses(); // Refresh the list
             setShowForm(false);
             setEditAddress(null);
+        } catch (e) {
+            toast({
+                title: 'Error',
+                description: 'Failed to save address',
+                variant: 'destructive'
+            });
+        } finally {
             setSaving(false);
-        }, 500);
+        }
     }
 
-    function handleSetDefault(id: string) {
-        setAddresses((prev) => prev.map((a) => ({ ...a, isDefault: a.id === id })));
+    async function handleSetDefault(id: string) {
+        setSaving(true);
+        try {
+            await setDefaultAddress(id);
+            toast({
+                title: 'Default Set',
+                description: 'Default address updated successfully'
+            });
+            await fetchAddresses(); // Refresh the list
+        } catch (e) {
+            toast({
+                title: 'Error',
+                description: 'Failed to set default address',
+                variant: 'destructive'
+            });
+        } finally {
+            setSaving(false);
+        }
     }
 
     return (
         <div className="max-w-2xl mx-auto py-8">
             <h1 className="text-2xl font-bold mb-6">My Addresses</h1>
+
+            {error && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-md">
+                    <p>{error}</p>
+                </div>
+            )}
+
             {loading ? (
-                <div>Loading...</div>
+                <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6C9A8B]"></div>
+                    <span className="ml-2 text-gray-600">Loading addresses...</span>
+                </div>
             ) : (
                 <>
                     <button
-                        className="mb-4 bg-[#6C9A8B] text-white px-4 py-2 rounded hover:bg-[#5d8a7b]"
+                        className="mb-4 bg-[#6C9A8B] text-white px-4 py-2 rounded hover:bg-[#5d8a7b] disabled:opacity-50"
                         onClick={handleAdd}
+                        disabled={saving}
                     >
                         Add Address
                     </button>
+
                     {addresses.length === 0 ? (
-                        <div className="text-gray-500">No addresses saved yet.</div>
+                        <div className="text-center py-8 text-gray-500">
+                            <p>No addresses saved yet.</p>
+                            <p className="text-sm mt-2">Add your first address to get started.</p>
+                        </div>
                     ) : (
                         <ul className="space-y-4">
                             {addresses.map((addr) => (
                                 <li key={addr.id} className="bg-white rounded shadow p-4 border flex flex-col md:flex-row md:items-center md:justify-between">
                                     <div>
-                                        <div className="font-semibold">{addr.street}, {addr.city}, {addr.state}, {addr.country}</div>
-                                        {addr.apartment && <div className="text-sm text-gray-500">Apt: {addr.apartment}</div>}
-                                        {addr.landmark && <div className="text-sm text-gray-500">Landmark: {addr.landmark}</div>}
-                                        <div className="text-xs text-gray-400">Postal: {addr.postalCode || '-'}</div>
-                                        {addr.isDefault && <span className="inline-block text-xs text-green-600 font-semibold mt-1">Default</span>}
+                                        <div className="font-semibold">
+                                            {addr.street}, {addr.city}, {addr.state}, {addr.country}
+                                        </div>
+                                        {addr.apartment && (
+                                            <div className="text-sm text-gray-500">Apt: {addr.apartment}</div>
+                                        )}
+                                        {addr.landmark && (
+                                            <div className="text-sm text-gray-500">Landmark: {addr.landmark}</div>
+                                        )}
+                                        <div className="text-xs text-gray-400">
+                                            Postal: {addr.postal_code || '-'}
+                                        </div>
+                                        {addr.is_default && (
+                                            <span className="inline-block text-xs text-green-600 font-semibold mt-1">
+                                                Default
+                                            </span>
+                                        )}
                                     </div>
                                     <div className="flex gap-2 mt-2 md:mt-0">
-                                        {!addr.isDefault && (
-                                            <button className="text-blue-600 underline" onClick={() => handleSetDefault(addr.id)}>
+                                        {!addr.is_default && (
+                                            <button
+                                                className="text-blue-600 underline disabled:opacity-50"
+                                                onClick={() => handleSetDefault(addr.id)}
+                                                disabled={saving}
+                                            >
                                                 Set Default
                                             </button>
                                         )}
-                                        <button className="text-yellow-600 underline" onClick={() => handleEdit(addr)}>
+                                        <button
+                                            className="text-yellow-600 underline disabled:opacity-50"
+                                            onClick={() => handleEdit(addr)}
+                                            disabled={saving}
+                                        >
                                             Edit
                                         </button>
-                                        <button className="text-red-600 underline" onClick={() => handleDelete(addr.id)}>
+                                        <button
+                                            className="text-red-600 underline disabled:opacity-50"
+                                            onClick={() => handleDelete(addr.id)}
+                                            disabled={saving}
+                                        >
                                             Delete
                                         </button>
                                     </div>
@@ -187,23 +320,34 @@ export default function AddressBookPage() {
                     )}
                 </>
             )}
+
             {showForm && (
-                <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded shadow-lg p-6 w-full max-w-md relative">
-                        <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={() => setShowForm(false)}>
+                        <button
+                            className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-xl"
+                            onClick={() => setShowForm(false)}
+                            disabled={saving}
+                        >
                             ×
                         </button>
-                        <h2 className="text-lg font-bold mb-4">{editAddress ? 'Edit Address' : 'Add Address'}</h2>
+                        <h2 className="text-lg font-bold mb-4">
+                            {editAddress ? 'Edit Address' : 'Add Address'}
+                        </h2>
                         <AddressForm
                             initial={editAddress || {}}
                             onSave={handleSave}
                             onCancel={() => setShowForm(false)}
                         />
-                        {saving && <div className="text-gray-500 mt-2">Saving...</div>}
+                        {saving && (
+                            <div className="mt-4 flex items-center justify-center text-gray-500">
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#6C9A8B] mr-2"></div>
+                                Saving...
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
-            {error && <div className="text-red-600 mt-4">{error}</div>}
         </div>
     );
 }

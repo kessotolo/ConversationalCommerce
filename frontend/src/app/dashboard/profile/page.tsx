@@ -100,7 +100,7 @@ export default function ProfilePage() {
             </form>
             <NotificationPreferences />
             <div className="mt-8">
-                <Link href="/account/address-book" className="text-blue-600 underline">Manage Address Book</Link>
+                <Link href="/dashboard/address-book" className="text-blue-600 underline">Manage Address Book</Link>
             </div>
             <AccountSecurity />
         </div>
