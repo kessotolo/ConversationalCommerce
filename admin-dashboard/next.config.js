@@ -6,6 +6,11 @@ const nextConfig = {
         ignoreDuringBuilds: true,
     },
 
+    // Enable experimental features
+    experimental: {
+        serverActions: true,
+    },
+
     // Environment variables
     env: {
         NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
@@ -16,8 +21,6 @@ const nextConfig = {
         NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL,
         NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL,
     },
-
-
 
     // Rewrites for API proxy (only if API URL is defined)
     async rewrites() {
@@ -34,8 +37,6 @@ const nextConfig = {
             },
         ];
     },
-
-
 }
 
 module.exports = nextConfig

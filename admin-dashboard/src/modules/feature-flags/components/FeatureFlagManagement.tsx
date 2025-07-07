@@ -31,7 +31,8 @@ import {
     Undo,
     Target,
     Filter,
-    Search
+    Search,
+    MoreHorizontal
 } from 'lucide-react';
 
 interface FeatureFlag {
@@ -269,212 +270,217 @@ export function FeatureFlagManagement({ className }: FeatureFlagManagementProps)
     };
 
     return (
-        <div className={className}>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
-                <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Feature Flag Management</h2>
-                    <p className="text-muted-foreground">
-                        Manage feature flags, targeting rules, and deployment across environments
-                    </p>
-                </div>
-                <Button onClick={() => setShowCreateModal(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Flag
-                </Button>
-            </div>
-
-            {/* Filters */}
-            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-6">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search flags..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-9"
-                    />
-                </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-full sm:w-[140px]">
-                        <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="enabled">Enabled</SelectItem>
-                        <SelectItem value="disabled">Disabled</SelectItem>
-                    </SelectContent>
-                </Select>
-                <Select value={environmentFilter} onValueChange={setEnvironmentFilter}>
-                    <SelectTrigger className="w-full sm:w-[140px]">
-                        <SelectValue placeholder="Environment" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Environments</SelectItem>
-                        <SelectItem value="development">Development</SelectItem>
-                        <SelectItem value="staging">Staging</SelectItem>
-                        <SelectItem value="production">Production</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-
-            {/* Feature Flags List */}
-            <div className="grid gap-4">
-                {loading ? (
-                    <div className="flex items-center justify-center p-8">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Card className={`max-w-5xl mx-auto mt-8 mb-12 shadow-lg border bg-background ${className || ''}`}>
+            <CardHeader className="border-b pb-4 mb-4 bg-muted rounded-t-lg">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                    <div>
+                        <CardTitle className="text-2xl font-bold flex items-center gap-2">
+                            <Flag className="h-6 w-6 text-primary" /> Feature Flags
+                        </CardTitle>
+                        <p className="text-muted-foreground text-sm mt-1">Manage, deploy, and audit feature flags across all tenants and environments.</p>
                     </div>
-                ) : filteredFlags.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                        <Flag className="h-8 w-8 mx-auto mb-2" />
-                        <p>No feature flags found</p>
-                        <p className="text-sm">Create your first feature flag to get started</p>
+                    <Button onClick={() => setShowCreateModal(true)} className="mt-2 md:mt-0">
+                        <Plus className="h-4 w-4 mr-2" /> Create Flag
+                    </Button>
+                </div>
+            </CardHeader>
+            <CardContent>
+                {/* Filters */}
+                <div className="flex flex-col md:flex-row md:items-center gap-2 p-4 bg-muted/50 rounded-lg mb-6 border">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Search flags..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-9 bg-background border-muted"
+                        />
                     </div>
-                ) : (
-                    filteredFlags.map((flag) => (
-                        <Card key={flag.id} className="hover:shadow-md transition-shadow">
-                            <CardHeader className="pb-3">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center space-x-3">
-                                        <div className={`w-3 h-3 rounded-full ${getStatusColor(flag.deployment.status)}`} />
-                                        <div>
-                                            <h3 className="text-lg font-semibold">{flag.name}</h3>
-                                            <p className="text-sm text-muted-foreground">
-                                                {flag.key} • {flag.type}
-                                            </p>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-full md:w-[140px]">
+                            <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Status</SelectItem>
+                            <SelectItem value="enabled">Enabled</SelectItem>
+                            <SelectItem value="disabled">Disabled</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Select value={environmentFilter} onValueChange={setEnvironmentFilter}>
+                        <SelectTrigger className="w-full md:w-[140px]">
+                            <SelectValue placeholder="Environment" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Environments</SelectItem>
+                            <SelectItem value="development">Development</SelectItem>
+                            <SelectItem value="staging">Staging</SelectItem>
+                            <SelectItem value="production">Production</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {/* Divider */}
+                <div className="border-b mb-6" />
+
+                {/* Feature Flags List */}
+                <div className="grid gap-6">
+                    {loading ? (
+                        <div className="flex items-center justify-center p-8">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        </div>
+                    ) : filteredFlags.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                            <Flag className="h-8 w-8 mx-auto mb-2" />
+                            <p>No feature flags found</p>
+                            <p className="text-sm">Create your first feature flag to get started</p>
+                        </div>
+                    ) : (
+                        filteredFlags.map((flag) => (
+                            <Card key={flag.id} className="hover:shadow-md border border-muted transition-shadow bg-background/90">
+                                <CardHeader className="pb-3 border-b bg-muted/40 rounded-t">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-3">
+                                            <div className={`w-3 h-3 rounded-full ${getStatusColor(flag.deployment.status)}`} />
+                                            <div>
+                                                <h3 className="text-lg font-semibold">{flag.name}</h3>
+                                                <p className="text-sm text-muted-foreground">
+                                                    {flag.key} • {flag.type}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Switch
+                                                checked={flag.enabled}
+                                                onCheckedChange={() => handleToggleFlag(flag.id)}
+                                            />
+                                            <Badge variant="outline">
+                                                {flag.deployment.status}
+                                            </Badge>
+                                            <Badge variant="outline" className={getEnvironmentColor(flag.deployment.environment)}>
+                                                {flag.deployment.environment}
+                                            </Badge>
+                                            <Button variant="ghost" size="sm">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
                                         </div>
                                     </div>
-                                    <div className="flex items-center space-x-2">
-                                        <Switch
-                                            checked={flag.enabled}
-                                            onCheckedChange={() => handleToggleFlag(flag.id)}
-                                        />
-                                        <Badge variant="outline">
-                                            {flag.deployment.status}
-                                        </Badge>
-                                        <Badge variant="outline" className={getEnvironmentColor(flag.deployment.environment)}>
-                                            {flag.deployment.environment}
-                                        </Badge>
-                                        <Button variant="ghost" size="sm">
-                                            <MoreHorizontal className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-sm text-muted-foreground mb-4">
-                                    {flag.description}
-                                </p>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-sm text-muted-foreground mb-4">
+                                        {flag.description}
+                                    </p>
 
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                                    <div className="text-center">
-                                        <div className="text-2xl font-bold">{flag.metrics.total_requests}</div>
-                                        <div className="text-xs text-muted-foreground">Total Requests</div>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                        <div className="text-center">
+                                            <div className="text-2xl font-bold">{flag.metrics.total_requests}</div>
+                                            <div className="text-xs text-muted-foreground">Total Requests</div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="text-2xl font-bold">{flag.metrics.enabled_requests}</div>
+                                            <div className="text-xs text-muted-foreground">Enabled Requests</div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="text-2xl font-bold">{flag.metrics.usage_percentage}%</div>
+                                            <div className="text-xs text-muted-foreground">Usage</div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="text-2xl font-bold">{flag.targeting.rules.length}</div>
+                                            <div className="text-xs text-muted-foreground">Targeting Rules</div>
+                                        </div>
                                     </div>
-                                    <div className="text-center">
-                                        <div className="text-2xl font-bold">{flag.metrics.enabled_requests}</div>
-                                        <div className="text-xs text-muted-foreground">Enabled Requests</div>
-                                    </div>
-                                    <div className="text-center">
-                                        <div className="text-2xl font-bold">{flag.metrics.usage_percentage}%</div>
-                                        <div className="text-xs text-muted-foreground">Usage</div>
-                                    </div>
-                                    <div className="text-center">
-                                        <div className="text-2xl font-bold">{flag.targeting.rules.length}</div>
-                                        <div className="text-xs text-muted-foreground">Targeting Rules</div>
-                                    </div>
-                                </div>
 
-                                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                                    <div className="flex items-center space-x-4">
-                                        <span>Default: {String(flag.default_value)}</span>
-                                        <span>Updated: {formatDate(flag.updated_at)}</span>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <Button variant="outline" size="sm" onClick={() => setSelectedFlag(flag)}>
-                                            <Eye className="h-4 w-4 mr-1" />
-                                            View
-                                        </Button>
-                                        <Button variant="outline" size="sm" onClick={() => setShowEditModal(true)}>
-                                            <Edit className="h-4 w-4 mr-1" />
-                                            Edit
-                                        </Button>
-                                        {flag.deployment.status === 'draft' && (
-                                            <Button variant="outline" size="sm" onClick={() => handleDeployFlag(flag.id)}>
-                                                <TrendingUp className="h-4 w-4 mr-1" />
-                                                Deploy
+                                    <div className="flex flex-col md:flex-row md:items-center md:justify-between text-sm text-muted-foreground gap-2">
+                                        <div className="flex items-center space-x-4">
+                                            <span>Default: {String(flag.default_value)}</span>
+                                            <span>Updated: {formatDate(flag.updated_at)}</span>
+                                        </div>
+                                        <div className="flex items-center space-x-2 mt-2 md:mt-0">
+                                            <Button variant="outline" size="sm" onClick={() => setSelectedFlag(flag)}>
+                                                <Eye className="h-4 w-4 mr-1" />
+                                                View
                                             </Button>
-                                        )}
-                                        {flag.deployment.status === 'deployed' && (
-                                            <Button variant="outline" size="sm" onClick={() => handleRollbackFlag(flag.id)}>
-                                                <Undo className="h-4 w-4 mr-1" />
-                                                Rollback
+                                            <Button variant="outline" size="sm" onClick={() => setShowEditModal(true)}>
+                                                <Edit className="h-4 w-4 mr-1" />
+                                                Edit
                                             </Button>
-                                        )}
+                                            {flag.deployment.status === 'draft' && (
+                                                <Button variant="outline" size="sm" onClick={() => handleDeployFlag(flag.id)}>
+                                                    <TrendingUp className="h-4 w-4 mr-1" />
+                                                    Deploy
+                                                </Button>
+                                            )}
+                                            {flag.deployment.status === 'deployed' && (
+                                                <Button variant="outline" size="sm" onClick={() => handleRollbackFlag(flag.id)}>
+                                                    <Undo className="h-4 w-4 mr-1" />
+                                                    Rollback
+                                                </Button>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))
-                )}
-            </div>
+                                </CardContent>
+                            </Card>
+                        ))
+                    )}
+                </div>
 
-            {/* Summary Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Flags</CardTitle>
-                        <Flag className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{flags.length}</div>
-                        <p className="text-xs text-muted-foreground">
-                            {flags.filter(f => f.enabled).length} enabled
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Deployed</CardTitle>
-                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
-                            {flags.filter(f => f.deployment.status === 'deployed').length}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                            In production
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
-                        <Activity className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
-                            {flags.reduce((sum, f) => sum + f.metrics.total_requests, 0).toLocaleString()}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                            Today
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Targeting Rules</CardTitle>
-                        <Target className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
-                            {flags.reduce((sum, f) => sum + f.targeting.rules.length, 0)}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                            Active rules
-                        </p>
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
+                {/* Summary Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
+                    <Card className="bg-muted/60">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Total Flags</CardTitle>
+                            <Flag className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{flags.length}</div>
+                            <p className="text-xs text-muted-foreground">
+                                {flags.filter(f => f.enabled).length} enabled
+                            </p>
+                        </CardContent>
+                    </Card>
+                    <Card className="bg-muted/60">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Deployed</CardTitle>
+                            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">
+                                {flags.filter(f => f.deployment.status === 'deployed').length}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                In production
+                            </p>
+                        </CardContent>
+                    </Card>
+                    <Card className="bg-muted/60">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
+                            <Activity className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">
+                                {flags.reduce((sum, f) => sum + f.metrics.total_requests, 0).toLocaleString()}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Today
+                            </p>
+                        </CardContent>
+                    </Card>
+                    <Card className="bg-muted/60">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Targeting Rules</CardTitle>
+                            <Target className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">
+                                {flags.reduce((sum, f) => sum + f.targeting.rules.length, 0)}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Active rules
+                            </p>
+                        </CardContent>
+                    </Card>
+                </div>
+            </CardContent>
+        </Card>
     );
 }

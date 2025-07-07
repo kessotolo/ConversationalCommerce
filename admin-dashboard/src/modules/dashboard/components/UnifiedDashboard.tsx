@@ -30,7 +30,9 @@ import {
     RefreshCw,
     Filter,
     Download,
-    MoreHorizontal
+    MoreHorizontal,
+    User,
+    CheckCircle
 } from 'lucide-react';
 
 import { KPIWidget } from './KPIWidget';
@@ -49,6 +51,7 @@ import { EmergencyControls } from '@/modules/emergency/components/EmergencyContr
 import { ComplianceDashboard } from '@/modules/compliance/components/ComplianceDashboard';
 import { DashboardOverview } from './DashboardOverview';
 import api from '@/lib/api';
+import { TenantImpersonation } from '@/modules/tenant/components/TenantImpersonation';
 
 interface DashboardMetrics {
     tenant_metrics: {
@@ -224,220 +227,121 @@ export function UnifiedDashboard() {
     }
 
     return (
-        <div className="flex-1 space-y-4 p-4 md:p-6 pt-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
-                <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Super Admin Dashboard</h2>
-                    <p className="text-muted-foreground">
-                        Real-time platform overview and system monitoring
-                    </p>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSearchOpen(true)}
-                        className="hidden sm:flex"
-                    >
-                        <Search className="h-4 w-4 mr-2" />
-                        Search
-                    </Button>
-
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setNotificationsOpen(true)}
-                        className="relative"
-                    >
-                        <Bell className="h-4 w-4" />
-                        {kpis && (kpis.errors_today > 0 || kpis.security_events_today > 0) && (
-                            <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs">
-                                {kpis.errors_today + kpis.security_events_today}
-                            </Badge>
-                        )}
-                    </Button>
-
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={fetchDashboardData}
-                        disabled={refreshing}
-                    >
-                        <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-                    </Button>
-                </div>
-            </div>
-
-            {/* Critical Alerts */}
-            {kpis && (kpis.lockdowns_today > 0 || kpis.security_events_today > 5) && (
-                <Alert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Critical Security Alert</AlertTitle>
-                    <AlertDescription>
-                        {kpis.lockdowns_today > 0 && `${kpis.lockdowns_today} emergency lockdown(s) today. `}
-                        {kpis.security_events_today > 5 && `High security activity detected (${kpis.security_events_today} events).`}
-                        <Button variant="link" className="p-0 h-auto ml-2 text-destructive-foreground">
-                            View Details <ChevronRight className="h-3 w-3 ml-1" />
-                        </Button>
-                    </AlertDescription>
-                </Alert>
-            )}
-
-            {/* System Health Overview */}
-            {systemHealth && (
-                <Card>
-                    <CardHeader className="pb-2">
-                        <div className="flex items-center justify-between">
-                            <CardTitle className="text-sm font-medium">System Health</CardTitle>
-                            <Badge
-                                variant={systemHealth.overall_status === 'healthy' ? 'default' : 'destructive'}
-                                className={systemHealth.overall_status === 'healthy' ? 'bg-green-500' : ''}
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-6">
+            <div className="max-w-7xl mx-auto">
+                {/* Header */}
+                <div className="mb-8">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+                            <p className="text-gray-600 mt-1">Super Admin Control Center for ConversationalCommerce</p>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSearchOpen(true)}
+                                className="hidden md:flex"
                             >
-                                {systemHealth.overall_status.toUpperCase()}
-                            </Badge>
+                                <Search className="h-4 w-4 mr-2" />
+                                Quick Search
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setNotificationsOpen(true)}
+                            >
+                                <Bell className="h-4 w-4 mr-2" />
+                                Notifications
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={fetchDashboardData}
+                                disabled={refreshing}
+                            >
+                                <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                                Refresh
+                            </Button>
                         </div>
+                    </div>
+                </div>
+
+                {/* Main Content */}
+                <Card className="shadow-xl border-0">
+                    <CardHeader className="border-b bg-white">
+                        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                            <TabsList className="grid w-full grid-cols-2 md:grid-cols-6 lg:w-auto">
+                                <TabsTrigger value="overview" className="flex items-center gap-2">
+                                    <Activity className="h-4 w-4" />
+                                    <span className="hidden md:inline">Overview</span>
+                                </TabsTrigger>
+                                <TabsTrigger value="tenants" className="flex items-center gap-2">
+                                    <Building2 className="h-4 w-4" />
+                                    <span className="hidden md:inline">Tenants</span>
+                                </TabsTrigger>
+                                <TabsTrigger value="impersonation" className="flex items-center gap-2">
+                                    <User className="h-4 w-4" />
+                                    <span className="hidden md:inline">Impersonation</span>
+                                </TabsTrigger>
+                                <TabsTrigger value="monitoring" className="flex items-center gap-2">
+                                    <Server className="h-4 w-4" />
+                                    <span className="hidden md:inline">Monitoring</span>
+                                </TabsTrigger>
+                                <TabsTrigger value="security" className="flex items-center gap-2">
+                                    <Shield className="h-4 w-4" />
+                                    <span className="hidden md:inline">Security</span>
+                                </TabsTrigger>
+                                <TabsTrigger value="compliance" className="flex items-center gap-2">
+                                    <CheckCircle className="h-4 w-4" />
+                                    <span className="hidden md:inline">Compliance</span>
+                                </TabsTrigger>
+                            </TabsList>
+                        </Tabs>
                     </CardHeader>
-                    <CardContent>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
-                            <div className="text-center">
-                                <div className="text-2xl font-bold">{systemHealth.uptime_percentage}%</div>
-                                <div className="text-xs text-muted-foreground">Uptime</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-2xl font-bold">{(systemHealth.api_response_time * 1000).toFixed(0)}ms</div>
-                                <div className="text-xs text-muted-foreground">Response</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-2xl font-bold">{systemHealth.error_rate.toFixed(1)}%</div>
-                                <div className="text-xs text-muted-foreground">Error Rate</div>
-                            </div>
-                            <div className="text-center">
-                                <div className={`text-2xl font-bold ${getStatusColor(systemHealth.database_status)}`}>
-                                    {systemHealth.database_status === 'healthy' ? '✓' : '✗'}
+                    <CardContent className="p-0">
+                        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                            <TabsContent value="overview" className="p-6">
+                                <DashboardOverview
+                                    metrics={metrics}
+                                    kpis={kpis}
+                                    systemHealth={systemHealth}
+                                    loading={loading}
+                                />
+                            </TabsContent>
+                            <TabsContent value="tenants" className="p-6">
+                                <TenantControlCenter />
+                            </TabsContent>
+                            <TabsContent value="impersonation" className="p-6">
+                                <TenantImpersonation />
+                            </TabsContent>
+                            <TabsContent value="monitoring" className="p-6">
+                                <SystemMonitoring />
+                            </TabsContent>
+                            <TabsContent value="security" className="p-6">
+                                <div className="space-y-6">
+                                    <EmergencyControls />
+                                    <SecurityOverview />
                                 </div>
-                                <div className="text-xs text-muted-foreground">Database</div>
-                            </div>
-                            {kpis && (
-                                <>
-                                    <div className="text-center">
-                                        <div className="text-2xl font-bold">{kpis.system_health_score}%</div>
-                                        <div className="text-xs text-muted-foreground">Health Score</div>
-                                    </div>
-                                    <div className="text-center">
-                                        <div className="text-2xl font-bold">{kpis.security_score}%</div>
-                                        <div className="text-xs text-muted-foreground">Security</div>
-                                    </div>
-                                </>
-                            )}
-                        </div>
+                            </TabsContent>
+                            <TabsContent value="compliance" className="p-6">
+                                <ComplianceDashboard />
+                            </TabsContent>
+                        </Tabs>
                     </CardContent>
                 </Card>
-            )}
+            </div>
 
-            {/* Main Dashboard Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-9">
-                    <TabsTrigger value="overview">Overview</TabsTrigger>
-                    <TabsTrigger value="analytics">Analytics</TabsTrigger>
-                    <TabsTrigger value="security">Security</TabsTrigger>
-                    <TabsTrigger value="activity">Activity</TabsTrigger>
-                    <TabsTrigger value="tenants">Tenants</TabsTrigger>
-                    <TabsTrigger value="features">Features</TabsTrigger>
-                    <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
-                    <TabsTrigger value="emergency">Emergency</TabsTrigger>
-                    <TabsTrigger value="compliance">Compliance</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="overview" className="space-y-4">
-                    <DashboardOverview kpis={kpis} metrics={metrics} />
-                </TabsContent>
-
-                <TabsContent value="analytics" className="space-y-4">
-                    <div className="grid gap-4 md:grid-cols-2">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Performance Trends</CardTitle>
-                                <CardDescription>System performance over time</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="h-64 flex items-center justify-center text-muted-foreground">
-                                    <TrendingUp className="h-8 w-8 mr-2" />
-                                    Performance chart would go here
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Usage Analytics</CardTitle>
-                                <CardDescription>Platform usage statistics</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="h-64 flex items-center justify-center text-muted-foreground">
-                                    <Activity className="h-8 w-8 mr-2" />
-                                    Usage analytics chart would go here
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </TabsContent>
-
-                <TabsContent value="security" className="space-y-4">
-                    <SecurityOverview />
-                </TabsContent>
-
-                <TabsContent value="activity" className="space-y-4">
-                    <ActivityFeed />
-                </TabsContent>
-
-                <TabsContent value="tenants" className="space-y-4">
-                    <TenantControlCenter />
-                </TabsContent>
-
-                <TabsContent value="features" className="space-y-4">
-                    <div className="grid gap-6">
-                        <div>
-                            <h3 className="text-lg font-semibold mb-4">Feature Flag Management</h3>
-                            <FeatureFlagManagement />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-semibold mb-4">Impersonation Management</h3>
-                            <ImpersonationManagement />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-semibold mb-4">Context Management</h3>
-                            <ContextManagement />
-                        </div>
-                    </div>
-                </TabsContent>
-
-                <TabsContent value="monitoring" className="space-y-4">
-                    <SystemMonitoring />
-                </TabsContent>
-
-                <TabsContent value="emergency" className="space-y-4">
-                    <EmergencyControls />
-                </TabsContent>
-
-                <TabsContent value="compliance" className="space-y-4">
-                    <ComplianceDashboard />
-                </TabsContent>
-            </Tabs>
-
-            {/* Global Search Modal */}
+            {/* Modals */}
             {searchOpen && (
                 <GlobalSearch
-                    open={searchOpen}
+                    isOpen={searchOpen}
                     onClose={() => setSearchOpen(false)}
                 />
             )}
-
-            {/* Notification Center */}
             {notificationsOpen && (
                 <NotificationCenter
-                    open={notificationsOpen}
+                    isOpen={notificationsOpen}
                     onClose={() => setNotificationsOpen(false)}
                 />
             )}
