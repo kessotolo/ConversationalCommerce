@@ -1,6 +1,3 @@
-# Ignore legacy JSX files
-src/components/store/StoreContent.jsx
-
 # Ignore test files during build (they have linting violations)
 src/**/*.test.tsx
 src/**/*.test.ts

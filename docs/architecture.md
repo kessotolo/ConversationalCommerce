@@ -688,12 +688,7 @@ import { UUID, Status as DraftStatus } from '../types/storefrontEditor';
 
 ### Pending Deprecation
 
-1. **Legacy Endpoints**
-
-   - `/api/legacy/orders` → Use `/api/v1/orders`
-   - Will be removed in v3.0.0
-
-2. **Direct Status Updates**
+1. **Direct Status Updates**
    - Direct assignment to `order.status`
    - Will be blocked in v2.0.0
 

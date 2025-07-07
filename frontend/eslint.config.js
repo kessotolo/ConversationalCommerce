@@ -33,7 +33,6 @@ export default [
       'backend/venv/',
       'venv/',
       'frontend/temp_fix/',
-      'frontend/src/components/store/StoreContent.jsx',
       // Ignore test files to prevent build failures
       'src/**/*.test.ts',
       'src/**/*.test.tsx',

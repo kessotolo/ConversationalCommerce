@@ -1,0 +1,16 @@
+{
+    "version": 2,
+    "name": "frontend",
+    "framework": "nextjs",
+    "buildCommand": "npm run build",
+    "outputDirectory": ".next",
+    "installCommand": "npm install",
+    "functions": {
+        "app/**": {
+            "maxDuration": 30
+        }
+    },
+    "regions": [
+        "iad1"
+    ]
+}
