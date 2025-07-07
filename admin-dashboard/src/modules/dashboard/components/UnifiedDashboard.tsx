@@ -40,6 +40,10 @@ import { SecurityOverview } from './SecurityOverview';
 import { QuickActions } from './QuickActions';
 import { GlobalSearch } from './GlobalSearch';
 import { NotificationCenter } from './NotificationCenter';
+import { TenantControlCenter } from '@/modules/tenant/components/TenantControlCenter';
+import { FeatureFlagManagement } from '@/modules/feature-flags/components/FeatureFlagManagement';
+import { ImpersonationManagement } from '@/modules/security/components/ImpersonationManagement';
+import { ContextManagement } from '@/modules/context/components/ContextManagement';
 import api from '@/lib/api';
 
 interface DashboardMetrics {
@@ -330,11 +334,13 @@ export function UnifiedDashboard() {
 
             {/* Main Dashboard Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="analytics">Analytics</TabsTrigger>
                     <TabsTrigger value="security">Security</TabsTrigger>
                     <TabsTrigger value="activity">Activity</TabsTrigger>
+                    <TabsTrigger value="tenants">Tenants</TabsTrigger>
+                    <TabsTrigger value="features">Features</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-4">
@@ -497,6 +503,27 @@ export function UnifiedDashboard() {
 
                 <TabsContent value="activity" className="space-y-4">
                     <ActivityFeed />
+                </TabsContent>
+
+                <TabsContent value="tenants" className="space-y-4">
+                    <TenantControlCenter />
+                </TabsContent>
+
+                <TabsContent value="features" className="space-y-4">
+                    <div className="grid gap-6">
+                        <div>
+                            <h3 className="text-lg font-semibold mb-4">Feature Flag Management</h3>
+                            <FeatureFlagManagement />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold mb-4">Impersonation Management</h3>
+                            <ImpersonationManagement />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold mb-4">Context Management</h3>
+                            <ContextManagement />
+                        </div>
+                    </div>
                 </TabsContent>
             </Tabs>
 

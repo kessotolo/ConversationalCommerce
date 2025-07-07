@@ -8,9 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     Search,
-    Filter,
+    /* Filter, */
     Clock,
-    Star,
+    /* Star, */
     X,
     Building2,
     Users,

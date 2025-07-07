@@ -78,7 +78,9 @@ export function ActivityFeed() {
 
     // WebSocket connection for real-time updates
     useEffect(() => {
-        if (!autoRefresh) return;
+        if (!autoRefresh) {
+            return () => { };
+        }
 
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${protocol}//${window.location.host}/api/admin/activity/ws/current_user`;
@@ -111,6 +113,7 @@ export function ActivityFeed() {
             };
         } catch (error) {
             console.error('WebSocket connection error:', error);
+            return () => { };
         }
     }, [autoRefresh]);
 

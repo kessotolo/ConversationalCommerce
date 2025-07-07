@@ -13,10 +13,8 @@ import {
     X,
     Clock,
     Settings,
-    Filter,
-    MoreHorizontal,
     Shield,
-    Users,
+    /* Users, */
     Activity,
     TrendingUp
 } from 'lucide-react';
@@ -174,14 +172,16 @@ export function NotificationCenter({ open, onClose }: NotificationCenterProps) {
             <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
                 <DialogHeader>
                     <div className="flex items-center justify-between">
-                        <DialogTitle className="flex items-center space-x-2">
-                            <Bell className="h-5 w-5" />
-                            <span>Notification Center</span>
-                            {unreadCount > 0 && (
-                                <Badge variant="destructive" className="h-5 w-5 p-0 text-xs">
-                                    {unreadCount}
-                                </Badge>
-                            )}
+                        <DialogTitle>
+                            <div className="flex items-center space-x-2">
+                                <Bell className="h-5 w-5" />
+                                <span>Notification Center</span>
+                                {unreadCount > 0 && (
+                                    <Badge variant="destructive" className="h-5 w-5 p-0 text-xs">
+                                        {unreadCount}
+                                    </Badge>
+                                )}
+                            </div>
                         </DialogTitle>
                         <Button variant="outline" size="sm" onClick={markAllAsRead}>
                             Mark All Read
@@ -198,7 +198,7 @@ export function NotificationCenter({ open, onClose }: NotificationCenterProps) {
                         <TabsTrigger value="business">Business</TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value={filter} className="mt-4">
+                    <TabsContent value={filter}>
                         <div className="space-y-2 max-h-96 overflow-auto">
                             {loading ? (
                                 <div className="text-center py-8">
