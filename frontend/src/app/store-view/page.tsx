@@ -57,7 +57,8 @@ function StoreContent() {
       id: product.id,
       name: product.name,
       price: product.price,
-      image_url: product.image_url ?? null, // Fix TypeScript error by using nullish coalescing operator
+      quantity: 1,
+      image_url: product.image_url ?? null,
     });
   };
 

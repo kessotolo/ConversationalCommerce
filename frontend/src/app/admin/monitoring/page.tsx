@@ -38,7 +38,7 @@ const severityColors = {
   high: 'bg-red-100 text-red-800 border-red-200',
 };
 
-export default function MonitoringPage() {
+function MonitoringContent() {
   const router = useRouter();
   const { user } = useUser();
   const { toast } = useToast();
@@ -154,66 +154,72 @@ export default function MonitoringPage() {
   );
 
   return (
-    <ToastProvider>
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-6">
-            <Button variant="ghost" className="mb-4" onClick={() => router.push('/dashboard')}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Dashboard
-            </Button>
-          </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-6">
+          <Button variant="ghost" className="mb-4" onClick={() => router.push('/dashboard')}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Dashboard
+          </Button>
+        </div>
 
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">Activity Monitoring</h1>
-          </div>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Activity Monitoring</h1>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Total Activities</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{activities.length}</div>
-              </CardContent>
-            </Card>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Total Activities</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{activities.length}</div>
+            </CardContent>
+          </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">High Severity Events</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {activities.filter((a) => a.severity === 'high').length}
-                </div>
-              </CardContent>
-            </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">High Severity Events</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {activities.filter((a) => a.severity === 'high').length}
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {new Set(activities.map((a) => a.user_id)).size}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {new Set(activities.map((a) => a.user_id)).size}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
-            <h2 className="text-xl font-semibold mb-4">Activity Log</h2>
+        <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
+          <h2 className="text-xl font-semibold mb-4">Activity Log</h2>
 
-            {loading ? (
-              <div className="text-center py-8">Loading...</div>
-            ) : activities.length > 0 ? (
-              <div className="space-y-2">{activities.map(renderActivity)}</div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">No activities to display.</div>
-            )}
-          </div>
+          {loading ? (
+            <div className="text-center py-8">Loading...</div>
+          ) : activities.length > 0 ? (
+            <div className="space-y-2">{activities.map(renderActivity)}</div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">No activities to display.</div>
+          )}
         </div>
       </div>
+    </div>
+  );
+}
+
+export default function MonitoringPage() {
+  return (
+    <ToastProvider>
+      <MonitoringContent />
     </ToastProvider>
   );
 }

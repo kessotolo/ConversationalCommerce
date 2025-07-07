@@ -186,6 +186,10 @@ const AnalyticsQueryBuilder: React.FC<AnalyticsQueryBuilderProps> = ({
     return acc;
   }, {} as Record<string, DimensionDefinition[]>);
 
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as 'metrics' | 'dimensions' | 'filters' | 'settings');
+  };
+
   return (
     <div className="w-full space-y-6">
       <Card>
@@ -196,35 +200,31 @@ const AnalyticsQueryBuilder: React.FC<AnalyticsQueryBuilderProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs className="w-full">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger
-                active={activeTab === 'metrics'}
-                onClick={() => setActiveTab('metrics')}
+                value="metrics"
                 className="flex items-center gap-2"
               >
                 <FiBarChart className="h-4 w-4" />
                 Metrics
               </TabsTrigger>
               <TabsTrigger
-                active={activeTab === 'dimensions'}
-                onClick={() => setActiveTab('dimensions')}
+                value="dimensions"
                 className="flex items-center gap-2"
               >
                 <FiLayers className="h-4 w-4" />
                 Dimensions
               </TabsTrigger>
               <TabsTrigger
-                active={activeTab === 'filters'}
-                onClick={() => setActiveTab('filters')}
+                value="filters"
                 className="flex items-center gap-2"
               >
                 <FiFilter className="h-4 w-4" />
                 Filters
               </TabsTrigger>
               <TabsTrigger
-                active={activeTab === 'settings'}
-                onClick={() => setActiveTab('settings')}
+                value="settings"
                 className="flex items-center gap-2"
               >
                 <FiSettings className="h-4 w-4" />
@@ -232,215 +232,207 @@ const AnalyticsQueryBuilder: React.FC<AnalyticsQueryBuilderProps> = ({
               </TabsTrigger>
             </TabsList>
 
-            {activeTab === 'metrics' && (
-              <TabsContent className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium mb-3">Selected Metrics</h3>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {query.metrics.length > 0 ? (
-                      query.metrics.map((metric) => (
-                        <Badge key={metric} variant="default" className="flex items-center gap-1">
-                          {getMetricLabel(metric)}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-4 w-4 p-0 hover:bg-transparent"
-                            onClick={() => removeMetric(metric)}
+            <TabsContent value="metrics" className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium mb-3">Selected Metrics</h3>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {query.metrics.length > 0 ? (
+                    query.metrics.map((metric) => (
+                      <Badge key={metric} variant="default" className="flex items-center gap-1">
+                        {getMetricLabel(metric)}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-4 w-4 p-0 hover:bg-transparent"
+                          onClick={() => removeMetric(metric)}
+                        >
+                          <FiX className="h-3 w-3" />
+                        </Button>
+                      </Badge>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-500">No metrics selected</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-medium mb-3">Available Metrics</h3>
+                <div className="space-y-4">
+                  {Object.entries(groupedMetrics).map(([category, metrics]) => (
+                    <div key={category}>
+                      <h4 className="text-xs font-medium text-gray-600 mb-2">{category}</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {metrics.map((metric) => (
+                          <div
+                            key={metric.key}
+                            className="flex items-center justify-between p-2 border rounded-lg hover:bg-gray-50"
                           >
-                            <FiX className="h-3 w-3" />
-                          </Button>
-                        </Badge>
-                      ))
-                    ) : (
-                      <p className="text-sm text-gray-500">No metrics selected</p>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-medium mb-3">Available Metrics</h3>
-                  <div className="space-y-4">
-                    {Object.entries(groupedMetrics).map(([category, metrics]) => (
-                      <div key={category}>
-                        <h4 className="text-xs font-medium text-gray-600 mb-2">{category}</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          {metrics.map((metric) => (
-                            <div
-                              key={metric.key}
-                              className="flex items-center justify-between p-2 border rounded-lg hover:bg-gray-50"
-                            >
-                              <div className="flex-1">
-                                <p className="text-sm font-medium">{metric.label}</p>
-                                <p className="text-xs text-gray-500">{metric.description}</p>
-                              </div>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => addMetric(metric.key)}
-                                disabled={query.metrics.includes(metric.key)}
-                              >
-                                <FiPlus className="h-4 w-4" />
-                              </Button>
+                            <div className="flex-1">
+                              <p className="text-sm font-medium">{metric.label}</p>
+                              <p className="text-xs text-gray-500">{metric.description}</p>
                             </div>
-                          ))}
-                        </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => addMetric(metric.key)}
+                              disabled={query.metrics.includes(metric.key)}
+                            >
+                              <FiPlus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
-              </TabsContent>
-            )}
+              </div>
+            </TabsContent>
 
-            {activeTab === 'dimensions' && (
-              <TabsContent className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium mb-3">Selected Dimensions</h3>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {query.dimensions.length > 0 ? (
-                      query.dimensions.map((dimension) => (
-                        <Badge key={dimension} variant="secondary" className="flex items-center gap-1">
-                          {getDimensionLabel(dimension)}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-4 w-4 p-0 hover:bg-transparent"
-                            onClick={() => removeDimension(dimension)}
+            <TabsContent value="dimensions" className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium mb-3">Selected Dimensions</h3>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {query.dimensions.length > 0 ? (
+                    query.dimensions.map((dimension) => (
+                      <Badge key={dimension} variant="secondary" className="flex items-center gap-1">
+                        {getDimensionLabel(dimension)}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-4 w-4 p-0 hover:bg-transparent"
+                          onClick={() => removeDimension(dimension)}
+                        >
+                          <FiX className="h-3 w-3" />
+                        </Button>
+                      </Badge>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-500">No dimensions selected</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-medium mb-3">Available Dimensions</h3>
+                <div className="space-y-4">
+                  {Object.entries(groupedDimensions).map(([category, dimensions]) => (
+                    <div key={category}>
+                      <h4 className="text-xs font-medium text-gray-600 mb-2">{category}</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {dimensions.map((dimension) => (
+                          <div
+                            key={dimension.key}
+                            className="flex items-center justify-between p-2 border rounded-lg hover:bg-gray-50"
                           >
-                            <FiX className="h-3 w-3" />
-                          </Button>
-                        </Badge>
-                      ))
-                    ) : (
-                      <p className="text-sm text-gray-500">No dimensions selected</p>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-medium mb-3">Available Dimensions</h3>
-                  <div className="space-y-4">
-                    {Object.entries(groupedDimensions).map(([category, dimensions]) => (
-                      <div key={category}>
-                        <h4 className="text-xs font-medium text-gray-600 mb-2">{category}</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          {dimensions.map((dimension) => (
-                            <div
-                              key={dimension.key}
-                              className="flex items-center justify-between p-2 border rounded-lg hover:bg-gray-50"
-                            >
-                              <div className="flex-1">
-                                <p className="text-sm font-medium">{dimension.label}</p>
-                                <p className="text-xs text-gray-500">{dimension.description}</p>
-                              </div>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => addDimension(dimension.key)}
-                                disabled={query.dimensions.includes(dimension.key)}
-                              >
-                                <FiPlus className="h-4 w-4" />
-                              </Button>
+                            <div className="flex-1">
+                              <p className="text-sm font-medium">{dimension.label}</p>
+                              <p className="text-xs text-gray-500">{dimension.description}</p>
                             </div>
-                          ))}
-                        </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => addDimension(dimension.key)}
+                              disabled={query.dimensions.includes(dimension.key)}
+                            >
+                              <FiPlus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="filters" className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium mb-3">Query Filters</h3>
+                <FilterBuilder
+                  fields={filterFields}
+                  onChange={handleFilterChange}
+                  initialFilters={filterGroups}
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="settings" className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium mb-3">Query Settings</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">Sort By</label>
+                    <Select value={query.sort_by} onValueChange={(value) => {
+                      const updatedQuery = { ...query, sort_by: value };
+                      updateQuery(updatedQuery);
+                    }}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select sort field" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {query.metrics.map((metric) => (
+                          <SelectItem key={metric} value={metric}>
+                            {getMetricLabel(metric)}
+                          </SelectItem>
+                        ))}
+                        {query.dimensions.map((dimension) => (
+                          <SelectItem key={dimension} value={dimension}>
+                            {getDimensionLabel(dimension)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">Sort Direction</label>
+                    <Select value={query.sort_desc ? 'desc' : 'asc'} onValueChange={(value) => {
+                      const updatedQuery = { ...query, sort_desc: value === 'desc' };
+                      updateQuery(updatedQuery);
+                    }}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="asc">Ascending</SelectItem>
+                        <SelectItem value="desc">Descending</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">Result Limit</label>
+                    <Select value={query.limit.toString()} onValueChange={(value) => {
+                      const updatedQuery = { ...query, limit: parseInt(value, 10) };
+                      updateQuery(updatedQuery);
+                    }}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10">10 results</SelectItem>
+                        <SelectItem value="25">25 results</SelectItem>
+                        <SelectItem value="50">50 results</SelectItem>
+                        <SelectItem value="100">100 results</SelectItem>
+                        <SelectItem value="500">500 results</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-              </TabsContent>
-            )}
+              </div>
 
-            {activeTab === 'filters' && (
-              <TabsContent className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium mb-3">Query Filters</h3>
-                  <FilterBuilder
-                    fields={filterFields}
-                    onChange={handleFilterChange}
-                    initialFilters={filterGroups}
-                  />
+              <div className="pt-4 border-t">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Query Summary</h4>
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p><strong>Metrics:</strong> {query.metrics.length > 0 ? query.metrics.map(getMetricLabel).join(', ') : 'None'}</p>
+                  <p><strong>Dimensions:</strong> {query.dimensions.length > 0 ? query.dimensions.map(getDimensionLabel).join(', ') : 'None'}</p>
+                  <p><strong>Filters:</strong> {filterGroups.length > 0 ? `${filterGroups.length} filter group(s)` : 'None'}</p>
+                  <p><strong>Sort:</strong> {query.sort_by ? `${getMetricLabel(query.sort_by) || getDimensionLabel(query.sort_by)} (${query.sort_desc ? 'desc' : 'asc'})` : 'None'}</p>
+                  <p><strong>Limit:</strong> {query.limit} results</p>
                 </div>
-              </TabsContent>
-            )}
-
-            {activeTab === 'settings' && (
-              <TabsContent className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium mb-3">Query Settings</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-700 mb-2 block">Sort By</label>
-                      <Select value={query.sort_by} onValueChange={(value) => {
-                        const updatedQuery = { ...query, sort_by: value };
-                        updateQuery(updatedQuery);
-                      }}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select sort field" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {query.metrics.map((metric) => (
-                            <SelectItem key={metric} value={metric}>
-                              {getMetricLabel(metric)}
-                            </SelectItem>
-                          ))}
-                          {query.dimensions.map((dimension) => (
-                            <SelectItem key={dimension} value={dimension}>
-                              {getDimensionLabel(dimension)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-700 mb-2 block">Sort Direction</label>
-                      <Select value={query.sort_desc ? 'desc' : 'asc'} onValueChange={(value) => {
-                        const updatedQuery = { ...query, sort_desc: value === 'desc' };
-                        updateQuery(updatedQuery);
-                      }}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="asc">Ascending</SelectItem>
-                          <SelectItem value="desc">Descending</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-700 mb-2 block">Result Limit</label>
-                      <Select value={query.limit.toString()} onValueChange={(value) => {
-                        const updatedQuery = { ...query, limit: parseInt(value, 10) };
-                        updateQuery(updatedQuery);
-                      }}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="10">10 results</SelectItem>
-                          <SelectItem value="25">25 results</SelectItem>
-                          <SelectItem value="50">50 results</SelectItem>
-                          <SelectItem value="100">100 results</SelectItem>
-                          <SelectItem value="500">500 results</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Query Summary</h4>
-                  <div className="text-sm text-gray-600 space-y-1">
-                    <p><strong>Metrics:</strong> {query.metrics.length > 0 ? query.metrics.map(getMetricLabel).join(', ') : 'None'}</p>
-                    <p><strong>Dimensions:</strong> {query.dimensions.length > 0 ? query.dimensions.map(getDimensionLabel).join(', ') : 'None'}</p>
-                    <p><strong>Filters:</strong> {filterGroups.length > 0 ? `${filterGroups.length} filter group(s)` : 'None'}</p>
-                    <p><strong>Sort:</strong> {query.sort_by ? `${getMetricLabel(query.sort_by) || getDimensionLabel(query.sort_by)} (${query.sort_desc ? 'desc' : 'asc'})` : 'None'}</p>
-                    <p><strong>Limit:</strong> {query.limit} results</p>
-                  </div>
-                </div>
-              </TabsContent>
-            )}
+              </div>
+            </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
