@@ -5,13 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import {
-    Server,
     Database,
     Activity,
     AlertTriangle,
     CheckCircle,
-    XCircle,
-    Clock
+    XCircle
 } from 'lucide-react';
 
 interface SystemHealthWidgetProps {

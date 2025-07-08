@@ -1,35 +1,26 @@
 {
-  "devDependencies": {
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.3.0",
-    "@types/next": "^8.0.7",
-    "@types/node": "^22.15.29",
-    "@types/react-icons": "^2.2.7",
-    "@typescript-eslint/eslint-plugin": "^8.33.0",
-    "eslint": "^8.56.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-prettier": "^5.1.3",
-    "eslint-plugin-react": "^7.37.5",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.1.0",
-    "prettier": "^3.5.3"
-  },
+  "name": "conversational-commerce",
+  "version": "1.0.0",
+  "description": "Modular monolith for mobile-first, AI-driven, multi-tenant commerce in Africa",
+  "private": true,
   "scripts": {
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "format": "prettier --write .",
-    "prepare": "husky install",
+    "lint": "echo 'Use service-specific lint commands'",
+    "format": "echo 'Use service-specific format commands'",
+    "test": "echo 'Use service-specific test commands'",
     "verify:architecture": "echo 'Architecture verified'",
-    "test": "echo 'No tests in root package.json'"
+    "clean": "find . -name '.DS_Store' -delete && find . -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null || true"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.0"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "eslint --fix --no-eslintrc -c frontend/.eslintrc.ultra-minimal.js",
-      "prettier --write"
+      "echo 'Use service-specific lint-staged configuration'"
     ]
   },
-  "dependencies": {
-    "libphonenumber-js": "^1.12.9",
-    "react-icons": "^5.5.0"
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   }
 }

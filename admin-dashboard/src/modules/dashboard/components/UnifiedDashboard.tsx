@@ -1,51 +1,32 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Progress } from '@/components/ui/progress';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
     Activity,
-    AlertTriangle,
     Bell,
-    ChevronRight,
-    DollarSign,
-    Eye,
     Search,
-    Settings,
-    Shield,
-    TrendingUp,
-    Users,
-    Building2,
-    ShoppingCart,
-    Package,
-    Server,
-    Zap,
     RefreshCw,
-    Filter,
-    Download,
-    MoreHorizontal,
+    Server,
+    Shield,
     User,
-    CheckCircle
+    Building2,
+    CheckCircle,
+    TrendingUp,
+    AlertTriangle,
+    Settings,
+    BarChart3,
+    Users,
+    ShoppingCart,
+    DollarSign
 } from 'lucide-react';
 
-import { KPIWidget } from './KPIWidget';
-import { ActivityFeed } from './ActivityFeed';
-import { SystemHealthWidget } from './SystemHealthWidget';
 import { SecurityOverview } from './SecurityOverview';
-import { QuickActions } from './QuickActions';
 import { GlobalSearch } from './GlobalSearch';
 import { NotificationCenter } from './NotificationCenter';
 import { TenantControlCenter } from '@/modules/tenant/components/TenantControlCenter';
-import { FeatureFlagManagement } from '@/modules/feature-flags/components/FeatureFlagManagement';
-import { ImpersonationManagement } from '@/modules/security/components/ImpersonationManagement';
-import { ContextManagement } from '@/modules/context/components/ContextManagement';
 import { SystemMonitoring } from '@/modules/monitoring/components/SystemMonitoring';
 import { EmergencyControls } from '@/modules/emergency/components/EmergencyControls';
 import { ComplianceDashboard } from '@/modules/compliance/components/ComplianceDashboard';
@@ -220,128 +201,249 @@ export function UnifiedDashboard() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600 font-medium">Loading SuperAdmin Dashboard...</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-6">
-            <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="mb-8">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-                            <p className="text-gray-600 mt-1">Super Admin Control Center for ConversationalCommerce</p>
-                        </div>
+        <div className="min-h-screen bg-gray-50">
+            {/* Professional Header */}
+            <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex items-center justify-between h-16">
                         <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                                    <Shield className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                    <h1 className="text-xl font-bold text-gray-900">SuperAdmin</h1>
+                                    <p className="text-sm text-gray-500">ConversationalCommerce Control Center</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center space-x-3">
                             <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setSearchOpen(true)}
-                                className="hidden md:flex"
+                                className="hidden md:flex items-center space-x-2"
                             >
-                                <Search className="h-4 w-4 mr-2" />
-                                Quick Search
+                                <Search className="h-4 w-4" />
+                                <span>Quick Search</span>
                             </Button>
+
                             <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setNotificationsOpen(true)}
+                                className="relative"
                             >
-                                <Bell className="h-4 w-4 mr-2" />
-                                Notifications
+                                <Bell className="h-4 w-4" />
+                                {kpis && (kpis.errors_today > 0 || kpis.security_events_today > 0) && (
+                                    <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
+                                )}
                             </Button>
+
                             <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={fetchDashboardData}
                                 disabled={refreshing}
+                                className="flex items-center space-x-2"
                             >
-                                <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-                                Refresh
+                                <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                                <span className="hidden md:inline">Refresh</span>
                             </Button>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {/* Main Content */}
-                <Card className="shadow-xl border-0">
-                    <CardHeader className="border-b bg-white">
+            {/* Main Content */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Quick Stats Row */}
+                {kpis && (
+                    <div className="admin-grid admin-grid-cols-4 mb-8">
+                        <div className="admin-metric-card">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="admin-metric-label">Total Tenants</p>
+                                    <p className="admin-metric-value">{formatNumber(kpis.total_tenants)}</p>
+                                    <p className="admin-metric-change positive">
+                                        +{kpis.avg_daily_tenants.toFixed(1)} today
+                                    </p>
+                                </div>
+                                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <Building2 className="w-6 h-6 text-blue-600" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="admin-metric-card">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="admin-metric-label">Active Users</p>
+                                    <p className="admin-metric-value">{formatNumber(kpis.active_users)}</p>
+                                    <p className="admin-metric-change positive">
+                                        +{kpis.avg_daily_users.toFixed(1)} today
+                                    </p>
+                                </div>
+                                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <Users className="w-6 h-6 text-green-600" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="admin-metric-card">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="admin-metric-label">Total Orders</p>
+                                    <p className="admin-metric-value">{formatNumber(kpis.total_orders)}</p>
+                                    <p className="admin-metric-change positive">
+                                        +{kpis.avg_daily_orders.toFixed(1)} today
+                                    </p>
+                                </div>
+                                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <ShoppingCart className="w-6 h-6 text-purple-600" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="admin-metric-card">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="admin-metric-label">Total Revenue</p>
+                                    <p className="admin-metric-value">{formatCurrency(kpis.total_revenue)}</p>
+                                    <p className="admin-metric-change positive">
+                                        +{formatCurrency(kpis.avg_daily_revenue)} today
+                                    </p>
+                                </div>
+                                <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                    <DollarSign className="w-6 h-6 text-yellow-600" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* System Health Banner */}
+                {systemHealth && (
+                    <div className="mb-8">
+                        <div className={`admin-card p-4 ${systemHealth.overall_status === 'healthy'
+                                ? 'border-green-200 bg-green-50'
+                                : systemHealth.overall_status === 'warning'
+                                    ? 'border-yellow-200 bg-yellow-50'
+                                    : 'border-red-200 bg-red-50'
+                            }`}>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                    <div className={`w-3 h-3 rounded-full ${systemHealth.overall_status === 'healthy'
+                                            ? 'bg-green-500'
+                                            : systemHealth.overall_status === 'warning'
+                                                ? 'bg-yellow-500'
+                                                : 'bg-red-500'
+                                        }`}></div>
+                                    <div>
+                                        <p className="font-medium text-gray-900">
+                                            System Status: {systemHealth.overall_status.charAt(0).toUpperCase() + systemHealth.overall_status.slice(1)}
+                                        </p>
+                                        <p className="text-sm text-gray-600">
+                                            Uptime: {systemHealth.uptime_percentage.toFixed(2)}% |
+                                            API Response: {systemHealth.api_response_time}ms |
+                                            Error Rate: {systemHealth.error_rate.toFixed(2)}%
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-4 text-sm text-gray-600">
+                                    <span>Database: {systemHealth.database_status}</span>
+                                    <span>DB Response: {systemHealth.database_response_time}ms</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Main Dashboard Content */}
+                <div className="admin-card">
+                    <div className="admin-card-header">
                         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                            <TabsList className="grid w-full grid-cols-2 md:grid-cols-6 lg:w-auto">
-                                <TabsTrigger value="overview" className="flex items-center gap-2">
+                            <TabsList className="grid w-full grid-cols-2 md:grid-cols-6 lg:w-auto bg-gray-100 p-1 rounded-lg">
+                                <TabsTrigger value="overview" className="admin-tab-trigger">
                                     <Activity className="h-4 w-4" />
                                     <span className="hidden md:inline">Overview</span>
                                 </TabsTrigger>
-                                <TabsTrigger value="tenants" className="flex items-center gap-2">
+                                <TabsTrigger value="tenants" className="admin-tab-trigger">
                                     <Building2 className="h-4 w-4" />
                                     <span className="hidden md:inline">Tenants</span>
                                 </TabsTrigger>
-                                <TabsTrigger value="impersonation" className="flex items-center gap-2">
+                                <TabsTrigger value="impersonation" className="admin-tab-trigger">
                                     <User className="h-4 w-4" />
                                     <span className="hidden md:inline">Impersonation</span>
                                 </TabsTrigger>
-                                <TabsTrigger value="monitoring" className="flex items-center gap-2">
+                                <TabsTrigger value="monitoring" className="admin-tab-trigger">
                                     <Server className="h-4 w-4" />
                                     <span className="hidden md:inline">Monitoring</span>
                                 </TabsTrigger>
-                                <TabsTrigger value="security" className="flex items-center gap-2">
+                                <TabsTrigger value="security" className="admin-tab-trigger">
                                     <Shield className="h-4 w-4" />
                                     <span className="hidden md:inline">Security</span>
                                 </TabsTrigger>
-                                <TabsTrigger value="compliance" className="flex items-center gap-2">
+                                <TabsTrigger value="compliance" className="admin-tab-trigger">
                                     <CheckCircle className="h-4 w-4" />
                                     <span className="hidden md:inline">Compliance</span>
                                 </TabsTrigger>
                             </TabsList>
                         </Tabs>
-                    </CardHeader>
-                    <CardContent className="p-0">
+                    </div>
+
+                    <div className="admin-card-content">
                         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                            <TabsContent value="overview" className="p-6">
+                            <TabsContent value="overview" className="space-y-6">
                                 <DashboardOverview
                                     metrics={metrics}
                                     kpis={kpis}
-                                    systemHealth={systemHealth}
-                                    loading={loading}
                                 />
                             </TabsContent>
-                            <TabsContent value="tenants" className="p-6">
+                            <TabsContent value="tenants" className="space-y-6">
                                 <TenantControlCenter />
                             </TabsContent>
-                            <TabsContent value="impersonation" className="p-6">
+                            <TabsContent value="impersonation" className="space-y-6">
                                 <TenantImpersonation />
                             </TabsContent>
-                            <TabsContent value="monitoring" className="p-6">
+                            <TabsContent value="monitoring" className="space-y-6">
                                 <SystemMonitoring />
                             </TabsContent>
-                            <TabsContent value="security" className="p-6">
+                            <TabsContent value="security" className="space-y-6">
                                 <div className="space-y-6">
                                     <EmergencyControls />
                                     <SecurityOverview />
                                 </div>
                             </TabsContent>
-                            <TabsContent value="compliance" className="p-6">
+                            <TabsContent value="compliance" className="space-y-6">
                                 <ComplianceDashboard />
                             </TabsContent>
                         </Tabs>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             </div>
 
             {/* Modals */}
             {searchOpen && (
                 <GlobalSearch
-                    isOpen={searchOpen}
+                    open={searchOpen}
                     onClose={() => setSearchOpen(false)}
                 />
             )}
             {notificationsOpen && (
                 <NotificationCenter
-                    isOpen={notificationsOpen}
+                    open={notificationsOpen}
                     onClose={() => setNotificationsOpen(false)}
                 />
             )}

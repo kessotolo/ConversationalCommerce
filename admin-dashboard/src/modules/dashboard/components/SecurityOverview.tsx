@@ -5,14 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
-    Shield,
-    AlertTriangle,
     Lock,
     Eye,
-    Activity,
     Users,
     Key,
-    Globe
+    Shield,
+    AlertTriangle
 } from 'lucide-react';
 
 export function SecurityOverview() {

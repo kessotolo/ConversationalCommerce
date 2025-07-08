@@ -1,14 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
-    swcMinify: true,
     eslint: {
         ignoreDuringBuilds: true,
     },
 
     // Enable experimental features
     experimental: {
-        serverActions: true,
+        serverActions: {
+            allowedOrigins: ['localhost:3001', 'admin.enwhe.com'],
+        },
     },
 
     // Environment variables

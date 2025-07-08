@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     TWILIO_PHONE_NUMBER: str
 
     # Storefront Settings
-    BASE_DOMAIN: str = "localhost"
+    BASE_DOMAIN: str = "enwhe.io"  # Base domain for merchant subdomains (merchant-id.enwhe.io)
     ENABLE_STOREFRONT: bool = True
     SUBDOMAIN_SEPARATOR: str = "."  # How subdomains are separated in local dev
 
@@ -46,6 +46,8 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://127.0.0.1",
         "http://127.0.0.1:3000",
+        "https://enwhe.io",
+        "https://*.enwhe.io",  # Allow all subdomains
     ]
 
     # Redis and Caching Settings
@@ -63,7 +65,11 @@ class Settings(BaseSettings):
 
     # CORS
     BACKEND_CORS_ORIGINS: list[str] = [
-        "https://enwhe.io", "https://*.enwhe.io"]
+        "https://enwhe.io",
+        "https://*.enwhe.io",  # Allow all merchant subdomains
+        "https://admin.enwhe.com",  # Admin dashboard
+        "https://app.enwhe.io",  # Main app
+    ]
 
     # Payment/Encryption Secrets
     PAYMENT_REF_SECRET: str = "changeme"

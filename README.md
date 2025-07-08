@@ -2,6 +2,33 @@
 
 A modular monolith for mobile-first, AI-driven, multi-tenant commerce in Africa. Built for natural, chat-driven buying and selling—on WhatsApp, web, and beyond.
 
+## 🌐 Merchant Subdomain Structure
+
+ConversationalCommerce uses a professional merchant subdomain structure where each merchant gets their own subdomain on `enwhe.io`:
+
+### Domain Hierarchy
+```
+enwhe.io (Base Domain)
+├── merchant-id.enwhe.io (Merchant Storefronts)
+├── app.enwhe.io (Main Application)
+├── api.enwhe.io (API Endpoints)
+└── admin.enwhe.com (Admin Dashboard)
+```
+
+### URL Examples
+- **Merchant Storefronts**: `https://abc123.enwhe.io`, `https://def456.enwhe.io`
+- **Custom Domains**: Merchants can point their own domains (e.g., `https://shop.mystore.com`)
+- **Main App**: `https://app.enwhe.io`
+- **Admin Dashboard**: `https://admin.enwhe.com`
+
+### WhatsApp Integration
+Each merchant gets their own WhatsApp number for direct commerce:
+- **Format**: `+254700123456` (Kenya example)
+- **URL**: `https://wa.me/254700123456?text=Hi%20I%20want%20to%20buy%20product%20ABC123`
+- **NLP Cart Management**: Full conversational commerce per merchant
+
+📖 **See**: [Merchant Subdomain Guide](/docs/MERCHANT_SUBDOMAIN_GUIDE.md) for complete setup and configuration details.
+
 ## 🏗️ Architecture
 
 ConversationalCommerce follows a **true modular monolithic architecture** with self-contained services:
@@ -87,6 +114,8 @@ ConversationalCommerce implements **enterprise-grade security** with comprehensi
 
 ## 🚀 Quickstart
 - [Onboarding Guide](/docs/ONBOARDING_GUIDE.md)
+- [Merchant Subdomain Guide](/docs/MERCHANT_SUBDOMAIN_GUIDE.md) — Domain structure and setup
+- [Merchant ID Generation](/docs/MERCHANT_ID_GENERATION.md) — How merchant IDs are created
 - [Architecture](/docs/ARCHITECTURE.md)
 - [AI Agent Config](/docs/AI_AGENT_CONFIG.md)
 - [Unified Admin Dashboard](/docs/UNIFIED_ADMIN_DASHBOARD.md)

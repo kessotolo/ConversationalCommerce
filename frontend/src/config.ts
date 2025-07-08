@@ -12,6 +12,29 @@ export const API_BASE_URL = process.env['NEXT_PUBLIC_API_URL'] ?? 'https://api.e
 export const API_TIMEOUT = 15000; // 15 seconds - optimized for slower connections
 export const RETRY_ATTEMPTS = 3; // Retry failed requests for better resilience
 
+// Domain Configuration
+export const DOMAIN_CONFIG = {
+  // Base domain for merchant subdomains (merchant-id.enwhe.io)
+  BASE_DOMAIN: process.env['NEXT_PUBLIC_BASE_DOMAIN'] ?? 'enwhe.io',
+
+  // Admin dashboard domain
+  ADMIN_DOMAIN: process.env['NEXT_PUBLIC_ADMIN_DOMAIN'] ?? 'admin.enwhe.com',
+
+  // Main app domain
+  APP_DOMAIN: process.env['NEXT_PUBLIC_APP_DOMAIN'] ?? 'app.enwhe.io',
+
+  // API domain
+  API_DOMAIN: process.env['NEXT_PUBLIC_API_DOMAIN'] ?? 'api.enwhe.io',
+};
+
+// Helper function to generate merchant URLs
+export const getMerchantUrl = (merchantId: string, customDomain?: string): string => {
+  if (customDomain) {
+    return `https://${customDomain}`;
+  }
+  return `https://${merchantId}.${DOMAIN_CONFIG.BASE_DOMAIN}`;
+};
+
 // Cache Configuration - higher values reduce bandwidth usage
 export const CACHE_DURATION = {
   products: 3600, // 1 hour cache for product listings

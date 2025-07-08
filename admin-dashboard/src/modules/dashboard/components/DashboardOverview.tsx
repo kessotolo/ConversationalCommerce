@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Users, ShoppingCart, DollarSign, Shield } from 'lucide-react';
+import { Building2, Users, ShoppingCart, DollarSign, Shield, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react';
 import { KPIWidget } from './KPIWidget';
 import { QuickActions } from './QuickActions';
 
@@ -109,128 +109,193 @@ export function DashboardOverview({ kpis, metrics }: DashboardOverviewProps) {
     };
 
     return (
-        <div className="space-y-4">
-            {/* KPI Cards */}
-            {kpis && (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <KPIWidget
-                        title="Total Tenants"
-                        value={formatNumber(kpis.total_tenants)}
-                        subValue={`${kpis.active_tenants} active`}
-                        icon={Building2}
-                        trend={kpis.avg_daily_tenants > 0 ? 'up' : 'stable'}
-                        trendValue={`+${kpis.avg_daily_tenants.toFixed(1)}/day`}
-                    />
-                    <KPIWidget
-                        title="Total Users"
-                        value={formatNumber(kpis.total_users)}
-                        subValue={`${kpis.active_users} active`}
-                        icon={Users}
-                        trend={kpis.avg_daily_users > 0 ? 'up' : 'stable'}
-                        trendValue={`+${kpis.avg_daily_users.toFixed(1)}/day`}
-                    />
-                    <KPIWidget
-                        title="Total Orders"
-                        value={formatNumber(kpis.total_orders)}
-                        subValue={`${kpis.avg_daily_orders.toFixed(0)}/day avg`}
-                        icon={ShoppingCart}
-                        trend={kpis.avg_daily_orders > 0 ? 'up' : 'stable'}
-                        trendValue={`+${kpis.avg_daily_orders.toFixed(1)}/day`}
-                    />
-                    <KPIWidget
-                        title="Total Revenue"
-                        value={formatCurrency(kpis.total_revenue)}
-                        subValue={`${formatCurrency(kpis.avg_daily_revenue)}/day avg`}
-                        icon={DollarSign}
-                        trend={kpis.avg_daily_revenue > 0 ? 'up' : 'stable'}
-                        trendValue={`+${formatCurrency(kpis.avg_daily_revenue)}/day`}
-                    />
+        <div className="space-y-8">
+            {/* Quick Actions */}
+            <div className="admin-card">
+                <div className="admin-card-header">
+                    <CardTitle className="text-lg font-semibold text-gray-900">Quick Actions</CardTitle>
                 </div>
-            )}
+                <div className="admin-card-content">
+                    <QuickActions />
+                </div>
+            </div>
 
-            {/* Detailed Metrics */}
+            {/* Detailed Metrics Grid */}
             {metrics && (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className="admin-grid admin-grid-cols-3">
                     {/* Tenant Metrics */}
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Tenant Overview</CardTitle>
-                            <Building2 className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-2">
-                                <div className="flex justify-between">
-                                    <span className="text-sm">Verified Tenants</span>
-                                    <span className="text-sm font-medium">{metrics.tenant_metrics.verified_tenants}</span>
+                    <div className="admin-card">
+                        <div className="admin-card-header">
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="text-base font-semibold text-gray-900">Tenant Overview</CardTitle>
+                                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <Building2 className="w-4 h-4 text-blue-600" />
                                 </div>
-                                <div className="flex justify-between">
-                                    <span className="text-sm">New This Period</span>
-                                    <span className="text-sm font-medium">{metrics.tenant_metrics.new_tenants}</span>
+                            </div>
+                        </div>
+                        <div className="admin-card-content">
+                            <div className="space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-600">Verified Tenants</span>
+                                    <span className="text-sm font-semibold text-gray-900">{metrics.tenant_metrics.verified_tenants}</span>
                                 </div>
-                                <div className="flex justify-between">
-                                    <span className="text-sm">Growth Rate</span>
-                                    <span className={`text-sm font-medium ${metrics.tenant_metrics.growth_rate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                        {metrics.tenant_metrics.growth_rate.toFixed(1)}%
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-600">New This Period</span>
+                                    <span className="text-sm font-semibold text-gray-900">{metrics.tenant_metrics.new_tenants}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-600">Growth Rate</span>
+                                    <span className={`text-sm font-semibold ${metrics.tenant_metrics.growth_rate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        {metrics.tenant_metrics.growth_rate >= 0 ? '+' : ''}{metrics.tenant_metrics.growth_rate.toFixed(1)}%
                                     </span>
                                 </div>
+                                <div className="pt-2 border-t border-gray-100">
+                                    <div className="flex items-center space-x-2">
+                                        <TrendingUp className="w-4 h-4 text-green-600" />
+                                        <span className="text-xs text-gray-500">Active growth trend</span>
+                                    </div>
+                                </div>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
 
                     {/* Order Metrics */}
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Order Performance</CardTitle>
-                            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-2">
-                                <div className="flex justify-between">
-                                    <span className="text-sm">Completion Rate</span>
-                                    <span className="text-sm font-medium">{metrics.order_metrics.completion_rate.toFixed(1)}%</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-sm">Avg Order Value</span>
-                                    <span className="text-sm font-medium">{formatCurrency(metrics.order_metrics.avg_order_value)}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-sm">Recent Orders</span>
-                                    <span className="text-sm font-medium">{metrics.order_metrics.recent_orders}</span>
+                    <div className="admin-card">
+                        <div className="admin-card-header">
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="text-base font-semibold text-gray-900">Order Performance</CardTitle>
+                                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <ShoppingCart className="w-4 h-4 text-purple-600" />
                                 </div>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                        <div className="admin-card-content">
+                            <div className="space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-600">Completion Rate</span>
+                                    <span className="text-sm font-semibold text-gray-900">{metrics.order_metrics.completion_rate.toFixed(1)}%</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-600">Avg Order Value</span>
+                                    <span className="text-sm font-semibold text-gray-900">{formatCurrency(metrics.order_metrics.avg_order_value)}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-600">Recent Orders</span>
+                                    <span className="text-sm font-semibold text-gray-900">{metrics.order_metrics.recent_orders}</span>
+                                </div>
+                                <div className="pt-2 border-t border-gray-100">
+                                    <div className="flex items-center space-x-2">
+                                        <CheckCircle className="w-4 h-4 text-green-600" />
+                                        <span className="text-xs text-gray-500">High completion rate</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                    {/* Security Overview */}
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Security Status</CardTitle>
-                            <Shield className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-2">
-                                <div className="flex justify-between">
-                                    <span className="text-sm">Threat Level</span>
-                                    <Badge className={getThreatLevelColor(metrics.security_metrics.threat_level)}>
+                    {/* Security Metrics */}
+                    <div className="admin-card">
+                        <div className="admin-card-header">
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="text-base font-semibold text-gray-900">Security Status</CardTitle>
+                                <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                                    <Shield className="w-4 h-4 text-red-600" />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="admin-card-content">
+                            <div className="space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-600">Failed Logins</span>
+                                    <span className="text-sm font-semibold text-gray-900">{metrics.security_metrics.failed_logins}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-600">Security Violations</span>
+                                    <span className="text-sm font-semibold text-gray-900">{metrics.security_metrics.security_violations}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-600">Threat Level</span>
+                                    <Badge className={`admin-status-badge ${getThreatLevelColor(metrics.security_metrics.threat_level)}`}>
                                         {metrics.security_metrics.threat_level}
                                     </Badge>
                                 </div>
-                                <div className="flex justify-between">
-                                    <span className="text-sm">Failed Logins</span>
-                                    <span className="text-sm font-medium">{metrics.security_metrics.failed_logins}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-sm">Violations</span>
-                                    <span className="text-sm font-medium">{metrics.security_metrics.security_violations}</span>
+                                <div className="pt-2 border-t border-gray-100">
+                                    <div className="flex items-center space-x-2">
+                                        <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                                        <span className="text-xs text-gray-500">Monitoring active</span>
+                                    </div>
                                 </div>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 </div>
             )}
 
-            {/* Quick Actions */}
-            <QuickActions />
+            {/* Performance Metrics */}
+            {metrics && (
+                <div className="admin-card">
+                    <div className="admin-card-header">
+                        <CardTitle className="text-lg font-semibold text-gray-900">System Performance</CardTitle>
+                    </div>
+                    <div className="admin-card-content">
+                        <div className="admin-grid admin-grid-cols-4">
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-gray-900">{metrics.performance_metrics.total_requests.toLocaleString()}</div>
+                                <div className="text-sm text-gray-600">Total Requests</div>
+                            </div>
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-gray-900">{metrics.performance_metrics.avg_response_time}ms</div>
+                                <div className="text-sm text-gray-600">Avg Response Time</div>
+                            </div>
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-gray-900">{metrics.performance_metrics.error_count}</div>
+                                <div className="text-sm text-gray-600">Errors Today</div>
+                            </div>
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-gray-900">{metrics.performance_metrics.uptime_percentage.toFixed(2)}%</div>
+                                <div className="text-sm text-gray-600">Uptime</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* User Activity */}
+            {metrics && (
+                <div className="admin-card">
+                    <div className="admin-card-header">
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="text-lg font-semibold text-gray-900">User Activity</CardTitle>
+                            <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                                <Users className="w-4 h-4 text-green-600" />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="admin-card-content">
+                        <div className="admin-grid admin-grid-cols-3">
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-gray-900">{formatNumber(metrics.user_metrics.total_users)}</div>
+                                <div className="text-sm text-gray-600">Total Users</div>
+                            </div>
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-gray-900">{formatNumber(metrics.user_metrics.active_users)}</div>
+                                <div className="text-sm text-gray-600">Active Users</div>
+                            </div>
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-gray-900">{metrics.user_metrics.retention_rate.toFixed(1)}%</div>
+                                <div className="text-sm text-gray-600">Retention Rate</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Last Updated */}
+            {metrics && (
+                <div className="text-center text-sm text-gray-500">
+                    Last updated: {new Date(metrics.last_updated).toLocaleString()}
+                </div>
+            )}
         </div>
     );
 }

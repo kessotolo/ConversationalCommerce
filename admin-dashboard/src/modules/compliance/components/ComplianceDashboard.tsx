@@ -4,35 +4,17 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     Shield,
     FileText,
     Download,
-    Search,
-    Filter,
-    Calendar,
-    User,
-    Activity,
     AlertTriangle,
-    CheckCircle,
-    XCircle,
-    Clock,
     RefreshCw,
-    Settings,
-    Database,
-    Lock,
-    Eye,
-    EyeOff,
-    TrendingUp,
-    TrendingDown,
-    BarChart3
+    Database
 } from 'lucide-react';
 import api from '@/lib/api';
 
@@ -96,7 +78,6 @@ export function ComplianceDashboard() {
     const [refreshing, setRefreshing] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState('all');
-    const [dateRange, setDateRange] = useState('7d');
 
     const fetchComplianceData = async () => {
         try {
@@ -149,21 +130,6 @@ export function ComplianceDashboard() {
             link.remove();
         } catch (error) {
             console.error('Error downloading audit logs:', error);
-        }
-    };
-
-    const getSeverityColor = (severity: string) => {
-        switch (severity) {
-            case 'low':
-                return 'bg-blue-500';
-            case 'medium':
-                return 'bg-yellow-500';
-            case 'high':
-                return 'bg-orange-500';
-            case 'critical':
-                return 'bg-red-500';
-            default:
-                return 'bg-gray-500';
         }
     };
 

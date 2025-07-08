@@ -12,7 +12,7 @@ import type { NextRequest } from 'next/server';
  * While respecting clean architecture principles
  */
 async function middlewareImplementation(request: NextRequest) {
-  // Get hostname from request (e.g. tenant1.myapp.com or customdomain.com)
+  // Get hostname from request (e.g. merchant-id.enwhe.io or customdomain.com)
   const hostname = request.headers.get('host') || '';
   const url = request.nextUrl.clone();
 
@@ -21,8 +21,10 @@ async function middlewareImplementation(request: NextRequest) {
   let identifierType: 'subdomain' | 'custom_domain' = 'subdomain';
   const hostnameArray = hostname.split('.');
 
-  // Primary application domain (without subdomain)
-  const primaryDomain = process.env['PRIMARY_DOMAIN'] || 'yourplatform.com';
+  // Domain configuration
+  const baseDomain = process.env['NEXT_PUBLIC_BASE_DOMAIN'] || 'enwhe.io';
+  const adminDomain = process.env['NEXT_PUBLIC_ADMIN_DOMAIN'] || 'admin.enwhe.com';
+  const appDomain = process.env['NEXT_PUBLIC_APP_DOMAIN'] || 'app.enwhe.io';
 
   // Check for localhost or IP address which don't have subdomains in standard format
   if (hostname.includes('localhost') || /^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
@@ -32,14 +34,26 @@ async function middlewareImplementation(request: NextRequest) {
       typeof subdomain === 'string' && subdomain.length > 0 ? subdomain : 'default';
     identifierType = 'subdomain';
   }
-  // Check if this is a subdomain of our primary domain
+  // Check if this is a merchant subdomain (merchant-id.enwhe.io)
   else if (
-    hostname.endsWith(`.${primaryDomain}`) &&
+    hostname.endsWith(`.${baseDomain}`) &&
     hostnameArray.length > 2 &&
     hostnameArray[0] !== 'www'
   ) {
-    // Extract subdomain from hostname
+    // Extract merchant ID from subdomain
     tenantIdentifier = hostnameArray[0];
+    identifierType = 'subdomain';
+  }
+  // Check if this is the admin domain
+  else if (hostname === adminDomain) {
+    // Admin domain - no tenant context needed
+    tenantIdentifier = 'admin';
+    identifierType = 'subdomain';
+  }
+  // Check if this is the main app domain
+  else if (hostname === appDomain) {
+    // Main app domain - no tenant context needed
+    tenantIdentifier = 'app';
     identifierType = 'subdomain';
   }
   // Otherwise treat as a custom domain

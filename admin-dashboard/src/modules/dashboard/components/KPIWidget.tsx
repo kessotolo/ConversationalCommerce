@@ -1,8 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-// import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, Minus, LucideIcon } from 'lucide-react';
 
 interface KPIWidgetProps {
@@ -47,27 +45,29 @@ export function KPIWidget({
     };
 
     return (
-        <Card className={className}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{title}</CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-                <div className="text-2xl font-bold">{value}</div>
-                {subValue && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                        {subValue}
-                    </p>
-                )}
-                {trendValue && (
-                    <div className="flex items-center space-x-1 mt-1">
-                        {getTrendIcon()}
-                        <span className={`text-xs font-medium ${getTrendColor()}`}>
-                            {trendValue}
-                        </span>
-                    </div>
-                )}
-            </CardContent>
-        </Card>
+        <div className={`admin-metric-card ${className || ''}`}>
+            <div className="flex items-center justify-between">
+                <div className="flex-1">
+                    <p className="admin-metric-label">{title}</p>
+                    <p className="admin-metric-value">{value}</p>
+                    {subValue && (
+                        <p className="text-sm text-gray-600 mt-1">
+                            {subValue}
+                        </p>
+                    )}
+                    {trendValue && (
+                        <div className="flex items-center space-x-1 mt-2">
+                            {getTrendIcon()}
+                            <span className={`text-xs font-medium ${getTrendColor()}`}>
+                                {trendValue}
+                            </span>
+                        </div>
+                    )}
+                </div>
+                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <Icon className="w-6 h-6 text-gray-600" />
+                </div>
+            </div>
+        </div>
     );
 }
