@@ -13,7 +13,7 @@ from sqlalchemy import select, update, and_, or_, not_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.security.emergency import (
-    EmergencyEvent, EmergencySeverity, EmergencyType, 
+    EmergencyEvent, EmergencySeverity, EmergencyType,
     EmergencyNotification, EmergencyContact, NotificationChannel
 )
 from app.services.audit.audit_service import AuditService
@@ -21,10 +21,10 @@ from app.services.audit.audit_service import AuditService
 
 class EmergencyNotificationService:
     """Service for managing emergency notifications."""
-    
+
     def __init__(self):
         self.audit_service = AuditService()
-    
+
     async def create_emergency_contact(
         self,
         db: AsyncSession,
@@ -42,7 +42,7 @@ class EmergencyNotificationService:
     ) -> EmergencyContact:
         """
         Create a new emergency contact.
-        
+
         Args:
             db: Database session
             name: Name of the contact
@@ -56,17 +56,18 @@ class EmergencyNotificationService:
             min_severity: Minimum severity to notify about
             notify_for_types: Types of emergencies to notify for
             admin_user_id: ID of admin creating the contact
-            
+
         Returns:
             The created emergency contact
         """
         # Validate inputs
         if not email and not phone:
             raise ValueError("At least one of email or phone must be provided")
-            
+
         if not notify_via_email and not notify_via_sms and not additional_channels:
-            raise ValueError("At least one notification channel must be enabled")
-        
+            raise ValueError(
+                "At least one notification channel must be enabled")
+
         # Create contact
         contact = EmergencyContact(
             name=name,
@@ -81,11 +82,11 @@ class EmergencyNotificationService:
             notify_for_types=notify_for_types,
             is_active=True
         )
-        
+
         db.add(contact)
         await db.commit()
         await db.refresh(contact)
-        
+
         # Log audit event
         if admin_user_id:
             await self.audit_service.log_event(
@@ -102,9 +103,9 @@ class EmergencyNotificationService:
                     "min_severity": min_severity
                 }
             )
-        
+
         return contact
-    
+
     async def update_emergency_contact(
         self,
         db: AsyncSession,
@@ -122,7 +123,7 @@ class EmergencyNotificationService:
     ) -> EmergencyContact:
         """
         Update an existing emergency contact.
-        
+
         Args:
             db: Database session
             contact_id: ID of the contact to update
@@ -136,53 +137,55 @@ class EmergencyNotificationService:
             notify_for_types: Types of emergencies to notify for
             is_active: Whether the contact is active
             admin_user_id: ID of admin updating the contact
-            
+
         Returns:
             The updated emergency contact
         """
         # Get the contact
-        query = select(EmergencyContact).where(EmergencyContact.id == contact_id)
+        query = select(EmergencyContact).where(
+            EmergencyContact.id == contact_id)
         result = await db.execute(query)
         contact = result.scalars().first()
-        
+
         if not contact:
             raise ValueError(f"Emergency contact {contact_id} not found")
-        
+
         # Update fields
         if name is not None:
             contact.name = name
-            
+
         if email is not None:
             contact.email = email
-            
+
         if phone is not None:
             contact.phone = phone
-            
+
         if notify_via_email is not None:
             contact.notify_via_email = notify_via_email
-            
+
         if notify_via_sms is not None:
             contact.notify_via_sms = notify_via_sms
-            
+
         if additional_channels is not None:
             contact.additional_channels = additional_channels
-            
+
         if min_severity is not None:
             contact.min_severity = min_severity
-            
+
         if notify_for_types is not None:
             contact.notify_for_types = notify_for_types
-            
+
         if is_active is not None:
             contact.is_active = is_active
-            
+
         # Validate that at least one notification channel is enabled
         if not contact.notify_via_email and not contact.notify_via_sms and not contact.additional_channels:
-            raise ValueError("At least one notification channel must be enabled")
-        
+            raise ValueError(
+                "At least one notification channel must be enabled")
+
         await db.commit()
         await db.refresh(contact)
-        
+
         # Log audit event
         if admin_user_id:
             await self.audit_service.log_event(
@@ -199,9 +202,9 @@ class EmergencyNotificationService:
                     "min_severity": contact.min_severity
                 }
             )
-        
+
         return contact
-    
+
     async def send_emergency_notification(
         self,
         db: AsyncSession,
@@ -212,25 +215,26 @@ class EmergencyNotificationService:
     ) -> List[EmergencyNotification]:
         """
         Send notifications to appropriate emergency contacts for an emergency.
-        
+
         Args:
             db: Database session
             emergency_id: ID of the emergency event
             subject: Subject of the notification
             message: Body of the notification
             user_id: ID of user triggering the notification
-            
+
         Returns:
             List of created notification records
         """
         # Get the emergency event
-        event_query = select(EmergencyEvent).where(EmergencyEvent.id == emergency_id)
+        event_query = select(EmergencyEvent).where(
+            EmergencyEvent.id == emergency_id)
         result = await db.execute(event_query)
         event = result.scalars().first()
-        
+
         if not event:
             raise ValueError(f"Emergency event {emergency_id} not found")
-        
+
         # Find eligible contacts based on severity and affected tenants
         contacts_query = select(EmergencyContact).where(
             and_(
@@ -239,7 +243,7 @@ class EmergencyNotificationService:
                 EmergencyContact.min_severity <= event.severity
             )
         )
-        
+
         # Filter by emergency type if specified
         if event.type and event.type != EmergencyType.OTHER:
             contacts_query = contacts_query.where(
@@ -248,24 +252,25 @@ class EmergencyNotificationService:
                     EmergencyContact.notify_for_types.contains([event.type])
                 )
             )
-        
+
         # Handle tenant-specific notifications
         tenant_conditions = []
-        
+
         # Platform-wide contacts
         tenant_conditions.append(EmergencyContact.tenant_id == None)
-        
+
         # Tenant-specific contacts for affected tenants
         if event.affected_tenants:
             for tenant_id in event.affected_tenants:
-                tenant_conditions.append(EmergencyContact.tenant_id == tenant_id)
-                
+                tenant_conditions.append(
+                    EmergencyContact.tenant_id == tenant_id)
+
         contacts_query = contacts_query.where(or_(*tenant_conditions))
-        
+
         # Execute query
         result = await db.execute(contacts_query)
         contacts = result.scalars().all()
-        
+
         # Send notifications
         notifications = []
         for contact in contacts:
@@ -281,7 +286,7 @@ class EmergencyNotificationService:
                     recipient_email=contact.email
                 )
                 notifications.append(notification)
-                
+
             if contact.notify_via_sms and contact.phone:
                 notification = await self._create_notification(
                     db=db,
@@ -293,11 +298,12 @@ class EmergencyNotificationService:
                     recipient_phone=contact.phone
                 )
                 notifications.append(notification)
-                
+
             if contact.additional_channels:
                 for channel_name, config in contact.additional_channels.items():
                     try:
-                        channel_enum = NotificationChannel(channel_name.lower())
+                        channel_enum = NotificationChannel(
+                            channel_name.lower())
                         notification = await self._create_notification(
                             db=db,
                             emergency_id=emergency_id,
@@ -311,7 +317,7 @@ class EmergencyNotificationService:
                     except ValueError:
                         # Invalid channel name, skip
                         continue
-        
+
         # Log audit event
         if user_id:
             await self.audit_service.log_event(
@@ -327,9 +333,9 @@ class EmergencyNotificationService:
                     "emergency_severity": event.severity
                 }
             )
-        
+
         return notifications
-    
+
     async def _create_notification(
         self,
         db: AsyncSession,
@@ -344,7 +350,7 @@ class EmergencyNotificationService:
     ) -> EmergencyNotification:
         """
         Create a notification record and dispatch it through the specified channel.
-        
+
         Args:
             db: Database session
             emergency_id: ID of the emergency event
@@ -355,7 +361,7 @@ class EmergencyNotificationService:
             recipient_email: Email recipient
             recipient_phone: Phone recipient
             details: Additional details for the notification
-            
+
         Returns:
             The created notification record
         """
@@ -371,20 +377,156 @@ class EmergencyNotificationService:
             sent_at=datetime.now(timezone.utc),
             details=details
         )
-        
+
         db.add(notification)
         await db.commit()
         await db.refresh(notification)
-        
-        # TODO: Actually dispatch the notification through appropriate service
-        # This would integrate with email service, SMS gateway, Slack API, etc.
-        # For now, we'll just mark it as "delivered" for demonstration
-        
-        notification.delivered = True
+
+        # Dispatch the notification through appropriate service
+        try:
+            if channel == NotificationChannel.EMAIL and recipient_email:
+                await self._dispatch_email_notification(
+                    recipient_email=recipient_email,
+                    subject=subject,
+                    message=message,
+                    notification_id=notification.id
+                )
+                notification.delivered = True
+
+            elif channel == NotificationChannel.SMS and recipient_phone:
+                await self._dispatch_sms_notification(
+                    recipient_phone=recipient_phone,
+                    message=message,
+                    notification_id=notification.id
+                )
+                notification.delivered = True
+
+            elif channel == NotificationChannel.SLACK:
+                await self._dispatch_slack_notification(
+                    webhook_url=details.get(
+                        "webhook_url") if details else None,
+                    channel=details.get("channel") if details else None,
+                    message=message,
+                    notification_id=notification.id
+                )
+                notification.delivered = True
+
+            elif channel == NotificationChannel.WEBHOOK:
+                await self._dispatch_webhook_notification(
+                    webhook_url=details.get(
+                        "webhook_url") if details else None,
+                    payload=details.get("payload") if details else None,
+                    notification_id=notification.id
+                )
+                notification.delivered = True
+
+            else:
+                # Unsupported channel or missing recipient
+                notification.delivered = False
+                notification.error_message = f"Unsupported channel {channel} or missing recipient"
+
+        except Exception as e:
+            notification.delivered = False
+            notification.error_message = str(e)
+            # logger.error(f"Failed to dispatch notification {notification.id}: {str(e)}") # Original code had this line commented out
+
         await db.commit()
-        
+        await db.refresh(notification)
+
         return notification
-    
+
+    async def _dispatch_email_notification(
+        self,
+        recipient_email: str,
+        subject: str,
+        message: str,
+        notification_id: uuid.UUID
+    ) -> None:
+        """Dispatch email notification."""
+        try:
+            from app.core.notifications.email_service import EmailService
+
+            email_service = EmailService()
+            await email_service.send_emergency_email(
+                to_email=recipient_email,
+                subject=subject,
+                message=message
+            )
+
+            # logger.info(f"Emergency email sent to {recipient_email} for notification {notification_id}") # Original code had this line commented out
+
+        except Exception as e:
+            # logger.error(f"Failed to send emergency email to {recipient_email}: {str(e)}") # Original code had this line commented out
+            raise
+
+    async def _dispatch_sms_notification(
+        self,
+        recipient_phone: str,
+        message: str,
+        notification_id: uuid.UUID
+    ) -> None:
+        """Dispatch SMS notification."""
+        try:
+            from app.core.notifications.sms_service import SMSService
+
+            sms_service = SMSService()
+            await sms_service.send_emergency_sms(
+                to_phone=recipient_phone,
+                message=message
+            )
+
+            # logger.info(f"Emergency SMS sent to {recipient_phone} for notification {notification_id}") # Original code had this line commented out
+
+        except Exception as e:
+            # logger.error(f"Failed to send emergency SMS to {recipient_phone}: {str(e)}") # Original code had this line commented out
+            raise
+
+    async def _dispatch_slack_notification(
+        self,
+        webhook_url: Optional[str],
+        channel: Optional[str],
+        message: str,
+        notification_id: uuid.UUID
+    ) -> None:
+        """Dispatch Slack notification."""
+        try:
+            from app.core.notifications.slack_service import SlackService
+
+            slack_service = SlackService()
+            await slack_service.send_emergency_message(
+                webhook_url=webhook_url,
+                channel=channel,
+                message=message
+            )
+
+            # logger.info(f"Emergency Slack message sent for notification {notification_id}") # Original code had this line commented out
+
+        except Exception as e:
+            # logger.error(f"Failed to send emergency Slack message: {str(e)}") # Original code had this line commented out
+            raise
+
+    async def _dispatch_webhook_notification(
+        self,
+        webhook_url: Optional[str],
+        payload: Optional[Dict[str, Any]],
+        notification_id: uuid.UUID
+    ) -> None:
+        """Dispatch webhook notification."""
+        try:
+            from app.core.notifications.webhook_service import WebhookService
+
+            webhook_service = WebhookService()
+            await webhook_service.send_emergency_webhook(
+                webhook_url=webhook_url,
+                payload=payload or {}
+            )
+
+            # logger.info(f"Emergency webhook sent for notification {notification_id}") # Original code had this line commented out
+
+        except Exception as e:
+            # logger.error(f"Failed to send emergency webhook: {str(e)}") # Original code had this line commented out
+            raise
+
     async def mark_notification_acknowledged(
         self,
         db: AsyncSession,
@@ -393,29 +535,30 @@ class EmergencyNotificationService:
     ) -> EmergencyNotification:
         """
         Mark a notification as acknowledged by a recipient.
-        
+
         Args:
             db: Database session
             notification_id: ID of the notification
             user_id: ID of user acknowledging the notification
-            
+
         Returns:
             The updated notification
         """
         # Get the notification
-        query = select(EmergencyNotification).where(EmergencyNotification.id == notification_id)
+        query = select(EmergencyNotification).where(
+            EmergencyNotification.id == notification_id)
         result = await db.execute(query)
         notification = result.scalars().first()
-        
+
         if not notification:
             raise ValueError(f"Notification {notification_id} not found")
-            
+
         # Update the notification
         notification.acknowledged_at = datetime.now(timezone.utc)
-        
+
         await db.commit()
         await db.refresh(notification)
-        
+
         # Log audit event
         if user_id:
             await self.audit_service.log_event(
@@ -430,9 +573,9 @@ class EmergencyNotificationService:
                     "channel": notification.recipient_channel
                 }
             )
-        
+
         return notification
-    
+
     async def get_emergency_contacts(
         self,
         db: AsyncSession,
@@ -441,20 +584,20 @@ class EmergencyNotificationService:
     ) -> List[EmergencyContact]:
         """
         Get emergency contacts, optionally filtered by tenant.
-        
+
         Args:
             db: Database session
             tenant_id: Optional tenant ID to filter by
             include_inactive: Whether to include inactive contacts
-            
+
         Returns:
             List of emergency contacts
         """
         query = select(EmergencyContact)
-        
+
         if not include_inactive:
             query = query.where(EmergencyContact.is_active == True)
-            
+
         # Filter by tenant if specified
         if tenant_id:
             query = query.where(
@@ -463,12 +606,12 @@ class EmergencyNotificationService:
                     EmergencyContact.tenant_id == tenant_id  # Tenant-specific contacts
                 )
             )
-            
+
         # Sort by tenant (platform-wide first), then by severity (highest first)
         query = query.order_by(
             EmergencyContact.tenant_id.nullsfirst(),
             EmergencyContact.min_severity.asc()  # Lower severity value = higher severity
         )
-        
+
         result = await db.execute(query)
         return result.scalars().all()

@@ -43,7 +43,8 @@ class UnifiedNotification(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     tenant_id: Optional[str] = None  # Optional for admin-only notifications
     recipient_type: RecipientType
-    recipient_id: Optional[str] = None  # User ID or tenant ID, optional for broadcast
+    # User ID or tenant ID, optional for broadcast
+    recipient_id: Optional[str] = None
     title: str
     message: str
     priority: NotificationPriority
@@ -64,61 +65,61 @@ class UnifiedNotificationSystem:
     Unified notification system that handles both admin and tenant contexts,
     providing a seamless notification experience across the entire platform.
     """
-    
+
     def __init__(self):
         """Initialize the unified notification system"""
         self._base_notification_service = notification_service
-    
+
     async def send_notification(self, notification: UnifiedNotification) -> bool:
         """
         Send a notification through the unified system
-        
+
         Args:
             notification: Unified notification
-        
+
         Returns:
             Success status
         """
         # Convert to base notification format
         base_notification = await self._convert_to_base_notification(notification)
-        
+
         # Send through base notification service
         success = await self._base_notification_service.send_notification(base_notification)
-        
+
         # Update notification status
         if success:
             notification.status = "sent"
             notification.sent_at = datetime.utcnow()
         else:
             notification.status = "failed"
-        
+
         # Store notification in database (implementation needed)
         await self._store_notification(notification)
-        
+
         return success
-    
+
     async def _convert_to_base_notification(
         self, notification: UnifiedNotification
     ) -> Notification:
         """
         Convert unified notification to base notification format
-        
+
         Args:
             notification: Unified notification
-        
+
         Returns:
             Base notification
         """
         # For tenant notifications, use the tenant ID
         tenant_id = notification.tenant_id
-        
+
         # For admin notifications, use "admin" as the tenant ID
         if notification.recipient_type in [
-            RecipientType.ADMIN_USER, 
+            RecipientType.ADMIN_USER,
             RecipientType.ALL_ADMINS
         ] and not tenant_id:
             tenant_id = "admin"
-        
+
         # Determine user ID
         user_id = notification.recipient_id
         if not user_id:
@@ -128,7 +129,7 @@ class UnifiedNotificationSystem:
                 user_id = "all_tenant_admins"
             elif notification.recipient_type == RecipientType.TENANT:
                 user_id = f"tenant:{tenant_id}"
-        
+
         # Enhanced metadata with unified system data
         enhanced_metadata = notification.metadata.copy()
         enhanced_metadata.update({
@@ -138,7 +139,7 @@ class UnifiedNotificationSystem:
             "action_text": notification.action_text,
             "unified_notification_id": notification.id,
         })
-        
+
         # Create base notification
         base_notification = Notification(
             id=str(uuid.uuid4()),  # Generate new ID for base notification
@@ -151,21 +152,36 @@ class UnifiedNotificationSystem:
             metadata=enhanced_metadata,
             created_at=notification.created_at
         )
-        
+
         return base_notification
-    
+
     async def _store_notification(self, notification: UnifiedNotification) -> None:
         """
-        Store notification in database
-        
+        Store notification in the database for persistence and retrieval.
+
         Args:
             notification: Unified notification
         """
-        # Implementation would typically involve database storage
-        # For now, we'll just log it
-        logger.info(f"Stored notification: {notification.id} - {notification.title}")
-        # TODO: Implement database storage when admin notification model is added
-    
+        try:
+            from app.services.notifications.notification_storage_service import NotificationStorageService
+
+            # Initialize storage service
+            storage_service = NotificationStorageService()
+
+            # Get database session (you may need to adjust this based on your session management)
+            from app.db.session import get_db
+            async with get_db() as db:
+                # Store notification in database
+                await storage_service.store_notification(db, notification)
+
+                logger.info(
+                    f"Stored notification: {notification.id} - {notification.title}")
+
+        except Exception as e:
+            logger.error(
+                f"Failed to store notification {notification.id}: {str(e)}")
+            # Don't raise exception - storage failure shouldn't prevent notification sending
+
     async def send_admin_notification(
         self,
         title: str,
@@ -180,7 +196,7 @@ class UnifiedNotificationSystem:
     ) -> UnifiedNotification:
         """
         Helper method to quickly send an admin notification
-        
+
         Args:
             title: Notification title
             message: Notification message
@@ -191,17 +207,17 @@ class UnifiedNotificationSystem:
             action_url: Optional URL for action button
             action_text: Optional text for action button
             metadata: Additional metadata
-            
+
         Returns:
             Sent notification
         """
         if channels is None:
             channels = [NotificationChannel.IN_APP, NotificationChannel.EMAIL]
-            
+
         # Determine recipient type and ID
         recipient_type = RecipientType.ADMIN_USER if admin_user_id else RecipientType.ALL_ADMINS
         recipient_id = admin_user_id
-        
+
         # Create notification
         notification = UnifiedNotification(
             tenant_id=None,  # No tenant for admin notifications
@@ -216,12 +232,12 @@ class UnifiedNotificationSystem:
             action_text=action_text,
             metadata=metadata or {}
         )
-        
+
         # Send notification
         await self.send_notification(notification)
-        
+
         return notification
-    
+
     async def send_tenant_notification(
         self,
         tenant_id: str,
@@ -238,7 +254,7 @@ class UnifiedNotificationSystem:
     ) -> UnifiedNotification:
         """
         Helper method to quickly send a tenant notification
-        
+
         Args:
             tenant_id: Tenant ID
             title: Notification title
@@ -251,13 +267,13 @@ class UnifiedNotificationSystem:
             action_url: Optional URL for action button
             action_text: Optional text for action button
             metadata: Additional metadata
-            
+
         Returns:
             Sent notification
         """
         if channels is None:
             channels = [NotificationChannel.IN_APP, NotificationChannel.EMAIL]
-            
+
         # Determine recipient type and ID
         if user_id and is_tenant_admin:
             recipient_type = RecipientType.TENANT_ADMIN
@@ -271,7 +287,7 @@ class UnifiedNotificationSystem:
         else:
             recipient_type = RecipientType.TENANT
             recipient_id = None
-        
+
         # Create notification
         notification = UnifiedNotification(
             tenant_id=tenant_id,
@@ -286,12 +302,12 @@ class UnifiedNotificationSystem:
             action_text=action_text,
             metadata=metadata or {}
         )
-        
+
         # Send notification
         await self.send_notification(notification)
-        
+
         return notification
-    
+
     async def send_cross_context_notification(
         self,
         title: str,
@@ -308,7 +324,7 @@ class UnifiedNotificationSystem:
     ) -> List[UnifiedNotification]:
         """
         Send notification across multiple contexts (admin and tenant)
-        
+
         Args:
             title: Notification title
             message: Notification message
@@ -321,15 +337,15 @@ class UnifiedNotificationSystem:
             action_url: Optional URL for action button
             action_text: Optional text for action button
             metadata: Additional metadata
-            
+
         Returns:
             List of sent notifications
         """
         if channels is None:
             channels = [NotificationChannel.IN_APP, NotificationChannel.EMAIL]
-            
+
         sent_notifications = []
-        
+
         # Send to admin users if requested
         if admin_users:
             admin_notification = await self.send_admin_notification(
@@ -343,7 +359,7 @@ class UnifiedNotificationSystem:
                 metadata=metadata
             )
             sent_notifications.append(admin_notification)
-        
+
         # Send to tenant admins if requested
         if tenant_admins and tenant_ids:
             for tenant_id in tenant_ids:
@@ -360,7 +376,7 @@ class UnifiedNotificationSystem:
                     metadata=metadata
                 )
                 sent_notifications.append(tenant_admin_notification)
-        
+
         return sent_notifications
 
 

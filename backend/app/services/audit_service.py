@@ -37,6 +37,9 @@ class AuditResourceType:
     CUSTOMER = "customer"
     SETTING = "setting"
     STOREFRONT = "storefront"
+    AI_CONFIG = "ai_config"
+    PAGE = "page"
+    PAGE_COMPONENT = "page_component"
 
 
 async def create_audit_log(

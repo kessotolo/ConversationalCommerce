@@ -8,6 +8,10 @@ from app.api.deps.security_deps import payment_security_checks
 from app.core.auth import get_current_active_user
 from app.core.config.settings import get_settings
 from app.core.security.payment_security import mask_sensitive_data
+from app.models.tenant import Tenant
+from app.models.user import User
+from app.services.admin.admin_user.service import AdminUserService
+from app.services.audit_service import AuditActionType, AuditResourceType, create_audit_log
 from app.schemas.payment.payment import (
     PaymentInitializeResponseWithWrapper,
     PaymentProvider,
@@ -19,15 +23,79 @@ from app.schemas.payment.payment_validation import (
     EnhancedManualPaymentProof,
     EnhancedPaymentInitializeRequest,
 )
-from app.services.audit_service import (
-    AuditActionType,
-    AuditResourceType,
-    create_audit_log,
-)
 from app.services.payment.payment_provider import get_payment_provider
 from app.services.payment.payment_service import PaymentService
 
 router = APIRouter()
+
+# Initialize admin user service for permission checks
+admin_user_service = AdminUserService()
+
+
+async def check_payment_settings_permission(
+    tenant_id: int,
+    current_user: User,
+    db: Session,
+    require_admin: bool = False
+) -> bool:
+    """
+    Check if the current user has permission to access payment settings.
+
+    Args:
+        tenant_id: ID of the tenant
+        current_user: Current authenticated user
+        db: Database session
+        require_admin: Whether admin role is required (for sensitive operations)
+
+    Returns:
+        True if user has permission, False otherwise
+
+    Raises:
+        HTTPException: If user doesn't have permission
+    """
+    # Convert user ID to UUID if needed
+    user_id = current_user.id
+    if isinstance(user_id, str):
+        from uuid import UUID
+        user_id = UUID(user_id)
+
+    # Check if tenant exists
+    tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+    if not tenant:
+        raise HTTPException(
+            status_code=404,
+            detail="Tenant not found"
+        )
+
+    # Check if user is the tenant owner
+    if tenant.admin_user_id == user_id:
+        return True
+
+    # If admin role is required, check for admin permissions
+    if require_admin:
+        has_admin_role = await admin_user_service.has_role(
+            db=db,
+            admin_user_id=user_id,
+            role_name="admin",  # or "super_admin" depending on your hierarchy
+            tenant_id=None,  # Global admin role
+            include_ancestors=True
+        )
+        if has_admin_role:
+            return True
+
+    # Check if user has any admin role (for general access)
+    has_any_admin_role = await admin_user_service.has_role(
+        db=db,
+        admin_user_id=user_id,
+        role_name="admin",
+        tenant_id=None,
+        include_ancestors=True
+    )
+
+    if has_any_admin_role:
+        return True
+
+    return False
 
 
 @router.post("/initialize", response_model=PaymentInitializeResponseWithWrapper)
@@ -135,8 +203,25 @@ async def get_payment_settings(
 ) -> Any:
     """
     Get payment settings for a store
+
+    This endpoint requires the user to be either:
+    - The tenant owner
+    - An admin user with appropriate permissions
     """
-    # TODO: Add permission check - only store owner or admin should be able to access this
+    # Check permission
+    has_permission = await check_payment_settings_permission(
+        tenant_id=tenant_id,
+        current_user=current_user,
+        db=db,
+        require_admin=False
+    )
+
+    if not has_permission:
+        raise HTTPException(
+            status_code=403,
+            detail="You don't have permission to access payment settings for this tenant"
+        )
+
     payment_service = PaymentService(db)
     settings = await payment_service.get_payment_settings(tenant_id)
 
@@ -153,10 +238,41 @@ async def update_payment_settings(
 ) -> Any:
     """
     Update payment settings for a store
+
+    This endpoint requires the user to be either:
+    - The tenant owner
+    - An admin user with appropriate permissions
     """
-    # TODO: Add permission check - only store owner or admin should be able to update this
+    # Check permission
+    has_permission = await check_payment_settings_permission(
+        tenant_id=tenant_id,
+        current_user=current_user,
+        db=db,
+        require_admin=True  # More restrictive for updates
+    )
+
+    if not has_permission:
+        raise HTTPException(
+            status_code=403,
+            detail="You don't have permission to update payment settings for this tenant"
+        )
+
     payment_service = PaymentService(db)
     success = await payment_service.update_payment_settings(tenant_id, settings_data)
+
+    # Create audit log for payment settings update
+    create_audit_log(
+        db=db,
+        user_id=getattr(current_user, "id", None),
+        action=AuditActionType.UPDATE,
+        resource_type=AuditResourceType.SETTING,
+        resource_id=f"payment_settings_{tenant_id}",
+        details={
+            "tenant_id": tenant_id,
+            "operation": "update_payment_settings",
+            "masked_data": mask_sensitive_data(settings_data.dict()),
+        },
+    )
 
     return {"success": success}
 

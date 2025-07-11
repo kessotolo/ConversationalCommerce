@@ -244,9 +244,54 @@ class BehaviorAnalysisService:
         return evidence
 
     async def _get_system_metrics(self) -> Dict[str, Any]:
-        """Get current system metrics"""
-        # TODO: Implement system metrics collection
-        return {"cpu_usage": 0.0, "memory_usage": 0.0, "active_connections": 0}
+        """Get current system metrics for behavior analysis context"""
+        try:
+            import psutil
+            import asyncio
+            from app.core.monitoring.system_metrics import SystemMetricsCollector
+
+            # Initialize metrics collector
+            metrics_collector = SystemMetricsCollector()
+
+            # Collect real-time system metrics
+            metrics = await metrics_collector.collect_current_metrics()
+
+            return {
+                "cpu_usage": metrics.get("cpu_percent", 0.0),
+                "memory_usage": metrics.get("memory_percent", 0.0),
+                "active_connections": metrics.get("active_connections", 0),
+                "disk_usage": metrics.get("disk_percent", 0.0),
+                "network_io": metrics.get("network_io", {}),
+                "load_average": metrics.get("load_average", []),
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+
+        except ImportError:
+            # Fallback if psutil is not available
+            logger.warning(
+                "psutil not available, using fallback system metrics")
+            return {
+                "cpu_usage": 0.0,
+                "memory_usage": 0.0,
+                "active_connections": 0,
+                "disk_usage": 0.0,
+                "network_io": {"bytes_sent": 0, "bytes_recv": 0},
+                "load_average": [0.0, 0.0, 0.0],
+                "timestamp": datetime.utcnow().isoformat(),
+                "note": "Fallback metrics - psutil not available"
+            }
+        except Exception as e:
+            logger.error(f"Error collecting system metrics: {str(e)}")
+            return {
+                "cpu_usage": 0.0,
+                "memory_usage": 0.0,
+                "active_connections": 0,
+                "disk_usage": 0.0,
+                "network_io": {"bytes_sent": 0, "bytes_recv": 0},
+                "load_average": [0.0, 0.0, 0.0],
+                "timestamp": datetime.utcnow().isoformat(),
+                "error": str(e)
+            }
 
     def _get_user_history(
         self, db: Session, tenant_id: str, user_id: str

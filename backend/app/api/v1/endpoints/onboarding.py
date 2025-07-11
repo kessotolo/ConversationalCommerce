@@ -7,10 +7,12 @@ from backend.app.schemas.onboarding import (
 from backend.app.db.session import get_db
 from backend.app.core.security.dependencies import require_auth
 from backend.app.core.security.clerk import ClerkTokenData
+from backend.app.services.admin.admin_user.service import AdminUserService
 from uuid import UUID
 
 router = APIRouter(prefix="/onboarding", tags=["onboarding"])
 service = SellerOnboardingService()
+admin_user_service = AdminUserService()
 
 
 def extract_tenant_id(token_data: ClerkTokenData) -> str:
@@ -27,6 +29,36 @@ def extract_tenant_id(token_data: ClerkTokenData) -> str:
         raise HTTPException(
             status_code=400, detail="Invalid or missing tenant_id in token.")
     return tenant_id
+
+
+async def require_admin_role_for_kyc_review(
+    token_data: ClerkTokenData = Depends(require_auth),
+    db: AsyncSession = Depends(get_db),
+) -> ClerkTokenData:
+    """
+    Dependency to check if the user has admin role for KYC review operations.
+
+    This ensures only admin users can review and approve/reject KYC requests.
+    """
+    # Convert user ID to UUID
+    user_id = UUID(token_data.sub)
+
+    # Check if user has admin role
+    has_admin_role = await admin_user_service.has_role(
+        db=db,
+        admin_user_id=user_id,
+        role_name="admin",  # or "super_admin" depending on your role hierarchy
+        tenant_id=None,  # Global admin role check
+        include_ancestors=True
+    )
+
+    if not has_admin_role:
+        raise HTTPException(
+            status_code=403,
+            detail="Admin role required for KYC review operations"
+        )
+
+    return token_data
 
 
 @router.post("/start", response_model=OnboardingStartResponse)
@@ -137,9 +169,14 @@ async def get_onboarding_status(
 async def review_kyc(
     payload: KYCReviewRequest,
     db: AsyncSession = Depends(get_db),
-    token_data: ClerkTokenData = Depends(require_auth),
+    token_data: ClerkTokenData = Depends(require_admin_role_for_kyc_review),
 ):
-    # TODO: Add admin role check here
+    """
+    Review KYC request - requires admin role.
+
+    This endpoint is protected by the require_admin_role_for_kyc_review dependency
+    which ensures only users with admin roles can review and approve/reject KYC requests.
+    """
     try:
         result = await service.review_kyc(payload.kyc_id, payload.action, db)
         return result
