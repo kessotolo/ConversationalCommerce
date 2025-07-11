@@ -79,10 +79,11 @@ class StorefrontAsset(Base):
 
     # Relationships
     tenant = relationship("Tenant")
-    parent_asset = relationship("StorefrontAsset", remote_side=[id])
+    parent_asset = relationship("StorefrontAsset", remote_side=[
+                                id], back_populates="child_assets")
     child_assets = relationship(
         "StorefrontAsset",
-        backref="parent",
+        back_populates="parent_asset",
         cascade="all, delete-orphan",
         foreign_keys=[parent_asset_id],
     )

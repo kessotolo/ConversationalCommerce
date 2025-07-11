@@ -23,7 +23,12 @@ from app.models.storefront import StorefrontConfig, StorefrontStatus
 from app.models.tenant import Tenant
 from app.models.user import User
 from app.utils.domain_validator import validate_domain, validate_subdomain
-from app.core.exceptions import ResourceNotFoundError
+from app.core.exceptions import (
+    ResourceNotFoundError,
+    ValidationError as ValidationException,
+    BusinessLogicError as ResourceConflictException,
+    ConcurrentModificationError as StaleDataException
+)
 
 logger = logging.getLogger(__name__)
 

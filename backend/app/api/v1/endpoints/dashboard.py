@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select
 
-from app.core.security.clerk import ClerkTokenData
-from app.core.security.dependencies import require_auth
+from app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
+from app.core.security.auth_deps import require_auth
 from app.api.deps import get_current_tenant_id, get_db
 from app.schemas.dashboard import DashboardStatsResponse
 from app.models.user import User
@@ -32,12 +32,14 @@ async def get_dashboard_stats(
     """
     try:
         # Count total users for this tenant
-        users_query = select(func.count(User.id)).where(User.tenant_id == tenant_id)
+        users_query = select(func.count(User.id)).where(
+            User.tenant_id == tenant_id)
         users_result = await db.execute(users_query)
         total_users = users_result.scalar() or 0
 
         # Count total orders for this tenant
-        orders_query = select(func.count(Order.id)).where(Order.tenant_id == tenant_id)
+        orders_query = select(func.count(Order.id)).where(
+            Order.tenant_id == tenant_id)
         orders_result = await db.execute(orders_query)
         total_orders = orders_result.scalar() or 0
 

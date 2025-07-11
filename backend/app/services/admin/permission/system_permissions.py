@@ -8,7 +8,7 @@ from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.admin.permission import Permission, PermissionScope
-from app.core.errors.exception import ValidationError
+from app.core.errors.exceptions import ValidationError
 from app.services.admin.permission.crud import (
     create_permission,
     get_permission_by_attributes
@@ -20,7 +20,7 @@ async def create_system_permissions(
 ) -> List[Permission]:
     """
     Create the default set of system permissions.
-    
+
     This function should be called during system initialization to ensure
     all necessary permissions exist.
 
@@ -35,13 +35,13 @@ async def create_system_permissions(
         "user", "tenant", "role", "permission", "admin_user",
         "product", "order", "storefront"
     ]
-    
+
     # Define standard actions
     actions = ["create", "read", "update", "delete", "list"]
-    
+
     # Create system permissions
     created_permissions = []
-    
+
     # Global admin permissions (for Super Admin)
     for resource in resources:
         for action in actions:
@@ -65,7 +65,7 @@ async def create_system_permissions(
                 )
                 if permission:
                     created_permissions.append(permission)
-    
+
     # Tenant-scoped permissions (for Domain Admin)
     for resource in resources:
         for action in actions:
@@ -89,10 +89,10 @@ async def create_system_permissions(
                 )
                 if permission:
                     created_permissions.append(permission)
-                    
+
     # Add special permissions
     await _create_special_system_permissions(db, created_permissions)
-                    
+
     return created_permissions
 
 
@@ -145,7 +145,7 @@ async def _create_special_system_permissions(
             "description": "Manage feature flags for a tenant"
         }
     ]
-    
+
     for perm in special_permissions:
         try:
             permission = await create_permission(

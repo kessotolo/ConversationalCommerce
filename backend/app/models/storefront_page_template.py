@@ -78,9 +78,12 @@ class StorefrontPageTemplate(Base):
 
     # Relationships
     tenant = relationship("Tenant")
-    parent_template = relationship("StorefrontPageTemplate", remote_side=[id])
+    parent_template = relationship("StorefrontPageTemplate", remote_side=[
+                                   id], back_populates="child_templates")
     child_templates = relationship(
-        "StorefrontPageTemplate", backref="parent", foreign_keys=[parent_template_id]
+        "StorefrontPageTemplate",
+        back_populates="parent_template",
+        foreign_keys=[parent_template_id],
     )
 
     __table_args__ = (

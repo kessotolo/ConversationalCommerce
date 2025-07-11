@@ -6,8 +6,8 @@ from uuid import UUID
 from fastapi import Depends, WebSocket, WebSocketDisconnect
 
 from app.core.config.settings import get_settings
-from app.core.security.clerk import ClerkTokenData
-from app.core.security.dependencies import require_auth
+from app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
+from app.core.security.auth_deps import require_auth
 from app.db.async_session import get_async_session_local
 from app.models.audit.audit_log import AuditLog
 

@@ -20,7 +20,7 @@ from app.api.deps import get_db
 from app.services.security.super_admin_two_factor_service import super_admin_2fa_service
 from app.services.security.ip_allowlist_service import IPAllowlistService
 from app.core.security.dependencies import get_current_super_admin, get_current_admin_user
-from app.core.security.clerk import ClerkTokenData
+from app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
 from app.core.security.clerk_organizations import clerk_organizations_service
 from app.models.admin.admin_user import AdminUser
 

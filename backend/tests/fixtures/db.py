@@ -1,6 +1,9 @@
 """
 Database-related fixtures for tests.
 """
+from app.db.session import SessionLocal
+from app.db.async_session import get_async_session_local
+from sqlalchemy.ext.asyncio import AsyncSession
 import asyncio
 import logging
 import os
@@ -12,7 +15,7 @@ import alembic.command
 import alembic.config
 import pytest
 import pytest_asyncio
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, text, inspect
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import Session
 
@@ -30,6 +33,28 @@ TEST_DATABASE_URL_SYNC = os.environ.get(
 # Fallback URLs in case the configured ones fail
 FORCED_ASYNC_URL = "postgresql+asyncpg://postgres:postgres@127.0.0.1/conversational_commerce_test"
 FORCED_SYNC_URL = "postgresql+psycopg2://postgres:postgres@127.0.0.1/conversational_commerce_test"
+
+# Validate that both URLs point to the same database
+
+
+def _validate_database_urls():
+    """Ensure both sync and async URLs point to the same database."""
+    sync_db = TEST_DATABASE_URL_SYNC.split(
+        '/')[-1] if '/' in TEST_DATABASE_URL_SYNC else "unknown"
+    async_db = TEST_DATABASE_URL.split(
+        '/')[-1] if '/' in TEST_DATABASE_URL else "unknown"
+
+    if sync_db != async_db:
+        logger.error(
+            f"Database URL mismatch: sync={sync_db}, async={async_db}")
+        raise ValueError(
+            f"Sync and async database URLs must point to the same database: {sync_db} != {async_db}")
+
+    logger.info(f"✓ Database URLs validated - using database: {sync_db}")
+
+
+# Validate URLs before creating engines
+_validate_database_urls()
 
 # Create database engines with retry logic
 try:
@@ -99,220 +124,119 @@ except Exception as e:
     logger.info("Fallback engines created successfully")
 
 # Import session classes from the application - project has separate modules for sync/async
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
 
 # Import session factories from the application
-from app.db.async_session import get_async_session_local
-from app.db.session import SessionLocal
 
 
-@pytest.fixture(scope="function")
-def db_engine():
-    """
-    Create a new database engine for each test.
-    This fixture prepares the database by dropping and recreating schemas,
-    then applying Alembic migrations to ensure all tables exist.
-    """
-    logger.info("[DEBUG] Entering db_engine fixture")
-    
-    # Clean database at start of test session
-    with sync_engine.connect() as conn:
-        try:
-            conn.execute(text("DROP SCHEMA public CASCADE"))
-            conn.execute(text("CREATE SCHEMA public"))
-            conn.commit()
-        except Exception as e:
-            logger.warning(f"Error resetting database: {e}")
-    
-    # Apply migrations to create schema
+def _validate_schema_after_migrations():
+    """Validate that key tables exist after migrations."""
     try:
-        logger.info("Applying database migrations for test environment")
-        alembic_cfg = alembic.config.Config("/Users/kess/Projects/ConversationalCommerce/backend/alembic.ini")
-        # Override the sqlalchemy.url in the config to use our test database
-        alembic_cfg.set_main_option("sqlalchemy.url", TEST_DATABASE_URL_SYNC)
-        # Fix the script location to point to the correct directory
-        alembic_cfg.set_main_option("script_location", "/Users/kess/Projects/ConversationalCommerce/backend/alembic")
-        # Run the migrations
-        alembic.command.upgrade(alembic_cfg, "head")
-        logger.info("Migrations applied successfully")
-        
-        # Verify tables were created - this helps ensure schema changes are fully committed
         with sync_engine.connect() as conn:
-            result = conn.execute(text("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'tenants');"))
-            tenant_exists = result.scalar()
-            logger.info(f"Tenant table exists in database: {tenant_exists}")
-            
-            if not tenant_exists:
-                logger.error("Tenant table not found after migrations! This will cause test failures.")
-                
-            # Ensure all transactions are committed so async connections can see the tables
-            conn.commit()
-    except Exception as e:
-        logger.error(f"Error applying migrations: {e}")
-        # Don't fail the test setup if migrations fail - continue and let the test
-        # fail naturally if the database isn't set up correctly
-    
-    yield sync_engine
-    
-    # Database is cleaned up at the start of the next test
+            # Check that key tables exist
+            inspector = inspect(conn)
+            existing_tables = set(inspector.get_table_names())
 
-@pytest_asyncio.fixture(scope="function")
-async def async_db_engine():
-    """
-    Create a new async database engine for each test.
-    Mostly just a wrapper around the global async_engine.
-    """
-    logger.info("[DEBUG] Entering async_db_engine fixture")
-    yield async_engine
-    # Tables are dropped by the sync fixture
+            required_tables = {'tenants', 'users',
+                               'products', 'admin_users', 'alembic_version'}
+            missing_tables = required_tables - existing_tables
+
+            if missing_tables:
+                logger.error(
+                    f"Missing required tables after migrations: {missing_tables}")
+                logger.error(f"Existing tables: {sorted(existing_tables)}")
+                raise RuntimeError(
+                    f"Schema validation failed - missing tables: {missing_tables}")
+
+            # Check alembic version
+            result = conn.execute(
+                text("SELECT version_num FROM alembic_version"))
+            version = result.scalar()
+            if not version:
+                raise RuntimeError(
+                    "alembic_version table has no version - migrations may not be applied")
+
+            logger.info(
+                f"✓ Schema validation passed - Alembic version: {version}")
+            logger.info(f"✓ Found {len(existing_tables)} tables in database")
+
+    except Exception as e:
+        logger.error(f"Schema validation failed: {e}")
+        raise
+
+
+# --- NEW: Apply migrations ONCE per session ---
+@pytest.fixture(scope="session", autouse=True)
+def apply_migrations_once():
+    import alembic.config
+    logger.info("[TEST] Applying migrations ONCE for test session")
+
+    # Set the DATABASE_URL environment variable to ensure Alembic uses the sync URL
+    original_database_url = os.environ.get("DATABASE_URL")
+    os.environ["DATABASE_URL"] = TEST_DATABASE_URL_SYNC
+
+    try:
+        alembic_cfg = alembic.config.Config(
+            "/Users/kess/Projects/ConversationalCommerce/backend/alembic.ini")
+        # Ensure we're using the sync URL
+        alembic_cfg.set_main_option("sqlalchemy.url", TEST_DATABASE_URL_SYNC)
+        alembic_cfg.set_main_option(
+            "script_location", "/Users/kess/Projects/ConversationalCommerce/backend/alembic")
+        from alembic import command
+        command.upgrade(alembic_cfg, "head")
+        logger.info("[TEST] Migrations applied for test session")
+
+        # Validate schema after migrations
+        _validate_schema_after_migrations()
+
+    finally:
+        # Restore original DATABASE_URL if it existed
+        if original_database_url is not None:
+            os.environ["DATABASE_URL"] = original_database_url
+        else:
+            os.environ.pop("DATABASE_URL", None)
+
+# --- Per-test sync DB session (transaction rollback for isolation) ---
 
 
 @pytest.fixture(scope="function")
-def db_session(db_engine):
-    """Create a sync session for each test, automatically
-    rolling back changes to maintain test isolation."""
-    logger.info("[DEBUG] Entering db_session fixture")
-    
-    # Variables to hold resources that need cleanup
-    connection = None
-    transaction = None
-    session = None
-    session_id = str(uuid.uuid4())[:8]
-    
+def db_session(apply_migrations_once):
+    """Provide a database session with transaction rollback for test isolation."""
+    connection = sync_engine.connect()
+    transaction = connection.begin()
+    session = SessionLocal(bind=connection)
+
+    # Log session creation for debugging
+    logger.debug(f"[TEST] Created sync DB session {id(session)} for test")
+
     try:
-        connection = db_engine.connect()
-        transaction = connection.begin()
-        session = SessionLocal(bind=connection)
-        logger.info(f"[DEBUG] Created sync session {session_id}")
-        
         yield session
-        
-    except Exception as e:
-        logger.error(f"[ERROR] Exception in db_session: {e}")
-        raise
-        
     finally:
-        # Always clean up resources in finally block to ensure they run
-        logger.info(f"[DEBUG] Cleaning up db_session {session_id}")
-        
-        # Clean up session
-        if session:
-            try:
-                session.close()
-                logger.info(f"[DEBUG] Session {session_id} closed successfully")
-            except Exception as e:
-                logger.warning(f"[WARNING] Error closing session: {e}")
-        
-        # Roll back transaction
-        if transaction:
-            try:
-                transaction.rollback()
-                logger.info(f"[DEBUG] Transaction rolled back successfully")
-            except Exception as e:
-                logger.warning(f"[WARNING] Error rolling back transaction: {e}")
-        
-        # Close connection
-        if connection:
-            try:
-                connection.close()
-                logger.info(f"[DEBUG] Connection closed successfully")
-            except Exception as e:
-                logger.warning(f"[WARNING] Error closing connection: {e}")
-                
-        logger.info("[DEBUG] Exiting db_session successfully")
+        session.close()
+        transaction.rollback()
+        connection.close()
+        logger.debug(f"[TEST] Closed sync DB session {id(session)}")
+
+# --- Per-test async DB session (transaction rollback for isolation) ---
 
 
 @pytest_asyncio.fixture(scope="function")
-async def async_db_session():
-    """Create an async session for each test, automatically
-    rolling back changes to maintain test isolation."""
-    logger.info("[DEBUG] Entering async_db_session fixture (attempt 1/3)")
-    
-    # Retry logic with exponential backoff
-    retries = 3
-    attempt = 1
-    backoff_time = 1
-    
-    # Variables to hold resources that need cleanup
-    conn = None
-    trans = None
-    session = None
-    session_id = str(uuid.uuid4())[:8]
-    
-    while attempt <= retries:
-        try:
-            # Ensure any previous resources are properly cleaned up
-            if session:
-                try:
-                    await session.close()
-                except Exception as e:
-                    logger.warning(f"[WARNING] Error closing previous session: {e}")
-                    
-            if trans:
-                try:
-                    await trans.rollback()
-                except Exception as e:
-                    logger.warning(f"[WARNING] Error rolling back previous transaction: {e}")
-                    
-            if conn:
-                try:
-                    await conn.close()
-                except Exception as e:
-                    logger.warning(f"[WARNING] Error closing previous connection: {e}")
-            
-            # Start a clean connection transaction
-            logger.info(f"[DEBUG] Connecting to database (attempt {attempt}/{retries})")
-            conn = await async_engine.connect()
-            trans = await conn.begin()
-            
-            # Create a fresh session using the application's session factory
-            async_session_factory = get_async_session_local()
-            session = async_session_factory(bind=conn, expire_on_commit=False)
-            
-            logger.info(f"[DEBUG] Created async session {session_id}")
-            logger.info("[DEBUG] Yielding async_db_session")
-            yield session
-            
-            # Always roll back to ensure test isolation
-            logger.info(f"[DEBUG] Rolling back async session {session_id}")
-            
-            # Handle resource cleanup carefully with individual try/except blocks
-            try:
-                await session.close()
-                logger.info(f"[DEBUG] Session {session_id} closed successfully")
-            except Exception as e:
-                logger.warning(f"[WARNING] Error closing session: {e}")
-                
-            try:
-                await trans.rollback()
-                logger.info(f"[DEBUG] Transaction rolled back successfully")
-            except Exception as e:
-                logger.warning(f"[WARNING] Error rolling back transaction: {e}")
-                
-            try:
-                await conn.close()
-                logger.info(f"[DEBUG] Connection closed successfully")
-            except Exception as e:
-                logger.warning(f"[WARNING] Error closing connection: {e}")
-            
-                
-            # If we get here, everything worked
-            logger.info("[DEBUG] Exiting async_db_session successfully")
-            break
-            
-        except Exception as e:
-            # On failure, increment attempt counter
-            attempt += 1
-            logger.error(f"[ERROR] async_db_session error (attempt {attempt-1}/{retries}): {str(e)}")
-            
-            if attempt <= retries:
-                logger.info(f"[DEBUG] Retrying in {backoff_time} seconds")
-                time.sleep(backoff_time)
-                backoff_time *= 2  # Exponential backoff
-            else:
-                logger.error(f"[ERROR] Failed after {retries} attempts: {str(e)}")
-                raise
+async def async_db_session(apply_migrations_once):
+    """Provide an async database session with transaction rollback for test isolation."""
+    conn = await async_engine.connect()
+    trans = await conn.begin()
+    async_session_factory = get_async_session_local()
+    session = async_session_factory(bind=conn, expire_on_commit=False)
+
+    # Log session creation for debugging
+    logger.debug(f"[TEST] Created async DB session {id(session)} for test")
+
+    try:
+        yield session
+    finally:
+        await session.close()
+        await trans.rollback()
+        await conn.close()
+        logger.debug(f"[TEST] Closed async DB session {id(session)}")
 
 
 # Connection leak checker fixture
@@ -321,7 +245,7 @@ def check_leaked_connections():
     """Check for leaked database connections at the end of the test session."""
     # Run the tests
     yield
-    
+
     # Check for leaked connections at the end of the test session
     try:
         from sqlalchemy import text
@@ -331,23 +255,24 @@ def check_leaked_connections():
             ))
             active_connections = result.scalar()
             if active_connections > 2:  # Allow for some overhead
-                logger.warning(f"Possible connection leak detected: {active_connections} connections still open")
+                logger.warning(
+                    f"Possible connection leak detected: {active_connections} connections still open")
                 # Log details of connections to help diagnose the leak
                 detailed_result = conn.execute(text(
-                    """SELECT pid, application_name, client_addr, backend_start, state, 
-                       query_start, state_change, wait_event_type, wait_event 
+                    """SELECT pid, application_name, client_addr, backend_start, state,
+                       query_start, state_change, wait_event_type, wait_event
                        FROM pg_stat_activity WHERE application_name LIKE '%python%'"""
                 ))
                 for conn_info in detailed_result:
                     logger.warning(f"Leaked connection: {conn_info}")
     except Exception as e:
         logger.error(f"Error checking for leaked connections: {e}")
-        
+
     # Attempt to terminate all leaked connections
     try:
         with sync_engine.connect() as conn:
             conn.execute(text(
-                """SELECT pg_terminate_backend(pid) FROM pg_stat_activity 
+                """SELECT pg_terminate_backend(pid) FROM pg_stat_activity
                    WHERE application_name LIKE '%python%' AND pid <> pg_backend_pid()"""
             ))
             logger.info("Attempted to terminate any leaked connections")

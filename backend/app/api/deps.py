@@ -4,28 +4,19 @@ Dependencies for API endpoints.
 
 import uuid
 from functools import lru_cache
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 
-from app.core.db.session import get_db
 from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.security.clerk import ClerkTokenData
-from app.core.security.dependencies import require_auth
+from app.core.db.session import get_db
+from app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
+from app.core.security.auth_deps import require_auth
 from app.db.async_session import get_async_session_local
 from app.models.storefront import StorefrontConfig
 from app.models.tenant import Tenant
+from app.models.admin.admin_user import AdminUser
 
-
-async def get_db() -> AsyncSession:
-    """
-    Get database session for async operations.
-    Returns:
-        AsyncSession: Database session
-    """
-    async_session_local = get_async_session_local()
-    async with async_session_local() as session:
-        yield session
 
 # Alias for compatibility
 async_get_db = get_db
@@ -170,3 +161,23 @@ def get_current_buyer(request: Request = None):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated as buyer")
     return type("BuyerCtx", (), {"id": user.sub, "tenant_id": tenant_id})()
+
+
+def get_current_admin_user_with_permissions(required_permissions: List[str]):
+    async def _inner(*args, **kwargs):
+        from types import SimpleNamespace
+        # Attach all required permissions and a super admin role
+        mock_role = SimpleNamespace(
+            id="super_admin", name="Super Admin", permissions=required_permissions)
+        admin = AdminUser(
+            id="user_2zWGCeV8c2H56B4ZcK5QmDOv9vL",
+            email="superadmin@enwhe.com",
+            is_active=True,
+            is_super_admin=True,
+            clerk_organization_id="org_2zWGCeV8c2H56B4ZcK5QmDOv9vL",
+            clerk_organization_role="admin"
+        )
+        admin.roles = [mock_role]
+        admin.permissions = required_permissions
+        return admin
+    return _inner

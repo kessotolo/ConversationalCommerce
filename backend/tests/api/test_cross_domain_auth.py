@@ -6,14 +6,12 @@ across different domains (main app and admin dashboard).
 """
 
 import pytest
-from httpx import AsyncClient
 from fastapi import status
 
 from app.core.config.settings import get_settings
 
 
-@pytest.mark.asyncio
-async def test_admin_cors_headers(client: AsyncClient):
+def test_admin_cors_headers(client):
     """Test that admin API routes respond with correct CORS headers."""
     # Arrange
     settings = get_settings()
@@ -23,13 +21,13 @@ async def test_admin_cors_headers(client: AsyncClient):
         "Access-Control-Request-Method": "POST",
         "Access-Control-Request-Headers": "Content-Type,Authorization"
     }
-    
+
     # Act - Preflight request to admin login endpoint
-    response = await client.options(
+    response = client.options(
         "/api/admin/auth/login",
         headers=headers
     )
-    
+
     # Assert
     assert response.status_code == status.HTTP_200_OK
     assert "access-control-allow-origin" in response.headers
@@ -40,9 +38,8 @@ async def test_admin_cors_headers(client: AsyncClient):
     assert "POST" in response.headers["access-control-allow-methods"]
 
 
-@pytest.mark.asyncio
-async def test_admin_login_from_admin_domain(
-    client: AsyncClient,
+def test_admin_login_from_admin_domain(
+    client,
     test_admin_user: dict,
     test_db
 ):
@@ -54,14 +51,14 @@ async def test_admin_login_from_admin_domain(
         "password": "testpassword123"
     }
     headers = {"Origin": f"https://{admin_domain}"}
-    
+
     # Act
-    response = await client.post(
+    response = client.post(
         "/api/admin/auth/login",
         json=login_data,
         headers=headers
     )
-    
+
     # Assert
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
@@ -71,9 +68,8 @@ async def test_admin_login_from_admin_domain(
     assert data["token_type"] == "bearer"
 
 
-@pytest.mark.asyncio
-async def test_admin_login_from_main_domain_blocked(
-    client: AsyncClient,
+def test_admin_login_from_main_domain_blocked(
+    client,
     test_admin_user: dict,
     test_db
 ):
@@ -85,21 +81,20 @@ async def test_admin_login_from_main_domain_blocked(
         "password": "testpassword123"
     }
     headers = {"Origin": f"https://{main_domain}"}
-    
+
     # Act
-    response = await client.post(
+    response = client.post(
         "/api/admin/auth/login",
         json=login_data,
         headers=headers
     )
-    
+
     # Assert - Should be forbidden due to CORS restrictions
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-@pytest.mark.asyncio
-async def test_tenant_api_from_tenant_subdomain(
-    client: AsyncClient,
+def test_tenant_api_from_tenant_subdomain(
+    client,
     test_tenant: dict,
     test_db
 ):
@@ -111,23 +106,22 @@ async def test_tenant_api_from_tenant_subdomain(
         "Origin": f"https://{tenant_domain}",
         "Host": tenant_domain
     }
-    
+
     # Act
-    response = await client.get(
+    response = client.get(
         "/api/tenant/resolve",
         params={"hostname": tenant_domain},
         headers=headers
     )
-    
+
     # Assert
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert data["subdomain"] == subdomain
 
 
-@pytest.mark.asyncio
-async def test_admin_token_audience_validation(
-    client: AsyncClient,
+def test_admin_token_audience_validation(
+    client,
     super_admin_token: str
 ):
     """Test that admin tokens have correct audience claims."""
@@ -137,13 +131,13 @@ async def test_admin_token_audience_validation(
         "Authorization": f"Bearer {super_admin_token}",
         "Origin": f"https://{admin_domain}"
     }
-    
+
     # Act - Access admin-only endpoint
-    response = await client.get(
+    response = client.get(
         "/api/admin/auth/me",
         headers=headers
     )
-    
+
     # Assert
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
@@ -151,9 +145,8 @@ async def test_admin_token_audience_validation(
     assert "roles" in data
 
 
-@pytest.mark.asyncio
-async def test_admin_token_rejected_for_main_app(
-    client: AsyncClient,
+def test_admin_token_rejected_for_main_app(
+    client,
     super_admin_token: str
 ):
     """Test that admin tokens are rejected for main app endpoints."""
@@ -163,20 +156,19 @@ async def test_admin_token_rejected_for_main_app(
         "Authorization": f"Bearer {super_admin_token}",
         "Origin": f"https://{main_domain}"
     }
-    
+
     # Act - Try to access main app endpoint with admin token
-    response = await client.get(
+    response = client.get(
         "/api/users/me",  # Main app user endpoint
         headers=headers
     )
-    
+
     # Assert - Should be unauthorized due to audience mismatch
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-@pytest.mark.asyncio
-async def test_main_app_token_rejected_for_admin(
-    client: AsyncClient,
+def test_main_app_token_rejected_for_admin(
+    client,
     user_token: str
 ):
     """Test that main app tokens are rejected for admin endpoints."""
@@ -186,12 +178,12 @@ async def test_main_app_token_rejected_for_admin(
         "Authorization": f"Bearer {user_token}",
         "Origin": f"https://{admin_domain}"
     }
-    
+
     # Act - Try to access admin endpoint with main app token
-    response = await client.get(
+    response = client.get(
         "/api/admin/auth/me",
         headers=headers
     )
-    
+
     # Assert - Should be unauthorized due to audience mismatch
     assert response.status_code == status.HTTP_401_UNAUTHORIZED

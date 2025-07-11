@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from app.models.product import Product
 from app.models.user import User
 from app.db.session import SessionLocal
-from app.core.security.dependencies import require_auth
+from app.core.security.auth_deps import require_auth
 
 # Create a test database session
 TestingSessionLocal = SessionLocal
@@ -120,7 +120,8 @@ def test_create_product(
             product_data[field] = str(product_data[field])
 
     # Ensure auth_headers has X-Tenant-ID
-    response = client.post("/api/v1/products/", json=product_data, headers=auth_headers)
+    response = client.post("/api/v1/products/",
+                           json=product_data, headers=auth_headers)
     assert (
         response.status_code == 201
     ), f"Expected 201 but got {response.status_code}. Response: {response.text}"
@@ -169,7 +170,8 @@ def test_get_product(
     db_session.commit()
 
     # Get the product
-    response = client.get(f"/api/v1/products/{product.id}", headers=auth_headers)
+    response = client.get(
+        f"/api/v1/products/{product.id}", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert data["name"] == product.name
@@ -325,7 +327,8 @@ def test_update_product_unauthorized(
             "name": "Updated Product",
             "description": "This product belongs to the other user",
         },
-        headers=auth_headers,  # Use the main test_user token to try to update other user's product
+        # Use the main test_user token to try to update other user's product
+        headers=auth_headers,
     )
 
     # Verify that the response matches what we expect from the permission check
@@ -361,11 +364,13 @@ def test_delete_product(
     db_session.commit()  # Actually commit this time
 
     # Delete the product
-    response = client.delete(f"/api/v1/products/{product_id}", headers=auth_headers)
+    response = client.delete(
+        f"/api/v1/products/{product_id}", headers=auth_headers)
     assert response.status_code == 204
 
     # Verify product is deleted
-    response = client.get(f"/api/v1/products/{product_id}", headers=auth_headers)
+    response = client.get(
+        f"/api/v1/products/{product_id}", headers=auth_headers)
     assert response.status_code == 404
 
 
@@ -410,7 +415,8 @@ def test_delete_product_unauthorized(
     # This should fail with a 403 since the product belongs to other_user
     response = client.delete(
         f"/api/v1/products/{product.id}",
-        headers=auth_headers,  # Use the main test_user token to try to delete other user's product
+        # Use the main test_user token to try to delete other user's product
+        headers=auth_headers,
     )
 
     # Verify that the response matches what we expect from the permission check
@@ -488,7 +494,8 @@ def test_list_products_pagination(
     db_session.commit()
 
     # Test first page
-    response = client.get("/api/v1/products/?limit=10&offset=0", headers=auth_headers)
+    response = client.get(
+        "/api/v1/products/?limit=10&offset=0", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert len(data["items"]) == 10
@@ -497,7 +504,8 @@ def test_list_products_pagination(
     assert data["offset"] == 0
 
     # Test second page
-    response = client.get("/api/v1/products/?limit=10&offset=10", headers=auth_headers)
+    response = client.get(
+        "/api/v1/products/?limit=10&offset=10", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert len(data["items"]) == 5
@@ -533,7 +541,8 @@ def test_list_products_filters(
     db_session.commit()
 
     # Test featured filter
-    response = client.get("/api/v1/products/?featured=true", headers=auth_headers)
+    response = client.get(
+        "/api/v1/products/?featured=true", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert len(data["items"]) == 1
@@ -572,7 +581,8 @@ def test_soft_delete(
     assert response.status_code == 204
 
     # Verify product is marked as deleted
-    response = client.get(f"/api/v1/products/{product_id}", headers=auth_headers)
+    response = client.get(
+        f"/api/v1/products/{product_id}", headers=auth_headers)
     assert response.status_code == 404
 
     # Verify product is not in list
@@ -611,7 +621,8 @@ def test_create_product_with_all_fields(
     db_session.commit()
 
     # Get the product
-    response = client.get(f"/api/v1/products/{product.id}", headers=auth_headers)
+    response = client.get(
+        f"/api/v1/products/{product.id}", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert data["name"] == product.name

@@ -2,7 +2,7 @@
 Admin-specific configuration settings.
 """
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class AdminSettings(BaseSettings):
@@ -15,6 +15,7 @@ class AdminSettings(BaseSettings):
     - ADMIN_REQUIRE_2FA: Require two-factor authentication for all admin users
     - ADMIN_SESSION_INACTIVITY_TIMEOUT: Session idle timeout in minutes
     - ADMIN_ENFORCE_IP_RESTRICTIONS: Enforce global IP allowlisting for all admin endpoints
+    - WEBHOOK_SECRET_KEY: Secret key for webhook authentication
     """
 
     # Admin domain configuration
@@ -31,10 +32,15 @@ class AdminSettings(BaseSettings):
     # IP restriction settings (optional)
     ADMIN_ENFORCE_IP_RESTRICTIONS: bool = True
 
-    class Config:
-        env_prefix = "ADMIN_"
-        case_sensitive = True
-        env_file = ".env"
+    # Webhook authentication
+    WEBHOOK_SECRET_KEY: str = "test_webhook_secret_key"
+
+    model_config = SettingsConfigDict(
+        env_prefix="ADMIN_",
+        case_sensitive=True,
+        env_file=".env",
+        extra="ignore"  # Allow extra fields from environment
+    )
 
 
 admin_settings = AdminSettings()

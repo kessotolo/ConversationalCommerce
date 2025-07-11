@@ -42,7 +42,8 @@ class IPAllowlistEntry(Base):
 
     # What this allowlist entry applies to
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
-    role_id = Column(UUID(as_uuid=True), ForeignKey("roles.id"), nullable=True)
+    role_id = Column(UUID(as_uuid=True), ForeignKey(
+        "admin_roles.id"), nullable=True)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey(
         "tenants.id"), nullable=True)
 
@@ -101,7 +102,8 @@ class IPAllowlistSetting(Base):
     # What these settings apply to (NULL for global)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey(
         "tenants.id"), nullable=True)
-    role_id = Column(UUID(as_uuid=True), ForeignKey("roles.id"), nullable=True)
+    role_id = Column(UUID(as_uuid=True), ForeignKey(
+        "admin_roles.id"), nullable=True)
 
     # Settings
     is_enforced = Column(Boolean, nullable=False, default=False)

@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Request, status
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
-from app.core.security.clerk import ClerkTokenData
+from app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
 from app.core.security.role_based_auth import require_seller
 from app.api.deps import get_db
 from app.services.audit_service import (

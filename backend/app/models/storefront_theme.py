@@ -3,6 +3,7 @@ import uuid
 from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, Index, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 
 from app.db import Base
 
@@ -17,7 +18,8 @@ class StorefrontTheme(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String, nullable=False)
-    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey(
+        "tenants.id"), nullable=False)
     description = Column(String, nullable=True)
     is_default = Column(Boolean, default=False)
 
@@ -34,6 +36,10 @@ class StorefrontTheme(Base):
     component_styles = Column(
         JSON, nullable=False, default=dict
     )  # Button styles, card styles, etc.
+
+    # Relationships
+    versions = relationship("ThemeVersion",
+                            back_populates="theme", cascade="all, delete-orphan")
 
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())

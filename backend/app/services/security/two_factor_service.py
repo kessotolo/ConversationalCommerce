@@ -22,7 +22,7 @@ from cryptography.fernet import Fernet
 
 from app.core.config.settings import get_settings
 from app.models.security.two_factor import TOTPSecret, AdminTOTPRequirement
-from app.models.auth.admin_user import AdminUser
+from app.models.admin.admin_user import AdminUser
 from app.services.audit.audit_service import AuditService
 
 

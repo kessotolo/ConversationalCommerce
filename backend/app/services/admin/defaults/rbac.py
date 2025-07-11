@@ -14,6 +14,94 @@ from app.services.admin.role.service import RoleService
 from app.services.admin.permission.service import PermissionService
 from app.services.admin.defaults.roles import initialize_default_roles
 from app.services.admin.defaults.permissions import initialize_default_permissions
+from app.models.admin.role_names import SUPER_ADMIN, SYSTEM_ADMIN, SUPPORT_ADMIN, SECURITY_ADMIN, READ_ONLY_ADMIN, CUSTOM
+
+
+# Permission sets that define common groups of permissions
+ADMIN_PERMISSIONS = {
+    "tenant:full": [
+        "tenant_read", "tenant_create", "tenant_update", "tenant_delete"
+    ],
+    "tenant:read": [
+        "tenant_read"
+    ],
+    "user:full": [
+        "user_read", "user_create", "user_update", "user_delete", "user_data_view", "user_data_export"
+    ],
+    "user:read": [
+        "user_read", "user_data_view"
+    ],
+    "admin:full": [
+        "admin_users_view", "admin_users_create", "admin_users_update", "admin_users_delete"
+    ],
+    "admin:read": [
+        "admin_users_view"
+    ],
+    "role:full": [
+        "roles_view", "roles_create", "roles_update", "roles_delete"
+    ],
+    "role:read": [
+        "roles_view"
+    ],
+    "permission:full": [
+        "permissions_view", "permissions_assign", "permissions_revoke"
+    ],
+    "permission:read": [
+        "permissions_view"
+    ],
+    "security:full": [
+        "security_write", "settings_view", "settings_update"
+    ],
+    "security:read": [
+        "settings_view"
+    ],
+    "audit:read": [
+        "audit_logs_view"
+    ],
+    "content:full": [
+        "content_view", "content_create", "content_update", "content_delete"
+    ],
+    "content:read": [
+        "content_view"
+    ],
+    "system:full": [
+        "system_config", "system_health"
+    ],
+    "system:read": [
+        "system_health"
+    ],
+    "impersonation": [
+        "impersonation"
+    ]
+}
+
+# Role to permission set mappings
+PERMISSION_SETS = {
+    SUPER_ADMIN: [
+        "admin:full", "role:full", "permission:full", "tenant:full",
+        "user:full", "security:full", "audit:read", "content:full",
+        "system:full", "impersonation"
+    ],
+    SYSTEM_ADMIN: [
+        "admin:read", "role:read", "permission:read", "tenant:full",
+        "user:full", "audit:read", "content:full", "system:full",
+        "impersonation"
+    ],
+    SUPPORT_ADMIN: [
+        "admin:read", "role:read", "permission:read", "tenant:read",
+        "user:read", "content:read", "impersonation"
+    ],
+    SECURITY_ADMIN: [
+        "admin:read", "role:read", "permission:read", "security:full",
+        "audit:read"
+    ],
+    READ_ONLY_ADMIN: [
+        "admin:read", "role:read", "permission:read",
+        "user:read", "security:read", "audit:read", "content:read",
+        "system:read"
+    ],
+    CUSTOM: []  # Custom roles have configurable permissions
+}
 
 
 async def initialize_rbac_system(
@@ -23,28 +111,28 @@ async def initialize_rbac_system(
 ) -> Tuple[Dict[str, Role], Dict[str, Permission]]:
     """
     Initialize the entire RBAC system with default roles and permissions.
-    
+
     Args:
         db: Database session
         role_service: Optional role service instance
         permission_service: Optional permission service instance
-        
+
     Returns:
         Tuple of (roles, permissions) dictionaries
     """
     # Initialize services
     role_svc = role_service or RoleService()
     perm_svc = permission_service or PermissionService()
-    
+
     # Initialize permissions first
     permissions = await initialize_default_permissions(db, perm_svc)
-    
+
     # Initialize roles
     roles = await initialize_default_roles(db, role_svc)
-    
+
     # Set up role-permission associations
     await _setup_role_permission_associations(db, roles, permissions, role_svc)
-    
+
     return roles, permissions
 
 
@@ -56,7 +144,7 @@ async def _setup_role_permission_associations(
 ) -> None:
     """
     Set up associations between roles and permissions.
-    
+
     Args:
         db: Database session
         roles: Dictionary of roles by key
@@ -134,16 +222,16 @@ async def _setup_role_permission_associations(
             "profile_view", "profile_update"
         ]
     }
-    
+
     # Assign permissions to roles
     for role_key, permission_keys in role_permissions.items():
         if role_key in roles:
             role = roles[role_key]
-            
+
             for perm_key in permission_keys:
                 if perm_key in permissions:
                     perm = permissions[perm_key]
-                    
+
                     try:
                         await role_service.assign_permission_to_role(
                             db=db,

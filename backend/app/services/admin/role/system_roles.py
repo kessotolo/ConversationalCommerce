@@ -8,7 +8,7 @@ from typing import Dict
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.admin.role import Role
-from app.core.errors.exception import ValidationError
+from app.core.errors.exceptions import ValidationError
 from app.services.admin.role.crud import create_role, get_role_by_name
 from app.services.admin.role.hierarchy import add_role_parent
 
@@ -18,13 +18,13 @@ async def create_system_roles(
 ) -> Dict[str, Role]:
     """
     Create the default set of system roles.
-    
+
     This function should be called during system initialization to ensure
     all necessary roles exist and have the appropriate hierarchy.
-    
+
     Args:
         db: Database session
-        
+
     Returns:
         Dictionary mapping role keys to role objects
     """
@@ -55,7 +55,7 @@ async def create_system_roles(
             "is_tenant_scoped": False
         }
     }
-    
+
     # Create roles or get existing ones
     created_roles = {}
     for role_key, role_data in system_roles.items():
@@ -73,10 +73,10 @@ async def create_system_roles(
             role = await get_role_by_name(db, role_data["name"])
             if role:
                 created_roles[role_key] = role
-    
+
     # Set up role hierarchy
     await _setup_role_hierarchy(db, created_roles)
-                
+
     return created_roles
 
 
@@ -86,7 +86,7 @@ async def _setup_role_hierarchy(
 ) -> None:
     """
     Set up the default role hierarchy.
-    
+
     Args:
         db: Database session
         roles: Dictionary of created roles
@@ -97,7 +97,7 @@ async def _setup_role_hierarchy(
         ("domain_admin", "support_admin"),
         ("support_admin", "read_only_admin")
     ]
-    
+
     for parent_key, child_key in hierarchy:
         if parent_key in roles and child_key in roles:
             parent_role = roles[parent_key]

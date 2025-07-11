@@ -120,10 +120,60 @@ def client(async_db_session) -> Generator:
 
 
 @pytest.fixture(scope="function")
-async def async_client() -> AsyncGenerator:
-    """Async HTTP client for endpoints that require async interaction."""
-    async with httpx.AsyncClient(app=app, base_url="http://testserver") as ac:
-        yield ac
+async def async_client(async_db_session) -> AsyncGenerator:
+    """
+    Create an async FastAPI test client for API testing.
+    This is for tests that need to use await with the client.
+    """
+    from app.api.deps import get_db
+    from app.main import app as fastapi_app
+    from app.db.async_session import get_async_session_local
+    import httpx
+
+    # In case app is wrapped with middleware, access the original FastAPI instance
+    original_app = getattr(fastapi_app, "app", fastapi_app)
+
+    # Create dependency override to use our test session
+    async def override_get_db():
+        try:
+            yield async_db_session
+        except Exception as e:
+            logger.error(f"Error in override_get_db: {e}")
+            raise
+
+    # Store the test session globally for middleware access
+    global _test_db_session
+    _test_db_session = async_db_session
+
+    # Create a patched version of get_async_session_local that returns a factory yielding our test session
+    original_get_async_session_local = get_async_session_local
+
+    def patched_get_async_session_local():
+        # Return a factory that will yield our test session
+        async def factory():
+            try:
+                yield async_db_session
+            except Exception as e:
+                logger.error(f"Error in patched session factory: {e}")
+                raise
+        return factory
+
+    # Apply the overrides
+    original_app.dependency_overrides[get_db] = override_get_db
+
+    # Patch the session factory used by middleware
+    with mock.patch('app.db.async_session.get_async_session_local', patched_get_async_session_local):
+        try:
+            # Create and yield the async client
+            async with httpx.AsyncClient(app=original_app, base_url="http://testserver") as test_client:
+                yield test_client
+        finally:
+            # Clean up the override after the test
+            if get_db in original_app.dependency_overrides:
+                del original_app.dependency_overrides[get_db]
+
+    # Reset the global test session
+    _test_db_session = None
 
 
 def create_test_token(

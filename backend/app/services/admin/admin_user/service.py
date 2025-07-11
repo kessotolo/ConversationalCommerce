@@ -39,7 +39,7 @@ class AdminUserService:
     """Service orchestration for managing admin users in the RBAC system."""
 
     # Basic CRUD operations
-    
+
     async def create_admin_user(
         self,
         db: AsyncSession,
@@ -104,9 +104,101 @@ class AdminUserService:
     ) -> AdminUser:
         """Record a successful login for an admin user."""
         return await record_login(db, admin_user_id, login_ip)
-    
+
+    # Clerk-specific operations
+
+    async def get_admin_user_by_clerk_id(
+        self,
+        db: AsyncSession,
+        clerk_user_id: str
+    ) -> Optional[AdminUser]:
+        """
+        Get admin user by Clerk user ID.
+
+        Args:
+            db: Database session
+            clerk_user_id: Clerk user ID
+
+        Returns:
+            AdminUser if found, None otherwise
+        """
+        from sqlalchemy import select
+
+        result = await db.execute(
+            select(AdminUser).where(AdminUser.id == clerk_user_id)
+        )
+        return result.scalars().first()
+
+    async def create_admin_user_from_clerk(
+        self,
+        db: AsyncSession,
+        clerk_user_id: str,
+        email: str,
+        is_super_admin: bool = False,
+        clerk_organization_id: Optional[str] = None,
+        clerk_organization_role: Optional[str] = None
+    ) -> AdminUser:
+        """
+        Create admin user from Clerk authentication data.
+
+        Args:
+            db: Database session
+            clerk_user_id: Clerk user ID
+            email: User email
+            is_super_admin: Whether user is a super admin
+            clerk_organization_id: Clerk organization ID
+            clerk_organization_role: Role within Clerk organization
+
+        Returns:
+            Created AdminUser
+        """
+        admin_user = AdminUser(
+            id=clerk_user_id,
+            email=email,
+            is_super_admin=is_super_admin,
+            clerk_organization_id=clerk_organization_id,
+            clerk_organization_role=clerk_organization_role,
+            is_active=True,
+            require_2fa=True,
+            allowed_ip_ranges=[],
+            preferences={}
+        )
+
+        db.add(admin_user)
+        await db.flush()
+        return admin_user
+
+    async def update_admin_user_from_clerk(
+        self,
+        db: AsyncSession,
+        clerk_user_id: str,
+        **update_data
+    ) -> AdminUser:
+        """
+        Update admin user with Clerk data.
+
+        Args:
+            db: Database session
+            clerk_user_id: Clerk user ID
+            **update_data: Data to update
+
+        Returns:
+            Updated AdminUser
+        """
+        admin_user = await self.get_admin_user_by_clerk_id(db, clerk_user_id)
+        if not admin_user:
+            raise ValueError(
+                f"Admin user not found for Clerk ID: {clerk_user_id}")
+
+        for key, value in update_data.items():
+            if hasattr(admin_user, key):
+                setattr(admin_user, key, value)
+
+        await db.flush()
+        return admin_user
+
     # Role management
-    
+
     async def assign_role_to_admin_user(
         self,
         db: AsyncSession,
@@ -162,9 +254,9 @@ class AdminUserService:
         return await has_role(
             db, admin_user_id, role_name, tenant_id, include_ancestors
         )
-    
+
     # Authentication and authorization
-    
+
     def is_ip_allowed(
         self,
         ip_address: str,

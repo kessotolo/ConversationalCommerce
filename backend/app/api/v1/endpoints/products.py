@@ -1,3 +1,26 @@
+from app.services.product_service import (
+    create_product,
+    delete_product,
+    get_product,
+    get_products,
+    update_product,
+)
+from app.schemas.product import (
+    PaginatedResponse,
+    ProductCreate,
+    ProductResponse,
+    ProductSearchParams,
+    ProductUpdate,
+)
+from app.api.deps import get_db
+from app.core.security.auth_deps import require_auth
+from app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
+from app.core.exceptions import (
+    DatabaseError,
+    ProductNotFoundError,
+    ProductPermissionError,
+    ProductValidationError,
+)
 import logging
 from uuid import UUID
 
@@ -6,29 +29,6 @@ from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
-from app.core.exceptions import (
-    DatabaseError,
-    ProductNotFoundError,
-    ProductPermissionError,
-    ProductValidationError,
-)
-from app.core.security.clerk import ClerkTokenData
-from app.core.security.dependencies import require_auth
-from app.api.deps import get_db
-from app.schemas.product import (
-    PaginatedResponse,
-    ProductCreate,
-    ProductResponse,
-    ProductSearchParams,
-    ProductUpdate,
-)
-from app.services.product_service import (
-    create_product,
-    delete_product,
-    get_product,
-    get_products,
-    update_product,
-)
 
 router = APIRouter()
 
@@ -59,19 +59,20 @@ async def create_product_endpoint(
     - Returns the created product
     """
     # Add debug logging
-    logger.debug(f"create_product_endpoint called with user: {user.sub}, tenant_context: {getattr(request.state, 'tenant_context', None)}")
+    logger.debug(
+        f"create_product_endpoint called with user: {user.sub}, tenant_context: {getattr(request.state, 'tenant_context', None)}")
     logger.debug(f"Request headers: {request.headers}")
-    
+
     # Check if tenant_id is available in request state
     tenant_id = getattr(request.state, "tenant_id", None)
     logger.debug(f"Tenant ID in request state: {tenant_id}")
-    
+
     # Check for seller permission
     if hasattr(user, "metadata") and user.metadata:
         logger.debug(f"User metadata: {user.metadata}")
     else:
         logger.debug("No user metadata available")
-    
+
     try:
         product = await create_product(db, product_in, request)
         logger.debug(f"Product created successfully: {product.id}")

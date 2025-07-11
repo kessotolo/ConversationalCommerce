@@ -22,10 +22,10 @@ from app.services.audit.audit_service import AuditService
 
 class IPAllowlistService:
     """Service for managing IP allowlisting."""
-    
+
     def __init__(self):
         self.audit_service = AuditService()
-    
+
     async def add_allowlist_entry(
         self,
         db: AsyncSession,
@@ -40,7 +40,7 @@ class IPAllowlistService:
     ) -> IPAllowlistEntry:
         """
         Add a new IP allowlist entry.
-        
+
         Args:
             db: Database session
             ip_range: IP address or CIDR range
@@ -51,7 +51,7 @@ class IPAllowlistService:
             is_global: Whether this is a global entry
             expires_at: Optional expiration date
             created_by: ID of the admin creating the entry
-            
+
         Returns:
             The created IP allowlist entry
         """
@@ -61,7 +61,7 @@ class IPAllowlistService:
             ipaddress.ip_network(ip_range)
         except ValueError:
             raise ValueError(f"Invalid IP address or CIDR range: {ip_range}")
-        
+
         # Check if entry already exists
         query = select(IPAllowlistEntry).where(
             IPAllowlistEntry.ip_range == ip_range,
@@ -70,10 +70,10 @@ class IPAllowlistService:
             IPAllowlistEntry.tenant_id == tenant_id,
             IPAllowlistEntry.is_global == is_global
         )
-        
+
         result = await db.execute(query)
         existing_entry = result.scalars().first()
-        
+
         if existing_entry:
             # Update existing entry
             existing_entry.description = description
@@ -97,10 +97,10 @@ class IPAllowlistService:
                 created_by=created_by
             )
             db.add(entry)
-        
+
         await db.commit()
         await db.refresh(entry)
-        
+
         # Determine the scope for audit logging
         scope = "global" if is_global else ""
         if user_id:
@@ -109,7 +109,7 @@ class IPAllowlistService:
             scope = f"role:{role_id}"
         elif tenant_id:
             scope = f"tenant:{tenant_id}"
-            
+
         # Log this action in the audit log
         await self.audit_service.log_event(
             db=db,
@@ -125,9 +125,9 @@ class IPAllowlistService:
                 "expires_at": expires_at.isoformat() if expires_at else None
             }
         )
-        
+
         return entry
-    
+
     async def remove_allowlist_entry(
         self,
         db: AsyncSession,
@@ -136,12 +136,12 @@ class IPAllowlistService:
     ) -> bool:
         """
         Remove an IP allowlist entry.
-        
+
         Args:
             db: Database session
             entry_id: ID of the entry to remove
             admin_user_id: ID of the admin performing the action
-            
+
         Returns:
             True if the entry was removed, False otherwise
         """
@@ -149,10 +149,10 @@ class IPAllowlistService:
         query = select(IPAllowlistEntry).where(IPAllowlistEntry.id == entry_id)
         result = await db.execute(query)
         entry = result.scalars().first()
-        
+
         if not entry:
             return False
-        
+
         # Store info for audit log
         entry_info = {
             "ip_range": str(entry.ip_range),
@@ -161,11 +161,11 @@ class IPAllowlistService:
             "tenant_id": str(entry.tenant_id) if entry.tenant_id else None,
             "is_global": entry.is_global
         }
-        
+
         # Delete the entry
         await db.delete(entry)
         await db.commit()
-        
+
         # Log this action in the audit log
         await self.audit_service.log_event(
             db=db,
@@ -177,9 +177,9 @@ class IPAllowlistService:
             status="success",
             details=entry_info
         )
-        
+
         return True
-    
+
     async def is_ip_allowed(
         self,
         db: AsyncSession,
@@ -190,40 +190,40 @@ class IPAllowlistService:
     ) -> bool:
         """
         Check if an IP address is allowed for a user.
-        
+
         Args:
             db: Database session
             ip_address: IP address to check
             user_id: ID of the user
             roles: Optional list of role IDs
             tenant_id: Optional tenant ID
-            
+
         Returns:
             True if the IP is allowed, False otherwise
         """
         roles = roles or []
-        
+
         # First, check if allowlisting is enforced
         is_enforced = await self._is_allowlisting_enforced(db, user_id, roles, tenant_id)
-        
+
         if not is_enforced:
             return True
-        
+
         # Check for a temporary bypass
         has_bypass = await self.has_temporary_bypass(db, user_id, ip_address)
-        
+
         if has_bypass:
             return True
-        
+
         # Convert IP address to network object for comparison
         try:
             check_ip = ipaddress.ip_address(ip_address)
         except ValueError:
             return False  # Invalid IP format
-        
+
         # Check for matching allowlist entries
         current_time = datetime.now(timezone.utc)
-        
+
         # Start with user-specific entries
         query = select(IPAllowlistEntry).where(
             IPAllowlistEntry.user_id == user_id,
@@ -233,16 +233,16 @@ class IPAllowlistService:
                 IPAllowlistEntry.expires_at > current_time
             )
         )
-        
+
         result = await db.execute(query)
         user_entries = result.scalars().all()
-        
+
         # Check each entry
         for entry in user_entries:
             entry_network = ipaddress.ip_network(entry.ip_range)
             if check_ip in entry_network:
                 return True
-        
+
         # Check role-specific entries
         if roles:
             query = select(IPAllowlistEntry).where(
@@ -253,15 +253,15 @@ class IPAllowlistService:
                     IPAllowlistEntry.expires_at > current_time
                 )
             )
-            
+
             result = await db.execute(query)
             role_entries = result.scalars().all()
-            
+
             for entry in role_entries:
                 entry_network = ipaddress.ip_network(entry.ip_range)
                 if check_ip in entry_network:
                     return True
-        
+
         # Check tenant-specific entries
         if tenant_id:
             query = select(IPAllowlistEntry).where(
@@ -272,15 +272,15 @@ class IPAllowlistService:
                     IPAllowlistEntry.expires_at > current_time
                 )
             )
-            
+
             result = await db.execute(query)
             tenant_entries = result.scalars().all()
-            
+
             for entry in tenant_entries:
                 entry_network = ipaddress.ip_network(entry.ip_range)
                 if check_ip in entry_network:
                     return True
-        
+
         # Check global entries
         query = select(IPAllowlistEntry).where(
             IPAllowlistEntry.is_global == True,
@@ -290,18 +290,58 @@ class IPAllowlistService:
                 IPAllowlistEntry.expires_at > current_time
             )
         )
-        
+
         result = await db.execute(query)
         global_entries = result.scalars().all()
-        
+
         for entry in global_entries:
             entry_network = ipaddress.ip_network(entry.ip_range)
             if check_ip in entry_network:
                 return True
-        
+
         # No matching entries found
         return False
-    
+
+    async def is_ip_allowed_global(
+        self,
+        db: AsyncSession,
+        ip_address: str
+    ) -> bool:
+        """
+        Check if an IP address is allowed globally (no user/role restrictions).
+
+        Args:
+            db: Database session
+            ip_address: IP address to check
+
+        Returns:
+            True if the IP is allowed globally, False otherwise
+        """
+        # Check for global allowlist entries
+        query = select(IPAllowlistEntry).where(
+            IPAllowlistEntry.is_global == True,
+            IPAllowlistEntry.is_active == True,
+            or_(
+                IPAllowlistEntry.expires_at.is_(None),
+                IPAllowlistEntry.expires_at > datetime.now(timezone.utc)
+            )
+        )
+
+        result = await db.execute(query)
+        global_entries = result.scalars().all()
+
+        # Check if the IP matches any global entry
+        for entry in global_entries:
+            try:
+                network = ipaddress.ip_network(entry.ip_range)
+                if ipaddress.ip_address(ip_address) in network:
+                    return True
+            except ValueError:
+                # Skip invalid IP ranges
+                continue
+
+        return False
+
     async def _is_allowlisting_enforced(
         self,
         db: AsyncSession,
@@ -311,13 +351,13 @@ class IPAllowlistService:
     ) -> bool:
         """
         Check if IP allowlisting is enforced for a user.
-        
+
         Args:
             db: Database session
             user_id: ID of the user
             roles: List of role IDs
             tenant_id: Optional tenant ID
-            
+
         Returns:
             True if allowlisting is enforced, False otherwise
         """
@@ -328,11 +368,11 @@ class IPAllowlistService:
                 IPAllowlistSetting.tenant_id == tenant_id,
                 IPAllowlistSetting.is_enforced == True
             )
-            
+
             result = await db.execute(query)
             if result.scalars().first():
                 return True
-        
+
         # Check role-specific setting
         if roles:
             query = select(IPAllowlistSetting).where(
@@ -340,11 +380,11 @@ class IPAllowlistService:
                 IPAllowlistSetting.tenant_id == None,
                 IPAllowlistSetting.is_enforced == True
             )
-            
+
             result = await db.execute(query)
             if result.scalars().first():
                 return True
-        
+
         # Check tenant-specific setting
         if tenant_id:
             query = select(IPAllowlistSetting).where(
@@ -352,21 +392,21 @@ class IPAllowlistService:
                 IPAllowlistSetting.role_id == None,
                 IPAllowlistSetting.is_enforced == True
             )
-            
+
             result = await db.execute(query)
             if result.scalars().first():
                 return True
-        
+
         # Check global setting
         query = select(IPAllowlistSetting).where(
             IPAllowlistSetting.tenant_id == None,
             IPAllowlistSetting.role_id == None,
             IPAllowlistSetting.is_enforced == True
         )
-        
+
         result = await db.execute(query)
         return result.scalars().first() is not None
-    
+
     async def create_temporary_bypass(
         self,
         db: AsyncSession,
@@ -379,7 +419,7 @@ class IPAllowlistService:
     ) -> IPTemporaryBypass:
         """
         Create a temporary bypass for a user's IP address.
-        
+
         Args:
             db: Database session
             user_id: ID of the user
@@ -388,13 +428,14 @@ class IPAllowlistService:
             reason: Optional reason for the bypass
             user_agent: User agent string
             verification_method: Method used to verify the user
-            
+
         Returns:
             The created temporary bypass record
         """
         # Calculate expiration time
-        expires_at = datetime.now(timezone.utc) + timedelta(minutes=duration_minutes)
-        
+        expires_at = datetime.now(timezone.utc) + \
+            timedelta(minutes=duration_minutes)
+
         # Create bypass record
         bypass = IPTemporaryBypass(
             user_id=user_id,
@@ -405,11 +446,11 @@ class IPAllowlistService:
             user_agent=user_agent,
             verification_method=verification_method
         )
-        
+
         db.add(bypass)
         await db.commit()
         await db.refresh(bypass)
-        
+
         # Log this action in the audit log
         await self.audit_service.log_event(
             db=db,
@@ -424,9 +465,9 @@ class IPAllowlistService:
                 "verification_method": verification_method
             }
         )
-        
+
         return bypass
-    
+
     async def has_temporary_bypass(
         self,
         db: AsyncSession,
@@ -435,28 +476,28 @@ class IPAllowlistService:
     ) -> bool:
         """
         Check if a user has a temporary bypass for an IP address.
-        
+
         Args:
             db: Database session
             user_id: ID of the user
             ip_address: IP address to check
-            
+
         Returns:
             True if the user has a valid temporary bypass, False otherwise
         """
         # Get current time
         current_time = datetime.now(timezone.utc)
-        
+
         # Check for valid bypass
         query = select(IPTemporaryBypass).where(
             IPTemporaryBypass.user_id == user_id,
             IPTemporaryBypass.ip_address == ip_address,
             IPTemporaryBypass.expires_at > current_time
         )
-        
+
         result = await db.execute(query)
         return result.scalars().first() is not None
-    
+
     async def set_allowlist_enforcement(
         self,
         db: AsyncSession,
@@ -471,7 +512,7 @@ class IPAllowlistService:
     ) -> IPAllowlistSetting:
         """
         Set IP allowlisting enforcement settings.
-        
+
         Args:
             db: Database session
             is_enforced: Whether allowlisting is enforced
@@ -482,7 +523,7 @@ class IPAllowlistService:
             geo_restrict_countries: Optional list of countries to restrict to
             geo_block_countries: Optional list of countries to block
             admin_user_id: ID of the admin setting the enforcement
-            
+
         Returns:
             The created/updated setting record
         """
@@ -491,10 +532,10 @@ class IPAllowlistService:
             IPAllowlistSetting.role_id == role_id,
             IPAllowlistSetting.tenant_id == tenant_id
         )
-        
+
         result = await db.execute(query)
         setting = result.scalars().first()
-        
+
         if setting:
             # Update existing setting
             setting.is_enforced = is_enforced
@@ -520,17 +561,17 @@ class IPAllowlistService:
                 updated_by=admin_user_id
             )
             db.add(setting)
-            
+
         await db.commit()
         await db.refresh(setting)
-        
+
         # Determine the scope for audit logging
         scope = "global"
         if role_id:
             scope = f"role:{role_id}"
         if tenant_id:
             scope = f"{scope}+tenant:{tenant_id}" if role_id else f"tenant:{tenant_id}"
-            
+
         # Log this action in the audit log
         await self.audit_service.log_event(
             db=db,
@@ -546,5 +587,5 @@ class IPAllowlistService:
                 "allow_temporary_bypass": allow_temporary_bypass
             }
         )
-        
+
         return setting

@@ -29,17 +29,22 @@ class Tenant(Base):
     name = Column(String, nullable=False)
     subdomain = Column(String, nullable=False, unique=True)
     custom_domain = Column(String, nullable=True, unique=True)
-    
+
     # Domain verification fields
     domain_verified = Column(Boolean, default=False)
+    is_verified = Column(Boolean, nullable=False, default=False)
     domain_verification_token = Column(String, nullable=True)
-    domain_verification_attempts = Column(JSONB, nullable=True)  # Store verification history
+    domain_verification_attempts = Column(
+        JSONB, nullable=True)  # Store verification history
 
     # Country and KYC information
     country_code = Column(String(2), nullable=True)  # ISO 3166-1 alpha-2 code
-    kyc_status = Column(Enum(KYCStatus, create_type=False), default=KYCStatus.NOT_STARTED)
-    kyc_data = Column(JSONB, nullable=True)  # Store KYC data specific to country
-    kyc_documents = Column(JSONB, nullable=True)  # Store document URLs and metadata
+    kyc_status = Column(Enum(KYCStatus, create_type=False),
+                        default=KYCStatus.NOT_STARTED)
+    # Store KYC data specific to country
+    kyc_data = Column(JSONB, nullable=True)
+    # Store document URLs and metadata
+    kyc_documents = Column(JSONB, nullable=True)
     kyc_updated_at = Column(DateTime(timezone=True), nullable=True)
 
     # Main phone (WhatsApp-enabled preferred)
@@ -84,6 +89,14 @@ class Tenant(Base):
     payment_settings = relationship(
         "PaymentSettings", back_populates="tenant", uselist=False, cascade="all, delete-orphan"
     )
+    # Settings relationships
+    settings_domains = relationship(
+        "SettingsDomain", back_populates="tenant", cascade="all, delete")
+    settings = relationship(
+        "Setting", back_populates="tenant", cascade="all, delete")
+    # Feature flag overrides
+    feature_flag_overrides = relationship(
+        "TenantFeatureFlagOverride", back_populates="tenant", cascade="all, delete-orphan")
 
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())

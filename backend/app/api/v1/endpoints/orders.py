@@ -3,8 +3,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
 
-from app.core.security.clerk import ClerkTokenData
-from app.core.security.dependencies import require_auth
+from app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
+from app.core.security.auth_deps import require_auth
 from app.core.security.role_based_auth import RoleChecker, RoleType
 from app.api.deps import get_db
 from app.schemas.order import (

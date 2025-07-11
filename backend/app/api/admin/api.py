@@ -10,7 +10,7 @@ from app.api.routes.admin.auth import router as auth_router
 from app.api.admin.endpoints.super_admin_security import router as super_admin_security_router
 
 # Main admin API router
-admin_router = APIRouter(prefix="/api/admin")
+admin_router = APIRouter()
 
 # Include admin-specific routers
 admin_router.include_router(auth_router)

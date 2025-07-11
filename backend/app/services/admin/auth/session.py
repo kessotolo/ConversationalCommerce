@@ -13,10 +13,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from jose import jwt
 
 from app.core.config.settings import get_settings
-from app.core.security import verify_password
+from app.core.security.password import verify_password
 from app.models.admin.admin_user import AdminUser
 from app.models.user import User
 from app.services.admin.admin_user.service import AdminUserService
+
+settings = get_settings()
 
 
 async def authenticate_admin_user(

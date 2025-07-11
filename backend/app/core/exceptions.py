@@ -38,6 +38,16 @@ class AuthorizationError(AppError):
     # Extend with context attributes as needed
 
 
+class PermissionDeniedError(AppError):
+    """Raised when permission is denied for an operation"""
+    # Extend with context attributes as needed
+
+
+class InvalidContextError(AppError):
+    """Raised when an operation is attempted in an invalid context"""
+    # Extend with context attributes as needed
+
+
 class ResourceNotFoundError(AppError):
     """Raised when a requested resource is not found"""
     # Extend with context attributes as needed

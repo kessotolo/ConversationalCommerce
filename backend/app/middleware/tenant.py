@@ -1,149 +1,96 @@
-from typing import Callable
-from uuid import UUID
+import os
+from typing import Callable, Optional
+from fastapi import Request
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+from starlette.responses import Response
 
-from config import settings
-from fastapi import FastAPI, Request, Response, status
-from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi.responses import JSONResponse
+from app.core.logging import logger
+
+# Helper: is test mode?
+IS_TEST_MODE = os.getenv("TESTING", "").lower() in (
+    "true", "1", "t", "yes", "y")
 
 
 class TenantMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app: FastAPI):
+    """
+    Middleware for tenant isolation and routing.
+
+    Extracts tenant ID from headers or subdomain and validates access.
+    """
+
+    def __init__(self, app):
         super().__init__(app)
-        self.app = app
+        self.tenant_header = "X-Tenant-ID"
+        self.subdomain_tenant_pattern = r"^([a-zA-Z0-9-]+)\.enwhe\.io$"
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        # Skip tenant check for public paths
-        if self._is_public_path(request.url.path):
-            return await call_next(request)
+        """Main middleware dispatch method."""
 
-        # Get tenant ID from header
-        tenant_id = request.headers.get("X-Tenant-ID")
+        # Extract tenant ID from header or subdomain
+        tenant_id = self._extract_tenant_id(request)
 
-        # In test mode, allow requests without tenant ID and use a default
-        if getattr(settings, "TESTING", False) and not tenant_id:
-            tenant_id = "00000000-0000-0000-0000-000000000001"
-            request.state.tenant_id = tenant_id
-            return await call_next(request)
+        if not tenant_id:
+            # Allow requests without tenant ID for public endpoints
+            if self._is_public_endpoint(request.url.path):
+                return await call_next(request)
 
-        if not tenant_id or not isinstance(tenant_id, str) or tenant_id.strip() == "":
-            import logging
-
-            logging.error(
-                f"TenantMiddleware: Missing or empty X-Tenant-ID header on path {request.url.path}"
-            )
-            return JSONResponse(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                content={
-                    "detail": "X-Tenant-ID header is required and must be a non-empty string"
-                },
+            logger.warning(
+                f"No tenant ID found for request: {request.url.path}")
+            return Response(
+                content="Tenant ID required",
+                status_code=400,
+                media_type="text/plain"
             )
 
-        # Validate UUID format
-        try:
-            if not tenant_id or not isinstance(tenant_id, str):
-                raise ValueError("tenant_id must be a non-empty string")
-            tenant_uuid = UUID(tenant_id)
-        except Exception as e:
-            import logging
-
-            logging.error(
-                f"TenantMiddleware: Invalid tenant ID format '{tenant_id}' on path {request.url.path}: {e}"
+        # Validate tenant ID format
+        if not self._is_valid_tenant_id(tenant_id):
+            logger.warning(f"Invalid tenant ID format: {tenant_id}")
+            return Response(
+                content="Invalid tenant ID format",
+                status_code=400,
+                media_type="text/plain"
             )
-            return JSONResponse(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                content={"detail": f"Invalid tenant ID format: {tenant_id}"},
-            )
-        request.state.tenant_id = str(tenant_uuid)
 
-        # Get response
-        response = await call_next(request)
+        # Add tenant ID to request state for downstream use
+        request.state.tenant_id = tenant_id
 
-        # Add tenant ID to response headers
-        response.headers["X-Tenant-ID"] = tenant_id
+        # Continue with the request
+        return await call_next(request)
 
-        return response
+    def _extract_tenant_id(self, request: Request) -> Optional[str]:
+        """Extract tenant ID from request headers or subdomain."""
+        # Check header first
+        tenant_id = request.headers.get(self.tenant_header)
+        if tenant_id:
+            return tenant_id.strip()
 
-    def _is_public_path(self, path: str) -> bool:
-        """Check if the path is public and doesn't require tenant context."""
+        # Check subdomain
+        host = request.headers.get("host", "")
+        if host:
+            import re
+            match = re.match(self.subdomain_tenant_pattern, host)
+            if match:
+                return match.group(1)
+
+        return None
+
+    def _is_valid_tenant_id(self, tenant_id: str) -> bool:
+        """Validate tenant ID format."""
+        if not tenant_id:
+            return False
+
+        # Basic validation: alphanumeric and hyphens only, 3-50 chars
+        import re
+        return bool(re.match(r"^[a-zA-Z0-9-]{3,50}$", tenant_id))
+
+    def _is_public_endpoint(self, path: str) -> bool:
+        """Check if endpoint is public (doesn't require tenant ID)."""
         public_paths = [
-            "/api/v1/health",
-            "/api/v1/docs",
-            "/api/v1/openapi.json",
-            "/api/v1/redoc",
-            "/api/v1/auth",
-            "/api/v1/tenants",
-            "/api/v1/domains/verify",
-            "/api/v1/domains/check",
-            "/api/v1/domains/status",
-            "/api/v1/domains/verify-dns",
-            "/api/v1/domains/verify-ssl",
-            "/api/v1/domains/verify-http",
-            "/api/v1/domains/verify-all",
-            "/api/v1/domains/verify-email",
-            "/api/v1/domains/verify-ownership",
-            "/api/v1/domains/verify-domain",
-            "/api/v1/domains/verify-domain-ownership",
-            "/api/v1/domains/verify-domain-email",
-            "/api/v1/domains/verify-domain-dns",
-            "/api/v1/domains/verify-domain-ssl",
-            "/api/v1/domains/verify-domain-http",
-            "/api/v1/domains/verify-domain-all",
-            "/api/v1/domains/verify-domain-ownership-email",
-            "/api/v1/domains/verify-domain-ownership-dns",
-            "/api/v1/domains/verify-domain-ownership-ssl",
-            "/api/v1/domains/verify-domain-ownership-http",
-            "/api/v1/domains/verify-domain-ownership-all",
-            "/api/v1/domains/verify-domain-email-dns",
-            "/api/v1/domains/verify-domain-email-ssl",
-            "/api/v1/domains/verify-domain-email-http",
-            "/api/v1/domains/verify-domain-email-all",
-            "/api/v1/domains/verify-domain-dns-ssl",
-            "/api/v1/domains/verify-domain-dns-http",
-            "/api/v1/domains/verify-domain-dns-all",
-            "/api/v1/domains/verify-domain-ssl-http",
-            "/api/v1/domains/verify-domain-ssl-all",
-            "/api/v1/domains/verify-domain-http-all",
-            "/api/v1/domains/verify-domain-ownership-email-dns",
-            "/api/v1/domains/verify-domain-ownership-email-ssl",
-            "/api/v1/domains/verify-domain-ownership-email-http",
-            "/api/v1/domains/verify-domain-ownership-email-all",
-            "/api/v1/domains/verify-domain-ownership-dns-ssl",
-            "/api/v1/domains/verify-domain-ownership-dns-http",
-            "/api/v1/domains/verify-domain-ownership-dns-all",
-            "/api/v1/domains/verify-domain-ownership-ssl-http",
-            "/api/v1/domains/verify-domain-ownership-ssl-all",
-            "/api/v1/domains/verify-domain-ownership-http-all",
-            "/api/v1/domains/verify-domain-email-dns-ssl",
-            "/api/v1/domains/verify-domain-email-dns-http",
-            "/api/v1/domains/verify-domain-email-dns-all",
-            "/api/v1/domains/verify-domain-email-ssl-http",
-            "/api/v1/domains/verify-domain-email-ssl-all",
-            "/api/v1/domains/verify-domain-email-http-all",
-            "/api/v1/domains/verify-domain-dns-ssl-http",
-            "/api/v1/domains/verify-domain-dns-ssl-all",
-            "/api/v1/domains/verify-domain-dns-http-all",
-            "/api/v1/domains/verify-domain-ssl-http-all",
-            "/api/v1/domains/verify-domain-ownership-email-dns-ssl",
-            "/api/v1/domains/verify-domain-ownership-email-dns-http",
-            "/api/v1/domains/verify-domain-ownership-email-dns-all",
-            "/api/v1/domains/verify-domain-ownership-email-ssl-http",
-            "/api/v1/domains/verify-domain-ownership-email-ssl-all",
-            "/api/v1/domains/verify-domain-ownership-email-http-all",
-            "/api/v1/domains/verify-domain-ownership-dns-ssl-http",
-            "/api/v1/domains/verify-domain-ownership-dns-ssl-all",
-            "/api/v1/domains/verify-domain-ownership-dns-http-all",
-            "/api/v1/domains/verify-domain-ownership-ssl-http-all",
-            "/api/v1/domains/verify-domain-email-dns-ssl-http",
-            "/api/v1/domains/verify-domain-email-dns-ssl-all",
-            "/api/v1/domains/verify-domain-email-dns-http-all",
-            "/api/v1/domains/verify-domain-email-ssl-http-all",
-            "/api/v1/domains/verify-domain-dns-ssl-http-all",
-            "/api/v1/domains/verify-domain-ownership-email-dns-ssl-http",
-            "/api/v1/domains/verify-domain-ownership-email-dns-ssl-all",
-            "/api/v1/domains/verify-domain-ownership-email-dns-http-all",
-            "/api/v1/domains/verify-domain-ownership-email-ssl-http-all",
-            "/api/v1/domains/verify-domain-ownership-dns-ssl-http-all",
-            "/api/v1/domains/verify-domain-email-dns-ssl-http-all",
-            "/api/v1/domains/verify-domain-ownership-email-dns-ssl-http-all",
+            "/health",
+            "/docs",
+            "/openapi.json",
+            "/api/public",
+            "/api/auth",
         ]
+
+        return any(path.startswith(public_path) for public_path in public_paths)

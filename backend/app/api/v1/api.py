@@ -18,6 +18,7 @@ from app.api.v1.endpoints.behavior import router as behavior_router
 from app.api.v1.endpoints.complaint import router as complaint_router
 from app.api.v1.endpoints.content_moderation import router as content_moderation_router
 from app.api.v1.endpoints.domain_verification import router as domain_verification_router
+from app.api.v1.endpoints.theme_builder import router as theme_builder_router
 from app.api.v1.endpoints.violation import router as violation_router
 from app.api.v1.endpoints.whatsapp import router as whatsapp_router
 from app.api.routers.tenant import router as tenant_router
@@ -59,3 +60,4 @@ api_router.include_router(whatsapp_router, tags=[
 api_router.include_router(domain_verification_router, tags=[
                           "domain-verification"], prefix="/domain")
 api_router.include_router(tenant_router, prefix="/tenants", tags=["tenants"])
+api_router.include_router(theme_builder_router, tags=["theme-builder"], prefix="/theme-builder")

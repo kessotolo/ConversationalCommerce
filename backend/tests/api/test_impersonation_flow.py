@@ -12,7 +12,7 @@ from fastapi import status
 
 from app.core.config.settings import get_settings
 from app.services.admin.impersonation.service import ImpersonationService
-from app.models.tenant.tenant import Tenant
+from app.models.tenant import Tenant
 
 
 @pytest.mark.asyncio
@@ -26,13 +26,13 @@ async def test_impersonation_token_creation(
     # Arrange
     tenant_id = test_tenant.id
     headers = {"Authorization": f"Bearer {super_admin_token}"}
-    
+
     # Act
     response = await client.post(
         f"/api/admin/impersonation/token/{tenant_id}",
         headers=headers
     )
-    
+
     # Assert
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
@@ -54,20 +54,20 @@ async def test_impersonation_token_verification(
     # Arrange
     tenant_id = test_tenant.id
     headers = {"Authorization": f"Bearer {super_admin_token}"}
-    
+
     # Create token
     response = await client.post(
         f"/api/admin/impersonation/token/{tenant_id}",
         headers=headers
     )
     token = response.json()["token"]
-    
+
     # Act - Verify token
     verify_response = await client.post(
         "/api/admin/impersonation/verify",
         json={"token": token}
     )
-    
+
     # Assert
     assert verify_response.status_code == status.HTTP_200_OK
     data = verify_response.json()
@@ -86,20 +86,20 @@ async def test_impersonation_token_end_session(
     # Arrange
     tenant_id = test_tenant.id
     headers = {"Authorization": f"Bearer {super_admin_token}"}
-    
+
     # Create token
     response = await client.post(
         f"/api/admin/impersonation/token/{tenant_id}",
         headers=headers
     )
     token = response.json()["token"]
-    
+
     # Act - End session
     end_response = await client.post(
         "/api/admin/impersonation/end",
         json={"token": token}
     )
-    
+
     # Assert
     assert end_response.status_code == status.HTTP_200_OK
     data = end_response.json()
@@ -117,13 +117,13 @@ async def test_non_super_admin_cannot_impersonate(
     # Arrange
     tenant_id = test_tenant.id
     headers = {"Authorization": f"Bearer {admin_token}"}
-    
+
     # Act
     response = await client.post(
         f"/api/admin/impersonation/token/{tenant_id}",
         headers=headers
     )
-    
+
     # Assert
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
@@ -138,13 +138,13 @@ async def test_impersonation_token_invalid_tenant(
     # Arrange
     non_existent_tenant_id = uuid.uuid4()
     headers = {"Authorization": f"Bearer {super_admin_token}"}
-    
+
     # Act
     response = await client.post(
         f"/api/admin/impersonation/token/{non_existent_tenant_id}",
         headers=headers
     )
-    
+
     # Assert
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -161,7 +161,7 @@ async def test_impersonation_integration_flow(
     tenant_id = test_tenant.id
     headers = {"Authorization": f"Bearer {super_admin_token}"}
     settings = get_settings()
-    
+
     # Step 1: Create impersonation token
     token_response = await client.post(
         f"/api/admin/impersonation/token/{tenant_id}",
@@ -170,7 +170,7 @@ async def test_impersonation_integration_flow(
     assert token_response.status_code == status.HTTP_200_OK
     token_data = token_response.json()
     token = token_data["token"]
-    
+
     # Step 2: Verify the token
     verify_response = await client.post(
         "/api/admin/impersonation/verify",
@@ -179,19 +179,19 @@ async def test_impersonation_integration_flow(
     assert verify_response.status_code == status.HTTP_200_OK
     verify_data = verify_response.json()
     assert verify_data["valid"] is True
-    
+
     # Step 3: Make a request as the impersonated tenant
     # This would typically be done via frontend with stored token
     # Here we're simulating the impersonation context
-    
+
     # For the test, we manually create an impersonation service and verify the token
     impersonation_service = ImpersonationService(settings)
     payload = await impersonation_service.verify_impersonation_token(test_db, token=token)
-    
+
     # Confirm token payload contains expected data
     assert payload["imp_admin"] is True
     assert payload["imp_tenant"] == str(tenant_id)
-    
+
     # Step 4: End the impersonation session
     end_response = await client.post(
         "/api/admin/impersonation/end",

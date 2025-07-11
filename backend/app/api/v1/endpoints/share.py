@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.core.logging import logger
 
 from app.api import deps
-from app.core.security.clerk import ClerkTokenData
+from app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
 from app.models.product import Product
 from app.models.tenant import Tenant
 from app.services.share_service import share_service
@@ -230,7 +230,8 @@ def all_platforms_share(
         None,
         description="List of platforms to generate links for. If not provided, generates for all available platforms.",
     ),
-    campaign: str = Query("product_share", description="Base UTM campaign name"),
+    campaign: str = Query(
+        "product_share", description="Base UTM campaign name"),
     db: Session = Depends(deps.get_db),
     user: ClerkTokenData = Depends(deps.get_current_user),
 ):
@@ -281,7 +282,8 @@ def generate_qr_code(
 
         tenant = db.query(Tenant).filter(Tenant.id == user.tenant_id).first()
         if not tenant or not tenant.is_verified:
-            raise HTTPException(status_code=403, detail="Tenant is not verified")
+            raise HTTPException(
+                status_code=403, detail="Tenant is not verified")
 
         # Generate QR code with higher error correction for logo support
         error_correction = (
@@ -336,7 +338,8 @@ def generate_qr_code(
                 logo_img = logo_img.resize((logo_size, logo_size))
 
                 # Calculate position to paste logo (center)
-                position = ((qr_width - logo_size) // 2, (qr_height - logo_size) // 2)
+                position = ((qr_width - logo_size) // 2,
+                            (qr_height - logo_size) // 2)
 
                 # Paste logo onto QR code
                 img.paste(
@@ -344,7 +347,8 @@ def generate_qr_code(
                 )
             except Exception as logo_error:
                 # If logo fails, continue without it
-                logger.error(f"Failed to add logo to QR code: {str(logo_error)}")
+                logger.error(
+                    f"Failed to add logo to QR code: {str(logo_error)}")
 
         # Convert to bytes
         img_byte_arr = io.BytesIO()

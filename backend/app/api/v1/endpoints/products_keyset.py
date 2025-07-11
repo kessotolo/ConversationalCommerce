@@ -8,8 +8,8 @@ from sqlalchemy.orm import Session
 
 from app.core.errors.error_response import create_error_response
 from app.core.exceptions import DatabaseError
-from app.core.security.clerk import ClerkTokenData
-from app.core.security.dependencies import require_auth
+from app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
+from app.core.security.auth_deps import require_auth
 from app.api.deps import get_db
 from app.schemas.product import ProductResponse, ProductSearchParams
 from app.services.product_service import get_products_keyset

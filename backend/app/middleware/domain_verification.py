@@ -4,6 +4,7 @@ import socket
 import ssl
 import time
 import uuid
+import os
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -18,6 +19,9 @@ from app.models.storefront import StorefrontConfig
 from app.utils.domain_validator import generate_verification_token, verify_domain_dns
 
 logger = logging.getLogger(__name__)
+
+# Check if we're in test mode
+TESTING = os.environ.get("TESTING", "false").lower() == "true"
 
 # Cache duration for domain verification status (24 hours)
 VERIFICATION_CACHE_DURATION = 86400
@@ -108,7 +112,8 @@ class DomainVerificationMiddleware(BaseHTTPMiddleware):
         self.last_verification[domain] = now
 
         # Perform verification in the background
-        asyncio.create_task(self._perform_domain_verification(domain, tenant_id))
+        asyncio.create_task(
+            self._perform_domain_verification(domain, tenant_id))
 
     async def _perform_domain_verification(self, domain: str, tenant_id: str) -> None:
         """
@@ -168,7 +173,8 @@ class DomainVerificationMiddleware(BaseHTTPMiddleware):
                 await db.close()
 
         except Exception as e:
-            logger.error(f"Error during domain verification for {domain}: {str(e)}")
+            logger.error(
+                f"Error during domain verification for {domain}: {str(e)}")
 
     async def _verify_dns(
         self, domain: str, tenant_id: str = None
@@ -252,19 +258,21 @@ class DomainVerificationService:
 
     def __init__(self):
         self._verification_task = None
-        self._stop_event = asyncio.Event()
+        self._stop_event = None
         self._domains = {}
         self._lock = asyncio.Lock()
         self._running = False
         self._task = None
 
     async def start(self):
-        if not self._running:
+        if not self._running and not TESTING:
             self._running = True
+            # Create a new event for this instance
+            self._stop_event = asyncio.Event()
             self._task = asyncio.create_task(self._verification_loop())
 
     async def stop(self):
-        if self._running:
+        if self._running and not TESTING:
             self._running = False
             if self._task and hasattr(self._task, "cancel"):
                 self._task.cancel()
@@ -276,10 +284,14 @@ class DomainVerificationService:
                     pass
                 # Don't clear task immediately to allow test assertions
                 # Tests can manually clear it or it will be replaced on next start
-            self._stop_event.clear()
+            if self._stop_event:
+                self._stop_event.clear()
 
     async def _verification_loop(self):
         """Background task that periodically verifies domains."""
+        if TESTING or not self._stop_event:
+            return
+
         while not self._stop_event.is_set():
             try:
                 async with self._lock:
@@ -404,7 +416,8 @@ class DomainVerificationService:
                 except Exception as e:
                     logger.error(f"Error verifying domain {domain_id}: {e}")
                     results.append(
-                        {"domain_id": domain_id, "status": "error", "error": str(e)}
+                        {"domain_id": domain_id,
+                            "status": "error", "error": str(e)}
                     )
             return results
 

@@ -14,7 +14,10 @@ class Settings(BaseSettings):
 
     # Security
     SECRET_KEY: str
+    ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
+    ADMIN_ALLOWED_IPS: list[str] = [
+        "127.0.0.1", "::1", "testclient", "testserver"]
 
     # Database
     POSTGRES_SERVER: str = "localhost"
@@ -35,8 +38,21 @@ class Settings(BaseSettings):
     TWILIO_AUTH_TOKEN: str
     TWILIO_PHONE_NUMBER: str
 
+    # Clerk Authentication - Seller Organization
+    SELLER_CLERK_SECRET_KEY: str
+    SELLER_CLERK_PUBLISHABLE_KEY: str
+
+    # Clerk Authentication - Admin Organization
+    ADMIN_CLERK_SECRET_KEY: str
+    ADMIN_CLERK_PUBLISHABLE_KEY: str
+
+    # Legacy Clerk config (for backward compatibility)
+    CLERK_SECRET_KEY: Optional[str] = None
+    CLERK_PUBLIC_KEY: Optional[str] = None
+
     # Storefront Settings
-    BASE_DOMAIN: str = "enwhe.io"  # Base domain for merchant subdomains (merchant-id.enwhe.io)
+    # Base domain for merchant subdomains (merchant-id.enwhe.io)
+    BASE_DOMAIN: str = "enwhe.io"
     ENABLE_STOREFRONT: bool = True
     SUBDOMAIN_SEPARATOR: str = "."  # How subdomains are separated in local dev
 

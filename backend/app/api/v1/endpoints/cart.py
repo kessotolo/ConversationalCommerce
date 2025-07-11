@@ -6,7 +6,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.api import deps
-from app.core.security.clerk import ClerkTokenData
+from app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
 from app.models.cart import Cart, CartItem
 from app.models.product import Product
 from app.schemas.cart import CartItemCreate, CartResponse
@@ -86,7 +86,8 @@ def add_to_cart(
         cart_item.updated_at = datetime.utcnow()
     else:
         # Get product price
-        product = db.query(Product).filter(Product.id == item.product_id).first()
+        product = db.query(Product).filter(
+            Product.id == item.product_id).first()
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
         cart_item = CartItem(
