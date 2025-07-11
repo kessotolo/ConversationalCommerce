@@ -12,17 +12,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Bell,
-    AlertTriangle,
-    Settings,
     Plus,
     Edit,
-    Trash2,
-    CheckCircle,
-    XCircle,
-    Info,
-    Zap,
-    Shield,
-    Activity
+    Trash2
 } from 'lucide-react';
 import api from '@/lib/api';
 
@@ -60,11 +52,9 @@ interface AlertHistory {
     status: 'active' | 'resolved' | 'acknowledged';
 }
 
-interface AlertConfigurationProps {
-    onAlertTriggered?: (alert: AlertHistory) => void;
-}
+type AlertConfigurationProps = Record<string, never>;
 
-export function AlertConfiguration({ onAlertTriggered }: AlertConfigurationProps) {
+export function AlertConfiguration({ }: AlertConfigurationProps) {
     const [rules, setRules] = useState<AlertRule[]>([]);
     const [alertHistory, setAlertHistory] = useState<AlertHistory[]>([]);
     const [loading, setLoading] = useState(true);
@@ -260,7 +250,7 @@ export function AlertConfiguration({ onAlertTriggered }: AlertConfigurationProps
                                         </div>
                                         <div>
                                             <label className="text-sm font-medium">Condition</label>
-                                            <Select value={newRule.condition} onValueChange={(value: any) => setNewRule({ ...newRule, condition: value })}>
+                                            <Select value={newRule.condition} onValueChange={(value) => setNewRule({ ...newRule, condition: value as 'gt' | 'lt' | 'eq' | 'gte' | 'lte' })}>
                                                 <SelectTrigger>
                                                     <SelectValue />
                                                 </SelectTrigger>
@@ -294,7 +284,7 @@ export function AlertConfiguration({ onAlertTriggered }: AlertConfigurationProps
                                     </div>
                                     <div>
                                         <label className="text-sm font-medium">Severity</label>
-                                        <Select value={newRule.severity} onValueChange={(value: any) => setNewRule({ ...newRule, severity: value })}>
+                                        <Select value={newRule.severity} onValueChange={(value) => setNewRule({ ...newRule, severity: value as 'low' | 'medium' | 'high' | 'critical' })}>
                                             <SelectTrigger>
                                                 <SelectValue />
                                             </SelectTrigger>
@@ -480,7 +470,7 @@ export function AlertConfiguration({ onAlertTriggered }: AlertConfigurationProps
                                         <p className="font-medium">Email Notifications</p>
                                         <p className="text-sm text-muted-foreground">Send alerts via email</p>
                                     </div>
-                                    <Switch defaultChecked />
+                                    <Switch checked />
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div>
@@ -501,7 +491,7 @@ export function AlertConfiguration({ onAlertTriggered }: AlertConfigurationProps
                                         <p className="font-medium">Dashboard Notifications</p>
                                         <p className="text-sm text-muted-foreground">Show alerts in dashboard</p>
                                     </div>
-                                    <Switch defaultChecked />
+                                    <Switch checked />
                                 </div>
                             </div>
                         </CardContent>

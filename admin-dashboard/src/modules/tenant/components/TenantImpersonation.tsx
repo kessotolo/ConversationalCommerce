@@ -11,18 +11,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
     User,
-    Shield,
     AlertTriangle,
     CheckCircle,
     X,
     Clock,
     Eye,
-    Trash2,
     RefreshCw,
     ArrowLeft,
     Save,
-    Undo,
-    Target,
     Filter,
     Search,
     Users,
@@ -30,13 +26,10 @@ import {
     Activity,
     TrendingUp,
     AlertCircle,
-    Lock,
-    Unlock,
     History,
     Settings,
     Plus,
     Edit,
-    MoreHorizontal,
     ExternalLink
 } from 'lucide-react';
 
@@ -81,7 +74,7 @@ interface ImpersonationSession {
         id: string;
         action: string;
         timestamp: string;
-        details: Record<string, any>;
+        details: Record<string, unknown>;
     }>;
 }
 
@@ -99,6 +92,8 @@ export function TenantImpersonation({ className }: TenantImpersonationProps) {
     const [showImpersonationModal, setShowImpersonationModal] = useState(false);
     const [impersonationReason, setImpersonationReason] = useState('');
     const [impersonationDuration, setImpersonationDuration] = useState('30');
+    const [showTenantDetails, setShowTenantDetails] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
 
     // Mock data - replace with API call
     useEffect(() => {
@@ -273,13 +268,62 @@ export function TenantImpersonation({ className }: TenantImpersonationProps) {
 
     const activeSessions = sessions.filter(s => s.status === 'active').length;
 
+    const handleViewTenantDetails = (tenant: Tenant) => {
+        setSelectedTenant(tenant);
+        setShowTenantDetails(true);
+    };
+
+    const handleEditTenant = (tenant: Tenant) => {
+        // Mock edit functionality
+        alert(`Edit tenant: ${tenant.name}`);
+    };
+
+    const handleRefreshTenant = (tenant: Tenant) => {
+        // Mock refresh functionality
+        alert(`Refresh tenant: ${tenant.name}`);
+    };
+
+    const handleLockTenant = (tenant: Tenant) => {
+        // Mock lock functionality
+        alert(`Lock tenant: ${tenant.name}`);
+    };
+
+    const handleUnlockTenant = (tenant: Tenant) => {
+        // Mock unlock functionality
+        alert(`Unlock tenant: ${tenant.name}`);
+    };
+
+    const handleViewHistory = (tenant: Tenant) => {
+        // Mock history functionality
+        alert(`View history for: ${tenant.name}`);
+    };
+
+    const handleGoToTenant = (tenant: Tenant) => {
+        window.open(`https://${tenant.subdomain}.enwhe.com`, '_blank');
+    };
+
+    const getStatusIcon = (status: string) => {
+        switch (status) {
+            case 'active':
+                return <CheckCircle className="h-4 w-4 text-green-600" />;
+            case 'inactive':
+                return <X className="h-4 w-4 text-red-600" />;
+            case 'suspended':
+                return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
+            default:
+                return <AlertCircle className="h-4 w-4 text-gray-600" />;
+        }
+    };
+
     return (
         <Card className={`max-w-6xl mx-auto mt-8 mb-12 shadow-lg border bg-background ${className || ''}`}>
             <CardHeader className="border-b pb-4 mb-4 bg-muted rounded-t-lg">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                     <div>
                         <CardTitle className="text-2xl font-bold flex items-center gap-2">
-                            <User className="h-6 w-6 text-primary" /> Tenant Impersonation
+                            <User className="h-6 w-6 text-primary" />
+                            <Building2 className="h-5 w-5 text-muted-foreground" />
+                            Tenant Impersonation
                         </CardTitle>
                         <p className="text-muted-foreground text-sm mt-1">
                             Impersonate tenants for customer support and troubleshooting
@@ -289,6 +333,10 @@ export function TenantImpersonation({ className }: TenantImpersonationProps) {
                         <Badge variant="outline" className="text-orange-600">
                             {activeSessions} Active Sessions
                         </Badge>
+                        <Button variant="outline" size="sm">
+                            <Plus className="h-4 w-4 mr-2" />
+                            New Session
+                        </Button>
                     </div>
                 </div>
             </CardHeader>
@@ -317,6 +365,7 @@ export function TenantImpersonation({ className }: TenantImpersonationProps) {
                     </div>
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
                         <SelectTrigger className="w-full md:w-[140px]">
+                            <Filter className="h-4 w-4 mr-2" />
                             <SelectValue placeholder="Status" />
                         </SelectTrigger>
                         <SelectContent>
@@ -362,12 +411,12 @@ export function TenantImpersonation({ className }: TenantImpersonationProps) {
                                             <Badge variant={tenant.is_verified ? 'default' : 'secondary'}>
                                                 {tenant.is_verified ? 'Verified' : 'Unverified'}
                                             </Badge>
-                                            <Badge variant="outline">
-                                                {tenant.status}
-                                            </Badge>
-                                            <Button variant="ghost" size="sm">
-                                                <MoreHorizontal className="h-4 w-4" />
-                                            </Button>
+                                            <div className="flex items-center space-x-1">
+                                                {getStatusIcon(tenant.status)}
+                                                <Badge variant="outline">
+                                                    {tenant.status}
+                                                </Badge>
+                                            </div>
                                         </div>
                                     </div>
                                 </CardHeader>
@@ -375,15 +424,24 @@ export function TenantImpersonation({ className }: TenantImpersonationProps) {
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                                         <div className="text-center">
                                             <div className="text-2xl font-bold">{tenant.metrics.total_users}</div>
-                                            <div className="text-xs text-muted-foreground">Total Users</div>
+                                            <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                                                <Users className="h-3 w-3" />
+                                                Total Users
+                                            </div>
                                         </div>
                                         <div className="text-center">
                                             <div className="text-2xl font-bold">{tenant.metrics.total_orders}</div>
-                                            <div className="text-xs text-muted-foreground">Total Orders</div>
+                                            <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                                                <Activity className="h-3 w-3" />
+                                                Total Orders
+                                            </div>
                                         </div>
                                         <div className="text-center">
                                             <div className="text-2xl font-bold">${tenant.metrics.total_revenue.toLocaleString()}</div>
-                                            <div className="text-xs text-muted-foreground">Total Revenue</div>
+                                            <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                                                <TrendingUp className="h-3 w-3" />
+                                                Total Revenue
+                                            </div>
                                         </div>
                                         <div className="text-center">
                                             <div className="text-2xl font-bold">{tenant.metrics.order_completion_rate}%</div>
@@ -394,24 +452,50 @@ export function TenantImpersonation({ className }: TenantImpersonationProps) {
                                     <div className="flex flex-col md:flex-row md:items-center md:justify-between text-sm text-muted-foreground gap-2">
                                         <div className="flex items-center space-x-4">
                                             <span>Admin: {tenant.admin_user_name}</span>
-                                            <span>Created: {formatDate(tenant.created_at).split(',')[0]}</span>
+                                            <span className="flex items-center gap-1">
+                                                <Clock className="h-3 w-3" />
+                                                Created: {formatDate(tenant.created_at).split(',')[0]}
+                                            </span>
                                         </div>
                                         <div className="flex items-center space-x-2 mt-2 md:mt-0">
-                                            <Button variant="outline" size="sm">
+                                            <Button variant="outline" size="sm" onClick={() => handleViewTenantDetails(tenant)}>
                                                 <Eye className="h-4 w-4 mr-1" />
-                                                View Details
+                                                View
                                             </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => handleStartImpersonation(tenant)}
-                                            >
+                                            <Button variant="outline" size="sm" onClick={() => handleEditTenant(tenant)}>
+                                                <Edit className="h-4 w-4 mr-1" />
+                                                Edit
+                                            </Button>
+                                            <Button variant="outline" size="sm" onClick={() => handleRefreshTenant(tenant)}>
+                                                <RefreshCw className="h-4 w-4 mr-1" />
+                                                Refresh
+                                            </Button>
+                                            <Button variant="outline" size="sm" onClick={() => handleViewHistory(tenant)}>
+                                                <History className="h-4 w-4 mr-1" />
+                                                History
+                                            </Button>
+                                            <Button variant="outline" size="sm" onClick={() => setShowSettings(true)}>
+                                                <Settings className="h-4 w-4 mr-1" />
+                                                Settings
+                                            </Button>
+                                            <Button variant="outline" size="sm" onClick={() => handleGoToTenant(tenant)}>
+                                                <ExternalLink className="h-4 w-4 mr-1" />
+                                                Visit
+                                            </Button>
+                                            {tenant.status === 'active' ? (
+                                                <Button variant="outline" size="sm" onClick={() => handleLockTenant(tenant)}>
+                                                    <AlertTriangle className="h-4 w-4 mr-1" />
+                                                    Lock
+                                                </Button>
+                                            ) : (
+                                                <Button variant="outline" size="sm" onClick={() => handleUnlockTenant(tenant)}>
+                                                    <CheckCircle className="h-4 w-4 mr-1" />
+                                                    Unlock
+                                                </Button>
+                                            )}
+                                            <Button variant="outline" size="sm" onClick={() => handleStartImpersonation(tenant)}>
                                                 <User className="h-4 w-4 mr-1" />
                                                 Impersonate
-                                            </Button>
-                                            <Button variant="outline" size="sm">
-                                                <ExternalLink className="h-4 w-4 mr-1" />
-                                                Visit Store
                                             </Button>
                                         </div>
                                     </div>
@@ -483,36 +567,30 @@ export function TenantImpersonation({ className }: TenantImpersonationProps) {
 
             {/* Impersonation Modal */}
             <Dialog open={showImpersonationModal} onOpenChange={setShowImpersonationModal}>
-                <DialogContent className="max-w-md">
+                <DialogContent className="max-w-lg">
                     <DialogHeader>
                         <DialogTitle>Start Impersonation Session</DialogTitle>
                     </DialogHeader>
                     {selectedTenant && (
                         <div className="space-y-4">
-                            <div className="p-4 bg-muted rounded-lg">
-                                <h4 className="font-semibold">{selectedTenant.name}</h4>
-                                <p className="text-sm text-muted-foreground">
-                                    {selectedTenant.subdomain}.enwhe.com
-                                </p>
-                                <p className="text-sm text-muted-foreground">
-                                    Admin: {selectedTenant.admin_user_name}
+                            <div>
+                                <p className="text-sm text-muted-foreground mb-2">
+                                    You are about to impersonate <strong>{selectedTenant.name}</strong>
                                 </p>
                             </div>
-
                             <div>
-                                <label className="text-sm font-medium">Reason for impersonation</label>
+                                <label className="block text-sm font-medium mb-1">Reason for Impersonation</label>
                                 <Textarea
-                                    placeholder="Enter the reason for impersonating this tenant..."
                                     value={impersonationReason}
                                     onChange={(e) => setImpersonationReason(e.target.value)}
-                                    className="mt-1"
+                                    placeholder="Describe why you need to impersonate this tenant..."
+                                    rows={3}
                                 />
                             </div>
-
                             <div>
-                                <label className="text-sm font-medium">Session duration (minutes)</label>
+                                <label className="block text-sm font-medium mb-1">Session Duration (minutes)</label>
                                 <Select value={impersonationDuration} onValueChange={setImpersonationDuration}>
-                                    <SelectTrigger className="mt-1">
+                                    <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -523,25 +601,66 @@ export function TenantImpersonation({ className }: TenantImpersonationProps) {
                                     </SelectContent>
                                 </Select>
                             </div>
-
-                            <div className="flex space-x-2 pt-4">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setShowImpersonationModal(false)}
-                                    className="flex-1"
-                                >
+                            <div className="flex justify-end space-x-2">
+                                <Button variant="outline" onClick={() => setShowImpersonationModal(false)}>
+                                    <ArrowLeft className="h-4 w-4 mr-1" />
                                     Cancel
                                 </Button>
-                                <Button
-                                    onClick={handleConfirmImpersonation}
-                                    disabled={!impersonationReason}
-                                    className="flex-1"
-                                >
+                                <Button onClick={handleConfirmImpersonation}>
+                                    <Save className="h-4 w-4 mr-1" />
                                     Start Session
                                 </Button>
                             </div>
                         </div>
                     )}
+                </DialogContent>
+            </Dialog>
+
+            {/* Tenant Details Modal */}
+            <Dialog open={showTenantDetails} onOpenChange={setShowTenantDetails}>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>
+                            <div className="flex items-center gap-2">
+                                <Building2 className="h-5 w-5" />
+                                Tenant Details
+                            </div>
+                        </DialogTitle>
+                    </DialogHeader>
+                    {selectedTenant && (
+                        <div className="space-y-4">
+                            <p>Detailed tenant information would be displayed here.</p>
+                            <div className="flex justify-end space-x-2">
+                                <Button variant="outline" onClick={() => setShowTenantDetails(false)}>
+                                    <ArrowLeft className="h-4 w-4 mr-1" />
+                                    Close
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            {/* Settings Modal */}
+            <Dialog open={showSettings} onOpenChange={setShowSettings}>
+                <DialogContent className="max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>
+                            <div className="flex items-center gap-2">
+                                <Settings className="h-5 w-5" />
+                                Tenant Settings
+                            </div>
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <p>Tenant configuration settings would be displayed here.</p>
+                        <div className="flex justify-end space-x-2">
+                            <Button variant="outline" onClick={() => setShowSettings(false)}>
+                                <ArrowLeft className="h-4 w-4 mr-1" />
+                                Close
+                            </Button>
+                        </div>
+                    </div>
                 </DialogContent>
             </Dialog>
         </Card>

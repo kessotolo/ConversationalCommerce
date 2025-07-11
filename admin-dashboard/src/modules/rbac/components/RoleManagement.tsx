@@ -17,17 +17,8 @@ import {
     Edit3,
     Trash2,
     Users,
-    Eye,
-    Settings,
-    Key,
-    Lock,
-    Unlock,
     GitBranch,
-    Search,
-    Filter,
-    MoreHorizontal,
-    CheckCircle,
-    AlertTriangle
+    Search
 } from 'lucide-react';
 
 interface Role {
@@ -189,14 +180,6 @@ export function RoleManagement() {
         return matchesSearch;
     });
 
-    const permissionsByCategory = permissions.reduce((acc, permission) => {
-        if (!acc[permission.category]) {
-            acc[permission.category] = [];
-        }
-        acc[permission.category].push(permission);
-        return acc;
-    }, {} as Record<string, Permission[]>);
-
     const handleCreateRole = (roleData: Partial<Role>) => {
         const newRole: Role = {
             id: Date.now().toString(),
@@ -248,21 +231,6 @@ export function RoleManagement() {
         });
 
         return `${parentNames.join(' > ')} > ${role.name}`;
-    };
-
-    const getPermissionIcon = (category: string) => {
-        switch (category) {
-            case 'tenant':
-                return <Shield className="h-4 w-4" />;
-            case 'user':
-                return <Users className="h-4 w-4" />;
-            case 'order':
-                return <Key className="h-4 w-4" />;
-            case 'system':
-                return <Settings className="h-4 w-4" />;
-            default:
-                return <Lock className="h-4 w-4" />;
-        }
     };
 
     return (

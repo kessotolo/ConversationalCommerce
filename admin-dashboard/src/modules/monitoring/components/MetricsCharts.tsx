@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RefreshCw, TrendingUp, TrendingDown, Activity, Cpu, Database, Network, HardDrive } from 'lucide-react';
+import { RefreshCw, TrendingUp, TrendingDown, Activity, Cpu, Network, HardDrive } from 'lucide-react';
 import api from '@/lib/api';
 
 interface MetricData {
@@ -36,7 +35,7 @@ export function MetricsCharts({ timeRange, onTimeRangeChange }: MetricsChartsPro
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
-    const fetchMetrics = async () => {
+    const fetchMetrics = useCallback(async () => {
         try {
             setRefreshing(true);
             const response = await api.get(`/api/admin/monitoring/metrics?range=${timeRange}`);
@@ -47,13 +46,13 @@ export function MetricsCharts({ timeRange, onTimeRangeChange }: MetricsChartsPro
             setLoading(false);
             setRefreshing(false);
         }
-    };
+    }, [timeRange]);
 
     useEffect(() => {
         fetchMetrics();
         const interval = setInterval(fetchMetrics, 30000); // Refresh every 30 seconds
         return () => clearInterval(interval);
-    }, [timeRange]);
+    }, [timeRange, fetchMetrics]);
 
     const formatValue = (value: number, type: string) => {
         switch (type) {
@@ -88,7 +87,7 @@ export function MetricsCharts({ timeRange, onTimeRangeChange }: MetricsChartsPro
         title: string,
         data: MetricData[],
         type: string,
-        icon: React.ComponentType<any>,
+        icon: React.ComponentType<{ className?: string }>,
         color: string = 'text-blue-500'
     ) => {
         if (!data || data.length === 0) return null;
@@ -147,7 +146,7 @@ export function MetricsCharts({ timeRange, onTimeRangeChange }: MetricsChartsPro
             {/* Controls */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                    <Select value={timeRange} onValueChange={(value: any) => onTimeRangeChange(value)}>
+                    <Select value={timeRange} onValueChange={(value) => onTimeRangeChange(value as '1h' | '6h' | '24h' | '7d')}>
                         <SelectTrigger className="w-32">
                             <SelectValue />
                         </SelectTrigger>
@@ -200,8 +199,7 @@ export function MetricsCharts({ timeRange, onTimeRangeChange }: MetricsChartsPro
                         </CardHeader>
                         <CardContent>
                             <div className="h-64 flex items-center justify-center text-muted-foreground">
-                                <Activity className="h-8 w-8 mr-2" />
-                                Advanced chart visualization would go here
+                                Chart visualization would go here
                             </div>
                         </CardContent>
                     </Card>
@@ -210,13 +208,12 @@ export function MetricsCharts({ timeRange, onTimeRangeChange }: MetricsChartsPro
                 <TabsContent value="resources" className="space-y-4">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Resource Utilization</CardTitle>
-                            <CardDescription>CPU, Memory, and Disk usage</CardDescription>
+                            <CardTitle>Resource Usage</CardTitle>
+                            <CardDescription>CPU, Memory, and Disk usage trends</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="h-64 flex items-center justify-center text-muted-foreground">
-                                <Cpu className="h-8 w-8 mr-2" />
-                                Resource utilization charts would go here
+                                Chart visualization would go here
                             </div>
                         </CardContent>
                     </Card>
@@ -225,13 +222,12 @@ export function MetricsCharts({ timeRange, onTimeRangeChange }: MetricsChartsPro
                 <TabsContent value="errors" className="space-y-4">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Error Rate Analysis</CardTitle>
-                            <CardDescription>Error rates and patterns</CardDescription>
+                            <CardTitle>Error Trends</CardTitle>
+                            <CardDescription>Error rates and types over time</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="h-64 flex items-center justify-center text-muted-foreground">
-                                <Activity className="h-8 w-8 mr-2" />
-                                Error analysis charts would go here
+                                Chart visualization would go here
                             </div>
                         </CardContent>
                     </Card>

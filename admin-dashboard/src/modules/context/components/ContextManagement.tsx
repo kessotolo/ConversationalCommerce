@@ -24,7 +24,7 @@ interface EnvironmentVariable {
 interface SystemSetting {
     id: string;
     key: string;
-    value: any;
+    value: string | number | boolean | Record<string, unknown>;
     type: 'string' | 'number' | 'boolean' | 'json';
     category: 'general' | 'security' | 'performance' | 'notifications' | 'features';
     description: string;

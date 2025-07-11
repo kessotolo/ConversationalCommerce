@@ -11,9 +11,9 @@ export const Form: React.FC<FormProps> = ({ children, className }) => {
 }
 
 interface FormFieldProps {
-    control?: any
+    control?: unknown
     name?: string
-    render?: any
+    render?: (props: { field: { name: string; value: string; onChange: () => void } }) => React.ReactNode
     children?: React.ReactNode
 }
 

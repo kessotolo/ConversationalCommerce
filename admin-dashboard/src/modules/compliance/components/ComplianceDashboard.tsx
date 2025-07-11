@@ -29,7 +29,7 @@ interface AuditLog {
     ip_address: string;
     user_agent: string;
     success: boolean;
-    details: Record<string, any>;
+    details: Record<string, unknown>;
     tenant_id?: string;
 }
 

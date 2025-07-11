@@ -69,9 +69,17 @@ export function QuickActions() {
             urgent: false
         },
         {
+            title: 'View Activity Logs',
+            description: 'Monitor system activity',
+            icon: Eye,
+            color: 'teal',
+            action: () => console.log('View activity logs'),
+            urgent: false
+        },
+        {
             title: 'Emergency Lockdown',
             description: 'Activate security measures',
-            icon: Lock,
+            icon: AlertTriangle,
             color: 'red',
             action: () => console.log('Emergency lockdown'),
             urgent: true
@@ -82,6 +90,38 @@ export function QuickActions() {
             icon: Database,
             color: 'orange',
             action: () => console.log('Database backup'),
+            urgent: false
+        },
+        {
+            title: 'Refresh Status',
+            description: 'Sync latest data',
+            icon: RefreshCw,
+            color: 'blue',
+            action: () => console.log('Refresh status'),
+            urgent: false
+        },
+        {
+            title: 'View Documentation',
+            description: 'Access system docs',
+            icon: FileText,
+            color: 'gray',
+            action: () => console.log('View documentation'),
+            urgent: false
+        },
+        {
+            title: 'Access Control',
+            description: 'Manage permissions',
+            icon: Lock,
+            color: 'indigo',
+            action: () => console.log('Access control'),
+            urgent: false
+        },
+        {
+            title: 'System Health',
+            description: 'Check system status',
+            icon: Shield,
+            color: 'green',
+            action: () => console.log('System health check'),
             urgent: false
         }
     ];
@@ -95,7 +135,8 @@ export function QuickActions() {
             indigo: 'bg-indigo-50 hover:bg-indigo-100 border-indigo-200 text-indigo-700',
             cyan: 'bg-cyan-50 hover:bg-cyan-100 border-cyan-200 text-cyan-700',
             red: 'bg-red-50 hover:bg-red-100 border-red-200 text-red-700',
-            orange: 'bg-orange-50 hover:bg-orange-100 border-orange-200 text-orange-700'
+            orange: 'bg-orange-50 hover:bg-orange-100 border-orange-200 text-orange-700',
+            teal: 'bg-teal-50 hover:bg-teal-100 border-teal-200 text-teal-700'
         };
         return colorMap[color as keyof typeof colorMap] || colorMap.gray;
     };
@@ -109,7 +150,8 @@ export function QuickActions() {
             indigo: 'text-indigo-600',
             cyan: 'text-cyan-600',
             red: 'text-red-600',
-            orange: 'text-orange-600'
+            orange: 'text-orange-600',
+            teal: 'text-teal-600'
         };
         return colorMap[color as keyof typeof colorMap] || colorMap.gray;
     };
@@ -117,8 +159,9 @@ export function QuickActions() {
     return (
         <div className="admin-grid admin-grid-cols-4">
             {actions.map((action, index) => (
-                <button
+                <Button
                     key={index}
+                    variant="ghost"
                     className={`admin-card p-4 text-left transition-all duration-200 hover:shadow-md ${getColorClasses(action.color)}`}
                     onClick={action.action}
                 >
@@ -138,7 +181,7 @@ export function QuickActions() {
                             <p className="text-xs mt-1 opacity-80">{action.description}</p>
                         </div>
                     </div>
-                </button>
+                </Button>
             ))}
         </div>
     );

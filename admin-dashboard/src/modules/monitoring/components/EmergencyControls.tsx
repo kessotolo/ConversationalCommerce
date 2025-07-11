@@ -5,24 +5,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     AlertTriangle,
     Shield,
-    Power,
     Lock,
     Unlock,
-    Server,
-    Database,
-    Globe,
-    Wifi,
     Settings,
-    Activity,
-    CheckCircle,
-    XCircle,
-    Clock
+    Activity
 } from 'lucide-react';
 import api from '@/lib/api';
 
@@ -296,7 +288,7 @@ export function EmergencyControls({ onEmergencyAction }: EmergencyControlsProps)
                                 <div className="space-y-4">
                                     {actions.length === 0 ? (
                                         <div className="text-center py-8 text-muted-foreground">
-                                            <CheckCircle className="h-8 w-8 mx-auto mb-2" />
+                                            <Activity className="h-8 w-8 mx-auto mb-2" />
                                             <p>No emergency actions recorded</p>
                                         </div>
                                     ) : (
@@ -335,7 +327,7 @@ export function EmergencyControls({ onEmergencyAction }: EmergencyControlsProps)
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center">
-                                    <Server className="h-5 w-5 mr-2" />
+                                    <Shield className="h-5 w-5 mr-2" />
                                     API Status
                                 </CardTitle>
                             </CardHeader>
@@ -350,7 +342,7 @@ export function EmergencyControls({ onEmergencyAction }: EmergencyControlsProps)
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center">
-                                    <Database className="h-5 w-5 mr-2" />
+                                    <Shield className="h-5 w-5 mr-2" />
                                     Database Status
                                 </CardTitle>
                             </CardHeader>
@@ -365,7 +357,7 @@ export function EmergencyControls({ onEmergencyAction }: EmergencyControlsProps)
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center">
-                                    <Globe className="h-5 w-5 mr-2" />
+                                    <Shield className="h-5 w-5 mr-2" />
                                     Network Status
                                 </CardTitle>
                             </CardHeader>
@@ -384,12 +376,14 @@ export function EmergencyControls({ onEmergencyAction }: EmergencyControlsProps)
             <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle className="flex items-center">
-                            <AlertTriangle className="h-5 w-5 mr-2" />
-                            {confirmDialog.title}
+                        <DialogTitle>
+                            <div className="flex items-center">
+                                <AlertTriangle className="h-5 w-5 mr-2" />
+                                {confirmDialog.title}
+                            </div>
                         </DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-4">
+                    <div>
                         <p className="text-sm text-muted-foreground">
                             {confirmDialog.description}
                         </p>
@@ -401,7 +395,7 @@ export function EmergencyControls({ onEmergencyAction }: EmergencyControlsProps)
                                 Cancel
                             </Button>
                             <Button
-                                variant={confirmDialog.severity}
+                                variant={confirmDialog.severity === 'warning' ? 'outline' : 'destructive'}
                                 onClick={() => handleEmergencyAction(confirmDialog.action)}
                             >
                                 Confirm

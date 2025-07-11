@@ -8,19 +8,18 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     Shield,
-    AlertTriangle,
-    Users,
     Lock,
-    Activity,
     Eye,
+    Users,
+    Activity,
+    AlertTriangle,
+    CheckCircle,
+    TrendingUp,
+    XCircle,
+    AlertCircle,
     Clock,
     Globe,
-    UserCheck,
-    AlertCircle,
-    CheckCircle,
-    XCircle,
-    TrendingUp,
-    TrendingDown
+    UserCheck
 } from 'lucide-react';
 
 // Types for security metrics
@@ -163,8 +162,8 @@ export default function SecurityDashboard() {
                 <div className="space-y-3">
                     {alerts.map((alert) => (
                         <Alert key={alert.id} className={`border-l-4 ${alert.severity === 'error' ? 'border-l-red-500' :
-                                alert.severity === 'warning' ? 'border-l-yellow-500' :
-                                    'border-l-blue-500'
+                            alert.severity === 'warning' ? 'border-l-yellow-500' :
+                                'border-l-blue-500'
                             }`}>
                             <AlertTriangle className="h-4 w-4" />
                             <AlertTitle className="flex items-center justify-between">

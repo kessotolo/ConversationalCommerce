@@ -1,24 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
     Activity,
     AlertTriangle,
-    Bell,
     Shield,
-    Settings,
     TrendingUp,
     Users,
-    Database,
     Server,
-    Globe,
-    FileText,
-    CheckCircle
+    FileText
 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import { SystemMonitoring } from './SystemMonitoring';
 import { EmergencyControls } from './EmergencyControls';
@@ -38,13 +32,42 @@ interface DashboardOverview {
     pending_reviews: number;
 }
 
-interface UnifiedDashboardProps {
-    onAlertTriggered?: (alert: any) => void;
-}
+type UnifiedDashboardProps = Record<string, never>;
 
-export function UnifiedDashboard({ onAlertTriggered }: UnifiedDashboardProps) {
+export function UnifiedDashboard({ }: UnifiedDashboardProps) {
     const [overview, setOverview] = useState<DashboardOverview | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        // TODO: Replace with real API endpoint
+        async function fetchOverview() {
+            try {
+                // Simulate API call
+                const response = await fetch('/api/admin/dashboard/overview');
+                if (!response.ok) throw new Error('Failed to fetch overview');
+                const data = await response.json();
+                setOverview(data);
+                setError(null);
+            } catch (error) {
+                console.error('Failed to fetch dashboard overview:', error);
+                setError(error instanceof Error ? error.message : 'Unknown error occurred');
+                // Fallback: mock data for now
+                setOverview({
+                    total_tenants: 12,
+                    active_tenants: 10,
+                    total_users: 1200,
+                    active_users: 900,
+                    total_orders: 3400,
+                    revenue_today: 1200,
+                    revenue_month: 32000,
+                    system_health: 'healthy',
+                    critical_alerts: 1,
+                    pending_reviews: 3
+                });
+            }
+        }
+        fetchOverview();
+    }, []);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-US', {
@@ -80,6 +103,14 @@ export function UnifiedDashboard({ onAlertTriggered }: UnifiedDashboardProps) {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
+                    {error && (
+                        <Alert className="mb-4">
+                            <AlertTriangle className="h-4 w-4" />
+                            <AlertDescription>
+                                Failed to load dashboard data: {error}
+                            </AlertDescription>
+                        </Alert>
+                    )}
                     {overview && (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                             <div className="flex items-center space-x-3">
@@ -154,7 +185,7 @@ export function UnifiedDashboard({ onAlertTriggered }: UnifiedDashboardProps) {
                 </TabsList>
 
                 <TabsContent value="monitoring" className="space-y-4">
-                    <SystemMonitoring onAlertTriggered={onAlertTriggered} />
+                    <SystemMonitoring />
                 </TabsContent>
 
                 <TabsContent value="emergency" className="space-y-4">

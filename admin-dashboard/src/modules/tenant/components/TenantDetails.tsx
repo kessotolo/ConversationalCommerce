@@ -26,10 +26,31 @@ import {
     ArrowLeft,
     RefreshCw
 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface TenantDetailsProps {
     tenantId: string;
     onBack: () => void;
+}
+
+interface Tenant {
+    id: string;
+    name: string;
+    subdomain: string;
+    custom_domain?: string;
+    status: 'active' | 'suspended' | 'pending' | 'deleted';
+    is_verified: boolean;
+    created_at: string;
+    admin_user_id: string;
+    admin_user_name: string;
+    metrics: {
+        total_users: number;
+        total_orders: number;
+        total_revenue: number;
+        active_users: number;
+        order_completion_rate: number;
+        avg_order_value: number;
+    };
 }
 
 interface TenantActivity {
@@ -39,7 +60,7 @@ interface TenantActivity {
     description: string;
     timestamp: string;
     severity: 'info' | 'warning' | 'error';
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
 }
 
 interface TenantHealth {
@@ -70,15 +91,17 @@ interface TenantUsage {
 }
 
 export function TenantDetails({ tenantId, onBack }: TenantDetailsProps) {
-    const [tenant, setTenant] = useState<any>(null);
+    const [tenant, setTenant] = useState<Tenant | null>(null);
     const [activities, setActivities] = useState<TenantActivity[]>([]);
     const [health, setHealth] = useState<TenantHealth | null>(null);
     const [usage, setUsage] = useState<TenantUsage | null>(null);
     const [loading, setLoading] = useState(true);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     useEffect(() => {
         // Mock data - replace with API calls
-        const mockTenant = {
+        const mockTenant: Tenant = {
             id: tenantId,
             name: 'TechCorp',
             subdomain: 'techcorp',
@@ -161,6 +184,21 @@ export function TenantDetails({ tenantId, onBack }: TenantDetailsProps) {
         setLoading(false);
     }, [tenantId]);
 
+    const handleEditTenant = () => {
+        setShowEditModal(true);
+    };
+
+    const handleDeleteTenant = () => {
+        setShowDeleteModal(true);
+    };
+
+    const handleToggleStatus = () => {
+        if (tenant) {
+            const newStatus = tenant.status === 'active' ? 'suspended' : 'active';
+            setTenant({ ...tenant, status: newStatus });
+        }
+    };
+
     const getSeverityColor = (severity: string) => {
         switch (severity) {
             case 'error':
@@ -196,6 +234,19 @@ export function TenantDetails({ tenantId, onBack }: TenantDetailsProps) {
         return new Date(dateString).toLocaleDateString();
     };
 
+    const getStatusIcon = (status: string) => {
+        switch (status) {
+            case 'active':
+                return <CheckCircle className="h-4 w-4 text-green-600" />;
+            case 'suspended':
+                return <Pause className="h-4 w-4 text-yellow-600" />;
+            case 'deleted':
+                return <X className="h-4 w-4 text-red-600" />;
+            default:
+                return <AlertTriangle className="h-4 w-4 text-orange-600" />;
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center p-8">
@@ -223,20 +274,42 @@ export function TenantDetails({ tenantId, onBack }: TenantDetailsProps) {
                         Back
                     </Button>
                     <div>
-                        <h2 className="text-3xl font-bold tracking-tight">{tenant.name}</h2>
+                        <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+                            <Building2 className="h-6 w-6 text-muted-foreground" />
+                            {tenant?.name}
+                        </h2>
                         <p className="text-muted-foreground">
-                            {tenant.subdomain}.enwhe.com
-                            {tenant.custom_domain && ` • ${tenant.custom_domain}`}
+                            {tenant?.subdomain}.enwhe.com
+                            {tenant?.custom_domain && ` • ${tenant.custom_domain}`}
                         </p>
                     </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                    <Badge variant={tenant.is_verified ? 'default' : 'secondary'}>
-                        {tenant.is_verified ? 'Verified' : 'Unverified'}
+                    <Badge variant={tenant?.is_verified ? 'default' : 'secondary'}>
+                        {tenant?.is_verified ? 'Verified' : 'Unverified'}
                     </Badge>
-                    <Badge variant="outline">
-                        {tenant.status}
-                    </Badge>
+                    <div className="flex items-center space-x-1">
+                        {getStatusIcon(tenant?.status || 'pending')}
+                        <Badge variant="outline">
+                            {tenant?.status}
+                        </Badge>
+                    </div>
+                    <Button variant="outline" onClick={handleEditTenant}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                    </Button>
+                    <Button variant="outline" onClick={handleToggleStatus}>
+                        {tenant?.status === 'active' ? (
+                            <Pause className="h-4 w-4 mr-2" />
+                        ) : (
+                            <Play className="h-4 w-4 mr-2" />
+                        )}
+                        {tenant?.status === 'active' ? 'Suspend' : 'Activate'}
+                    </Button>
+                    <Button variant="outline" onClick={handleDeleteTenant}>
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                    </Button>
                     <Button variant="outline">
                         <RefreshCw className="h-4 w-4 mr-2" />
                         Refresh
@@ -252,9 +325,10 @@ export function TenantDetails({ tenantId, onBack }: TenantDetailsProps) {
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{tenant.metrics.total_users}</div>
-                        <p className="text-xs text-muted-foreground">
-                            {tenant.metrics.active_users} active
+                        <div className="text-2xl font-bold">{tenant?.metrics.total_users}</div>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {tenant?.metrics.active_users} active
                         </p>
                     </CardContent>
                 </Card>
@@ -264,9 +338,9 @@ export function TenantDetails({ tenantId, onBack }: TenantDetailsProps) {
                         <ShoppingCart className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{tenant.metrics.total_orders}</div>
+                        <div className="text-2xl font-bold">{tenant?.metrics.total_orders}</div>
                         <p className="text-xs text-muted-foreground">
-                            {tenant.metrics.order_completion_rate}% completion
+                            {tenant?.metrics.order_completion_rate}% completion
                         </p>
                     </CardContent>
                 </Card>
@@ -276,9 +350,10 @@ export function TenantDetails({ tenantId, onBack }: TenantDetailsProps) {
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{formatCurrency(tenant.metrics.total_revenue)}</div>
-                        <p className="text-xs text-muted-foreground">
-                            Avg: {formatCurrency(tenant.metrics.avg_order_value)}
+                        <div className="text-2xl font-bold">{formatCurrency(tenant?.metrics.total_revenue || 0)}</div>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <TrendingUp className="h-3 w-3" />
+                            Avg: {formatCurrency(tenant?.metrics.avg_order_value || 0)}
                         </p>
                     </CardContent>
                 </Card>
@@ -301,15 +376,27 @@ export function TenantDetails({ tenantId, onBack }: TenantDetailsProps) {
             {/* Tabs */}
             <Tabs defaultValue="activity" className="space-y-4">
                 <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="activity">Activity</TabsTrigger>
-                    <TabsTrigger value="health">Health</TabsTrigger>
-                    <TabsTrigger value="usage">Usage</TabsTrigger>
+                    <TabsTrigger value="activity" className="flex items-center gap-2">
+                        <Activity className="h-4 w-4" />
+                        Activity
+                    </TabsTrigger>
+                    <TabsTrigger value="health" className="flex items-center gap-2">
+                        <Shield className="h-4 w-4" />
+                        Health
+                    </TabsTrigger>
+                    <TabsTrigger value="usage" className="flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4" />
+                        Usage
+                    </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="activity" className="space-y-4">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Recent Activity</CardTitle>
+                            <CardTitle className="flex items-center gap-2">
+                                <Activity className="h-5 w-5" />
+                                Recent Activity
+                            </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
@@ -321,13 +408,19 @@ export function TenantDetails({ tenantId, onBack }: TenantDetailsProps) {
                                         <div className="flex-1">
                                             <h4 className="text-sm font-medium">{activity.title}</h4>
                                             <p className="text-sm text-muted-foreground">{activity.description}</p>
-                                            <p className="text-xs text-muted-foreground mt-1">
+                                            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                                                <Clock className="h-3 w-3" />
                                                 {formatDate(activity.timestamp)}
                                             </p>
                                         </div>
-                                        <Badge variant="outline">
-                                            {activity.type}
-                                        </Badge>
+                                        <div className="flex items-center gap-2">
+                                            <Button variant="ghost" size="sm">
+                                                <Eye className="h-4 w-4" />
+                                            </Button>
+                                            <Badge variant="outline">
+                                                {activity.type}
+                                            </Badge>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -443,6 +536,52 @@ export function TenantDetails({ tenantId, onBack }: TenantDetailsProps) {
                     </Card>
                 </TabsContent>
             </Tabs>
+
+            {/* Edit Tenant Modal */}
+            <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+                <DialogContent className="max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>Edit Tenant</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <p>Edit tenant functionality would go here.</p>
+                        <div className="flex justify-end space-x-2">
+                            <Button variant="outline" onClick={() => setShowEditModal(false)}>
+                                Cancel
+                            </Button>
+                            <Button onClick={() => setShowEditModal(false)}>
+                                Save Changes
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Tenant Modal */}
+            <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+                <DialogContent className="max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>
+                            <div className="flex items-center gap-2">
+                                <AlertTriangle className="h-5 w-5 text-red-600" />
+                                Delete Tenant
+                            </div>
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <p>Are you sure you want to delete this tenant? This action cannot be undone.</p>
+                        <div className="flex justify-end space-x-2">
+                            <Button variant="outline" onClick={() => setShowDeleteModal(false)}>
+                                Cancel
+                            </Button>
+                            <Button variant="destructive" onClick={() => setShowDeleteModal(false)}>
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

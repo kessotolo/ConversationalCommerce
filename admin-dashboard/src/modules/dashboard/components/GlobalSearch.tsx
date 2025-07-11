@@ -6,18 +6,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
     Search,
-    /* Filter, */
     Clock,
-    /* Star, */
     X,
     Building2,
     Users,
     ShoppingCart,
     Package,
     Activity,
-    ExternalLink
+    ExternalLink,
+    AlertTriangle
 } from 'lucide-react';
 
 interface GlobalSearchProps {
@@ -34,7 +34,7 @@ interface SearchResult {
     tenant_id?: string;
     module: string;
     score: number;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
 }
 
 export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
@@ -42,6 +42,7 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
     const [selectedModule, setSelectedModule] = useState('all');
     const [results, setResults] = useState<SearchResult[]>([]);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [searchHistory, setSearchHistory] = useState([
         'security violations',
         'tenant analytics',
@@ -62,6 +63,8 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
         if (!searchQuery.trim()) return;
 
         setLoading(true);
+        setError(null);
+
         try {
             const params = new URLSearchParams({
                 query: searchQuery,
@@ -70,16 +73,20 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
 
             const response = await fetch(`/api/admin/search?${params}`);
             if (response.ok) {
-                const data = await response.json();
+                const data: { results: SearchResult[] } = await response.json();
                 setResults(data.results || []);
 
                 // Add to search history
                 if (!searchHistory.includes(searchQuery)) {
                     setSearchHistory(prev => [searchQuery, ...prev.slice(0, 9)]);
                 }
+            } else {
+                throw new Error(`Search failed: ${response.statusText}`);
             }
         } catch (error) {
             console.error('Search error:', error);
+            setError(error instanceof Error ? error.message : 'Search failed. Please try again.');
+            setResults([]);
         } finally {
             setLoading(false);
         }
@@ -87,6 +94,7 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
+            e.preventDefault();
             handleSearch();
         }
     };
@@ -94,17 +102,17 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
     const getModuleIcon = (module: string) => {
         switch (module) {
             case 'tenants':
-                return <Building2 className="h-4 w-4" />;
+                return <Building2 className="h-4 w-4" aria-hidden="true" />;
             case 'users':
-                return <Users className="h-4 w-4" />;
+                return <Users className="h-4 w-4" aria-hidden="true" />;
             case 'orders':
-                return <ShoppingCart className="h-4 w-4" />;
+                return <ShoppingCart className="h-4 w-4" aria-hidden="true" />;
             case 'products':
-                return <Package className="h-4 w-4" />;
+                return <Package className="h-4 w-4" aria-hidden="true" />;
             case 'audit_logs':
-                return <Activity className="h-4 w-4" />;
+                return <Activity className="h-4 w-4" aria-hidden="true" />;
             default:
-                return <Search className="h-4 w-4" />;
+                return <Search className="h-4 w-4" aria-hidden="true" />;
         }
     };
 
@@ -128,11 +136,17 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
     const clearSearch = () => {
         setSearchQuery('');
         setResults([]);
+        setError(null);
     };
 
     const handleHistoryClick = (query: string) => {
         setSearchQuery(query);
         handleSearch();
+    };
+
+    const handleResultClick = (result: SearchResult) => {
+        // Open result in new tab or navigate
+        window.open(result.url, '_blank');
     };
 
     return (
@@ -146,13 +160,14 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
                     {/* Search Input */}
                     <div className="flex space-x-2">
                         <div className="relative flex-1">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                             <Input
                                 placeholder="Search across all modules..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyPress={handleKeyPress}
                                 className="pl-9 pr-8"
+                                aria-label="Search query"
                             />
                             {searchQuery && (
                                 <Button
@@ -160,14 +175,15 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
                                     size="sm"
                                     onClick={clearSearch}
                                     className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+                                    aria-label="Clear search"
                                 >
-                                    <X className="h-3 w-3" />
+                                    <X className="h-3 w-3" aria-hidden="true" />
                                 </Button>
                             )}
                         </div>
 
                         <Select value={selectedModule} onValueChange={setSelectedModule}>
-                            <SelectTrigger className="w-40">
+                            <SelectTrigger className="w-40" aria-label="Select module">
                                 <SelectValue placeholder="Module" />
                             </SelectTrigger>
                             <SelectContent>
@@ -179,10 +195,22 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
                             </SelectContent>
                         </Select>
 
-                        <Button onClick={handleSearch} disabled={loading || !searchQuery.trim()}>
+                        <Button
+                            onClick={handleSearch}
+                            disabled={loading || !searchQuery.trim()}
+                            aria-label="Search"
+                        >
                             {loading ? 'Searching...' : 'Search'}
                         </Button>
                     </div>
+
+                    {/* Error Display */}
+                    {error && (
+                        <Alert variant="destructive">
+                            <AlertTriangle className="h-4 w-4" />
+                            <AlertDescription>{error}</AlertDescription>
+                        </Alert>
+                    )}
 
                     {/* Search History */}
                     {!searchQuery && searchHistory.length > 0 && (
@@ -196,8 +224,9 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
                                         size="sm"
                                         onClick={() => handleHistoryClick(query)}
                                         className="text-xs"
+                                        aria-label={`Search for ${query}`}
                                     >
-                                        <Clock className="h-3 w-3 mr-1" />
+                                        <Clock className="h-3 w-3 mr-1" aria-hidden="true" />
                                         {query}
                                     </Button>
                                 ))}
@@ -208,54 +237,55 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
                     {/* Search Results */}
                     {results.length > 0 && (
                         <div className="space-y-2">
-                            <h4 className="text-sm font-medium">
-                                Search Results ({results.length})
+                            <h4 className="text-sm font-medium text-muted-foreground">
+                                Results ({results.length})
                             </h4>
-                            <div className="max-h-96 overflow-auto space-y-2">
+                            <div className="space-y-2 max-h-96 overflow-y-auto">
                                 {results.map((result) => (
                                     <div
                                         key={result.id}
-                                        className="flex items-start space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                                        className="flex items-start space-x-3 p-3 rounded-lg border hover:bg-gray-50 cursor-pointer transition-colors"
+                                        onClick={() => handleResultClick(result)}
+                                        onKeyPress={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                handleResultClick(result);
+                                            }
+                                        }}
+                                        tabIndex={0}
+                                        role="button"
+                                        aria-label={`Open ${result.title}`}
                                     >
-                                        <div className="p-2 rounded-full bg-muted">
+                                        <div className="flex-shrink-0">
                                             {getModuleIcon(result.module)}
                                         </div>
-
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center justify-between">
-                                                <h5 className="text-sm font-medium">{result.title}</h5>
+                                                <h4 className="text-sm font-medium text-gray-900 truncate">
+                                                    {result.title}
+                                                </h4>
                                                 <div className="flex items-center space-x-2">
-                                                    <Badge className={getTypeColor(result.type)}>
+                                                    <Badge className={`text-xs ${getTypeColor(result.type)}`}>
                                                         {result.type}
                                                     </Badge>
-                                                    <Badge variant="outline" className="text-xs">
-                                                        {result.module}
-                                                    </Badge>
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {result.score.toFixed(1)}
+                                                    </span>
                                                 </div>
                                             </div>
-
-                                            <p className="text-sm text-muted-foreground mt-1">
+                                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                                                 {result.description}
                                             </p>
-
-                                            {result.metadata && (
-                                                <div className="flex flex-wrap gap-1 mt-2">
-                                                    {Object.entries(result.metadata).slice(0, 3).map(([key, value]) => (
-                                                        <Badge key={key} variant="outline" className="text-xs">
-                                                            {key}: {String(value)}
-                                                        </Badge>
-                                                    ))}
+                                            {result.tenant_id && (
+                                                <div className="flex items-center space-x-1 mt-2">
+                                                    <Building2 className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
+                                                    <span className="text-xs text-muted-foreground">
+                                                        Tenant: {result.tenant_id}
+                                                    </span>
                                                 </div>
                                             )}
                                         </div>
-
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => window.open(result.url, '_blank')}
-                                        >
-                                            <ExternalLink className="h-3 w-3" />
-                                        </Button>
+                                        <ExternalLink className="h-4 w-4 text-muted-foreground flex-shrink-0" aria-hidden="true" />
                                     </div>
                                 ))}
                             </div>
@@ -263,19 +293,13 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
                     )}
 
                     {/* No Results */}
-                    {searchQuery && !loading && results.length === 0 && (
-                        <div className="text-center py-8 text-muted-foreground">
-                            <Search className="h-8 w-8 mx-auto mb-2" />
-                            <p>No results found for "{searchQuery}"</p>
-                            <p className="text-sm">Try different keywords or check your filters</p>
-                        </div>
-                    )}
-
-                    {/* Loading State */}
-                    {loading && (
+                    {searchQuery && !loading && results.length === 0 && !error && (
                         <div className="text-center py-8">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                            <p className="text-sm text-muted-foreground mt-2">Searching...</p>
+                            <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" aria-hidden="true" />
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
+                            <p className="text-muted-foreground">
+                                Try adjusting your search terms or module filter
+                            </p>
                         </div>
                     )}
                 </div>

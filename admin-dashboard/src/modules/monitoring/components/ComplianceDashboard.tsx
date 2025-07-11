@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,14 +12,6 @@ import {
     XCircle,
     AlertTriangle,
     FileText,
-    Lock,
-    Eye,
-    Database,
-    Users,
-    Settings,
-    Activity,
-    TrendingUp,
-    TrendingDown,
     Calendar
 } from 'lucide-react';
 import api from '@/lib/api';
@@ -49,19 +40,15 @@ interface ComplianceViolation {
     notes?: string;
 }
 
-interface ComplianceDashboardProps {
-    onViolationResolved?: (violation: ComplianceViolation) => void;
-}
+type ComplianceDashboardProps = Record<string, never>;
 
-export function ComplianceDashboard({ onViolationResolved }: ComplianceDashboardProps) {
+export function ComplianceDashboard({ }: ComplianceDashboardProps) {
     const [status, setStatus] = useState<ComplianceStatus | null>(null);
     const [violations, setViolations] = useState<ComplianceViolation[]>([]);
     const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
 
     const fetchComplianceData = async () => {
         try {
-            setRefreshing(true);
             const [statusResponse, violationsResponse] = await Promise.all([
                 api.get('/api/admin/compliance/status'),
                 api.get('/api/admin/compliance/violations')
@@ -72,7 +59,6 @@ export function ComplianceDashboard({ onViolationResolved }: ComplianceDashboard
             console.error('Error fetching compliance data:', error);
         } finally {
             setLoading(false);
-            setRefreshing(false);
         }
     };
 
@@ -375,7 +361,7 @@ export function ComplianceDashboard({ onViolationResolved }: ComplianceDashboard
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center">
-                                    <Lock className="h-5 w-5 mr-2" />
+                                    <Shield className="h-5 w-5 mr-2" />
                                     Data Protection
                                 </CardTitle>
                             </CardHeader>
@@ -400,7 +386,7 @@ export function ComplianceDashboard({ onViolationResolved }: ComplianceDashboard
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center">
-                                    <Eye className="h-5 w-5 mr-2" />
+                                    <Shield className="h-5 w-5 mr-2" />
                                     Privacy Compliance
                                 </CardTitle>
                             </CardHeader>

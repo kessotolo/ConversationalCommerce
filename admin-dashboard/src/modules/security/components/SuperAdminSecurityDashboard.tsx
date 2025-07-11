@@ -20,6 +20,7 @@ import type {
     SuperAdminEmergencyLockout,
     SuperAdminAuditLog
 } from '../models/superAdminSecurity';
+import Image from 'next/image';
 
 export function SuperAdminSecurityDashboard() {
     // 2FA State
@@ -75,8 +76,9 @@ export function SuperAdminSecurityDashboard() {
             if (lockoutsResult.success) setEmergencyLockouts(lockoutsResult.data.lockouts);
             if (logsResult.success) setAuditLogs(logsResult.data.logs);
 
-        } catch (err: any) {
-            setError(err.message || 'Failed to load security data');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to load security data';
+            setError(errorMessage);
         }
 
         setLoading(false);
@@ -92,8 +94,9 @@ export function SuperAdminSecurityDashboard() {
             } else {
                 setError(result.error?.message || 'Failed to setup 2FA');
             }
-        } catch (err: any) {
-            setError(err.message || 'Failed to setup 2FA');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to setup 2FA';
+            setError(errorMessage);
         }
     };
 
@@ -113,8 +116,9 @@ export function SuperAdminSecurityDashboard() {
             } else {
                 setError(result.error?.message || 'Invalid verification code');
             }
-        } catch (err: any) {
-            setError(err.message || 'Failed to verify 2FA');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to verify 2FA';
+            setError(errorMessage);
         }
     };
 
@@ -127,8 +131,9 @@ export function SuperAdminSecurityDashboard() {
             } else {
                 setError(result.error?.message || 'Failed to generate backup codes');
             }
-        } catch (err: any) {
-            setError(err.message || 'Failed to generate backup codes');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to generate backup codes';
+            setError(errorMessage);
         }
     };
 
@@ -148,8 +153,9 @@ export function SuperAdminSecurityDashboard() {
             } else {
                 setError(result.error?.message || 'Failed to add IP entry');
             }
-        } catch (err: any) {
-            setError(err.message || 'Failed to add IP entry');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to add IP entry';
+            setError(errorMessage);
         }
     };
 
@@ -162,8 +168,9 @@ export function SuperAdminSecurityDashboard() {
             } else {
                 setError(result.error?.message || 'Failed to remove IP entry');
             }
-        } catch (err: any) {
-            setError(err.message || 'Failed to remove IP entry');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to remove IP entry';
+            setError(errorMessage);
         }
     };
 
@@ -188,8 +195,9 @@ export function SuperAdminSecurityDashboard() {
             } else {
                 setError(result.error?.message || 'Failed to create emergency lockout');
             }
-        } catch (err: any) {
-            setError(err.message || 'Failed to create emergency lockout');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to create emergency lockout';
+            setError(errorMessage);
         }
     };
 
@@ -202,8 +210,9 @@ export function SuperAdminSecurityDashboard() {
             } else {
                 setError(result.error?.message || 'Failed to deactivate lockout');
             }
-        } catch (err: any) {
-            setError(err.message || 'Failed to deactivate lockout');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to deactivate lockout';
+            setError(errorMessage);
         }
     };
 
@@ -329,9 +338,11 @@ export function SuperAdminSecurityDashboard() {
                             {totpSetup && (
                                 <div className="space-y-4">
                                     <div className="text-center">
-                                        <img
+                                        <Image
                                             src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(totpSetup.qr_code_uri)}`}
                                             alt="QR Code for 2FA setup"
+                                            width={200}
+                                            height={200}
                                             className="mx-auto border rounded"
                                         />
                                         <p className="text-sm text-gray-600 mt-2">

@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
     Activity,
     RefreshCw,
@@ -16,7 +17,10 @@ import {
     ShoppingCart,
     Building2,
     Package,
-    ExternalLink
+    ExternalLink,
+    AlertTriangle,
+    Wifi,
+    WifiOff
 } from 'lucide-react';
 
 interface ActivityItem {
@@ -30,7 +34,7 @@ interface ActivityItem {
     target_id?: string;
     target_type?: string;
     ip_address?: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
 }
 
 export function ActivityFeed() {
@@ -40,9 +44,14 @@ export function ActivityFeed() {
     const [severityFilter, setSeverityFilter] = useState<string>('all');
     const [eventTypeFilter, setEventTypeFilter] = useState<string>('all');
     const [autoRefresh, setAutoRefresh] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [wsConnected, setWsConnected] = useState(false);
+    const wsRef = useRef<WebSocket | null>(null);
+    const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const fetchActivities = useCallback(async () => {
         try {
+            setError(null);
             const params = new URLSearchParams();
             if (severityFilter !== 'all') {
                 params.append('severity', severityFilter);
@@ -55,9 +64,12 @@ export function ActivityFeed() {
             if (response.ok) {
                 const data = await response.json();
                 setActivities(data);
+            } else {
+                throw new Error(`Failed to fetch activities: ${response.statusText}`);
             }
         } catch (error) {
             console.error('Error fetching activities:', error);
+            setError(error instanceof Error ? error.message : 'Failed to load activities');
         } finally {
             setLoading(false);
         }
@@ -72,7 +84,6 @@ export function ActivityFeed() {
             return () => clearInterval(interval);
         }
 
-        // Return empty cleanup function when autoRefresh is false
         return () => { };
     }, [fetchActivities, autoRefresh]);
 
@@ -82,63 +93,95 @@ export function ActivityFeed() {
             return () => { };
         }
 
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}/api/admin/activity/ws/current_user`;
+        const connectWebSocket = () => {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/api/admin/activity/ws/current_user`;
 
-        try {
-            const ws = new WebSocket(wsUrl);
+            try {
+                const ws = new WebSocket(wsUrl);
+                wsRef.current = ws;
 
-            ws.onopen = () => {
-                console.log('Connected to activity feed WebSocket');
-                // Subscribe to all activity events
-                ws.send(JSON.stringify({
-                    type: 'subscribe',
-                    event_types: ['all']
-                }));
-            };
+                ws.onopen = () => {
+                    console.log('Connected to activity feed WebSocket');
+                    setWsConnected(true);
+                    setError(null);
 
-            ws.onmessage = (event) => {
-                const message = JSON.parse(event.data);
-                if (message.type === 'activity') {
-                    setActivities(prev => [message.data, ...prev.slice(0, 49)]);
-                }
-            };
+                    // Subscribe to all activity events
+                    ws.send(JSON.stringify({
+                        type: 'subscribe',
+                        event_types: ['all']
+                    }));
+                };
 
-            ws.onclose = () => {
-                console.log('Disconnected from activity feed WebSocket');
-            };
+                ws.onmessage = (event) => {
+                    try {
+                        const message = JSON.parse(event.data);
+                        if (message.type === 'activity') {
+                            setActivities(prev => [message.data, ...prev.slice(0, 49)]);
+                        }
+                    } catch (error) {
+                        console.error('Error parsing WebSocket message:', error);
+                    }
+                };
 
-            return () => {
-                ws.close();
-            };
-        } catch (error) {
-            console.error('WebSocket connection error:', error);
-            return () => { };
-        }
+                ws.onclose = (event) => {
+                    console.log('Disconnected from activity feed WebSocket:', event.code, event.reason);
+                    setWsConnected(false);
+
+                    // Attempt to reconnect after 5 seconds
+                    if (autoRefresh && event.code !== 1000) {
+                        reconnectTimeoutRef.current = setTimeout(connectWebSocket, 5000);
+                    }
+                };
+
+                ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    setWsConnected(false);
+                    setError('WebSocket connection failed. Falling back to polling.');
+                };
+
+                return () => {
+                    ws.close();
+                };
+            } catch (error) {
+                console.error('WebSocket connection error:', error);
+                setError('Failed to establish WebSocket connection. Using polling mode.');
+                return () => { };
+            }
+        };
+
+        const cleanup = connectWebSocket();
+
+        return () => {
+            if (reconnectTimeoutRef.current) {
+                clearTimeout(reconnectTimeoutRef.current);
+            }
+            if (cleanup) cleanup();
+        };
     }, [autoRefresh]);
 
     const getActivityIcon = (eventType: string) => {
         switch (eventType) {
             case 'authentication':
             case 'user_login':
-                return <User className="h-4 w-4" />;
+                return <User className="h-4 w-4" aria-hidden="true" />;
             case 'security_violation':
             case 'emergency_lockdown':
-                return <Shield className="h-4 w-4" />;
+                return <Shield className="h-4 w-4" aria-hidden="true" />;
             case 'order_created':
             case 'order_updated':
-                return <ShoppingCart className="h-4 w-4" />;
+                return <ShoppingCart className="h-4 w-4" aria-hidden="true" />;
             case 'tenant_created':
             case 'tenant_updated':
-                return <Building2 className="h-4 w-4" />;
+                return <Building2 className="h-4 w-4" aria-hidden="true" />;
             case 'product_created':
             case 'product_updated':
-                return <Package className="h-4 w-4" />;
+                return <Package className="h-4 w-4" aria-hidden="true" />;
             case 'admin_action':
             case 'configuration_changed':
-                return <Settings className="h-4 w-4" />;
+                return <Settings className="h-4 w-4" aria-hidden="true" />;
             default:
-                return <Activity className="h-4 w-4" />;
+                return <Activity className="h-4 w-4" aria-hidden="true" />;
         }
     };
 
@@ -177,12 +220,24 @@ export function ActivityFeed() {
         return true;
     });
 
+    const handleRefresh = () => {
+        setLoading(true);
+        fetchActivities();
+    };
+
     return (
         <Card>
             <CardHeader>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
                     <div>
-                        <CardTitle>Activity Feed</CardTitle>
+                        <CardTitle className="flex items-center space-x-2">
+                            <span>Activity Feed</span>
+                            {wsConnected ? (
+                                <Wifi className="h-4 w-4 text-green-600" aria-label="WebSocket connected" />
+                            ) : (
+                                <WifiOff className="h-4 w-4 text-gray-400" aria-label="WebSocket disconnected" />
+                            )}
+                        </CardTitle>
                         <CardDescription>Real-time platform activity and events</CardDescription>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -190,128 +245,128 @@ export function ActivityFeed() {
                             variant="outline"
                             size="sm"
                             onClick={() => setAutoRefresh(!autoRefresh)}
+                            aria-label={autoRefresh ? 'Disable auto-refresh' : 'Enable auto-refresh'}
                         >
-                            <RefreshCw className={`h-4 w-4 mr-2 ${autoRefresh ? 'animate-spin' : ''}`} />
+                            <RefreshCw className={`h-4 w-4 mr-2 ${autoRefresh ? 'animate-spin' : ''}`} aria-hidden="true" />
                             {autoRefresh ? 'Auto' : 'Manual'}
                         </Button>
-                        <Button variant="outline" size="sm" onClick={fetchActivities}>
-                            <RefreshCw className="h-4 w-4" />
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleRefresh}
+                            disabled={loading}
+                            aria-label="Refresh activities"
+                        >
+                            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} aria-hidden="true" />
                         </Button>
                     </div>
                 </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                {/* Error Display */}
+                {error && (
+                    <Alert variant="destructive">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                )}
 
                 {/* Filters */}
-                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                     <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                         <Input
                             placeholder="Search activities..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-9"
+                            aria-label="Search activities"
                         />
                     </div>
                     <Select value={severityFilter} onValueChange={setSeverityFilter}>
-                        <SelectTrigger className="w-full sm:w-[120px]">
+                        <SelectTrigger className="w-32" aria-label="Filter by severity">
                             <SelectValue placeholder="Severity" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Severity</SelectItem>
-                            <SelectItem value="critical">Critical</SelectItem>
-                            <SelectItem value="warning">Warning</SelectItem>
                             <SelectItem value="info">Info</SelectItem>
+                            <SelectItem value="warning">Warning</SelectItem>
+                            <SelectItem value="critical">Critical</SelectItem>
                         </SelectContent>
                     </Select>
                     <Select value={eventTypeFilter} onValueChange={setEventTypeFilter}>
-                        <SelectTrigger className="w-full sm:w-[140px]">
+                        <SelectTrigger className="w-40" aria-label="Filter by event type">
                             <SelectValue placeholder="Event Type" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Events</SelectItem>
                             <SelectItem value="authentication">Authentication</SelectItem>
-                            <SelectItem value="security_violation">Security</SelectItem>
-                            <SelectItem value="order_created">Orders</SelectItem>
-                            <SelectItem value="tenant_created">Tenants</SelectItem>
-                            <SelectItem value="admin_action">Admin Actions</SelectItem>
+                            <SelectItem value="security">Security</SelectItem>
+                            <SelectItem value="orders">Orders</SelectItem>
+                            <SelectItem value="tenants">Tenants</SelectItem>
+                            <SelectItem value="admin">Admin Actions</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
-            </CardHeader>
 
-            <CardContent className="p-0">
-                {loading ? (
-                    <div className="flex items-center justify-center p-8">
-                        <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
-                    </div>
-                ) : filteredActivities.length === 0 ? (
-                    <div className="flex items-center justify-center p-8 text-muted-foreground">
-                        <Activity className="h-8 w-8 mr-2" />
-                        No activities found
-                    </div>
-                ) : (
-                    <div className="max-h-96 overflow-auto">
-                        {filteredActivities.map((activity, index) => (
+                {/* Activities List */}
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {loading ? (
+                        <div className="text-center py-8">
+                            <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2" aria-hidden="true" />
+                            <p className="text-sm text-muted-foreground">Loading activities...</p>
+                        </div>
+                    ) : filteredActivities.length === 0 ? (
+                        <div className="text-center py-8">
+                            <Activity className="h-8 w-8 text-muted-foreground mx-auto mb-2" aria-hidden="true" />
+                            <p className="text-sm text-muted-foreground">No activities found</p>
+                        </div>
+                    ) : (
+                        filteredActivities.map((activity) => (
                             <div
                                 key={activity.id}
-                                className={`p-4 border-b last:border-b-0 hover:bg-muted/50 transition-colors ${index === 0 ? 'bg-muted/25' : ''
-                                    }`}
+                                className="flex items-start space-x-3 p-3 rounded-lg border hover:bg-gray-50 transition-colors"
+                                role="article"
+                                aria-label={`Activity: ${activity.title}`}
                             >
-                                <div className="flex items-start space-x-3">
-                                    <div className={`p-2 rounded-full ${activity.severity === 'critical' ? 'bg-red-100 text-red-600' :
-                                        activity.severity === 'warning' ? 'bg-yellow-100 text-yellow-600' :
-                                            'bg-blue-100 text-blue-600'
-                                        }`}>
-                                        {getActivityIcon(activity.event_type)}
-                                    </div>
-
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between">
-                                            <h4 className="text-sm font-medium text-foreground">
-                                                {activity.title}
-                                            </h4>
-                                            <div className="flex items-center space-x-2">
-                                                <Badge variant={getSeverityColor(activity.severity)}>
-                                                    {activity.severity}
-                                                </Badge>
-                                                <span className="text-xs text-muted-foreground">
-                                                    {formatTimestamp(activity.timestamp)}
-                                                </span>
-                                            </div>
+                                <div className="flex-shrink-0 p-2 rounded-full bg-muted">
+                                    {getActivityIcon(activity.event_type)}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="text-sm font-medium text-gray-900 truncate">
+                                            {activity.title}
+                                        </h4>
+                                        <div className="flex items-center space-x-2">
+                                            <Badge variant={getSeverityColor(activity.severity)}>
+                                                {activity.severity}
+                                            </Badge>
+                                            <span className="text-xs text-muted-foreground">
+                                                {formatTimestamp(activity.timestamp)}
+                                            </span>
                                         </div>
-
-                                        <p className="text-sm text-muted-foreground mt-1">
-                                            {activity.description}
-                                        </p>
-
-                                        {/* Metadata */}
-                                        {(activity.ip_address || activity.actor_id || activity.target_id) && (
-                                            <div className="flex flex-wrap gap-2 mt-2">
-                                                {activity.ip_address && (
-                                                    <Badge variant="outline" className="text-xs">
-                                                        IP: {activity.ip_address}
-                                                    </Badge>
-                                                )}
-                                                {activity.actor_id && (
-                                                    <Badge variant="outline" className="text-xs">
-                                                        Actor: {activity.actor_id}
-                                                    </Badge>
-                                                )}
-                                                {activity.target_id && activity.target_type && (
-                                                    <Badge variant="outline" className="text-xs">
-                                                        Target: {activity.target_type}#{activity.target_id}
-                                                    </Badge>
-                                                )}
-                                            </div>
-                                        )}
                                     </div>
-
-                                    {/* Action button */}
-                                    <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100">
-                                        <ExternalLink className="h-3 w-3" />
-                                    </Button>
+                                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                                        {activity.description}
+                                    </p>
+                                    {activity.ip_address && (
+                                        <div className="flex items-center space-x-1 mt-2">
+                                            <ExternalLink className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
+                                            <span className="text-xs text-muted-foreground">
+                                                IP: {activity.ip_address}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-                        ))}
+                        ))
+                    )}
+                </div>
+
+                {/* Activity Count */}
+                {filteredActivities.length > 0 && (
+                    <div className="text-center text-sm text-muted-foreground">
+                        Showing {filteredActivities.length} of {activities.length} activities
                     </div>
                 )}
             </CardContent>

@@ -1,39 +1,20 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
 import {
     Flag,
-    Settings,
-    Users,
-    Building2,
-    Activity,
-    TrendingUp,
-    AlertTriangle,
-    CheckCircle,
-    X,
-    Plus,
-    Edit,
-    Trash2,
-    Eye,
-    Clock,
-    RefreshCw,
-    ArrowLeft,
-    Save,
-    Undo,
-    Target,
-    Filter,
     Search,
-    MoreHorizontal
+    TrendingUp,
+    Activity,
+    Target
 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface FeatureFlag {
     id: string;
@@ -42,14 +23,14 @@ interface FeatureFlag {
     description: string;
     enabled: boolean;
     type: 'boolean' | 'string' | 'number' | 'json';
-    default_value: any;
+    default_value: string | number | boolean | Record<string, unknown>;
     targeting: {
         enabled: boolean;
         rules: Array<{
             id: string;
             type: 'tenant' | 'user' | 'percentage' | 'custom';
             condition: string;
-            value: any;
+            value: string | number | boolean | Record<string, unknown> | string[];
         }>;
     };
     deployment: {
@@ -69,7 +50,7 @@ interface FeatureFlag {
         action: string;
         user: string;
         timestamp: string;
-        details: Record<string, any>;
+        details: Record<string, unknown>;
     }>;
     created_at: string;
     updated_at: string;
@@ -81,14 +62,16 @@ interface FeatureFlagManagementProps {
 
 export function FeatureFlagManagement({ className }: FeatureFlagManagementProps) {
     const [flags, setFlags] = useState<FeatureFlag[]>([]);
-    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [environmentFilter, setEnvironmentFilter] = useState('all');
+    // Modal and selection state
     const [selectedFlag, setSelectedFlag] = useState<FeatureFlag | null>(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showAuditModal, setShowAuditModal] = useState(false);
+    // Form state for create/edit
+    const [flagForm, setFlagForm] = useState<Partial<FeatureFlag>>({});
 
     // Mock data - replace with API call
     useEffect(() => {
@@ -193,7 +176,6 @@ export function FeatureFlagManagement({ className }: FeatureFlagManagementProps)
         ];
 
         setFlags(mockFlags);
-        setLoading(false);
     }, []);
 
     const filteredFlags = flags.filter(flag => {
@@ -233,56 +215,67 @@ export function FeatureFlagManagement({ className }: FeatureFlagManagementProps)
         }
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString();
-    };
-
     const handleToggleFlag = (flagId: string) => {
         setFlags(prev => prev.map(flag =>
             flag.id === flagId ? { ...flag, enabled: !flag.enabled } : flag
         ));
     };
 
-    const handleDeployFlag = (flagId: string) => {
-        setFlags(prev => prev.map(flag =>
-            flag.id === flagId ? {
-                ...flag,
-                deployment: {
-                    ...flag.deployment,
-                    status: 'deployed',
-                    deployed_at: new Date().toISOString(),
-                    deployed_by: 'admin@enwhe.com'
-                }
-            } : flag
-        ));
+    // Handlers for modals
+    const openCreateModal = () => {
+        setFlagForm({});
+        setShowCreateModal(true);
+    };
+    const openEditModal = (flag: FeatureFlag) => {
+        setSelectedFlag(flag);
+        setFlagForm(flag);
+        setShowEditModal(true);
+    };
+    const openAuditModal = (flag: FeatureFlag) => {
+        setSelectedFlag(flag);
+        setShowAuditModal(true);
+    };
+    const closeModals = () => {
+        setShowCreateModal(false);
+        setShowEditModal(false);
+        setShowAuditModal(false);
+        setSelectedFlag(null);
     };
 
-    const handleRollbackFlag = (flagId: string) => {
-        setFlags(prev => prev.map(flag =>
-            flag.id === flagId ? {
-                ...flag,
-                deployment: {
-                    ...flag.deployment,
-                    status: 'rolled_back'
-                }
-            } : flag
-        ));
+    // Form submit handlers (mocked)
+    const handleCreateFlag = () => {
+        if (!flagForm.name || !flagForm.key) return;
+        setFlags(prev => [
+            {
+                ...flagForm,
+                id: (Math.random() * 100000).toFixed(0),
+                enabled: !!flagForm.enabled,
+                type: flagForm.type || 'boolean',
+                targeting: { enabled: false, rules: [] },
+                deployment: { environment: 'development', status: 'draft' },
+                metrics: { total_requests: 0, enabled_requests: 0, usage_percentage: 0, last_accessed: 'Never' },
+                audit_log: [],
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            } as FeatureFlag,
+            ...prev
+        ]);
+        closeModals();
+    };
+    const handleEditFlag = () => {
+        if (!selectedFlag) return;
+        setFlags(prev => prev.map(f => f.id === selectedFlag.id ? { ...selectedFlag, ...flagForm, updated_at: new Date().toISOString() } : f));
+        closeModals();
     };
 
     return (
         <Card className={`max-w-5xl mx-auto mt-8 mb-12 shadow-lg border bg-background ${className || ''}`}>
-            <CardHeader className="border-b pb-4 mb-4 bg-muted rounded-t-lg">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                    <div>
-                        <CardTitle className="text-2xl font-bold flex items-center gap-2">
-                            <Flag className="h-6 w-6 text-primary" /> Feature Flags
-                        </CardTitle>
-                        <p className="text-muted-foreground text-sm mt-1">Manage, deploy, and audit feature flags across all tenants and environments.</p>
-                    </div>
-                    <Button onClick={() => setShowCreateModal(true)} className="mt-2 md:mt-0">
-                        <Plus className="h-4 w-4 mr-2" /> Create Flag
-                    </Button>
+            <CardHeader className="border-b pb-4 mb-4 bg-muted rounded-t-lg flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle>Feature Flags</CardTitle>
+                    <CardDescription>Manage feature flags for tenants and environments</CardDescription>
                 </div>
+                <Button onClick={openCreateModal} variant="default">+ New Flag</Button>
             </CardHeader>
             <CardContent>
                 {/* Filters */}
@@ -323,104 +316,40 @@ export function FeatureFlagManagement({ className }: FeatureFlagManagementProps)
                 <div className="border-b mb-6" />
 
                 {/* Feature Flags List */}
-                <div className="grid gap-6">
-                    {loading ? (
-                        <div className="flex items-center justify-center p-8">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                        </div>
-                    ) : filteredFlags.length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground">
-                            <Flag className="h-8 w-8 mx-auto mb-2" />
-                            <p>No feature flags found</p>
-                            <p className="text-sm">Create your first feature flag to get started</p>
-                        </div>
-                    ) : (
-                        filteredFlags.map((flag) => (
-                            <Card key={flag.id} className="hover:shadow-md border border-muted transition-shadow bg-background/90">
-                                <CardHeader className="pb-3 border-b bg-muted/40 rounded-t">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center space-x-3">
-                                            <div className={`w-3 h-3 rounded-full ${getStatusColor(flag.deployment.status)}`} />
-                                            <div>
-                                                <h3 className="text-lg font-semibold">{flag.name}</h3>
-                                                <p className="text-sm text-muted-foreground">
-                                                    {flag.key} • {flag.type}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Switch
-                                                checked={flag.enabled}
-                                                onCheckedChange={() => handleToggleFlag(flag.id)}
-                                            />
-                                            <Badge variant="outline">
-                                                {flag.deployment.status}
-                                            </Badge>
-                                            <Badge variant="outline" className={getEnvironmentColor(flag.deployment.environment)}>
-                                                {flag.deployment.environment}
-                                            </Badge>
-                                            <Button variant="ghost" size="sm">
-                                                <MoreHorizontal className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-sm text-muted-foreground mb-4">
-                                        {flag.description}
-                                    </p>
-
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                                        <div className="text-center">
-                                            <div className="text-2xl font-bold">{flag.metrics.total_requests}</div>
-                                            <div className="text-xs text-muted-foreground">Total Requests</div>
-                                        </div>
-                                        <div className="text-center">
-                                            <div className="text-2xl font-bold">{flag.metrics.enabled_requests}</div>
-                                            <div className="text-xs text-muted-foreground">Enabled Requests</div>
-                                        </div>
-                                        <div className="text-center">
-                                            <div className="text-2xl font-bold">{flag.metrics.usage_percentage}%</div>
-                                            <div className="text-xs text-muted-foreground">Usage</div>
-                                        </div>
-                                        <div className="text-center">
-                                            <div className="text-2xl font-bold">{flag.targeting.rules.length}</div>
-                                            <div className="text-xs text-muted-foreground">Targeting Rules</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex flex-col md:flex-row md:items-center md:justify-between text-sm text-muted-foreground gap-2">
-                                        <div className="flex items-center space-x-4">
-                                            <span>Default: {String(flag.default_value)}</span>
-                                            <span>Updated: {formatDate(flag.updated_at)}</span>
-                                        </div>
-                                        <div className="flex items-center space-x-2 mt-2 md:mt-0">
-                                            <Button variant="outline" size="sm" onClick={() => setSelectedFlag(flag)}>
-                                                <Eye className="h-4 w-4 mr-1" />
-                                                View
-                                            </Button>
-                                            <Button variant="outline" size="sm" onClick={() => setShowEditModal(true)}>
-                                                <Edit className="h-4 w-4 mr-1" />
-                                                Edit
-                                            </Button>
-                                            {flag.deployment.status === 'draft' && (
-                                                <Button variant="outline" size="sm" onClick={() => handleDeployFlag(flag.id)}>
-                                                    <TrendingUp className="h-4 w-4 mr-1" />
-                                                    Deploy
-                                                </Button>
-                                            )}
-                                            {flag.deployment.status === 'deployed' && (
-                                                <Button variant="outline" size="sm" onClick={() => handleRollbackFlag(flag.id)}>
-                                                    <Undo className="h-4 w-4 mr-1" />
-                                                    Rollback
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))
-                    )}
+                <div className="overflow-x-auto mt-4">
+                    <table className="min-w-full text-sm">
+                        <thead>
+                            <tr>
+                                <th className="text-left p-2">Name</th>
+                                <th className="text-left p-2">Key</th>
+                                <th className="text-left p-2">Status</th>
+                                <th className="text-left p-2">Environment</th>
+                                <th className="text-left p-2">Enabled</th>
+                                <th className="text-left p-2">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredFlags.map(flag => (
+                                <tr key={flag.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => setSelectedFlag(flag)}>
+                                    <td className="p-2 font-medium">{flag.name}</td>
+                                    <td className="p-2">{flag.key}</td>
+                                    <td className="p-2">
+                                        <Badge className={getStatusColor(flag.deployment.status)}>{flag.deployment.status}</Badge>
+                                    </td>
+                                    <td className="p-2">
+                                        <span className={getEnvironmentColor(flag.deployment.environment)}>{flag.deployment.environment}</span>
+                                    </td>
+                                    <td className="p-2">
+                                        <Switch checked={flag.enabled} onCheckedChange={() => handleToggleFlag(flag.id)} />
+                                    </td>
+                                    <td className="p-2 flex gap-2">
+                                        <Button size="sm" variant="outline" onClick={e => { e.stopPropagation(); openEditModal(flag); }}>Edit</Button>
+                                        <Button size="sm" variant="ghost" onClick={e => { e.stopPropagation(); openAuditModal(flag); }}>Audit</Button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
 
                 {/* Summary Stats */}
@@ -481,6 +410,99 @@ export function FeatureFlagManagement({ className }: FeatureFlagManagementProps)
                     </Card>
                 </div>
             </CardContent>
+
+            {/* Create Modal */}
+            <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Create Feature Flag</DialogTitle>
+                        <p className="text-muted-foreground text-sm">Define a new feature flag for your platform.</p>
+                    </DialogHeader>
+                    <form className="space-y-4" onSubmit={e => { e.preventDefault(); handleCreateFlag(); }}>
+                        <Input placeholder="Name" value={flagForm.name || ''} onChange={e => setFlagForm(f => ({ ...f, name: e.target.value }))} required />
+                        <Input placeholder="Key" value={flagForm.key || ''} onChange={e => setFlagForm(f => ({ ...f, key: e.target.value }))} required />
+                        <Input placeholder="Description" value={flagForm.description || ''} onChange={e => setFlagForm(f => ({ ...f, description: e.target.value }))} />
+                        <Select value={flagForm.type || 'boolean'} onValueChange={value => setFlagForm(f => ({ ...f, type: value as FeatureFlag['type'] }))}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="boolean">Boolean</SelectItem>
+                                <SelectItem value="string">String</SelectItem>
+                                <SelectItem value="number">Number</SelectItem>
+                                <SelectItem value="json">JSON</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <div className="flex items-center gap-2">
+                            <Switch checked={!!flagForm.enabled} onCheckedChange={checked => setFlagForm(f => ({ ...f, enabled: checked }))} />
+                            <span>Enabled</span>
+                        </div>
+                        <div className="flex justify-end gap-2">
+                            <Button type="button" variant="outline" onClick={closeModals}>Cancel</Button>
+                            <Button type="submit" variant="default">Create</Button>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Edit Modal */}
+            <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Edit Feature Flag</DialogTitle>
+                        <p className="text-muted-foreground text-sm">Edit the details of your feature flag.</p>
+                    </DialogHeader>
+                    <form className="space-y-4" onSubmit={e => { e.preventDefault(); handleEditFlag(); }}>
+                        <Input placeholder="Name" value={flagForm.name || ''} onChange={e => setFlagForm(f => ({ ...f, name: e.target.value }))} required />
+                        <Input placeholder="Key" value={flagForm.key || ''} onChange={e => setFlagForm(f => ({ ...f, key: e.target.value }))} required />
+                        <Input placeholder="Description" value={flagForm.description || ''} onChange={e => setFlagForm(f => ({ ...f, description: e.target.value }))} />
+                        <Select value={flagForm.type || 'boolean'} onValueChange={value => setFlagForm(f => ({ ...f, type: value as FeatureFlag['type'] }))}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="boolean">Boolean</SelectItem>
+                                <SelectItem value="string">String</SelectItem>
+                                <SelectItem value="number">Number</SelectItem>
+                                <SelectItem value="json">JSON</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <div className="flex items-center gap-2">
+                            <Switch checked={!!flagForm.enabled} onCheckedChange={checked => setFlagForm(f => ({ ...f, enabled: checked }))} />
+                            <span>Enabled</span>
+                        </div>
+                        <div className="flex justify-end gap-2">
+                            <Button type="button" variant="outline" onClick={closeModals}>Cancel</Button>
+                            <Button type="submit" variant="default">Save</Button>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Audit Modal */}
+            <Dialog open={showAuditModal} onOpenChange={setShowAuditModal}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Audit Log</DialogTitle>
+                        <p className="text-muted-foreground text-sm">View the audit log for this feature flag.</p>
+                    </DialogHeader>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                        {selectedFlag?.audit_log?.length ? (
+                            selectedFlag.audit_log.map(log => (
+                                <div key={log.id} className="border rounded p-2">
+                                    <div className="flex justify-between text-xs text-muted-foreground">
+                                        <span>{log.action}</span>
+                                        <span>{new Date(log.timestamp).toLocaleString()}</span>
+                                    </div>
+                                    <div className="text-sm font-medium">{log.user}</div>
+                                    <pre className="text-xs bg-muted p-2 rounded mt-1 overflow-x-auto">{JSON.stringify(log.details, null, 2)}</pre>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-muted-foreground text-sm">No audit log entries.</div>
+                        )}
+                    </div>
+                    <div className="flex justify-end mt-4">
+                        <Button variant="outline" onClick={closeModals}>Close</Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </Card>
     );
 }
