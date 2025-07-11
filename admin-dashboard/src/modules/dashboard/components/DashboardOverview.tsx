@@ -1,10 +1,12 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Building2, ShoppingCart, Shield, TrendingUp, AlertTriangle, CheckCircle, Users, DollarSign } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Building2, ShoppingCart, Shield, TrendingUp, AlertTriangle, CheckCircle, Users, DollarSign, ArrowRight, Eye } from 'lucide-react';
 import { QuickActions } from './QuickActions';
 
 interface DashboardMetrics {
@@ -68,6 +70,8 @@ interface DashboardOverviewProps {
 }
 
 export function DashboardOverview({ kpis, metrics, loading = false }: DashboardOverviewProps) {
+    const router = useRouter();
+
     const formatNumber = (num: number) => {
         if (num >= 1000000) {
             return (num / 1000000).toFixed(1) + 'M';
@@ -118,6 +122,40 @@ export function DashboardOverview({ kpis, metrics, loading = false }: DashboardO
         return 'text-red-600 bg-red-50';
     };
 
+    const handleMetricClick = (metricType: string) => {
+        switch (metricType) {
+            case 'tenants':
+                router.push('/dashboard/tenants');
+                break;
+            case 'users':
+                router.push('/dashboard/users');
+                break;
+            case 'revenue':
+                router.push('/dashboard/analytics/revenue');
+                break;
+            case 'health':
+                router.push('/dashboard/monitoring/health');
+                break;
+            case 'security':
+                router.push('/dashboard/security');
+                break;
+            case 'errors':
+                router.push('/dashboard/monitoring/logs');
+                break;
+            case 'orders':
+                router.push('/dashboard/orders');
+                break;
+            case 'products':
+                router.push('/dashboard/products');
+                break;
+            case 'performance':
+                router.push('/dashboard/monitoring/performance');
+                break;
+            default:
+                console.log(`Navigate to ${metricType} details`);
+        }
+    };
+
     if (loading) {
         return (
             <div className="space-y-8">
@@ -148,76 +186,148 @@ export function DashboardOverview({ kpis, metrics, loading = false }: DashboardO
             {kpis && (
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-xl">Platform Overview</CardTitle>
-                        <CardDescription>Real-time metrics</CardDescription>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <CardTitle className="text-xl">Platform Overview</CardTitle>
+                                <CardDescription>Real-time metrics - Click any metric to view details</CardDescription>
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => router.push('/dashboard/analytics')}
+                            >
+                                <Eye className="w-4 h-4 mr-2" />
+                                View Analytics
+                            </Button>
+                        </div>
                     </CardHeader>
                     <CardContent>
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                             {/* Total Tenants */}
-                            <div className="bg-white rounded-lg p-4 border border-gray-200" role="region" aria-label="Total Tenants">
-                                <div className="flex items-center justify-between mb-2">
-                                    <Building2 className="w-5 h-5 text-blue-600" aria-hidden="true" />
-                                    <span className="text-xs text-gray-500">TENANTS</span>
+                            <Button
+                                variant="ghost"
+                                className="h-auto p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                                onClick={() => handleMetricClick('tenants')}
+                            >
+                                <div className="w-full text-left">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <Building2 className="w-5 h-5 text-blue-600" aria-hidden="true" />
+                                        <span className="text-xs text-gray-500">TENANTS</span>
+                                    </div>
+                                    <div className="text-2xl font-bold text-gray-900">{formatNumber(kpis.total_tenants)}</div>
+                                    <div className="text-xs text-gray-500 mt-1">Active merchants</div>
+                                    <div className="flex items-center mt-2 text-xs text-blue-600">
+                                        <span>View all tenants</span>
+                                        <ArrowRight className="w-3 h-3 ml-1" />
+                                    </div>
                                 </div>
-                                <div className="text-2xl font-bold text-gray-900">{formatNumber(kpis.total_tenants)}</div>
-                                <div className="text-xs text-gray-500 mt-1">Active merchants</div>
-                            </div>
+                            </Button>
 
                             {/* Active Users */}
-                            <div className="bg-white rounded-lg p-4 border border-gray-200" role="region" aria-label="Active Users">
-                                <div className="flex items-center justify-between mb-2">
-                                    <Users className="w-5 h-5 text-green-600" aria-hidden="true" />
-                                    <span className="text-xs text-gray-500">USERS</span>
+                            <Button
+                                variant="ghost"
+                                className="h-auto p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                                onClick={() => handleMetricClick('users')}
+                            >
+                                <div className="w-full text-left">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <Users className="w-5 h-5 text-green-600" aria-hidden="true" />
+                                        <span className="text-xs text-gray-500">USERS</span>
+                                    </div>
+                                    <div className="text-2xl font-bold text-gray-900">{formatNumber(kpis.active_users)}</div>
+                                    <div className="text-xs text-gray-500 mt-1">Currently active</div>
+                                    <div className="flex items-center mt-2 text-xs text-green-600">
+                                        <span>View user analytics</span>
+                                        <ArrowRight className="w-3 h-3 ml-1" />
+                                    </div>
                                 </div>
-                                <div className="text-2xl font-bold text-gray-900">{formatNumber(kpis.active_users)}</div>
-                                <div className="text-xs text-gray-500 mt-1">Currently active</div>
-                            </div>
+                            </Button>
 
                             {/* Total Revenue */}
-                            <div className="bg-white rounded-lg p-4 border border-gray-200" role="region" aria-label="Total Revenue">
-                                <div className="flex items-center justify-between mb-2">
-                                    <DollarSign className="w-5 h-5 text-yellow-600" aria-hidden="true" />
-                                    <span className="text-xs text-gray-500">REVENUE</span>
+                            <Button
+                                variant="ghost"
+                                className="h-auto p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                                onClick={() => handleMetricClick('revenue')}
+                            >
+                                <div className="w-full text-left">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <DollarSign className="w-5 h-5 text-yellow-600" aria-hidden="true" />
+                                        <span className="text-xs text-gray-500">REVENUE</span>
+                                    </div>
+                                    <div className="text-2xl font-bold text-gray-900">{formatCurrency(kpis.total_revenue)}</div>
+                                    <div className="text-xs text-gray-500 mt-1">Total platform</div>
+                                    <div className="flex items-center mt-2 text-xs text-yellow-600">
+                                        <span>View revenue report</span>
+                                        <ArrowRight className="w-3 h-3 ml-1" />
+                                    </div>
                                 </div>
-                                <div className="text-2xl font-bold text-gray-900">{formatCurrency(kpis.total_revenue)}</div>
-                                <div className="text-xs text-gray-500 mt-1">Total platform</div>
-                            </div>
+                            </Button>
 
                             {/* System Health */}
-                            <div className="bg-white rounded-lg p-4 border border-gray-200" role="region" aria-label="System Health">
-                                <div className="flex items-center justify-between mb-2">
-                                    <CheckCircle className="w-5 h-5 text-green-600" aria-hidden="true" />
-                                    <span className="text-xs text-gray-500">HEALTH</span>
+                            <Button
+                                variant="ghost"
+                                className="h-auto p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                                onClick={() => handleMetricClick('health')}
+                            >
+                                <div className="w-full text-left">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <CheckCircle className="w-5 h-5 text-green-600" aria-hidden="true" />
+                                        <span className="text-xs text-gray-500">HEALTH</span>
+                                    </div>
+                                    <div className={`text-2xl font-bold ${getHealthColor(kpis.system_health_score)}`}>
+                                        {kpis.system_health_score}%
+                                    </div>
+                                    <div className="text-xs text-gray-500 mt-1">System status</div>
+                                    <div className="flex items-center mt-2 text-xs text-green-600">
+                                        <span>View system health</span>
+                                        <ArrowRight className="w-3 h-3 ml-1" />
+                                    </div>
                                 </div>
-                                <div className={`text-2xl font-bold ${getHealthColor(kpis.system_health_score)}`}>
-                                    {kpis.system_health_score}%
-                                </div>
-                                <div className="text-xs text-gray-500 mt-1">System status</div>
-                            </div>
+                            </Button>
 
                             {/* Security Score */}
-                            <div className="bg-white rounded-lg p-4 border border-gray-200" role="region" aria-label="Security Score">
-                                <div className="flex items-center justify-between mb-2">
-                                    <Shield className="w-5 h-5 text-purple-600" aria-hidden="true" />
-                                    <span className="text-xs text-gray-500">SECURITY</span>
+                            <Button
+                                variant="ghost"
+                                className="h-auto p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                                onClick={() => handleMetricClick('security')}
+                            >
+                                <div className="w-full text-left">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <Shield className="w-5 h-5 text-purple-600" aria-hidden="true" />
+                                        <span className="text-xs text-gray-500">SECURITY</span>
+                                    </div>
+                                    <div className={`text-2xl font-bold ${getSecurityColor(kpis.security_score)}`}>
+                                        {kpis.security_score}%
+                                    </div>
+                                    <div className="text-xs text-gray-500 mt-1">Threat level</div>
+                                    <div className="flex items-center mt-2 text-xs text-purple-600">
+                                        <span>View security dashboard</span>
+                                        <ArrowRight className="w-3 h-3 ml-1" />
+                                    </div>
                                 </div>
-                                <div className={`text-2xl font-bold ${getSecurityColor(kpis.security_score)}`}>
-                                    {kpis.security_score}%
-                                </div>
-                                <div className="text-xs text-gray-500 mt-1">Threat level</div>
-                            </div>
+                            </Button>
 
                             {/* Errors Today */}
-                            <div className="bg-white rounded-lg p-4 border border-gray-200" role="region" aria-label="Errors Today">
-                                <div className="flex items-center justify-between mb-2">
-                                    <AlertTriangle className="w-5 h-5 text-red-600" aria-hidden="true" />
-                                    <span className="text-xs text-gray-500">ERRORS</span>
+                            <Button
+                                variant="ghost"
+                                className="h-auto p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                                onClick={() => handleMetricClick('errors')}
+                            >
+                                <div className="w-full text-left">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <AlertTriangle className="w-5 h-5 text-red-600" aria-hidden="true" />
+                                        <span className="text-xs text-gray-500">ERRORS</span>
+                                    </div>
+                                    <div className={`text-2xl font-bold ${getErrorColor(kpis.errors_today)}`}>
+                                        {kpis.errors_today}
+                                    </div>
+                                    <div className="text-xs text-gray-500 mt-1">Today&apos;s issues</div>
+                                    <div className="flex items-center mt-2 text-xs text-red-600">
+                                        <span>View error logs</span>
+                                        <ArrowRight className="w-3 h-3 ml-1" />
+                                    </div>
                                 </div>
-                                <div className={`text-2xl font-bold ${getErrorColor(kpis.errors_today)}`}>
-                                    {kpis.errors_today}
-                                </div>
-                                <div className="text-xs text-gray-500 mt-1">Today&apos;s issues</div>
-                            </div>
+                            </Button>
                         </div>
                     </CardContent>
                 </Card>
@@ -237,7 +347,7 @@ export function DashboardOverview({ kpis, metrics, loading = false }: DashboardO
             {metrics && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {/* Tenant Metrics */}
-                    <Card>
+                    <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer" onClick={() => handleMetricClick('tenants')}>
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <CardTitle className="text-base">Tenant Overview</CardTitle>
@@ -263,9 +373,12 @@ export function DashboardOverview({ kpis, metrics, loading = false }: DashboardO
                                     </span>
                                 </div>
                                 <div className="pt-2 border-t border-gray-100">
-                                    <div className="flex items-center space-x-2">
-                                        <TrendingUp className="w-4 h-4 text-green-600" aria-hidden="true" />
-                                        <span className="text-xs text-gray-500">Active growth trend</span>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-2">
+                                            <TrendingUp className="w-4 h-4 text-green-600" aria-hidden="true" />
+                                            <span className="text-xs text-gray-500">Active growth trend</span>
+                                        </div>
+                                        <ArrowRight className="w-4 h-4 text-blue-600" />
                                     </div>
                                 </div>
                             </div>
@@ -273,7 +386,7 @@ export function DashboardOverview({ kpis, metrics, loading = false }: DashboardO
                     </Card>
 
                     {/* Order Metrics */}
-                    <Card>
+                    <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer" onClick={() => handleMetricClick('orders')}>
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <CardTitle className="text-base">Order Performance</CardTitle>
@@ -297,9 +410,12 @@ export function DashboardOverview({ kpis, metrics, loading = false }: DashboardO
                                     <span className="text-sm font-semibold text-gray-900">{metrics.order_metrics.recent_orders}</span>
                                 </div>
                                 <div className="pt-2 border-t border-gray-100">
-                                    <div className="flex items-center space-x-2">
-                                        <CheckCircle className="w-4 h-4 text-green-600" aria-hidden="true" />
-                                        <span className="text-xs text-gray-500">High completion rate</span>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-2">
+                                            <CheckCircle className="w-4 h-4 text-green-600" aria-hidden="true" />
+                                            <span className="text-xs text-gray-500">High completion rate</span>
+                                        </div>
+                                        <ArrowRight className="w-4 h-4 text-purple-600" />
                                     </div>
                                 </div>
                             </div>
@@ -307,7 +423,7 @@ export function DashboardOverview({ kpis, metrics, loading = false }: DashboardO
                     </Card>
 
                     {/* Security Metrics */}
-                    <Card>
+                    <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer" onClick={() => handleMetricClick('security')}>
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <CardTitle className="text-base">Security Status</CardTitle>
@@ -333,9 +449,12 @@ export function DashboardOverview({ kpis, metrics, loading = false }: DashboardO
                                     </Badge>
                                 </div>
                                 <div className="pt-2 border-t border-gray-100">
-                                    <div className="flex items-center space-x-2">
-                                        <AlertTriangle className="w-4 h-4 text-yellow-600" aria-hidden="true" />
-                                        <span className="text-xs text-gray-500">Monitoring active</span>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-2">
+                                            <AlertTriangle className="w-4 h-4 text-yellow-600" aria-hidden="true" />
+                                            <span className="text-xs text-gray-500">Monitoring active</span>
+                                        </div>
+                                        <ArrowRight className="w-4 h-4 text-red-600" />
                                     </div>
                                 </div>
                             </div>
@@ -345,9 +464,12 @@ export function DashboardOverview({ kpis, metrics, loading = false }: DashboardO
             )}
 
             {/* System Performance */}
-            <Card>
+            <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer" onClick={() => handleMetricClick('performance')}>
                 <CardHeader>
-                    <CardTitle className="text-lg">System Performance</CardTitle>
+                    <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg">System Performance</CardTitle>
+                        <ArrowRight className="w-5 h-5 text-gray-400" />
+                    </div>
                 </CardHeader>
                 <CardContent>
                     {metrics && (
@@ -382,9 +504,12 @@ export function DashboardOverview({ kpis, metrics, loading = false }: DashboardO
             </Card>
 
             {/* User Activity */}
-            <Card>
+            <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer" onClick={() => handleMetricClick('users')}>
                 <CardHeader>
-                    <CardTitle className="text-lg">User Activity</CardTitle>
+                    <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg">User Activity</CardTitle>
+                        <ArrowRight className="w-5 h-5 text-gray-400" />
+                    </div>
                 </CardHeader>
                 <CardContent>
                     {metrics && (
