@@ -138,8 +138,8 @@ class MultiOrgClerkService:
 
     def _verify_production_token(self, token: str) -> MultiOrgClerkTokenData:
         """Verify a production Clerk JWT token."""
-        try:
-            # Try admin org first
+        # Try admin org first if admin secret key is available
+        if self.admin_secret_key:
             try:
                 payload = jwt.decode(
                     token,
@@ -156,10 +156,12 @@ class MultiOrgClerkService:
                     exp=payload.get("exp"),
                     iat=payload.get("iat")
                 )
-            except jwt.InvalidTokenError:
+            except (jwt.InvalidTokenError, Exception):
+                # Continue to try seller key if admin key fails
                 pass
-
-            # Try seller org
+                
+        # Try seller org if seller secret key is available
+        if self.seller_secret_key:
             try:
                 payload = jwt.decode(
                     token,
@@ -176,25 +178,14 @@ class MultiOrgClerkService:
                     exp=payload.get("exp"),
                     iat=payload.get("iat")
                 )
-            except jwt.InvalidTokenError:
+            except (jwt.InvalidTokenError, jwt.ExpiredSignatureError):
                 pass
 
-            # If both fail, token is invalid
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token"
-            )
-
-        except jwt.ExpiredSignatureError:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token expired"
-            )
-        except jwt.InvalidTokenError:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token"
-            )
+        # If both fail, token is invalid
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token or missing authentication keys"
+        )
 
 
 # Singleton instance

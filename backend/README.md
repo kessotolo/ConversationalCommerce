@@ -7,6 +7,18 @@ Backend for modular, multi-tenant, chat-driven commerce. Powered by FastAPI, SQL
 - Install Python 3.12+, `pip install -r requirements.txt`
 - Run: `uvicorn app.main:app --reload`
 
+## 📝 Environment Configuration
+
+### Database Configuration
+- The application requires PostgreSQL with the `asyncpg` driver for SQLAlchemy async operations
+- Database URL format: `postgresql+asyncpg://user:password@host:port/dbname`
+- The system automatically transforms standard PostgreSQL URLs to use the asyncpg driver
+- Both local and container environments use the same URL transformation logic
+
+### Authentication Configuration
+- Clerk authentication keys (`*_CLERK_SECRET_KEY`, `*_CLERK_PUBLISHABLE_KEY`) are optional
+- When not provided, the application will run without Clerk authentication enabled
+
 ## 🗄️ Migrations
 - Alembic for schema migrations
 - See [Architecture](/docs/ARCHITECTURE.md) for migration and RLS details

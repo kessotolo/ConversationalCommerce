@@ -156,7 +156,7 @@ class DomainVerificationMiddleware(BaseHTTPMiddleware):
                     "dns_error": dns_error,
                     "ssl_status": ssl_status,
                     "ssl_error": ssl_error,
-                    "verified_at": now,
+                    "verified_at": datetime.utcnow(),
                 }
 
                 # Cache the verification result

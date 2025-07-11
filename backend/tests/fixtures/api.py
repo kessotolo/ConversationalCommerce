@@ -163,12 +163,15 @@ async def async_client(async_db_session) -> AsyncGenerator:
 
     # Patch the session factory used by middleware
     with mock.patch('app.db.async_session.get_async_session_local', patched_get_async_session_local):
+        # Create the async client
+        test_client = httpx.AsyncClient(
+            app=original_app, base_url="http://testserver")
         try:
-            # Create and yield the async client
-            async with httpx.AsyncClient(app=original_app, base_url="http://testserver") as test_client:
-                yield test_client
+            # Yield the client directly
+            yield test_client
         finally:
-            # Clean up the override after the test
+            # Clean up
+            await test_client.aclose()
             if get_db in original_app.dependency_overrides:
                 del original_app.dependency_overrides[get_db]
 
