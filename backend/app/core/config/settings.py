@@ -39,12 +39,12 @@ class Settings(BaseSettings):
     TWILIO_PHONE_NUMBER: str
 
     # Clerk Authentication - Seller Organization
-    SELLER_CLERK_SECRET_KEY: str
-    SELLER_CLERK_PUBLISHABLE_KEY: str
+    SELLER_CLERK_SECRET_KEY: Optional[str] = None
+    SELLER_CLERK_PUBLISHABLE_KEY: Optional[str] = None
 
     # Clerk Authentication - Admin Organization
-    ADMIN_CLERK_SECRET_KEY: str
-    ADMIN_CLERK_PUBLISHABLE_KEY: str
+    ADMIN_CLERK_SECRET_KEY: Optional[str] = None
+    ADMIN_CLERK_PUBLISHABLE_KEY: Optional[str] = None
 
     # Legacy Clerk config (for backward compatibility)
     CLERK_SECRET_KEY: Optional[str] = None
