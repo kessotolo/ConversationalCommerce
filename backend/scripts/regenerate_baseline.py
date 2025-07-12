@@ -53,35 +53,35 @@ def clean_versions():
 def import_models():
     """Import all models to ensure SQLAlchemy metadata is complete."""
     # Import base class first
-    from app.db.base_class import Base
+    from backend.app.db.base_class import Base
     
     # Import critical models explicitly
     print("Loading models...")
     
     # User model
     try:
-        from app.models.user import User
+        from backend.app.models.user import User
         print("✓ User model loaded")
     except ImportError as e:
         print(f"✗ Error loading User model: {e}")
     
     # Customer model
     try:
-        from app.models.customer import Customer
+        from backend.app.models.customer import Customer
         print("✓ Customer model loaded")
     except ImportError as e:
         print(f"✗ Error loading Customer model: {e}")
     
     # Tenant model (critical for most FKs)
     try:
-        from app.models.tenant import Tenant
+        from backend.app.models.tenant import Tenant
         print("✓ Tenant model loaded")
     except ImportError as e:
         print(f"✗ Error loading Tenant model: {e}")
     
     # Product model (referenced by order items)
     try:
-        from app.models.product import Product
+        from backend.app.models.product import Product
         print("✓ Product model loaded")
     except ImportError as e:
         print(f"✗ Error loading Product model: {e}")

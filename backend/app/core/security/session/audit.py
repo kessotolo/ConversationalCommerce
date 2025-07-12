@@ -9,9 +9,9 @@ from typing import Dict, Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.logging import logger
-from app.models.admin.admin_user import AdminUser
-from app.models.audit.audit_log import AuditLog
+from backend.app.core.logging import logger
+from backend.app.models.admin.admin_user import AdminUser
+from backend.app.models.audit.audit_log import AuditLog
 
 
 class SessionAuditor:

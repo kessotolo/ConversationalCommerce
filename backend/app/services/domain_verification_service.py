@@ -13,8 +13,8 @@ from typing import Dict, Any, Optional
 import dns.resolver
 from fastapi import HTTPException
 
-from app.api.deps import get_db
-from app.models.tenant import Tenant
+from backend.app.api.deps import get_db
+from backend.app.models.tenant import Tenant
 
 logger = logging.getLogger(__name__)
 

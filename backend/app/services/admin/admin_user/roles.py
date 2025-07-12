@@ -9,10 +9,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
-from app.models.admin.admin_user import AdminUser, AdminUserRole
-from app.models.admin.role import Role
-from app.core.exceptions import ResourceNotFoundError, ValidationError
-from app.services.admin.admin_user.crud import get_admin_user
+from backend.app.models.admin.admin_user import AdminUser, AdminUserRole
+from backend.app.models.admin.role import Role
+from backend.app.core.exceptions import ResourceNotFoundError, ValidationError
+from backend.app.services.admin.admin_user.crud import get_admin_user
 
 
 async def assign_role_to_admin_user(
@@ -44,7 +44,7 @@ async def assign_role_to_admin_user(
     admin_user = await get_admin_user(db, admin_user_id)
     
     # Check if the role exists and validate tenant_id if role is tenant-scoped
-    from app.services.admin.role.crud import get_role
+    from backend.app.services.admin.role.crud import get_role
     role = await get_role(db, role_id)
     
     if role.is_tenant_scoped and tenant_id is None:
@@ -189,7 +189,7 @@ async def has_role(
         True if the admin user has the role, False otherwise
     """
     # Get the role by name
-    from app.services.admin.role.crud import get_role_by_name
+    from backend.app.services.admin.role.crud import get_role_by_name
     role = await get_role_by_name(db, role_name)
     if not role:
         return False
@@ -212,7 +212,7 @@ async def has_role(
         assigned_role_ids = [r.id for r, _ in assigned_roles]
         
         # For each assigned role, check if it's an ancestor of the target role
-        from app.services.admin.role.hierarchy import is_role_ancestor
+        from backend.app.services.admin.role.hierarchy import is_role_ancestor
         for assigned_role_id in assigned_role_ids:
             is_ancestor = await is_role_ancestor(
                 db=db,

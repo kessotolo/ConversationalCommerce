@@ -12,8 +12,8 @@ from fastapi import HTTPException, status
 from sqlalchemy import select, update, delete, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.tenant import Tenant
-from app.core.errors.exceptions import EntityNotFoundException, DuplicateEntityException
+from backend.app.models.tenant import Tenant
+from backend.app.core.errors.exceptions import EntityNotFoundException, DuplicateEntityException
 
 
 class TenantService:
@@ -25,7 +25,6 @@ class TenantService:
         *,
         name: str,
         subdomain: str,
-        admin_user_id: Optional[UUID] = None,
         custom_domain: Optional[str] = None,
         **kwargs
     ) -> Tenant:
@@ -63,7 +62,6 @@ class TenantService:
         tenant_data = {
             "name": name,
             "subdomain": subdomain,
-            "admin_user_id": admin_user_id,
             "custom_domain": custom_domain,
             **kwargs
         }

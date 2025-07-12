@@ -2,10 +2,10 @@ import pytest
 from uuid import uuid4
 from decimal import Decimal
 
-from app.models.order import Order, OrderStatus, OrderSource
-from app.models.order_channel_meta import OrderChannelMeta
-from app.models.conversation_history import ChannelType
-from app.models.product import Product
+from backend.app.models.order import Order, OrderStatus, OrderSource
+from backend.app.models.order_channel_meta import OrderChannelMeta
+from backend.app.models.conversation_history import ChannelType
+from backend.app.models.product import Product
 
 
 @pytest.fixture

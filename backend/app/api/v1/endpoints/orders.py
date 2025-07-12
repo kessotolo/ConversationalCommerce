@@ -3,11 +3,11 @@ from uuid import UUID
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
 
-from app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
-from app.core.security.auth_deps import require_auth
-from app.core.security.role_based_auth import RoleChecker, RoleType
-from app.api.deps import get_db
-from app.schemas.order import (
+from backend.app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
+from backend.app.core.security.auth_deps import require_auth
+from backend.app.core.security.role_based_auth import RoleChecker, RoleType
+from backend.app.api.deps import get_db
+from backend.app.schemas.order import (
     OrderCreate,
     OrderResponse,
     OrderSearchParams,
@@ -15,9 +15,9 @@ from app.schemas.order import (
     OrderStatusUpdate,
     OrderUpdate,
     PaginatedOrdersResponse,
-    WhatsAppOrderCreate,
+    ModernOrderCreate,
 )
-from app.services.order_service import (
+from backend.app.services.order_service import (
     OrderError,
     OrderNotFoundError,
     OrderService,
@@ -76,7 +76,7 @@ async def create_new_order(
 )
 @handle_order_errors
 async def create_whatsapp_order(
-    order_in: WhatsAppOrderCreate,
+    order_in: ModernOrderCreate,
     db=Depends(get_db),
     user: ClerkTokenData = Depends(require_auth),
     _: bool = Depends(require_seller),

@@ -5,7 +5,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import and_, asc, desc, func, or_, text
 from sqlalchemy.orm import Session
 
-from app.models.product import Product as ProductModel
+from backend.app.models.product import Product as ProductModel
 
 
 async def get_storefront_products(

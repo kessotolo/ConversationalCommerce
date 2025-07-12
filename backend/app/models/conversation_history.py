@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 
-from app.db.base_class import Base
+from backend.app.db.base_class import Base
 
 
 class SenderType(str, enum.Enum):

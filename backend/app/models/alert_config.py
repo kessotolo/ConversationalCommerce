@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy import Boolean, Column, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 
-from app.db.base_class import Base
+from backend.app.db.base_class import Base
 
 
 class AlertConfig(Base):

@@ -1,6 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from app.main import app
+from backend.app.main import app
 from unittest.mock import patch
 
 client = TestClient(app)
@@ -46,7 +46,7 @@ def test_mpesa_webhook():
 
 
 def test_payment_status_mapping():
-    from app.services.payment.payment_service import PaymentService
+    from backend.app.services.payment.payment_service import PaymentService
 
     service = PaymentService(None)
     assert service.map_provider_status_to_internal("paystack", "success") == "COMPLETED"
@@ -140,7 +140,7 @@ def test_stripe_webhook():
 
 
 def test_stripe_status_mapping():
-    from app.services.payment.payment_service import PaymentService
+    from backend.app.services.payment.payment_service import PaymentService
 
     service = PaymentService(None)
     assert service.map_provider_status_to_internal("stripe", "succeeded") == "COMPLETED"

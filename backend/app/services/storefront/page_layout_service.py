@@ -5,10 +5,10 @@ from typing import Any, Dict, List, Optional
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.models.tenant import Tenant
-from app.models.user import User
-from app.services.audit_service import AuditActionType, AuditResourceType, create_audit_log
-from app.services.storefront.permissions.storefront_permissions_service import StorefrontPermissionsService
+from backend.app.models.tenant import Tenant
+from backend.app.models.user import User
+from backend.app.services.audit_service import AuditActionType, AuditResourceType, create_audit_log
+from backend.app.services.storefront.permissions.storefront_permissions_service import StorefrontPermissionsService
 
 
 class PageLayoutService:

@@ -1,117 +1,68 @@
 import { Order, OrderStatus } from '../models/order';
 import { ApiResponse } from '@/lib/api-types';
+import { createApiClient } from '@/lib/api-client';
 
 interface OrderQueryParams {
   tenantId: string;
   status?: string;
   search?: string;
+  searchTerm?: string; // Added for compatibility with both naming conventions
   limit?: number;
   offset?: number;
   startDate?: string;
   endDate?: string;
 }
 
-export interface OrderQueryResult {
+export interface OrderQueryResponse {
   items: Order[];
   total: number;
+  limit?: number;
+  offset?: number;
 }
 
 /**
  * Service for querying and fetching orders
  */
 export class OrderQueryService {
-  private baseUrl: string;
-
-  constructor(baseUrl = '/api') {
-    this.baseUrl = baseUrl;
-  }
-
+  private apiClient = createApiClient();
+  
   /**
-   * Fetch orders with optional filters
+   * Query orders with filters and pagination
+   * @param params Query parameters for filtering and pagination
+   * @returns Promise with paginated order results
    */
-  async getOrders(params: OrderQueryParams): Promise<ApiResponse<OrderQueryResult>> {
-    try {
-      const queryParams = new URLSearchParams();
-      if (params.status && params.status !== 'all') queryParams.append('status', params.status);
-      if (params.search) queryParams.append('search', params.search);
-      if (params.limit) queryParams.append('limit', params.limit.toString());
-      if (params.offset) queryParams.append('offset', params.offset.toString());
-      if (params.startDate) queryParams.append('start_date', params.startDate);
-      if (params.endDate) queryParams.append('end_date', params.endDate);
-
-      const response = await fetch(
-        `${this.baseUrl}/tenants/${params.tenantId}/orders?${queryParams.toString()}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        },
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        return {
-          success: false,
-          error: {
-            message: error.message || 'Failed to fetch orders',
-            code: error.code || response.status.toString(),
-          },
-        };
-      }
-
-      const data = await response.json();
-      return {
-        success: true,
-        data,
-      };
-    } catch (err: unknown) {
-      const error = err as Error;
-      return {
-        success: false,
-        error: {
-          message: error.message || 'An unexpected error occurred while fetching orders',
-          code: 'UNKNOWN_ERROR',
-        },
-      };
-    }
+  async queryOrders(params: OrderQueryParams): Promise<ApiResponse<OrderQueryResponse>> {
+    // Convert parameters to query string
+    const queryParams = new URLSearchParams();
+    
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.offset) queryParams.append('offset', params.offset.toString());
+    if (params.status) queryParams.append('status', params.status);
+    if (params.startDate) queryParams.append('start_date', params.startDate);
+    if (params.endDate) queryParams.append('end_date', params.endDate);
+    if (params.searchTerm) queryParams.append('search', params.searchTerm);
+if (params.search) queryParams.append('search', params.search); // Support both naming conventions
+    
+    const url = `/api/v1/orders?${queryParams.toString()}`;
+    const headers = {
+      'X-Tenant-ID': params.tenantId,
+    };
+    
+    return this.apiClient.get<OrderQueryResponse>(url, headers);
   }
 
   /**
    * Get a single order by ID
+   * @param orderId The unique identifier of the order
+   * @param tenantId The tenant (merchant) identifier
+   * @returns Promise with order data
    */
   async getOrderById(orderId: string, tenantId: string): Promise<ApiResponse<Order>> {
-    try {
-      const response = await fetch(`${this.baseUrl}/tenants/${tenantId}/orders/${orderId}`, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        return {
-          success: false,
-          error: {
-            message: error.message || 'Order not found',
-            code: error.code || response.status.toString(),
-          },
-        };
-      }
-
-      const data = await response.json();
-      return {
-        success: true,
-        data,
-      };
-    } catch (err: unknown) {
-      const error = err as Error;
-      return {
-        success: false,
-        error: {
-          message: error.message || 'An unexpected error occurred while fetching the order',
-          code: 'UNKNOWN_ERROR',
-        },
-      };
-    }
+    const url = `/api/v1/orders/${orderId}`;
+    const headers = {
+      'X-Tenant-ID': tenantId,
+    };
+    
+    return this.apiClient.get<Order>(url, headers);
   }
 }

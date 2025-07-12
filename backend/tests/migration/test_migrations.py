@@ -15,8 +15,8 @@ from alembic.migration import MigrationContext
 from alembic.autogenerate import compare_metadata
 
 # Import SQLAlchemy models and Base
-from app.db import Base
-from app.models import *  # This imports all models to ensure they're registered with metadata
+from backend.app.db import Base
+from backend.app.models import *  # This imports all models to ensure they're registered with metadata
 
 
 class TestAlembicMigrations:

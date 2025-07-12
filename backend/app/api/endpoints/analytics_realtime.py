@@ -2,8 +2,8 @@ from typing import Dict, Any
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException
 import json
 
-from app.core.security import get_tenant_id_from_headers, validate_jwt_ws
-from app.services.analytics_realtime_service import get_analytics_realtime_manager
+from backend.app.core.security import get_tenant_id_from_headers, validate_jwt_ws
+from backend.app.services.analytics_realtime_service import get_analytics_realtime_manager
 
 router = APIRouter()
 

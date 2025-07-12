@@ -7,7 +7,7 @@ from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from app.models.audit.audit_log import AuditLog
+from backend.app.models.audit.audit_log import AuditLog
 
 # Configure logger
 logger = logging.getLogger(__name__)

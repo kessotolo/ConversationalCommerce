@@ -3,9 +3,9 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import uuid4
 
-from app.models.order import Order
-from app.models.user import User
-from app.schemas.dashboard import DashboardStatsResponse
+from backend.app.models.order import Order
+from backend.app.models.user import User
+from backend.app.schemas.dashboard import DashboardStatsResponse
 
 
 def test_dashboard_stats_authenticated(client, auth_headers):

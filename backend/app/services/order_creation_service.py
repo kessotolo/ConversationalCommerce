@@ -3,12 +3,12 @@ from typing import Any, Dict, List, Optional
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import and_, select, text
-from app.models.order import Order, OrderSource
-from app.models.product import Product
-from app.models.order_channel_meta import OrderChannelMeta
-from app.models.order_item import OrderItem
-from app.schemas.order import OrderCreate, WhatsAppOrderCreate
-from app.services.audit_service import AuditActionType, create_audit_log
+from backend.app.models.order import Order, OrderSource
+from backend.app.models.product import Product
+from backend.app.models.order_channel_meta import OrderChannelMeta
+from backend.app.models.order_item import OrderItem
+from backend.app.schemas.order import OrderCreate, ModernOrderCreate
+from backend.app.services.audit_service import AuditActionType, create_audit_log
 import logging
 
 
@@ -164,9 +164,47 @@ class OrderCreationService:
         await self.db.refresh(order)
         return order
 
-    async def create_whatsapp_order(self, order_in: WhatsAppOrderCreate, seller_id: UUID) -> Order:
-        # Implement WhatsApp-specific order creation logic here
-        return await self.create_order(order_in, seller_id)
+    async def create_whatsapp_order(self, order_in: ModernOrderCreate, seller_id: UUID) -> Order:
+        """
+        Create a WhatsApp order using the modern schema with channel metadata.
+
+        Args:
+            order_in: Modern order creation data with channel metadata
+            seller_id: Seller/tenant ID
+
+        Returns:
+            Created order instance
+        """
+        # Extract channel metadata for WhatsApp
+        channel_metadata = order_in.channel_metadata or {}
+
+        # Create order items
+        items = [
+            {
+                "product_id": order_in.product_id,
+                "price": order_in.total_amount / order_in.quantity,
+                "quantity": order_in.quantity,
+            }
+        ]
+
+        # Create order with WhatsApp-specific metadata
+        return await self.create_order_internal(
+            product_id=order_in.product_id,
+            seller_id=seller_id,
+            buyer_name=order_in.buyer_name,
+            buyer_phone=order_in.buyer_phone,
+            items=items,
+            order_source=order_in.order_source,
+            buyer_email=order_in.buyer_email,
+            buyer_address=order_in.buyer_address,
+            notes=order_in.notes,
+            channel_data={
+                "channel": "whatsapp",
+                "message_id": channel_metadata.get("message_id"),
+                "conversation_id": channel_metadata.get("conversation_id"),
+                "whatsapp_number": channel_metadata.get("whatsapp_number", order_in.buyer_phone)
+            },
+        )
 
     async def assign_channel_metadata(self, order: Order, channel_data: dict) -> None:
         # Assign channel metadata to an order

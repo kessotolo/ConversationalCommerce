@@ -3,9 +3,9 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timedelta, timezone
 
-from app.api.deps import get_db
-from app.core.config.settings import get_settings
-from app.db.models.webhook_event import WebhookEvent
+from backend.app.api.deps import get_db
+from backend.app.core.config.settings import get_settings
+from backend.app.db.models.webhook_event import WebhookEvent
 
 router = APIRouter()
 settings = get_settings()

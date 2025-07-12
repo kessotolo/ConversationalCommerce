@@ -7,9 +7,9 @@ This module handles the creation and management of default system permissions.
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.admin.permission import Permission, PermissionScope
-from app.core.errors.exceptions import ValidationError
-from app.services.admin.permission.crud import (
+from backend.app.models.admin.permission import Permission, PermissionScope
+from backend.app.core.errors.exceptions import ValidationError
+from backend.app.services.admin.permission.crud import (
     create_permission,
     get_permission_by_attributes
 )

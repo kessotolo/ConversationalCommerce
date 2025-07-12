@@ -4,16 +4,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Optional
 
-from app.api.deps import get_db, get_current_buyer
-from app.models.buyer_profile import BuyerProfile
-from app.schemas.buyer_profile import (
+from backend.app.api.deps import get_db, get_current_buyer
+from backend.app.models.buyer_profile import BuyerProfile
+from backend.app.schemas.buyer_profile import (
     BuyerProfileCreate,
     BuyerProfileUpdate,
     BuyerProfileResponse,
     SecuritySettingsUpdate,
 )
-from app.core.security.password import get_password_hash, verify_password
-from app.services.audit_service import create_audit_log, AuditActionType
+from backend.app.core.security.password import get_password_hash, verify_password
+from backend.app.services.audit_service import create_audit_log, AuditActionType
 
 router = APIRouter()
 

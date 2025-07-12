@@ -2,9 +2,9 @@ import uuid
 import pytest
 from httpx import AsyncClient
 
-from app.main import app
-from app.models.customer import Customer
-from app.models.tenant import Tenant
+from backend.app.main import app
+from backend.app.models.customer import Customer
+from backend.app.models.tenant import Tenant
 from tests.fixtures.api import create_test_token
 
 

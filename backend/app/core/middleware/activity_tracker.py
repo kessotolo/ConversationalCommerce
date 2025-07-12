@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.core.behavior.behavior_analysis import behavior_analysis_service
+from backend.app.core.behavior.behavior_analysis import behavior_analysis_service
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class ActivityTrackerMiddleware(BaseHTTPMiddleware):
         # Check if we're in test mode
         is_test = False
         try:
-            from app.core.config.settings import get_settings
+            from backend.app.core.config.settings import get_settings
             settings = get_settings()
             is_test = getattr(settings, "TESTING", False) or request.headers.get("X-Test") == "true"
         except Exception:

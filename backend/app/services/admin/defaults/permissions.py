@@ -7,8 +7,8 @@ This module defines and initializes default system permissions.
 from typing import Dict, List, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.admin.permission import Permission, PermissionScope
-from app.services.admin.permission.service import PermissionService
+from backend.app.models.admin.permission import Permission, PermissionScope
+from backend.app.services.admin.permission.service import PermissionService
 
 
 async def initialize_default_permissions(

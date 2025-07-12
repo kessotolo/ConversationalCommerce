@@ -2,8 +2,8 @@ import pytest
 from uuid import uuid4
 from decimal import Decimal
 
-from app.models.order import Order, OrderStatus, OrderSource
-from app.models.product import Product
+from backend.app.models.order import Order, OrderStatus, OrderSource
+from backend.app.models.product import Product
 
 
 @pytest.fixture

@@ -10,9 +10,9 @@ import uuid
 from httpx import AsyncClient
 from fastapi import status
 
-from app.core.config.settings import get_settings
-from app.services.admin.impersonation.service import ImpersonationService
-from app.models.tenant import Tenant
+from backend.app.core.config.settings import get_settings
+from backend.app.services.admin.impersonation.service import ImpersonationService
+from backend.app.models.tenant import Tenant
 
 
 @pytest.mark.asyncio

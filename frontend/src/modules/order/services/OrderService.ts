@@ -3,6 +3,7 @@ import { ApiResponse, PaginatedResponse } from '@/lib/api-types';
 import type { Result } from '@/modules/core/models/base/result';
 
 import type { Order, OrderStatus } from '@/modules/order/models/order';
+import type { OrderPaymentDetails, OrderShippingDetails, OrderTimelineEvent } from '@/modules/order/models/orderTypes';
 import type { CreateOrderRequest } from '@/modules/order/validation/orderSchema';
 import { OrderBulkOperationsService } from './OrderBulkOperationsService';
 import { OrderQueryService } from './OrderQueryService';
@@ -61,7 +62,7 @@ export interface OrderService {
   addPayment(
     orderId: string,
     tenantId: string,
-    paymentDetails: unknown,
+    paymentDetails: OrderPaymentDetails,
   ): Promise<Result<Order, Error>>;
 
   /**
@@ -70,13 +71,13 @@ export interface OrderService {
   updateShipping(
     orderId: string,
     tenantId: string,
-    shippingDetails: unknown,
+    shippingDetails: OrderShippingDetails,
   ): Promise<Result<Order, Error>>;
 
   /**
    * Get order timeline history
    */
-  getOrderTimeline(orderId: string, tenantId: string): Promise<Result<unknown[], Error>>;
+  getOrderTimeline(orderId: string, tenantId: string): Promise<Result<OrderTimelineEvent[], Error>>;
 
   /**
    * Get all orders for the current tenant (with optional filters)
@@ -327,7 +328,7 @@ export class HttpOrderService implements OrderService {
   async addPayment(
     orderId: string,
     tenantId: string,
-    paymentDetails: unknown,
+    paymentDetails: OrderPaymentDetails,
   ): Promise<Result<Order, Error>> {
     try {
       const response = await this.makeNetworkRequest(
@@ -366,7 +367,7 @@ export class HttpOrderService implements OrderService {
   async updateShipping(
     orderId: string,
     tenantId: string,
-    shippingDetails: unknown,
+    shippingDetails: OrderShippingDetails,
   ): Promise<Result<Order, Error>> {
     try {
       const response = await this.makeNetworkRequest(
@@ -402,7 +403,7 @@ export class HttpOrderService implements OrderService {
     }
   }
 
-  async getOrderTimeline(orderId: string, tenantId: string): Promise<Result<unknown[], Error>> {
+  async getOrderTimeline(orderId: string, tenantId: string): Promise<Result<OrderTimelineEvent[], Error>> {
     try {
       const response = await fetch(`${this.apiUrl}/orders/${orderId}/timeline`, {
         headers: {

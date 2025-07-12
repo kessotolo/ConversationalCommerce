@@ -1,11 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from uuid import UUID
 
-from app.api.deps import get_current_tenant_id, get_db
-from app.models.tenant import Tenant
-from app.schemas.tenant import TenantOut, TenantUpdate
+from backend.app.api.deps import get_current_tenant_id, get_db
+from backend.app.models.tenant import Tenant
+from backend.app.models.user import User
+from backend.app.schemas.tenant import TenantOut, TenantUpdate, TenantCreate
+from backend.app.services.tenant.service import TenantService
 
 router = APIRouter()
 
@@ -60,4 +63,56 @@ async def get_tenant_by_subdomain(subdomain: str, db: AsyncSession = Depends(get
     tenant = tenant.scalar_one_or_none()
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
+    return TenantOut.model_validate(tenant)
+
+
+@router.post("/", response_model=TenantOut)
+async def create_tenant(
+    tenant_data: TenantCreate,
+    db: AsyncSession = Depends(get_db)
+) -> TenantOut:
+    """
+    Create a new tenant during onboarding.
+    """
+    tenant_service = TenantService()
+
+    try:
+        # Convert user ID to UUID
+        user_uuid = UUID(tenant_data.userId)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid user ID format"
+        )
+
+    # Check if user exists
+    user_query = select(User).where(User.id == user_uuid)
+    user_result = await db.execute(user_query)
+    user = user_result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Create tenant using service
+    # Note: category and description are not stored in Tenant model
+    # They could be stored in settings or a separate table in the future
+    # Note: admin_user_id is not stored in Tenant model, so we don't pass it
+    tenant = await tenant_service.create_tenant(
+        db=db,
+        name=tenant_data.businessName,
+        subdomain=tenant_data.subdomain,
+        phone_number=tenant_data.phoneNumber,
+        whatsapp_number=tenant_data.whatsappNumber or tenant_data.phoneNumber,
+        email=tenant_data.storeEmail,
+        is_active=True
+    )
+
+    # Update user to associate with tenant
+    user.tenant_id = tenant.id
+    user.is_seller = True
+    await db.commit()
+
     return TenantOut.model_validate(tenant)

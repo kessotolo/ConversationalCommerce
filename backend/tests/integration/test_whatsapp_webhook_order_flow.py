@@ -1,8 +1,8 @@
 import pytest
 from uuid import UUID, uuid4
 from sqlalchemy import select
-from app.models.order import Order
-from app.models.order_channel_meta import OrderChannelMeta, ChannelType
+from backend.app.models.order import Order
+from backend.app.models.order_channel_meta import OrderChannelMeta, ChannelType
 
 
 @pytest.mark.asyncio

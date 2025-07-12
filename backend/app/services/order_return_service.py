@@ -5,12 +5,12 @@ from uuid import UUID
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.order import Order, OrderStatus
-from app.models.order_return import OrderReturn, ReturnStatus, ReturnReason
-from app.models.order_item import OrderItem
-from app.schemas.order_return import OrderReturnRequest, OrderReturnUpdate
-from app.services.order_exceptions import OrderNotFoundError, OrderValidationError
-from app.services.audit_service import create_audit_log, AuditActionType
+from backend.app.models.order import Order, OrderStatus
+from backend.app.models.order_return import OrderReturn, ReturnStatus, ReturnReason
+from backend.app.models.order_item import OrderItem
+from backend.app.schemas.order_return import OrderReturnRequest, OrderReturnUpdate
+from backend.app.services.order_exceptions import OrderNotFoundError, OrderValidationError
+from backend.app.services.audit_service import create_audit_log, AuditActionType
 
 """
 Order Return Service

@@ -1,23 +1,24 @@
 """
 Database-related fixtures for tests.
 """
-from app.db.session import SessionLocal
-from app.db.async_session import get_async_session_local
-from sqlalchemy.ext.asyncio import AsyncSession
-import asyncio
-import logging
-import os
-import time
-import uuid
-from typing import Any, AsyncGenerator, Generator
-
-import alembic.command
-import alembic.config
-import pytest
-import pytest_asyncio
-from sqlalchemy import create_engine, text, inspect
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy import create_engine, text, inspect
+import pytest_asyncio
+import pytest
+import alembic.config
+import alembic.command
+from typing import Any, AsyncGenerator, Generator
+import uuid
+import time
+import logging
+import asyncio
+from sqlalchemy.ext.asyncio import AsyncSession
+from backend.app.db.async_session import get_async_session_local
+from backend.app.db.session import SessionLocal
+import os
+os.environ["TESTING"] = "true"
+
 
 # Setup logging
 logger = logging.getLogger(__name__)

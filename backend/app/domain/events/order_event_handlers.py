@@ -3,13 +3,13 @@ import logging
 
 from sqlalchemy import update
 
-from app.core.notifications.notification_service import (
+from backend.app.core.notifications.notification_service import (
     Notification,
     NotificationChannel,
     NotificationService,
 )
-from app.domain.events.event_bus import get_event_bus
-from app.domain.events.order_events import (
+from backend.app.domain.events.event_bus import get_event_bus
+from backend.app.domain.events.order_events import (
     OrderCancelledEvent,
     OrderCreatedEvent,
     OrderDeliveredEvent,
@@ -17,8 +17,8 @@ from app.domain.events.order_events import (
     OrderStatusChangedEvent,
     PaymentProcessedEvent,
 )
-from app.models.product import Product
-from app.services.order_service import OrderService
+from backend.app.models.product import Product
+# OrderService import removed to avoid circular dependency
 
 logger = logging.getLogger(__name__)
 
@@ -39,12 +39,13 @@ def analytics_log_event(event_type, **kwargs):
 
 async def handle_order_created(event: OrderCreatedEvent):
     # 1. Send notification (email/SMS/WhatsApp)
+    order_data = event.order_data or {}
     notification = Notification(
         id=event.event_id,
         tenant_id=event.tenant_id,
-        user_id=event.order.customer.id or "",
+        user_id="",  # Customer ID not available in order_data
         title="Order Confirmation",
-        message=f"Your order #{event.order.order_number} has been created!",
+        message=f"Your order #{event.order_number} has been created!",
         priority="medium",
         channels=[NotificationChannel.EMAIL, NotificationChannel.SMS],
         metadata={"order_id": event.order_id},
@@ -61,8 +62,8 @@ async def handle_order_created(event: OrderCreatedEvent):
     analytics_log_event(
         "OrderCreated",
         order_id=event.order_id,
-        value=event.order.total_amount.amount,
-        currency=event.order.total_amount.currency,
+        value=order_data.get("total_amount", 0),
+        currency=order_data.get("currency", "KES"),
     )
 
     # 3. Trigger fulfillment workflow (placeholder)

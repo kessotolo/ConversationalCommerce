@@ -89,7 +89,7 @@ def test_tenant(db_session):
     """Create a test tenant in the database for testing."""
     logger.info("[DEBUG] Entering test_tenant fixture")
 
-    from app.models.tenant import Tenant
+    from backend.app.models.tenant import Tenant
 
     # Create a new tenant with random name to ensure isolation
     tenant_uuid = uuid.uuid4()
@@ -117,7 +117,7 @@ def test_user(db_session, test_tenant):
     """Create a test user in the database for testing."""
     logger.info("[DEBUG] Entering test_user fixture")
 
-    from app.models.user import User
+    from backend.app.models.user import User
 
     # Create a new user with random email to ensure isolation
     user_uuid = uuid.uuid4()
@@ -141,7 +141,7 @@ def test_admin_user(db_session, test_tenant):
     """Create a test admin user in the database for testing."""
     logger.info("[DEBUG] Entering test_admin_user fixture")
 
-    from app.models.user import User
+    from backend.app.models.user import User
 
     # Create a new admin user with random email to ensure isolation
     user_id = str(uuid.uuid4())[:8]

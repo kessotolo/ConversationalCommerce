@@ -13,12 +13,12 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.models.storefront_permission import (
+from backend.app.models.storefront_permission import (
     StorefrontPermission,
     StorefrontSectionType,
 )
-from app.models.tenant import Tenant
-from app.models.user import User
+from backend.app.models.tenant import Tenant
+from backend.app.models.user import User
 from .storefront_role_service import has_permission
 
 # Define section-specific permissions

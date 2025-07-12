@@ -3,8 +3,8 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 
-from app.models.user import User
-from app.models.violation import Violation
+from backend.app.models.user import User
+from backend.app.models.violation import Violation
 
 logger = logging.getLogger(__name__)
 

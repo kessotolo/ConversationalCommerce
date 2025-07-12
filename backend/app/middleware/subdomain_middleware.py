@@ -10,15 +10,15 @@ from sqlalchemy.orm import Session
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-from app.db.async_session import get_async_session_local
-from app.middleware.storefront_errors import (
+from backend.app.db.async_session import get_async_session_local
+from backend.app.middleware.storefront_errors import (
     InactiveTenantError,
     InvalidSubdomainError,
     MaintenanceModeError,
     handle_storefront_error,
 )
-from app.models.storefront import StorefrontConfig
-from app.models.tenant import Tenant
+from backend.app.models.storefront import StorefrontConfig
+from backend.app.models.tenant import Tenant
 
 logger = logging.getLogger(__name__)
 

@@ -4,9 +4,9 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.core.monitoring.rules_engine import Rule, RuleSeverity, rules_engine
-from app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
-from app.core.security.dependencies import get_current_user
+from backend.app.core.monitoring.rules_engine import Rule, RuleSeverity, rules_engine
+from backend.app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
+from backend.app.core.security.dependencies import get_current_user
 
 router = APIRouter()
 

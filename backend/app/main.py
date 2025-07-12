@@ -34,30 +34,30 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.core.monitoring.metrics import MetricsMiddleware, setup_metrics
+from backend.app.core.monitoring.metrics import MetricsMiddleware, setup_metrics
 
-import app.domain.events  # Ensure event handlers are registered
-from app.api.v1.api import api_router
-from app.api.v1.endpoints.websocket import router as websocket_router
-from app.api.v2.endpoints import orders as v2_orders
-from app.core.cache.redis_cache import redis_cache
-from app.core.config.settings import Settings, get_settings
-from app.core.errors.exception_handlers import register_exception_handlers
-from app.core.middleware.activity_tracker import ActivityTrackerMiddleware
-from app.core.middleware.rate_limit import RateLimitMiddleware
-from app.core.middleware.super_admin_security import SuperAdminSecurityMiddleware
-from app.core.middleware.domain_specific_cors import DomainSpecificCORSMiddleware
-from app.db.async_session import get_async_session_local
-from app.middleware.domain_verification import (
+import backend.app.domain.events  # Ensure event handlers are registered
+from backend.app.api.v1.api import api_router
+from backend.app.api.v1.endpoints.websocket import router as websocket_router
+from backend.app.api.v2.endpoints import orders as v2_orders
+from backend.app.core.cache.redis_cache import redis_cache
+from backend.app.core.config.settings import Settings, get_settings
+from backend.app.core.errors.exception_handlers import register_exception_handlers
+from backend.app.core.middleware.activity_tracker import ActivityTrackerMiddleware
+from backend.app.core.middleware.rate_limit import RateLimitMiddleware
+from backend.app.core.middleware.super_admin_security import SuperAdminSecurityMiddleware
+from backend.app.core.middleware.domain_specific_cors import DomainSpecificCORSMiddleware
+from backend.app.db.async_session import get_async_session_local
+from backend.app.middleware.domain_verification import (
     DomainVerificationMiddleware,
     verification_service,
 )
-from app.middleware.storefront_errors import StorefrontError, handle_storefront_error
-from app.middleware.subdomain_middleware import SubdomainMiddleware
-from app.core.errors import order_failures, payment_failures
-from app.services.security.ip_allowlist_service import IPAllowlistService
-from app.api.admin.endpoints import ip_allowlist as admin_ip_allowlist_router
-from app.api.routers.admin import router as admin_router
+from backend.app.middleware.storefront_errors import StorefrontError, handle_storefront_error
+from backend.app.middleware.subdomain_middleware import SubdomainMiddleware
+from backend.app.core.errors import order_failures, payment_failures
+from backend.app.services.security.ip_allowlist_service import IPAllowlistService
+from backend.app.api.admin.endpoints import ip_allowlist as admin_ip_allowlist_router
+from backend.app.api.routers.admin import router as admin_router
 
 # Check if we're in test mode
 TESTING = os.environ.get("TESTING", "false").lower() == "true"
@@ -178,7 +178,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
 
             # In test mode, skip DB validation in middleware
             # Detect test environment from settings or request headers
-            from app.core.config.settings import get_settings
+            from backend.app.core.config.settings import get_settings
             settings = get_settings()
 
             test_mode = getattr(settings, "TESTING", False) or request.headers.get(
@@ -455,7 +455,7 @@ def create_app() -> FastAPI:
     @app.get("/test-settings")
     async def test_settings():
         """Test endpoint to verify environment variables are loaded correctly"""
-        from app.core.config.settings import get_settings
+        from backend.app.core.config.settings import get_settings
 
         settings = get_settings()
 

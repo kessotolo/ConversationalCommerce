@@ -9,25 +9,25 @@ from sqlalchemy import and_, desc, func, or_, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from tenacity import AsyncRetrying, stop_after_attempt, wait_fixed
 
-from app.domain.events.event_bus import EventBus
-from app.domain.events.order_events import OrderEventFactory
-from app.core.error_counters import order_failures, payment_failures
-from app.models.cart import Cart, CartItem
-from app.models.conversation_history import ChannelType
-from app.models.order import Order, OrderSource, OrderStatus
-from app.models.order_channel_meta import OrderChannelMeta
-from app.models.order_item import OrderItem
-from app.models.product import Product
+from backend.app.domain.events.event_bus import EventBus
+from backend.app.domain.events.order_events import OrderEventFactory
+from backend.app.core.error_counters import order_failures, payment_failures
+from backend.app.models.cart import Cart, CartItem
+from backend.app.models.conversation_history import ChannelType
+from backend.app.models.order import Order, OrderSource, OrderStatus
+from backend.app.models.order_channel_meta import OrderChannelMeta
+from backend.app.models.order_item import OrderItem
+from backend.app.models.product import Product
 
 # WhatsAppOrderDetails has been replaced by OrderChannelMeta
-from app.schemas.order import OrderCreate, OrderStatusUpdate, WhatsAppOrderCreate
-from app.services.audit_service import AuditActionType, create_audit_log
-from app.services.order_creation_service import OrderCreationService
-from app.services.order_query_service import OrderQueryService
-from app.services.order_status_service import OrderStatusService
-from app.services.order_transaction_service import OrderTransactionService
-from app.services.order_exceptions import OrderError, OrderNotFoundError, OrderValidationError
-from app.core.exceptions import AppError
+from backend.app.schemas.order import OrderCreate, OrderStatusUpdate, ModernOrderCreate
+from backend.app.services.audit_service import AuditActionType, create_audit_log
+from backend.app.services.order_creation_service import OrderCreationService
+from backend.app.services.order_query_service import OrderQueryService
+from backend.app.services.order_status_service import OrderStatusService
+from backend.app.services.order_transaction_service import OrderTransactionService
+from backend.app.services.order_exceptions import OrderError, OrderNotFoundError, OrderValidationError
+from backend.app.core.exceptions import AppError
 
 """
 Order Management Service

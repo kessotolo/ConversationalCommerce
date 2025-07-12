@@ -1,6 +1,6 @@
 """Test-specific middleware overrides for testing"""
 
-from app.core.middleware.rate_limit import RateLimitMiddleware
+from backend.app.core.middleware.rate_limit import RateLimitMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi import Request, Response
 

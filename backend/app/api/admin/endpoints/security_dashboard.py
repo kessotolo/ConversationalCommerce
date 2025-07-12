@@ -13,17 +13,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import json
 import logging
 
-from app.core.security.dependencies import get_current_super_admin
-from app.db.async_session import get_async_db
-from app.models.admin.admin_user import AdminUser
-from app.models.security.ip_allowlist import IPAllowlistEntry
-from app.models.security.rate_limit import LoginAttempt
-from app.models.security.rate_limit import RateLimitEntry
-from app.models.security.two_factor import TOTPSecret
-from app.models.audit.audit_log import AuditLog
-from app.core.security.session.storage import SessionStorage
-from app.core.security.session.models import SessionConfig
-from app.schemas.security.security_dashboard import (
+from backend.app.core.security.dependencies import get_current_super_admin
+from backend.app.db.async_session import get_async_db
+from backend.app.models.admin.admin_user import AdminUser
+from backend.app.models.security.ip_allowlist import IPAllowlistEntry
+from backend.app.models.security.rate_limit import LoginAttempt
+from backend.app.models.security.rate_limit import RateLimitEntry
+from backend.app.models.security.two_factor import TOTPSecret
+from backend.app.models.audit.audit_log import AuditLog
+from backend.app.core.security.session.storage import SessionStorage
+from backend.app.core.security.session.models import SessionConfig
+from backend.app.schemas.security.security_dashboard import (
     SecurityMetricsResponse,
     SecurityEventResponse,
     SecurityAlertResponse,

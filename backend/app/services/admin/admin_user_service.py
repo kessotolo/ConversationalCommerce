@@ -17,10 +17,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import IntegrityError
 
-from app.models.admin.admin_user import AdminUser, AdminUserRole
-from app.models.admin.role import Role
-from app.models.user import User
-from app.core.exceptions import ResourceNotFoundError, ValidationError
+from backend.app.models.admin.admin_user import AdminUser, AdminUserRole
+from backend.app.models.admin.role import Role
+from backend.app.models.user import User
+from backend.app.core.exceptions import ResourceNotFoundError, ValidationError
 
 
 class AdminUserService:
@@ -299,7 +299,7 @@ class AdminUserService:
         admin_user = await self.get_admin_user(db, admin_user_id)
         
         # Check if the role exists and validate tenant_id if role is tenant-scoped
-        from app.services.admin.role_service import RoleService
+        from backend.app.services.admin.role_service import RoleService
         role_service = RoleService()
         role = await role_service.get_role(db, role_id)
         
@@ -445,7 +445,7 @@ class AdminUserService:
             True if the admin user has the role, False otherwise
         """
         # Get the role by name
-        from app.services.admin.role_service import RoleService
+        from backend.app.services.admin.role_service import RoleService
         role_service = RoleService()
         role = await role_service.get_role_by_name(db, role_name)
         if not role:

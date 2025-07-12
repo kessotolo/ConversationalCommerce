@@ -4,10 +4,10 @@ from sqlalchemy.orm import Session
 from uuid import uuid4, UUID
 from decimal import Decimal
 from datetime import datetime, timezone
-from app.models.product import Product
-from app.models.user import User
-from app.db.session import SessionLocal
-from app.core.security.auth_deps import require_auth
+from backend.app.models.product import Product
+from backend.app.models.user import User
+from backend.app.db.session import SessionLocal
+from backend.app.core.security.auth_deps import require_auth
 
 # Create a test database session
 TestingSessionLocal = SessionLocal
@@ -432,7 +432,7 @@ def test_products_require_auth():
     """Test that product endpoints require authentication.
     Verify that each endpoint in the product router requires authentication.
     """
-    from app.api.v1.endpoints.products import router
+    from backend.app.api.v1.endpoints.products import router
     import inspect
 
     # This test checks that all route handlers in the product router have

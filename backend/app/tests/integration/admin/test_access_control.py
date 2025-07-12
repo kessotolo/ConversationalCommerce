@@ -12,15 +12,15 @@ from httpx import AsyncClient
 from unittest.mock import patch, MagicMock, AsyncMock
 from typing import Dict, Any, List
 
-from app.main import app
-from app.services.admin.auth.session import create_admin_access_token
-from app.models.admin.admin_user import AdminUser
-from app.models.admin.role_names import SUPER_ADMIN, SYSTEM_ADMIN, SUPPORT_ADMIN, SECURITY_ADMIN, READ_ONLY_ADMIN, CUSTOM
-from app.services.admin.defaults.rbac import ADMIN_PERMISSIONS, PERMISSION_SETS
-from app.core.integration.context_switcher import get_current_context
-from app.core.config.settings import get_settings
-from app.core.exceptions import PermissionDeniedError, InvalidContextError
-from app.api.deps import get_db
+from backend.app.main import app
+from backend.app.services.admin.auth.session import create_admin_access_token
+from backend.app.models.admin.admin_user import AdminUser
+from backend.app.models.admin.role_names import SUPER_ADMIN, SYSTEM_ADMIN, SUPPORT_ADMIN, SECURITY_ADMIN, READ_ONLY_ADMIN, CUSTOM
+from backend.app.services.admin.defaults.rbac import ADMIN_PERMISSIONS, PERMISSION_SETS
+from backend.app.core.integration.context_switcher import get_current_context
+from backend.app.core.config.settings import get_settings
+from backend.app.core.exceptions import PermissionDeniedError, InvalidContextError
+from backend.app.api.deps import get_db
 
 
 @pytest.fixture
@@ -102,7 +102,7 @@ def patch_super_admin_checks():
         expires_at=None,
         security_level="elevated"
     )
-    from app.models.admin.admin_user import AdminUser
+    from backend.app.models.admin.admin_user import AdminUser
     mock_admin = AdminUser(
         id="user_2zWGCeV8c2H56B4ZcK5QmDOv9vL",
         email="superadmin@enwhe.com",

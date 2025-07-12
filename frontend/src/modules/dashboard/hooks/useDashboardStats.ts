@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { dashboardService } from '@/lib/api';
 
 export interface DashboardStats {
   totalUsers: number;
@@ -24,17 +25,13 @@ export const useDashboardStats = (): DashboardStats => {
     const fetchStats = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch('/api/v1/dashboard/stats');
-        
-        if (!response.ok) {
-          throw new Error(`Error fetching dashboard stats: ${response.statusText}`);
-        }
-        
-        const data = await response.json();
+        setError(null);
+
+        const response = await dashboardService.getStats();
         setStats({
-          totalUsers: data.totalUsers || 0,
-          totalOrders: data.totalOrders || 0,
-          totalRevenue: data.totalRevenue || 0,
+          totalUsers: response.data.totalUsers || 0,
+          totalOrders: response.data.totalOrders || 0,
+          totalRevenue: response.data.totalRevenue || 0,
         });
       } catch (err) {
         console.error('Failed to fetch dashboard stats:', err);

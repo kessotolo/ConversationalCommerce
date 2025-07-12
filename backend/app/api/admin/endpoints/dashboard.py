@@ -10,15 +10,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text, func, desc, and_
 from sqlalchemy.orm import selectinload
 
-from app.core.security.dependencies import get_current_super_admin
-from app.models.admin.admin_user import AdminUser
-from app.db.async_session import get_async_db
-from app.models.tenant import Tenant
-from app.models.user import User
-from app.models.order import Order
-from app.models.product import Product
-from app.models.audit.audit_log import AuditLog
-from app.schemas.admin.dashboard import (
+from backend.app.core.security.dependencies import get_current_super_admin
+from backend.app.models.admin.admin_user import AdminUser
+from backend.app.db.async_session import get_async_db
+from backend.app.models.tenant import Tenant
+from backend.app.models.user import User
+from backend.app.models.order import Order
+from backend.app.models.product import Product
+from backend.app.models.audit.audit_log import AuditLog
+from backend.app.schemas.admin.dashboard import (
     DashboardMetrics,
     SystemHealthMetrics,
     ActivityFeedItem,

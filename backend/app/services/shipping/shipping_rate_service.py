@@ -4,16 +4,16 @@ import uuid
 import asyncio
 from datetime import datetime
 
-from app.services.shipping.providers.base_provider import (
+from backend.app.services.shipping.providers.base_provider import (
     ShippingRateRequest,
     ShippingRateResponse,
     ShippingRate,
     Address,
     PackageDimensions
 )
-from app.services.shipping.shipping_provider_registry import shipping_provider_registry
-from app.models.shipping import SellerShippingProvider
-from app.db.session import get_db
+from backend.app.services.shipping.shipping_provider_registry import shipping_provider_registry
+from backend.app.models.shipping import SellerShippingProvider
+from backend.app.db.session import get_db
 
 
 class ShippingRateService:

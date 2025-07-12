@@ -11,6 +11,7 @@ import {
   Settings,
   Store,
   User,
+  Eye,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -18,6 +19,7 @@ import { useState } from 'react';
 
 import SettingsDrawer from '@/components/dashboard/SettingsDrawer';
 import { cn } from '@/lib/utils';
+import { useTenant } from '@/contexts/TenantContext';
 
 const navItems = [
   {
@@ -62,6 +64,15 @@ export function Sidebar() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { user } = useUser();
   const router = useRouter();
+  const { tenant } = useTenant();
+  const baseDomain = process.env['NEXT_PUBLIC_BASE_DOMAIN'] || 'yourplatform.com';
+  const isDefaultDomain = baseDomain === 'yourplatform.com';
+  const isDefaultSubdomain = tenant?.subdomain === 'default';
+  const usingPlaceholders = isDefaultDomain || isDefaultSubdomain;
+  const internalStorefrontUrl = tenant ? `/store/${tenant.id}` : '#';
+  const storeUrl = usingPlaceholders
+    ? internalStorefrontUrl
+    : `https://${tenant?.subdomain || 'default'}.${baseDomain}`;
 
   // Only highlight the Storefront link if on /dashboard/storefront or its subpages
   const isStorefrontActive =
@@ -153,6 +164,17 @@ export function Sidebar() {
               <Store className="mr-3 flex-shrink-0 h-5 w-5" />
               Customize Storefront
             </Link>
+            {/* View My Storefront Link */}
+            <a
+              href={storeUrl || '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center px-3 py-2 text-sm font-semibold rounded-lg transition-all text-blue-700 hover:bg-blue-50 mt-2"
+              aria-label="View My Storefront"
+            >
+              <Eye className="mr-3 flex-shrink-0 h-5 w-5" />
+              View My Storefront
+            </a>
           </nav>
           {/* User/Account Info */}
           <div className="flex-shrink-0 flex flex-col border-t border-gray-200 p-4 mt-4">

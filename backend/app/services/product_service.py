@@ -7,15 +7,15 @@ from sqlalchemy import and_, desc, or_, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import (
+from backend.app.core.exceptions import (
     DatabaseError,
     ProductNotFoundError,
     ProductPermissionError,
     ProductValidationError,
     AppError,
 )
-from app.models.product import Product as ProductModel
-from app.schemas.product import ProductCreate, ProductSearchParams, ProductUpdate
+from backend.app.models.product import Product as ProductModel
+from backend.app.schemas.product import ProductCreate, ProductSearchParams, ProductUpdate
 
 # Add a new exception for optimistic locking conflicts
 

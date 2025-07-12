@@ -4,16 +4,16 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_active_user, get_db
-from app.models.user import User
-from app.schemas.storefront_permission import (
+from backend.app.api.deps import get_current_active_user, get_db
+from backend.app.models.user import User
+from backend.app.schemas.storefront_permission import (
     ComponentPermissionRequest,
     PermissionAssignRequest,
     PermissionResponse,
     SectionPermissionRequest,
     UserPermissionsList,
 )
-from app.services import storefront_permissions_service
+from backend.app.services import storefront_permissions_service
 
 router = APIRouter()
 

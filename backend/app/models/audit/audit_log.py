@@ -9,7 +9,7 @@ from sqlalchemy import Column, DateTime, String, JSON, ForeignKey, Index, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from app.db.base_class import Base
+from backend.app.db.base_class import Base
 
 
 class AuditLog(Base):

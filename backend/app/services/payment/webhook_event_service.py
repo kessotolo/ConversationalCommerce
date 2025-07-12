@@ -3,8 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
-from app.db.models.webhook_event import WebhookEvent
-from app.core.logging import logger
+from backend.app.db.models.webhook_event import WebhookEvent
+from backend.app.core.logging import logger
 
 
 class WebhookEventService:

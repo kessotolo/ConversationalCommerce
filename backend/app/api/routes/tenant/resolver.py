@@ -8,9 +8,9 @@ from typing import Dict, Any, Optional
 from fastapi import APIRouter, Depends, Query, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.session import get_db
-from app.services.tenant.service import TenantService
-from app.core.config.settings import Settings, get_settings
+from backend.app.db.session import get_db
+from backend.app.services.tenant.service import TenantService
+from backend.app.core.config.settings import Settings, get_settings
 
 
 router = APIRouter(prefix="/api/tenant", tags=["tenant-resolver"])

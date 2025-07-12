@@ -1,4 +1,4 @@
-from app.api.v1.endpoints import (
+from backend.app.api.v1.endpoints import (
     address_book,
     saved_payment_method,
     notification_preferences,

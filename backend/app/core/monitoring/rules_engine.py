@@ -6,13 +6,13 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-from app.core.notifications.notification_service import (
+from backend.app.core.notifications.notification_service import (
     Notification,
     NotificationChannel,
     NotificationPriority,
     notification_service,
 )
-from app.db.async_session import get_async_session_local
+from backend.app.db.async_session import get_async_session_local
 
 logger = logging.getLogger(__name__)
 

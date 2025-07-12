@@ -5,21 +5,21 @@ from typing import List, Optional
 from datetime import datetime
 from uuid import UUID
 
-from app.api.deps import get_db, get_current_admin
-from app.models.seller_onboarding import (
+from backend.app.api.deps import get_db, get_current_admin
+from backend.app.models.seller_onboarding import (
     SellerVerification, 
     SellerOnboardingStatus,
     SellerVerificationStatus,
     SellerVerificationType
 )
-from app.schemas.seller_onboarding import (
+from backend.app.schemas.seller_onboarding import (
     VerificationResponse,
     VerificationAdminUpdate,
     OnboardingStatusResponse,
     AdminDashboardStats
 )
-from app.services.audit_service import create_audit_log, AuditActionType
-from app.services.notification_service import NotificationService, NotificationType
+from backend.app.services.audit_service import create_audit_log, AuditActionType
+from backend.app.services.notification_service import NotificationService, NotificationType
 
 router = APIRouter()
 

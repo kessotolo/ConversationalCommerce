@@ -4,7 +4,7 @@ from sqlalchemy import UUID, Column, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from app.db import Base
+from backend.app.db import Base
 
 
 class OrderItem(Base):

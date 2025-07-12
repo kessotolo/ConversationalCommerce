@@ -1,10 +1,10 @@
 import pytest
 from uuid import UUID, uuid4
 from sqlalchemy import select
-from app.schemas.order import WhatsAppOrderCreate
-from app.models.order import OrderSource, Order
-from app.models.order_channel_meta import OrderChannelMeta, ChannelType
-from app.services.order_service import OrderService
+from backend.app.schemas.order import ModernOrderCreate
+from backend.app.models.order import OrderSource, Order
+from backend.app.models.order_channel_meta import OrderChannelMeta, ChannelType
+from backend.app.services.order_service import OrderService
 
 
 @pytest.mark.asyncio
@@ -15,15 +15,28 @@ async def test_whatsapp_order_creation_channel_metadata(db_session, fake_product
     product_id = fake_product.id
     seller_id = fake_product.seller_id
 
-    order_in = WhatsAppOrderCreate(
+    order_in = ModernOrderCreate(
         product_id=product_id,
         buyer_name="WhatsApp Customer",
         buyer_phone="+254712345678",
-        whatsapp_number="+254712345678",
-        message_id="test_message_123",
-        conversation_id="test_conv_456",
         quantity=1,
         total_amount=1000.0,
+        order_source=OrderSource.whatsapp,
+        shipping={
+            "address": {
+                "street": "123 Test St",
+                "city": "Nairobi",
+                "state": "Nairobi",
+                "country": "Kenya"
+            },
+            "method": "Standard",
+            "shipping_cost": {"amount": 500, "currency": "KES"}
+        },
+        channel_metadata={
+            "whatsapp_number": "+254712345678",
+            "message_id": "test_message_123",
+            "conversation_id": "test_conv_456"
+        }
     )
 
     # Act

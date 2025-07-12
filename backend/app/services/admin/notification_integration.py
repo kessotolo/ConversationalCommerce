@@ -10,7 +10,7 @@ import logging
 from typing import List, Dict, Any, Optional, Union
 from datetime import datetime
 
-from app.core.notifications.unified_notification_system import (
+from backend.app.core.notifications.unified_notification_system import (
     UnifiedNotificationSystem,
     NotificationCategory,
     NotificationPriority,
@@ -18,15 +18,15 @@ from app.core.notifications.unified_notification_system import (
     NotificationChannel,
     NotificationDeliveryStatus
 )
-from app.core.cache.redis_cache import cache_response
-from app.db.session import get_db
-from app.core.config.settings import get_settings
-from app.services.admin.admin_user.service import get_admin_by_id, get_admins_by_role
-from app.services.admin.admin_user.roles import AdminRole
-from app.services.admin.admin_user.models import AdminUser
-from app.core.telemetry import trace_operation
-from app.core.exceptions import NotificationDeliveryError
-from app.models.tenant import Tenant
+from backend.app.core.cache.redis_cache import cache_response
+from backend.app.db.session import get_db
+from backend.app.core.config.settings import get_settings
+from backend.app.services.admin.admin_user.service import get_admin_by_id, get_admins_by_role
+from backend.app.services.admin.admin_user.roles import AdminRole
+from backend.app.services.admin.admin_user.models import AdminUser
+from backend.app.core.telemetry import trace_operation
+from backend.app.core.exceptions import NotificationDeliveryError
+from backend.app.models.tenant import Tenant
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -210,7 +210,7 @@ class AdminNotificationService:
         db = next(get_db())
 
         # Get tenant admin users
-        from app.services.tenant.user_service import get_tenant_admins
+        from backend.app.services.tenant.user_service import get_tenant_admins
         tenant_admins = get_tenant_admins(db, tenant_id)
         tenant_admin_ids = [admin.id for admin in tenant_admins]
 

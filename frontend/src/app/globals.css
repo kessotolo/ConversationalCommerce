@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700&display=swap');
+/* Add Satoshi or Work Sans if available from a CDN or local */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -16,8 +17,50 @@
 }
 
 body {
-  background: rgb(var(--background-rgb));
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Inter', 'Work Sans', 'General Sans', Arial, sans-serif;
+  line-height: 1.7;
+  font-weight: 400;
+  background: theme('colors.background');
+}
+
+.headline {
+  font-family: 'Inter Tight', 'Satoshi', 'Inter', sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.section-title {
+  font-family: 'Inter Tight', 'Satoshi', 'Inter', sans-serif;
+  font-weight: 500;
+}
+
+.fade-in {
+  opacity: 0;
+  animation: fadeIn 1.2s ease-in forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Reduce bolding for most text */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600;
+}
+
+/* Utility for outlined cards */
+.card-outline {
+  border: 1px solid #F3F4F6;
+  box-shadow: 0 2px 8px 0 rgba(31, 29, 31, 0.04);
+  border-radius: 1rem;
+  background: #fff;
 }
 
 code {
@@ -33,8 +76,13 @@ code {
   font-family: 'Inter', system-ui, sans-serif;
 }
 
+/* Focus-visible utility for better accessibility */
+.focus-visible {
+  outline: 2px solid theme('colors.accent');
+  outline-offset: 2px;
+}
 
-
+/* Improved color contrast for WCAG AA compliance */
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -63,6 +111,7 @@ code {
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
   }
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -91,13 +140,124 @@ code {
   }
 }
 
-
-
 @layer base {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@keyframes ctaWiggle {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+
+  20% {
+    transform: scale(1.05) rotate(-2deg);
+  }
+
+  40% {
+    transform: scale(1.08) rotate(2deg);
+  }
+
+  60% {
+    transform: scale(1.05) rotate(-1deg);
+  }
+
+  80% {
+    transform: scale(1.03) rotate(1deg);
+  }
+
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.cta-animate {
+  transition: all 0.2s cubic-bezier(.4, 0, .2, 1);
+}
+
+.cta-animate:hover,
+.cta-animate:focus {
+  animation: ctaWiggle 0.5s;
+  transform: scale(1.05);
+  box-shadow: 0 4px 24px 0 rgba(47, 197, 142, 0.10);
+}
+
+.tagline-hero {
+  color: theme('colors.accent');
+  font-size: 1.15rem;
+  font-weight: 500;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.01em;
+}
+
+.tagline-footer {
+  color: theme('colors.accent');
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.01em;
+}
+
+/* Improved animations for mobile performance */
+@media (prefers-reduced-motion: reduce) {
+
+  .cta-animate:hover,
+  .cta-animate:focus {
+    animation: none;
+    transform: none;
+  }
+
+  .fade-in {
+    animation: none;
+    opacity: 1;
+  }
+
+  .animate-fade-in {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* Ensure smooth animations on mobile */
+@media (max-width: 768px) {
+  .cta-animate {
+    transition: all 0.15s ease-out;
+  }
+
+  .cta-animate:hover,
+  .cta-animate:focus {
+    animation: none;
+    transform: scale(1.02);
+  }
+}
+
+/* Screen reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0.5rem;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
 }

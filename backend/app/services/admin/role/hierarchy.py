@@ -9,9 +9,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
-from app.models.admin.role import Role, RoleHierarchy
-from app.core.exceptions import ResourceNotFoundError, ValidationError
-from app.services.admin.role.crud import get_role
+from backend.app.models.admin.role import Role, RoleHierarchy
+from backend.app.core.exceptions import ResourceNotFoundError, ValidationError
+from backend.app.services.admin.role.crud import get_role
 
 
 async def add_role_parent(

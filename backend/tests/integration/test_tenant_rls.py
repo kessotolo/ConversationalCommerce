@@ -6,10 +6,10 @@ Tests that tenant isolation is correctly enforced at the database level.
 import pytest
 import uuid
 from sqlalchemy.orm import Session
-from app.models.tenant import Tenant, KYCStatus
-from app.models.product import Product
-from app.models.user import User
-from app.db.session import SessionLocal
+from backend.app.models.tenant import Tenant, KYCStatus
+from backend.app.models.product import Product
+from backend.app.models.user import User
+from backend.app.db.session import SessionLocal
 
 
 @pytest.fixture

@@ -1,16 +1,7 @@
 import type { Order } from '../models/order';
 import { OrderStatus } from '../models/order';
-// Define ApiResponse type locally if not available in project
-export interface ApiResponseError {
-  message: string;
-  code: string;
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: ApiResponseError;
-}
+import { ApiResponse } from '@/lib/api-types';
+import { createApiClient } from '@/lib/api-client';
 
 interface OrderStatusUpdate {
   status: OrderStatus;
@@ -23,58 +14,26 @@ interface OrderStatusUpdate {
  * Service for handling order status transitions and updates
  */
 export class OrderStatusService {
-  private baseUrl: string;
-
-  constructor(baseUrl = '/api') {
-    this.baseUrl = baseUrl;
-  }
+  private apiClient = createApiClient();
 
   /**
    * Update the status of an order
+   * @param orderId - ID of the order to update
+   * @param status - New status for the order
+   * @param tenantId - ID of the tenant (merchant)
+   * @returns Promise with status update result
    */
   async updateOrderStatus(
     orderId: string,
-    tenantId: string,
-    statusUpdate: OrderStatusUpdate
+    status: OrderStatus,
+    tenantId: string
   ): Promise<ApiResponse<Order>> {
-    try {
-      const response = await fetch(
-        `${this.baseUrl}/tenants/${tenantId}/orders/${orderId}/status`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(statusUpdate),
-        }
-      );
+    const url = `/api/v1/orders/${orderId}/status`;
+    const headers = {
+      'X-Tenant-ID': tenantId
+    };
 
-      if (!response.ok) {
-        const error = await response.json();
-        return {
-          success: false,
-          error: {
-            message: error.message || 'Failed to update order status',
-            code: error.code || response.status.toString(),
-          },
-        };
-      }
-
-      const updatedOrder = await response.json();
-      return {
-        success: true,
-        data: updatedOrder,
-      };
-    } catch (err: unknown) {
-      const error = err as Error;
-      return {
-        success: false,
-        error: {
-          message: error.message || 'An unexpected error occurred while updating order status',
-          code: 'UNKNOWN_ERROR',
-        },
-      };
-    }
+    return this.apiClient.put<Order>(url, { status }, headers);
   }
 
   /**

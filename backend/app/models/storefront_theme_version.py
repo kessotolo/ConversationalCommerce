@@ -5,7 +5,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
-from app.db import Base
+from backend.app.db import Base
 
 
 class StorefrontThemeVersion(Base):

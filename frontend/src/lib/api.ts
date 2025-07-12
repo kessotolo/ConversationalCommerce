@@ -36,7 +36,7 @@ export interface ApiError {
 }
 
 // Create axios instance with base configuration optimized for intermittent connectivity
-const apiClient = axios.create({
+export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: API_TIMEOUT, // Longer timeout for variable connectivity in African markets
   headers: {
@@ -250,5 +250,3 @@ export const healthCheck = async (): Promise<boolean> => {
     throw parseApiError(error);
   }
 };
-
-export { apiClient };

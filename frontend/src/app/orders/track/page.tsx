@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, Suspense } from 'react';
+import React, { useState, Suspense, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -51,15 +51,26 @@ const orderTrackingSchema = z
 
 type OrderTrackingFormValues = z.infer<typeof orderTrackingSchema>;
 
-function OrderTrackingPageInner() {
-  const { tenant, isLoading: isTenantLoading } = useTenant();
-  const router = useRouter();
+// SearchParams component isolates the useSearchParams hook in its own component
+// This prevents build failures during static generation
+function SearchParamsHandler({ children }: { children: (params: { orderNumber: string, phone: string }) => React.ReactNode }) {
   const searchParams = useSearchParams();
-  const [foundOrder, setFoundOrder] = useState<Order | null>(null);
-
+  
   // Extract query parameters
   const orderNumber = searchParams?.get('orderNumber') || '';
   const phone = searchParams?.get('phone') || '';
+  
+  return <>{children({ orderNumber, phone })}</>;
+}
+
+function OrderTrackingPageInner() {
+  const { tenant, isLoading: isTenantLoading } = useTenant();
+  const router = useRouter();
+  const [foundOrder, setFoundOrder] = useState<Order | null>(null);
+  const [queryParams, setQueryParams] = useState<{ orderNumber: string, phone: string }>({ 
+    orderNumber: '', 
+    phone: '' 
+  });
 
   // Form initialization
   const {
@@ -67,14 +78,26 @@ function OrderTrackingPageInner() {
     handleSubmit,
     formState: { errors },
     watch,
+    setValue,
   } = useForm<OrderTrackingFormValues>({
     resolver: zodResolver(orderTrackingSchema),
     defaultValues: {
-      trackingType: orderNumber ? 'orderNumber' : 'phone',
-      orderNumber: orderNumber || '',
-      phone: phone || '',
+      trackingType: queryParams.orderNumber ? 'orderNumber' : 'phone',
+      orderNumber: queryParams.orderNumber || '',
+      phone: queryParams.phone || '',
     },
   });
+  
+  // Update form values when query params change
+  React.useEffect(() => {
+    if (queryParams.orderNumber) {
+      setValue('trackingType', 'orderNumber');
+      setValue('orderNumber', queryParams.orderNumber);
+    } else if (queryParams.phone) {
+      setValue('trackingType', 'phone');
+      setValue('phone', queryParams.phone);
+    }
+  }, [queryParams, setValue]);
 
   const trackingType = watch('trackingType');
 
@@ -189,8 +212,8 @@ function OrderTrackingPageInner() {
 
       {/* Show order tracking component with appropriate parameters */}
       <OrderTracking
-        orderNumber={orderNumber || undefined}
-        customerPhone={phone || undefined}
+        orderNumber={queryParams.orderNumber || undefined}
+        customerPhone={queryParams.phone || undefined}
         onOrderLoaded={handleOrderLoaded}
         orderService={new HttpOrderService()}
         tenantId={tenant.id}
@@ -220,8 +243,13 @@ function OrderTrackingPageInner() {
 
 export default function OrderTrackingPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <OrderTrackingPageInner />
+    <Suspense fallback={<div className="container mx-auto px-4 py-8">Loading order tracking...</div>}>
+      {/* Wrap the SearchParamsHandler in its own Suspense boundary */}
+      <Suspense fallback={<div className="hidden">Loading params...</div>}>
+        <SearchParamsHandler>
+          {(params) => <OrderTrackingPageInner key={`${params.orderNumber}-${params.phone}`} {...params} />}
+        </SearchParamsHandler>
+      </Suspense>
     </Suspense>
   );
 }

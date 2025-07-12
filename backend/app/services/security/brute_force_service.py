@@ -16,12 +16,12 @@ from typing import List, Optional, Dict, Any, Tuple
 from sqlalchemy import select, update, delete, and_, or_, not_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.security.rate_limit import (
+from backend.app.models.security.rate_limit import (
     LoginAttempt, LoginAttemptResult, 
     AccountLockout, RateLimitRule, RateLimitEntry
 )
-from app.models.admin.admin_user import AdminUser
-from app.services.audit.audit_service import AuditService
+from backend.app.models.admin.admin_user import AdminUser
+from backend.app.services.audit.audit_service import AuditService
 
 
 class BruteForceService:

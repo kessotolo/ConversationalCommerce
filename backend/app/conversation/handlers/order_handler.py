@@ -3,14 +3,16 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from app.conversation.message_builder import MessageBuilder
-from app.conversation.nlp.intent_parser import IntentType, ParsedIntent
-from app.domain.events.event_bus import get_event_bus
-from app.domain.events.order_events import OrderEventFactory
-from app.domain.models.order import Address, OrderSource, OrderStatus, PaymentMethod
-from app.services.cart_service import get_cart_service
-from app.services.order_service import OrderService
-from app.utils.retry import with_retry
+from backend.app.conversation.message_builder import MessageBuilder
+from backend.app.conversation.nlp.intent_parser import IntentType, ParsedIntent
+from backend.app.domain.events.event_bus import get_event_bus
+from backend.app.domain.events.order_events import OrderEventFactory
+from backend.app.models.order import OrderSource, OrderStatus
+from backend.app.models.payment_method import PaymentMethodType
+from backend.app.schemas.shipping import Address
+from backend.app.services.cart_service import get_cart_service
+from backend.app.services.order_service import OrderService
+from backend.app.utils.retry import with_retry
 
 logger = logging.getLogger(__name__)
 
@@ -127,11 +129,11 @@ class OrderIntentHandler:
         payment_method = intent.entities.get("payment_method")
         if payment_method:
             try:
-                payment_method = PaymentMethod(payment_method.upper())
+                payment_method = PaymentMethodType(payment_method.upper())
             except ValueError:
-                payment_method = PaymentMethod.MOBILE_MONEY
+                payment_method = PaymentMethodType.MOBILE_MONEY
         else:
-            payment_method = PaymentMethod.MOBILE_MONEY
+            payment_method = PaymentMethodType.MOBILE_MONEY
         service = OrderService(self.db)
         order = await service.create_order(
             product_id=cart_items[0].get("product_id"),
@@ -425,7 +427,7 @@ class OrderIntentHandler:
         return None
 
     def _get_payment_instructions(
-        self, payment_method: PaymentMethod, amount: float, currency: str
+        self, payment_method: PaymentMethodType, amount: float, currency: str
     ) -> str:
         """Get payment instructions based on payment method"""
         if payment_method == PaymentMethod.MOBILE_MONEY:

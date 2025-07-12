@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 
-from app.api.routers.ai_config import router as ai_config_router
-from app.api.routers.conversation import router as conversation_router
-from app.api.routers.storefront import router as storefront_router
-from app.api.v1.endpoints import (
+# ai_config router removed - using v1 endpoints instead
+from backend.app.api.routers.conversation import router as conversation_router
+from backend.app.api.routers.storefront import router as storefront_router
+from backend.app.api.v1.endpoints import (
     activities,
     batch_operations,
     dashboard,
@@ -12,16 +12,17 @@ from app.api.v1.endpoints import (
     products,
     products_keyset,
 )
-from app.api.v1.endpoints import storefront as storefront_content
-from app.api.v1.endpoints import storefront_catalog, websocket
-from app.api.v1.endpoints.behavior import router as behavior_router
-from app.api.v1.endpoints.complaint import router as complaint_router
-from app.api.v1.endpoints.content_moderation import router as content_moderation_router
-from app.api.v1.endpoints.domain_verification import router as domain_verification_router
-from app.api.v1.endpoints.theme_builder import router as theme_builder_router
-from app.api.v1.endpoints.violation import router as violation_router
-from app.api.v1.endpoints.whatsapp import router as whatsapp_router
-from app.api.routers.tenant import router as tenant_router
+from backend.app.api.v1.endpoints import storefront as storefront_content
+from backend.app.api.v1.endpoints import storefront_catalog, websocket
+from backend.app.api.v1.endpoints.behavior import router as behavior_router
+from backend.app.api.v1.endpoints.complaint import router as complaint_router
+from backend.app.api.v1.endpoints.content_moderation import router as content_moderation_router
+from backend.app.api.v1.endpoints.domain_verification import router as domain_verification_router
+from backend.app.api.v1.endpoints.theme_builder import router as theme_builder_router
+from backend.app.api.v1.endpoints.violation import router as violation_router
+from backend.app.api.v1.endpoints.whatsapp import router as whatsapp_router
+from backend.app.api.v1.endpoints.users import router as users_router
+from backend.app.api.routers.tenant import router as tenant_router
 
 api_router = APIRouter()
 
@@ -36,7 +37,7 @@ api_router.include_router(
     tags=["buyer-orders"],
 )
 api_router.include_router(conversation_router, tags=["conversations"])
-api_router.include_router(ai_config_router, tags=["ai-config"])
+# ai_config router removed - using v1 endpoints instead
 api_router.include_router(activities.router, tags=[
                           "monitoring"], prefix="/admin")
 api_router.include_router(websocket.router, tags=["websocket"])
@@ -60,4 +61,6 @@ api_router.include_router(whatsapp_router, tags=[
 api_router.include_router(domain_verification_router, tags=[
                           "domain-verification"], prefix="/domain")
 api_router.include_router(tenant_router, prefix="/tenants", tags=["tenants"])
-api_router.include_router(theme_builder_router, tags=["theme-builder"], prefix="/theme-builder")
+api_router.include_router(users_router, prefix="/users", tags=["users"])
+api_router.include_router(theme_builder_router, tags=[
+                          "theme-builder"], prefix="/theme-builder")

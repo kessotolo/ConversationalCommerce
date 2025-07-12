@@ -1,4 +1,7 @@
 import { ApiResponse } from '@/lib/api-types';
+import { createApiClient } from '@/lib/api-client';
+import { createApiError, createValidationError } from '@/lib/error-types';
+import type { ValidationError } from '../services/OrderBulkValidationService';
 import type { Order, OrderStatus } from '../models/order';
 import { orderBulkValidationService } from './OrderBulkValidationService';
 
@@ -7,10 +10,11 @@ import { orderBulkValidationService } from './OrderBulkValidationService';
  * Following the same modular pattern as backend services
  */
 export class OrderBulkOperationsService {
-  private baseUrl: string;
+  private apiClient = createApiClient();
 
-  constructor(baseUrl = '/api') {
-    this.baseUrl = baseUrl;
+  // Remove baseUrl as it's now handled by ApiClient
+  constructor() {
+    // No configuration needed as ApiClient handles base URLs
   }
 
   /**
@@ -19,47 +23,45 @@ export class OrderBulkOperationsService {
    * @param tenantId - Current tenant ID
    * @returns ApiResponse with success status and error if applicable
    */
-  async deleteOrders(
-    orderIds: string[],
-    tenantId: string
-  ): Promise<ApiResponse<boolean>> {
+  async bulkDeleteOrders(orderIds: string[], tenantId: string): Promise<ApiResponse<boolean>> {
     try {
-      // Validate the request
+      // Validate input through the validation service
       const validation = orderBulkValidationService.validateBulkDelete(orderIds);
       if (!validation.isValid) {
         return {
           success: false,
-          error: {
-            message: validation.errors.map(err => err.message).join(', '),
-            code: 'VALIDATION_ERROR',
-            details: { errors: validation.errors } as Record<string, unknown>,
-          },
+          error: createValidationError(
+            validation.errors.map(err => err.message).join(', '),
+            validation.errors
+          ),
         };
       }
-
-      const responses = await Promise.allSettled(
-        orderIds.map(orderId =>
-          fetch(`${this.baseUrl}/tenants/${tenantId}/orders/${orderId}`, {
-            method: 'DELETE',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          })
-        )
-      );
-
-      const failures = responses.filter(
-        response => response.status === 'rejected' ||
-          (response.status === 'fulfilled' && !response.value.ok)
-      );
-
+      
+      // Track failed deletions
+      const failures: string[] = [];
+      const headers = { 'X-Tenant-ID': tenantId };
+      
+      // Process each order deletion using the ApiClient
+      for (const orderId of orderIds) {
+        try {
+          const response = await this.apiClient.delete<unknown>(`/api/v1/orders/${orderId}`, headers);
+          
+          if (!response.success) {
+            failures.push(orderId);
+          }
+        } catch (error: unknown) {
+          failures.push(orderId);
+        }
+      }
+      
+      // If any deletions failed, return error response
       if (failures.length) {
         return {
           success: false,
-          error: {
-            message: `Failed to delete ${failures.length} of ${orderIds.length} orders`,
-            code: 'PARTIAL_FAILURE',
-          },
+          error: createApiError(
+            `Failed to delete ${failures.length} of ${orderIds.length} orders`,
+            'PARTIAL_FAILURE'
+          ),
         };
       }
 
@@ -71,10 +73,10 @@ export class OrderBulkOperationsService {
       const error = err as Error;
       return {
         success: false,
-        error: {
-          message: error.message || 'An unexpected error occurred while deleting orders',
-          code: 'UNKNOWN_ERROR',
-        },
+        error: createApiError(
+          error.message || 'An unexpected error occurred while deleting orders',
+          'UNKNOWN_ERROR'
+        ),
       };
     }
   }
@@ -83,32 +85,20 @@ export class OrderBulkOperationsService {
    * Delete a single order
    * @param orderId - ID of the order to delete
    * @param tenantId - Current tenant ID
-   * @returns ApiResponse with success status and error if applicable
+   * @returns ApiResponse with success status
    */
   async deleteOrder(
     orderId: string,
     tenantId: string
   ): Promise<ApiResponse<boolean>> {
     try {
-      const response = await fetch(
-        `${this.baseUrl}/tenants/${tenantId}/orders/${orderId}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        return {
-          success: false,
-          error: {
-            message: error.message || `Failed to delete order ${orderId}`,
-            code: error.code || response.status.toString(),
-          },
-        };
+      const url = `/api/v1/orders/${orderId}`;
+      const headers = { 'X-Tenant-ID': tenantId };
+      
+      const response = await this.apiClient.delete<unknown>(url, headers);
+      
+      if (!response.success) {
+        return response as ApiResponse<boolean>; // Error response will be properly typed
       }
 
       return {
@@ -119,10 +109,10 @@ export class OrderBulkOperationsService {
       const error = err as Error;
       return {
         success: false,
-        error: {
-          message: error.message || 'An unexpected error occurred while deleting the order',
-          code: 'UNKNOWN_ERROR',
-        },
+        error: createApiError(
+          error.message || 'An unexpected error occurred while deleting the order',
+          'UNKNOWN_ERROR'
+        ),
       };
     }
   }
@@ -132,65 +122,73 @@ export class OrderBulkOperationsService {
    * @param orderIds - Array of order IDs to update
    * @param status - New status to apply to all orders
    * @param tenantId - Current tenant ID
-   * @returns ApiResponse with array of updated orders or error
+   * @returns ApiResponse with success status and error if applicable
    */
   async bulkUpdateStatus(
     orderIds: string[],
     status: OrderStatus,
     tenantId: string
-  ): Promise<ApiResponse<Order[]>> {
+  ): Promise<ApiResponse<boolean>> {
     try {
       // Validate the request
-      const validation = orderBulkValidationService.validateStatusUpdate(orderIds, status);
+      const validation = orderBulkValidationService.validateStatusUpdate(
+        orderIds,
+        status
+      );
+
       if (!validation.isValid) {
         return {
           success: false,
-          error: {
-            message: validation.errors.map(err => err.message).join(', '),
-            code: 'VALIDATION_ERROR',
-            details: { errors: validation.errors } as Record<string, unknown>,
-          },
+          error: createValidationError(
+            validation.errors.map(err => err.message).join(', '),
+            validation.errors
+          ),
         };
       }
 
-      const response = await fetch(
-        `${this.baseUrl}/tenants/${tenantId}/orders/bulk/status`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            orderIds,
-            status,
-          }),
+      // Track failed updates
+      const failures: string[] = [];
+      const headers = { 'X-Tenant-ID': tenantId };
+      
+      // Process each status update using the ApiClient
+      for (const orderId of orderIds) {
+        try {
+          const response = await this.apiClient.put<unknown>(
+            `/api/v1/orders/${orderId}/status`,
+            { status },
+            headers
+          );
+          
+          if (!response.success) {
+            failures.push(orderId);
+          }
+        } catch (error: unknown) {
+          failures.push(orderId);
         }
-      );
+      }
 
-      if (!response.ok) {
-        const error = await response.json();
+      if (failures.length) {
         return {
           success: false,
-          error: {
-            message: error.message || 'Failed to update orders status',
-            code: error.code || response.status.toString(),
-          },
+          error: createApiError(
+            `Failed to update status for ${failures.length} of ${orderIds.length} orders`,
+            'PARTIAL_FAILURE'
+          ),
         };
       }
 
-      const updatedOrders = await response.json();
       return {
         success: true,
-        data: updatedOrders,
+        data: true,
       };
     } catch (err: unknown) {
       const error = err as Error;
       return {
         success: false,
-        error: {
-          message: error.message || 'An unexpected error occurred while updating orders',
-          code: 'UNKNOWN_ERROR',
-        },
+        error: createApiError(
+          error.message || 'An unexpected error occurred',
+          'UNKNOWN_ERROR'
+        ),
       };
     }
   }
@@ -213,52 +211,29 @@ export class OrderBulkOperationsService {
       if (!validation.isValid) {
         return {
           success: false,
-          error: {
-            message: validation.errors.map(err => err.message).join(', '),
-            code: 'VALIDATION_ERROR',
-            details: { errors: validation.errors } as Record<string, unknown>,
-          },
+          error: createValidationError(
+            validation.errors.map(err => err.message).join(', '),
+            validation.errors
+          ),
         };
       }
-
-      const response = await fetch(
-        `${this.baseUrl}/tenants/${tenantId}/orders/bulk/edit`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            orderIds,
-            updates: fieldsToUpdate,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        return {
-          success: false,
-          error: {
-            message: error.message || 'Failed to batch edit orders',
-            code: error.code || response.status.toString(),
-          },
-        };
-      }
-
-      const updatedOrders = await response.json();
-      return {
-        success: true,
-        data: updatedOrders,
+      
+      const url = `/api/v1/orders/bulk/edit`;
+      const headers = { 'X-Tenant-ID': tenantId };
+      const payload = {
+        orderIds,
+        updates: fieldsToUpdate,
       };
+      
+      return this.apiClient.patch<Order[]>(url, payload, headers);
     } catch (err: unknown) {
       const error = err as Error;
       return {
         success: false,
-        error: {
-          message: error.message || 'An unexpected error occurred during batch edit',
-          code: 'UNKNOWN_ERROR',
-        },
+        error: createApiError(
+          error.message || 'An unexpected error occurred during batch edit',
+          'UNKNOWN_ERROR'
+        ),
       };
     }
   }

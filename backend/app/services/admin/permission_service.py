@@ -14,8 +14,8 @@ from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
-from app.models.admin.permission import Permission, PermissionScope
-from app.core.exceptions import ResourceNotFoundError, ValidationError
+from backend.app.models.admin.permission import Permission, PermissionScope
+from backend.app.core.exceptions import ResourceNotFoundError, ValidationError
 
 
 class PermissionService:

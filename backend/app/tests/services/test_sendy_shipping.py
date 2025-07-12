@@ -2,9 +2,9 @@ import pytest
 import unittest.mock as mock
 from typing import Dict, Any
 
-from app.schemas.shipping import ShippingDetails, Address
-from app.services.shipping.sendy_plugin import SendyShippingPlugin
-from app.services.shipping_service import shipping_service
+from backend.app.schemas.shipping import ShippingDetails, Address
+from backend.app.services.shipping.sendy_plugin import SendyShippingPlugin
+from backend.app.services.shipping_service import shipping_service
 
 
 class TestSendyShippingPlugin:

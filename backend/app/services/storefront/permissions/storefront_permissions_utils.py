@@ -10,7 +10,7 @@ from typing import Any, Dict
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.services.audit_service import create_audit_log
+from backend.app.services.audit_service import create_audit_log
 
 
 async def log_permission_change(

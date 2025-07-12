@@ -9,8 +9,8 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.admin.permission import Permission, PermissionScope
-from app.services.admin.permission.crud import (
+from backend.app.models.admin.permission import Permission, PermissionScope
+from backend.app.services.admin.permission.crud import (
     create_permission,
     get_permission,
     get_permission_by_attributes,
@@ -18,7 +18,7 @@ from app.services.admin.permission.crud import (
     update_permission,
     delete_permission
 )
-from app.services.admin.permission.system_permissions import create_system_permissions
+from backend.app.services.admin.permission.system_permissions import create_system_permissions
 
 
 class PermissionService:

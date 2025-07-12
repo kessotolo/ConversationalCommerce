@@ -6,14 +6,14 @@ from typing import Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
-from app.core.enforcement.violation_service import violation_service
-from app.core.notifications.notification_service import (
+from backend.app.core.enforcement.violation_service import violation_service
+from backend.app.core.notifications.notification_service import (
     Notification,
     NotificationChannel,
     NotificationPriority,
     notification_service,
 )
-from app.models.behavior_analysis import BehaviorPattern, PatternDetection
+from backend.app.models.behavior_analysis import BehaviorPattern, PatternDetection
 
 logger = logging.getLogger(__name__)
 
@@ -248,7 +248,7 @@ class BehaviorAnalysisService:
         try:
             import psutil
             import asyncio
-            from app.core.monitoring.system_metrics import SystemMetricsCollector
+            from backend.app.core.monitoring.system_metrics import SystemMetricsCollector
 
             # Initialize metrics collector
             metrics_collector = SystemMetricsCollector()

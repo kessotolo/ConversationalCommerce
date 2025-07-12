@@ -9,11 +9,11 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.v1.endpoints.webhooks import router as webhook_router
-from app.core.config.settings import get_settings
-from app.services.payment.webhook_event_service import WebhookEventService
-from app.services.payment.payment_service import PaymentService
-from app.db.models.webhook_event import WebhookEvent
+from backend.app.api.v1.endpoints.webhooks import router as webhook_router
+from backend.app.core.config.settings import get_settings
+from backend.app.services.payment.webhook_event_service import WebhookEventService
+from backend.app.services.payment.payment_service import PaymentService
+from backend.app.db.models.webhook_event import WebhookEvent
 
 
 @pytest.fixture

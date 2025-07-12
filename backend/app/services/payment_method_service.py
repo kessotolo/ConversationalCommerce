@@ -5,10 +5,10 @@ from uuid import UUID
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.payment_method import PaymentMethod
-from app.schemas.payment_method import PaymentMethodCreate, PaymentMethodUpdate
-from app.services.audit_service import create_audit_log, AuditActionType
-from app.core.exceptions import AppError
+from backend.app.models.payment_method import PaymentMethod
+from backend.app.schemas.payment_method import PaymentMethodCreate, PaymentMethodUpdate
+from backend.app.services.audit_service import create_audit_log, AuditActionType
+from backend.app.core.exceptions import AppError
 
 """
 Payment Method Service

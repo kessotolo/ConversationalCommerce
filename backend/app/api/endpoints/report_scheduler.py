@@ -2,15 +2,15 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query
 from sqlalchemy.orm import Session
 
-from app.core.database import get_db
-from app.core.security import get_tenant_id_from_headers
-from app.schemas.analytics import (
+from backend.app.core.database import get_db
+from backend.app.core.security import get_tenant_id_from_headers
+from backend.app.schemas.analytics import (
     ScheduledReport, 
     ScheduledReportCreate, 
     ScheduledReportUpdate,
     ScheduledReportResponse
 )
-from app.services.report_scheduler_service import ReportSchedulerService
+from backend.app.services.report_scheduler_service import ReportSchedulerService
 
 router = APIRouter()
 

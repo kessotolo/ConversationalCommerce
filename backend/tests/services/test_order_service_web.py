@@ -1,10 +1,10 @@
 import pytest
 from uuid import UUID, uuid4
 from sqlalchemy import select
-from app.schemas.order import OrderCreate
-from app.models.order import OrderSource, Order
-from app.models.order_channel_meta import OrderChannelMeta, ChannelType
-from app.services.order_service import OrderService
+from backend.app.schemas.order import OrderCreate
+from backend.app.models.order import OrderSource, Order
+from backend.app.models.order_channel_meta import OrderChannelMeta, ChannelType
+from backend.app.services.order_service import OrderService
 
 
 @pytest.mark.asyncio

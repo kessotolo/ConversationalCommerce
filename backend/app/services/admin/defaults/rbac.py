@@ -8,13 +8,13 @@ roles, permissions, and their associations.
 from typing import Dict, List, Optional, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.admin.role import Role
-from app.models.admin.permission import Permission
-from app.services.admin.role.service import RoleService
-from app.services.admin.permission.service import PermissionService
-from app.services.admin.defaults.roles import initialize_default_roles
-from app.services.admin.defaults.permissions import initialize_default_permissions
-from app.models.admin.role_names import SUPER_ADMIN, SYSTEM_ADMIN, SUPPORT_ADMIN, SECURITY_ADMIN, READ_ONLY_ADMIN, CUSTOM
+from backend.app.models.admin.role import Role
+from backend.app.models.admin.permission import Permission
+from backend.app.services.admin.role.service import RoleService
+from backend.app.services.admin.permission.service import PermissionService
+from backend.app.services.admin.defaults.roles import initialize_default_roles
+from backend.app.services.admin.defaults.permissions import initialize_default_permissions
+from backend.app.models.admin.role_names import SUPER_ADMIN, SYSTEM_ADMIN, SUPPORT_ADMIN, SECURITY_ADMIN, READ_ONLY_ADMIN, CUSTOM
 
 
 # Permission sets that define common groups of permissions

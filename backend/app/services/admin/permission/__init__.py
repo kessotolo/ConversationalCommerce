@@ -4,8 +4,8 @@ Permission service module for Super Admin RBAC system.
 This package contains focused modules for permission management.
 """
 
-from app.services.admin.permission.service import PermissionService
-from app.services.admin.permission.crud import (
+from backend.app.services.admin.permission.service import PermissionService
+from backend.app.services.admin.permission.crud import (
     create_permission,
     get_permission,
     get_permission_by_attributes,
@@ -13,4 +13,4 @@ from app.services.admin.permission.crud import (
     update_permission,
     delete_permission
 )
-from app.services.admin.permission.system_permissions import create_system_permissions
+from backend.app.services.admin.permission.system_permissions import create_system_permissions

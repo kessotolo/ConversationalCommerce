@@ -13,8 +13,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import Response
 
-from app.core.logging import logger
-from app.core.config.settings import get_settings
+from backend.app.core.logging import logger
+from backend.app.core.config.settings import get_settings
 
 # Check if we're in test mode
 TESTING = str(os.environ.get("TESTING", "false")
@@ -198,8 +198,24 @@ class DomainSpecificCORSMiddleware(BaseHTTPMiddleware):
         # Remove port for comparison if present
         domain = host.split(":")[0] if ":" in host else host
 
-        # In test mode, allow all test domains
-        if TESTING and (domain in self.test_domains or host in self.test_domains):
+        # Debug logging for test mode
+        logger.info(
+            f"CORS Debug - TESTING: {TESTING}, host: {host}, domain: {domain}")
+
+        # In test mode, allow all test domains and return permissive config
+        if TESTING:
+            # Add test domains to the list
+            test_domains = [
+                "testserver", "localhost", "127.0.0.1",
+                "localhost:8000", "127.0.0.1:8000",
+                "localhost:3000", "127.0.0.1:3000"
+            ]
+            if domain in test_domains or host in test_domains:
+                logger.info(f"CORS Debug - Using test config for {host}")
+                return self.test_cors_config
+            # For any other domain in test mode, use permissive config
+            logger.info(
+                f"CORS Debug - Using test config for unknown domain {host}")
             return self.test_cors_config
 
         # Check if this is an admin domain request

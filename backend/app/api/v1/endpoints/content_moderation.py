@@ -4,10 +4,10 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.api import deps
-from app.core.content.content_analysis import content_analysis_service
-from app.models.content_filter import ContentAnalysisResult, ContentFilterRule
-from app.schemas.content_filter import (
+from backend.app.api import deps
+from backend.app.core.content.content_analysis import content_analysis_service
+from backend.app.models.content_filter import ContentAnalysisResult, ContentFilterRule
+from backend.app.schemas.content_filter import (
     ContentAnalysisResultResponse,
     ContentFilterRuleCreate,
     ContentFilterRuleResponse,

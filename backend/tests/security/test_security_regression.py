@@ -10,11 +10,11 @@ import pytest
 from unittest.mock import patch, AsyncMock
 from datetime import datetime, timedelta
 
-from app.core.security.clerk_organizations import ClerkOrganizationsService
-from app.services.security.ip_allowlist_service import IPAllowlistService
-from app.services.security.super_admin_two_factor_service import SuperAdminTwoFactorService
-from app.services.security.brute_force_service import BruteForceService
-from app.services.security.two_factor_service import TwoFactorService
+from backend.app.core.security.clerk_organizations import ClerkOrganizationsService
+from backend.app.services.security.ip_allowlist_service import IPAllowlistService
+from backend.app.services.security.super_admin_two_factor_service import SuperAdminTwoFactorService
+from backend.app.services.security.brute_force_service import BruteForceService
+from backend.app.services.security.two_factor_service import TwoFactorService
 
 
 class TestSuperAdminSecurityRegression:
@@ -298,7 +298,7 @@ class TestSecurityConfigurationValidation:
 
     def test_security_middleware_registration(self):
         """Test that security middleware is properly registered."""
-        from app.main import app
+        from backend.app.main import app
 
         # Check that security middleware classes are in the middleware stack
         middleware_classes = [
@@ -328,7 +328,7 @@ async def mock_clerk_service():
 @pytest.fixture
 async def security_test_user(test_db):
     """Create a test user for security testing."""
-    from app.models.admin.admin_user import AdminUser
+    from backend.app.models.admin.admin_user import AdminUser
 
     admin_user = AdminUser(
         id="test_admin_user",

@@ -30,7 +30,7 @@ def import_all_models():
     """Import all model modules to ensure they're registered with metadata."""
     print("Importing all models...")
     # First import the Base class to ensure it's initialized
-    from app.db.base_class import Base
+    from backend.app.db.base_class import Base
     
     # Then dynamically import all model modules
     for model_file in MODELS_DIR.glob("*.py"):
@@ -47,13 +47,13 @@ def import_all_models():
     # Import models explicitly to ensure they're loaded
     print("\nEnsuring critical models are loaded...")
     try:
-        from app.models.user import User
+        from backend.app.models.user import User
         print("  ✓ User model loaded")
     except ImportError as e:
         print(f"  ✗ User model not loaded: {e}")
         
     try:
-        from app.models.customer import Customer
+        from backend.app.models.customer import Customer
         print("  ✓ Customer model loaded")
     except ImportError as e:
         print(f"  ✗ Customer model not loaded: {e}")

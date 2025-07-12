@@ -9,7 +9,7 @@ from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.logging import logger
+from backend.app.core.logging import logger
 from .models import SessionInfo, SessionConfig, SessionValidationResult
 from .storage import SessionStorage
 from .audit import SessionAuditor

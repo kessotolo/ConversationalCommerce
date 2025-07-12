@@ -10,13 +10,13 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.admin.admin_user import AdminUser
-from app.models.admin.role import Role
-from app.models.admin.permission import Permission
-from app.services.admin.admin_user.service import AdminUserService
-from app.services.admin.role_service import RoleService
-from app.services.admin.permission_service import PermissionService
-from app.core.exceptions import ResourceNotFoundError, ValidationError
+from backend.app.models.admin.admin_user import AdminUser
+from backend.app.models.admin.role import Role
+from backend.app.models.admin.permission import Permission
+from backend.app.services.admin.admin_user.service import AdminUserService
+from backend.app.services.admin.role_service import RoleService
+from backend.app.services.admin.permission_service import PermissionService
+from backend.app.core.exceptions import ResourceNotFoundError, ValidationError
 
 
 class AdminService:

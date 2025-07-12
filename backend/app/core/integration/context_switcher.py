@@ -9,10 +9,10 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from jose import jwt, JWTError
 
-from app.core.config.settings import get_settings
-from app.db.async_session import get_async_session_local
-from app.services.admin.auth.dependencies import get_current_admin_user
-from app.services.admin.impersonation.service import admin_impersonation_service
+from backend.app.core.config.settings import get_settings
+from backend.app.db.async_session import get_async_session_local
+from backend.app.services.admin.auth.dependencies import get_current_admin_user
+from backend.app.services.admin.impersonation.service import admin_impersonation_service
 
 settings = get_settings()
 logger = logging.getLogger(__name__)

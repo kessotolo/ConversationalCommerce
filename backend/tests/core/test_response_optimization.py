@@ -4,7 +4,7 @@ import json
 import hashlib
 from fastapi import Response
 from starlette import status
-from app.core.http.response_optimization import (
+from backend.app.core.http.response_optimization import (
     generate_etag,
     set_cache_headers,
     handle_conditional_request,

@@ -1,10 +1,10 @@
 import pytest
 from uuid import UUID, uuid4
 from sqlalchemy import select
-from app.conversation.handlers.order_handler import OrderIntentHandler
-from app.conversation.nlp.intent_parser import ParsedIntent, IntentType
-from app.models.order import Order
-from app.models.order_channel_meta import OrderChannelMeta, ChannelType
+from backend.app.conversation.handlers.order_handler import OrderIntentHandler
+from backend.app.conversation.nlp.intent_parser import ParsedIntent, IntentType
+from backend.app.models.order import Order
+from backend.app.models.order_channel_meta import OrderChannelMeta, ChannelType
 
 
 @pytest.mark.asyncio

@@ -8,7 +8,7 @@ from typing import Any, Dict
 
 from fastapi import HTTPException, status
 
-from app.models.storefront_page_template import PageTemplateType
+from backend.app.models.storefront_page_template import PageTemplateType
 
 
 def validate_template_structure(

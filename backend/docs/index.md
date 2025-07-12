@@ -38,6 +38,7 @@
 - [Getting Started](./getting_started.md) - Local development setup
 - [Testing Guide](./testing.md) - Writing and running tests
 - [Code Style](./code_style.md) - Coding standards and best practices
+- [API Organization](./api/api_organization.md) - API structure and architecture patterns
 - [API Versioning](./api/api_versioning.md) - Versioning strategy and migration
 - [Migration Checklist](./guides/migration_checklist.md) - Database and data migration guide
 

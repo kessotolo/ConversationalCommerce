@@ -11,8 +11,8 @@ from typing import Dict, Any
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from app.models.storefront_permission import StorefrontRole, StorefrontSectionType
-from app.services.storefront.permissions.storefront_permissions_service import StorefrontPermissionsService
+from backend.app.models.storefront_permission import StorefrontRole, StorefrontSectionType
+from backend.app.services.storefront.permissions.storefront_permissions_service import StorefrontPermissionsService
 
 
 class TestPermissionsRefactor:

@@ -3,7 +3,7 @@ import jwt
 import pytest
 import os
 from fastapi.testclient import TestClient
-from app.main import create_app
+from backend.app.main import create_app
 
 # Import the consistent UUID from conftest
 from tests.conftest import TEST_USER_ID
@@ -25,7 +25,7 @@ def unauth_client():
 
 def create_mock_token():
     # Import the test settings to access the SECRET_KEY
-    from app.core.config.test_settings import get_test_settings
+    from backend.app.core.config.test_settings import get_test_settings
 
     test_settings = get_test_settings()
 

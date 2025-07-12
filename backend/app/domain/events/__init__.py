@@ -1,1 +1,1 @@
-from app.domain.events import order_event_handlers
+from backend.app.domain.events import order_event_handlers

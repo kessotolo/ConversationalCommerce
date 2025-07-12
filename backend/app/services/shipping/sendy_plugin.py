@@ -2,9 +2,9 @@ import logging
 import requests
 from typing import Any, Dict, Optional
 
-from app.core.config.settings import get_settings
-from app.schemas.shipping import ShippingDetails
-from app.services.shipping_service import ShippingProviderPlugin
+from backend.app.core.config.settings import get_settings
+from backend.app.schemas.shipping import ShippingDetails
+from backend.app.services.shipping_service import ShippingProviderPlugin
 
 logger = logging.getLogger(__name__)
 settings = get_settings()

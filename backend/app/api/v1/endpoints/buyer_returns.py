@@ -3,15 +3,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 from uuid import UUID
 
-from app.api.deps import get_db, get_current_buyer
-from app.schemas.order_return import (
+from backend.app.api.deps import get_db, get_current_buyer
+from backend.app.schemas.order_return import (
     OrderReturnRequest,
     OrderReturnResponse,
     OrderCancellationRequest,
     OrderCancellationResponse
 )
-from app.services.order_return_service import OrderReturnService
-from app.services.order_exceptions import OrderNotFoundError, OrderValidationError
+from backend.app.services.order_return_service import OrderReturnService
+from backend.app.services.order_exceptions import OrderNotFoundError, OrderValidationError
 
 router = APIRouter()
 
@@ -119,7 +119,7 @@ async def get_return_details(
     """
     # Use SQLAlchemy to directly query for the specific return
     from sqlalchemy import select
-    from app.models.order_return import OrderReturn
+    from backend.app.models.order_return import OrderReturn
     
     result = await db.execute(
         select(OrderReturn).where(

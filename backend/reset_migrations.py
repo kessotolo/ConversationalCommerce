@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__))))
 
 # Import required components
-from app.db.engines.sync_engine import get_sync_engine
+from backend.app.db.engines.sync_engine import get_sync_engine
 from sqlalchemy import text
 
 def reset_migrations():

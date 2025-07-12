@@ -11,10 +11,10 @@ from uuid import UUID
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.admin.permission import PermissionScope
-from app.services.admin.admin_user.service import AdminUserService
-from app.db.session import get_db
-from app.services.admin.auth.dependencies import get_current_admin_user
+from backend.app.models.admin.permission import PermissionScope
+from backend.app.services.admin.admin_user.service import AdminUserService
+from backend.app.db.session import get_db
+from backend.app.services.admin.auth.dependencies import get_current_admin_user
 
 
 class AdminPermissionVerifier:

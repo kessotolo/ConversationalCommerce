@@ -8,9 +8,9 @@ from typing import Dict, List, Optional, Any
 from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_db, get_current_admin_user_with_permissions
-from app.services.feature_flags.service import FeatureFlagService
-from app.schemas.feature_flags import (
+from backend.app.api.deps import get_db, get_current_admin_user_with_permissions
+from backend.app.services.feature_flags.service import FeatureFlagService
+from backend.app.schemas.feature_flags import (
     FeatureFlagCreate, 
     FeatureFlagUpdate, 
     FeatureFlagResponse,
@@ -18,7 +18,7 @@ from app.schemas.feature_flags import (
     TenantOverrideResponse,
     FeatureFlagWithOverridesResponse
 )
-from app.models.auth.admin_user import AdminUser
+from backend.app.models.auth.admin_user import AdminUser
 
 router = APIRouter()
 

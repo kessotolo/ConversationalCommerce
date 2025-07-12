@@ -1,10 +1,10 @@
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 from fastapi import HTTPException, status
-from app.models.storefront_banner import StorefrontBanner
-from app.models.tenant import Tenant
-from app.models.user import User
-from app.services.storefront.permissions.storefront_permissions_service import StorefrontPermissionsService
+from backend.app.models.storefront_banner import StorefrontBanner
+from backend.app.models.tenant import Tenant
+from backend.app.models.user import User
+from backend.app.services.storefront.permissions.storefront_permissions_service import StorefrontPermissionsService
 
 
 async def reorder_banners(db: Session, tenant_id, user_id, banner_order: List[Dict[str, Any]]):

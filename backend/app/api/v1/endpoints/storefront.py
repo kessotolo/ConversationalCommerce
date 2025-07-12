@@ -13,8 +13,8 @@ from fastapi import (
 )
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db, get_tenant_context
-from app.schemas.storefront_content import (
+from backend.app.api.deps import get_db, get_tenant_context
+from backend.app.schemas.storefront_content import (
     CategoryInfo,
     NavigationMenu,
     PaginatedProducts,
@@ -22,7 +22,7 @@ from app.schemas.storefront_content import (
     RelatedProducts,
     StorefrontMetadata,
 )
-from app.services import storefront_content_service
+from backend.app.services import storefront_content_service
 
 router = APIRouter()
 

@@ -15,10 +15,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import IntegrityError
 
-from app.models.admin.role import Role, RoleHierarchy
-from app.models.admin.role_permission import RolePermission
-from app.models.admin.permission import Permission
-from app.core.exceptions import ResourceNotFoundError, ValidationError
+from backend.app.models.admin.role import Role, RoleHierarchy
+from backend.app.models.admin.role_permission import RolePermission
+from backend.app.models.admin.permission import Permission
+from backend.app.core.exceptions import ResourceNotFoundError, ValidationError
 
 
 class RoleService:
@@ -436,7 +436,7 @@ class RoleService:
         role = await self.get_role(db, role_id)
 
         # Check if the permission exists (will raise ResourceNotFoundError if not)
-        from app.services.admin.permission_service import PermissionService
+        from backend.app.services.admin.permission_service import PermissionService
         permission_service = PermissionService()
         permission = await permission_service.get_permission(db, permission_id)
 

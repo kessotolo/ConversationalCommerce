@@ -2,10 +2,10 @@ from uuid import UUID
 from decimal import Decimal
 from datetime import datetime, timedelta, timezone
 
-from app.models.order import Order, OrderStatus, OrderSource
-from app.models.order_channel_meta import OrderChannelMeta
-from app.models.conversation_history import ChannelType
-from app.models.product import Product
+from backend.app.models.order import Order, OrderStatus, OrderSource
+from backend.app.models.order_channel_meta import OrderChannelMeta
+from backend.app.models.conversation_history import ChannelType
+from backend.app.models.product import Product
 
 
 def test_create_order(client, auth_headers, db_session, test_user, test_tenant):

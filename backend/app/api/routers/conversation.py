@@ -10,22 +10,22 @@ from sqlalchemy import Date, cast, func
 from sqlalchemy.orm import Session
 from textblob import TextBlob
 
-from app.core.websocket.monitoring import connection_manager
-from app.api.deps import get_db
-from app.models.cart import Cart, CartItem
-from app.models.conversation_event import ConversationEvent
-from app.models.conversation_history import ChannelType, ConversationHistory, SenderType
-from app.models.product import Product
-from app.schemas.conversation_event import (
+from backend.app.core.websocket.monitoring import connection_manager
+from backend.app.api.deps import get_db
+from backend.app.models.cart import Cart, CartItem
+from backend.app.models.conversation_event import ConversationEvent
+from backend.app.models.conversation_history import ChannelType, ConversationHistory, SenderType
+from backend.app.models.product import Product
+from backend.app.schemas.conversation_event import (
     ConversationEventCreate,
     ConversationEventResponse,
 )
-from app.schemas.conversation_history import (
+from backend.app.schemas.conversation_history import (
     ConversationHistoryCreate,
     ConversationHistoryResponse,
 )
-from app.services.alert_service import maybe_trigger_alert
-from app.services.conversation_audit_bridge import log_event_to_audit
+from backend.app.services.alert_service import maybe_trigger_alert
+from backend.app.services.conversation_audit_bridge import log_event_to_audit
 
 router = APIRouter()
 

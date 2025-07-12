@@ -3,41 +3,18 @@ Main conftest.py for pytest setup.
 This file imports fixtures from modular fixture files to maintain a clean structure
 with each file under 500 lines per coding standards.
 """
-from tests.fixtures.api import (
-    admin_auth_headers,
-    auth_headers,
-    client,
-    create_test_token,
-    test_idempotency_key,
-    webhook_auth_headers,
-    async_client,
-)
-from tests.fixtures.mocks import (
-    mock_payment_client,
-    mock_s3_client,
-    mock_sms_client,
-    patch_content_analysis,
-)
-from tests.fixtures.environment import (
-    debug_test_environment,
-    set_test_environment,
-    test_tenant,
-    test_user,
-    test_admin_user,
-)
-from tests.fixtures.db import (
-    async_engine,
-    async_db_session,
-    check_leaked_connections,
-    sync_engine,
-    db_session,
-    apply_migrations_once,
-)
-import pytest
+from tests.fixtures.api import async_client, client, auth_headers, admin_auth_headers, super_admin_auth_headers
+from tests.fixtures.mocks import patch_content_analysis
+from tests.fixtures.environment import test_tenant, test_user, test_admin_user
+from tests.fixtures.db import apply_migrations_once, async_db_session, db_session
 import logging
 import os
 import sys
 import uuid
+import pytest
+import asyncio
+from typing import AsyncGenerator, Generator
+from unittest import mock
 
 # Set testing environment variable before importing any app modules
 # This ensures all database connections use the test database
@@ -105,8 +82,8 @@ async def setup_test_ip_allowlist():
     logger = logging.getLogger(__name__)
     logger.info("DEBUG: Setting up test IP allowlist entries...")
 
-    from app.services.security.ip_allowlist_service import IPAllowlistService
-    from app.db.deps import get_async_session_local
+    from backend.app.services.security.ip_allowlist_service import IPAllowlistService
+    from backend.app.db.deps import get_async_session_local
 
     # Get a database session
     AsyncSessionLocal = get_async_session_local()

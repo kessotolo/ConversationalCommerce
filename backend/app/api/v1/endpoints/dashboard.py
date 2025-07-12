@@ -2,12 +2,12 @@ from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select
 
-from app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
-from app.core.security.auth_deps import require_auth
-from app.api.deps import get_current_tenant_id, get_db
-from app.schemas.dashboard import DashboardStatsResponse
-from app.models.user import User
-from app.models.order import Order
+from backend.app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
+from backend.app.core.security.auth_deps import require_auth
+from backend.app.api.deps import get_current_tenant_id, get_db
+from backend.app.schemas.dashboard import DashboardStatsResponse
+from backend.app.models.user import User
+from backend.app.models.order import Order
 
 router = APIRouter()
 
@@ -16,7 +16,7 @@ router = APIRouter()
 async def get_dashboard(user: ClerkTokenData = Depends(require_auth)):
     return {
         "message": "Welcome to your dashboard",
-        "user_id": user.sub,
+        "user_id": user.user_id,
         "email": user.email,
     }
 

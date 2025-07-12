@@ -1,10 +1,16 @@
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional, Union
+from decimal import Decimal
 
 from pydantic import BaseModel, Field
 
-from app.domain.models.order import Money, Order, OrderStatus, PaymentStatus
+from backend.app.models.order import Order, OrderStatus
+from backend.app.models.payment import PaymentSettings
+
+# Define missing types as string literals to avoid import issues
+PaymentStatus = str  # Will be replaced with actual enum when available
+Money = Decimal  # Simple money representation
 
 # ============================================================
 # Base domain event classes
@@ -38,7 +44,11 @@ class OrderCreatedEvent(OrderEvent):
     """Event emitted when a new order is created"""
 
     event_type: str = "ORDER_CREATED"
-    order: Order
+    # Store order data as dict to avoid Pydantic serialization issues with SQLAlchemy models
+    order_data: Optional[Dict[str, Any]] = None
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class OrderStatusChangedEvent(OrderEvent):
@@ -128,7 +138,14 @@ class OrderEventFactory:
             tenant_id=order.tenant_id,
             order_id=order.id,
             order_number=order.order_number,
-            order=order,
+            order_data={
+                "id": str(order.id),
+                "order_number": order.order_number,
+                "status": order.status.value if order.status else None,
+                "total_amount": float(order.total_amount) if order.total_amount else 0.0,
+                "currency": order.currency,
+                "created_at": order.created_at.isoformat() if order.created_at else None,
+            },
             event_metadata=metadata,
         )
 

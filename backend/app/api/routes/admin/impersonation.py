@@ -11,12 +11,12 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.session import get_db
-from app.models.admin.admin_user import AdminUser
-from app.services.admin.impersonation.service import ImpersonationService
-from app.services.tenant.service import TenantService
-from app.services.admin.auth.dependencies import get_current_super_admin
-from app.core.config.settings import Settings, get_settings
+from backend.app.db.session import get_db
+from backend.app.models.admin.admin_user import AdminUser
+from backend.app.services.admin.impersonation.service import ImpersonationService
+from backend.app.services.tenant.service import TenantService
+from backend.app.services.admin.auth.dependencies import get_current_super_admin
+from backend.app.core.config.settings import Settings, get_settings
 
 
 router = APIRouter(prefix="/admin/impersonation", tags=["admin-impersonation"])

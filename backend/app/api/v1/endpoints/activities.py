@@ -1,14 +1,15 @@
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel
+from sqlalchemy import func, distinct
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db
-from app.models.audit.audit_log import AuditLog
+from backend.app.api.deps import get_db
+from backend.app.models.audit.audit_log import AuditLog
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -41,6 +42,13 @@ class PaginatedActivitiesResponse(BaseModel):
     total: int
     limit: int
     offset: int
+
+
+class SystemMetricsResponse(BaseModel):
+    active_users: int
+    high_severity_count: int
+    total_activities: int
+    error_rate: float
 
 
 @router.get("/activities", response_model=PaginatedActivitiesResponse)
@@ -155,4 +163,91 @@ async def get_activities(
 
     except Exception as e:
         logger.error(f"Error fetching activities: {str(e)}")
+        return {
+            "items": [],
+            "total": 0,
+            "limit": limit,
+            "offset": offset,
+        }
+
+
+@router.get("/metrics", response_model=SystemMetricsResponse)
+async def get_system_metrics(
+    request: Request,
+    time_range: str = Query(
+        "24h", description="Time range for metrics calculation (1h, 24h, 7d, 30d)"
+    ),
+    db: Session = Depends(get_db),
+):
+    """
+    Get system metrics for the admin dashboard.
+    Includes active users, high severity events, total activities, and error rate.
+    """
+    try:
+        # Get tenant ID from request state
+        tenant_id = getattr(request.state, "tenant_id", None)
+        if not tenant_id:
+            return {
+                "active_users": 0,
+                "high_severity_count": 0,
+                "total_activities": 0,
+                "error_rate": 0.0,
+            }
+
+        # Calculate time filter
+        now = datetime.now(timezone.utc)
+        time_filters = {
+            "1h": now - timedelta(hours=1),
+            "24h": now - timedelta(hours=24),
+            "7d": now - timedelta(days=7),
+            "30d": now - timedelta(days=30),
+        }
+        time_filter = time_filters.get(time_range, time_filters["24h"])
+
+        # Base query with tenant and time filters
+        base_query = db.query(AuditLog).filter(
+            AuditLog.tenant_id == UUID(tenant_id), 
+            AuditLog.timestamp >= time_filter
+        )
+
+        # Total activities
+        total_activities = base_query.count()
+
+        # High severity count (DELETE, PUT operations and 5xx errors)
+        high_severity_query = base_query.filter(
+            ((AuditLog.action == "DELETE") | 
+             (AuditLog.details.has_key("status_code") & 
+              (AuditLog.details["status_code"].astext.cast(int) >= 500)))
+        )
+        high_severity_count = high_severity_query.count()
+
+        # Active users (unique users)
+        active_users_count = db.query(func.count(distinct(AuditLog.user_id))).filter(
+            AuditLog.tenant_id == UUID(tenant_id),
+            AuditLog.timestamp >= time_filter
+        ).scalar() or 0
+
+        # Error rate calculation
+        error_query = base_query.filter(
+            AuditLog.details.has_key("status_code") & 
+            (AuditLog.details["status_code"].astext.cast(int) >= 400)
+        )
+        error_count = error_query.count()
+        error_rate = (error_count / total_activities) * 100 if total_activities > 0 else 0.0
+
+        return {
+            "active_users": active_users_count,
+            "high_severity_count": high_severity_count,
+            "total_activities": total_activities,
+            "error_rate": error_rate,
+        }
+
+    except Exception as e:
+        logger.error(f"Error fetching system metrics: {str(e)}")
+        return {
+            "active_users": 0,
+            "high_severity_count": 0,
+            "total_activities": 0,
+            "error_rate": 0.0,
+        }
         return {"items": [], "total": 0, "limit": limit, "offset": offset}

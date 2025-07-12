@@ -11,14 +11,14 @@ from typing import Any, Dict, Optional
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.models.storefront_page_template import (
+from backend.app.models.storefront_page_template import (
     PageTemplateType,
     StorefrontPageTemplate,
     TemplateStatus,
 )
-from app.models.tenant import Tenant
-from app.models.user import User
-from app.services.storefront.permissions.storefront_permissions_service import StorefrontPermissionsService
+from backend.app.models.tenant import Tenant
+from backend.app.models.user import User
+from backend.app.services.storefront.permissions.storefront_permissions_service import StorefrontPermissionsService
 
 
 async def duplicate_page_template(

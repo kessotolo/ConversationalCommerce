@@ -1,7 +1,7 @@
 import pytest
 import uuid
 from unittest.mock import patch, AsyncMock
-from app.core.cache.redis_cache import (
+from backend.app.core.cache.redis_cache import (
     RedisCache,
     invalidate_product_cache,
     invalidate_config_cache,

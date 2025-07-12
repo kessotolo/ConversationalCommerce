@@ -2,7 +2,7 @@ import pytest
 from httpx import AsyncClient
 from unittest.mock import AsyncMock, patch
 
-from app.services.order_service import OrderNotFoundError
+from backend.app.services.order_service import OrderNotFoundError
 
 
 def test_get_buyer_orders(client, auth_headers):

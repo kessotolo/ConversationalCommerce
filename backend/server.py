@@ -10,7 +10,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Import the app from the main module
-from app.main import app
+from backend.app.main import app
 
 # This allows both direct uvicorn execution and import by WSGI/ASGI servers
 if __name__ == "__main__":

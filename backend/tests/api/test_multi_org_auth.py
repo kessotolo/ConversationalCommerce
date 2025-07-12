@@ -9,8 +9,8 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.security.clerk_multi_org import MultiOrgClerkTokenData
-from app.models.admin.admin_user import AdminUser
+from backend.app.core.security.clerk_multi_org import MultiOrgClerkTokenData
+from backend.app.models.admin.admin_user import AdminUser
 
 
 class TestMultiOrgAuthentication:
@@ -24,7 +24,7 @@ class TestMultiOrgAuthentication:
     @pytest.fixture(autouse=True)
     async def setup_test_admin_users(self, async_db_session: AsyncSession):
         """Set up test admin users in the database."""
-        from app.services.admin.admin_user.service import AdminUserService
+        from backend.app.services.admin.admin_user.service import AdminUserService
 
         admin_service = AdminUserService()
 
@@ -214,7 +214,7 @@ class TestMultiOrgClerkService:
 
     def test_verify_seller_token(self):
         """Test verifying seller token."""
-        from app.core.security.clerk_multi_org import multi_org_clerk_service
+        from backend.app.core.security.clerk_multi_org import multi_org_clerk_service
 
         token_data = multi_org_clerk_service.verify_token("test_token")
 
@@ -225,7 +225,7 @@ class TestMultiOrgClerkService:
 
     def test_verify_admin_token(self):
         """Test verifying admin token."""
-        from app.core.security.clerk_multi_org import multi_org_clerk_service
+        from backend.app.core.security.clerk_multi_org import multi_org_clerk_service
 
         token_data = multi_org_clerk_service.verify_token("admin_token")
 
@@ -237,7 +237,7 @@ class TestMultiOrgClerkService:
 
     def test_verify_super_admin_token(self):
         """Test verifying super admin token."""
-        from app.core.security.clerk_multi_org import multi_org_clerk_service
+        from backend.app.core.security.clerk_multi_org import multi_org_clerk_service
 
         token_data = multi_org_clerk_service.verify_token("super_admin_token")
 
@@ -250,7 +250,7 @@ class TestMultiOrgClerkService:
 
     def test_token_data_methods(self):
         """Test MultiOrgClerkTokenData methods."""
-        from app.core.security.clerk_multi_org import MultiOrgClerkTokenData
+        from backend.app.core.security.clerk_multi_org import MultiOrgClerkTokenData
 
         # Test seller token data
         seller_data = MultiOrgClerkTokenData(

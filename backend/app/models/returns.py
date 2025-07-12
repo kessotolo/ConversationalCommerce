@@ -7,7 +7,7 @@ from sqlalchemy import Column, String, Integer, Boolean, ForeignKey, DateTime, F
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 
-from app.db.base_class import Base
+from backend.app.db.base_class import Base
 
 
 class ReturnStatus(str, Enum):
@@ -139,5 +139,5 @@ class ReturnItem(Base):
 
 
 # Add relationship to Order model
-from app.models.order import Order
+from backend.app.models.order import Order
 Order.return_requests = relationship("ReturnRequest", back_populates="order", cascade="all, delete-orphan")

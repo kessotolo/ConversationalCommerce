@@ -10,7 +10,7 @@ from sqlalchemy import select
 import time
 import threading
 
-from app.models.order import Order, OrderStatus, OrderSource
+from backend.app.models.order import Order, OrderStatus, OrderSource
 
 # Configure logging
 logging.basicConfig(

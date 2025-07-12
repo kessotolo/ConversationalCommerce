@@ -6,11 +6,11 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class AIConfigBase(BaseModel):
-    merchant_id: UUID
     style_tone: Optional[str] = Field(
         None, description="Preferred style/tone for bot replies"
     )
-    auto_reply_enabled: bool = Field(False, description="Is auto-reply enabled?")
+    auto_reply_enabled: bool = Field(
+        False, description="Is auto-reply enabled?")
     active_hours: Optional[str] = Field(
         None, description="Active hours for bot (could be JSON)"
     )

@@ -3,7 +3,7 @@ import enum
 from sqlalchemy import Column, String, DateTime, Enum, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
-from app.db import Base
+from backend.app.db import Base
 
 
 class TeamInviteStatusEnum(str, enum.Enum):

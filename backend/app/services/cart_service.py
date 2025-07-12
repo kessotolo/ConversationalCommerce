@@ -4,9 +4,9 @@ from typing import Any, Dict, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import select
 
-from app.api.v1.endpoints.cart import get_or_create_cart
-from app.db.async_session import get_async_session_local
-from app.models.cart import Cart
+from backend.app.api.v1.endpoints.cart import get_or_create_cart
+from backend.app.db.async_session import get_async_session_local
+from backend.app.models.cart import Cart
 
 # Service to get cart by phone number (for conversational flows)
 

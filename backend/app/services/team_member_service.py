@@ -6,16 +6,16 @@ from uuid import UUID
 from sqlalchemy import select, update, and_, or_, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.team_member import TeamMember, TeamInvite, TeamRole, TeamInviteStatus
-from app.schemas.team_member import (
+from backend.app.models.team_member import TeamMember, TeamInvite, TeamRole, TeamInviteStatus
+from backend.app.schemas.team_member import (
     TeamMemberCreate, 
     TeamMemberUpdate, 
     TeamInviteCreate, 
     TeamInviteUpdate,
     TeamInviteAccept
 )
-from app.services.audit_service import create_audit_log, AuditActionType
-from app.core.exceptions import AppError
+from backend.app.services.audit_service import create_audit_log, AuditActionType
+from backend.app.core.exceptions import AppError
 
 """
 Team Member Service

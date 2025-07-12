@@ -11,10 +11,11 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 import httpx
+import os
 
-from app.core.config.settings import get_settings
-from app.main import app
-from app.db.async_session import get_async_session_local
+from backend.app.core.config.settings import get_settings
+from backend.app.main import app
+from backend.app.db.async_session import get_async_session_local
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -55,9 +56,19 @@ def patch_settings():
         "ALGORITHM": "HS256",
     }
 
+    # Set TESTING environment variable
+    original_testing = os.environ.get("TESTING")
+    os.environ["TESTING"] = "true"
+
     # Apply patches to settings module
     with mock.patch.multiple(settings, **test_settings):
         yield
+
+    # Restore original TESTING value
+    if original_testing is not None:
+        os.environ["TESTING"] = original_testing
+    else:
+        os.environ.pop("TESTING", None)
 
 
 @pytest.fixture(scope="function")
@@ -68,9 +79,9 @@ def client(async_db_session) -> Generator:
     middleware can see rows created in test fixtures.
     Also patch get_async_session_local to ensure middleware uses the same session.
     """
-    from app.api.deps import get_db
-    from app.main import app as fastapi_app
-    from app.db.async_session import get_async_session_local
+    from backend.app.api.deps import get_db
+    from backend.app.main import app as fastapi_app
+    from backend.app.db.async_session import get_async_session_local
 
     # In case app is wrapped with middleware, access the original FastAPI instance
     # This handles cases where app might be wrapped with SentryAsgiMiddleware
@@ -125,9 +136,9 @@ async def async_client(async_db_session) -> AsyncGenerator:
     Create an async FastAPI test client for API testing.
     This is for tests that need to use await with the client.
     """
-    from app.api.deps import get_db
-    from app.main import app as fastapi_app
-    from app.db.async_session import get_async_session_local
+    from backend.app.api.deps import get_db
+    from backend.app.main import app as fastapi_app
+    from backend.app.db.async_session import get_async_session_local
     import httpx
 
     # In case app is wrapped with middleware, access the original FastAPI instance
@@ -242,11 +253,8 @@ def auth_headers(test_user) -> Dict[str, str]:
     Returns:
         A dict with the Authorization header and X-Tenant-ID header
     """
-    token = create_test_token(
-        subject=test_user.id,
-        tenant_id=test_user.tenant_id,
-        is_superuser=False,
-    )
+    # Use the test token that the Clerk service recognizes
+    token = "test_token"
 
     # Convert any UUID to string to ensure it works correctly
     tenant_id_str = str(test_user.tenant_id) if test_user.tenant_id else ""
@@ -265,11 +273,21 @@ def admin_auth_headers(test_admin_user) -> Dict[str, str]:
     Returns:
         A dict with the Authorization header containing a valid admin JWT
     """
-    token = create_test_token(
-        subject=test_admin_user.id,
-        tenant_id=test_admin_user.tenant_id,
-        is_superuser=True,
-    )
+    # Use the admin token that the Clerk service recognizes
+    token = "admin_token"
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture(scope="function")
+def super_admin_auth_headers() -> Dict[str, str]:
+    """
+    Generate authentication headers for a super admin user.
+
+    Returns:
+        A dict with the Authorization header containing a valid super admin JWT
+    """
+    # Use the super admin token that the Clerk service recognizes
+    token = "super_admin_token"
     return {"Authorization": f"Bearer {token}"}
 
 

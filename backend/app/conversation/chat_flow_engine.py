@@ -5,10 +5,10 @@ from typing import Any, Dict, List, Optional
 
 import httpx
 
-from app.conversation.message_builder import MessageBuilder
-from app.models.conversation_history import ChannelType, ConversationHistory, SenderType
-from app.services.order_service import OrderService
-from app.services.payment.payment_service import PaymentService
+from backend.app.conversation.message_builder import MessageBuilder
+from backend.app.models.conversation_history import ChannelType, ConversationHistory, SenderType
+from backend.app.services.order_service import OrderService
+from backend.app.services.payment.payment_service import PaymentService
 
 
 class ChatStep(str, Enum):

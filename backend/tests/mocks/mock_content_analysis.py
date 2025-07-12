@@ -2,7 +2,7 @@
 
 from typing import Dict, Any, List, Optional
 from unittest.mock import MagicMock
-from app.models.content_filter import ContentFilterRule, ContentAnalysisResult
+from backend.app.models.content_filter import ContentFilterRule, ContentAnalysisResult
 
 
 class MockContentAnalysisService:

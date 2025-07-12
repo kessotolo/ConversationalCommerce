@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import patch, AsyncMock, MagicMock
 from fastapi import Response
 import uuid
-from app.middleware.subdomain import SubdomainMiddleware, get_tenant_context
+from backend.app.middleware.subdomain import SubdomainMiddleware, get_tenant_context
 
 
 class TestSubdomainMiddleware:

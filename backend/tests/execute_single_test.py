@@ -151,7 +151,7 @@ def execute_single_test():
     info("Patching app.core.content.content_analysis...")
     try:
         from tests.mocks.mock_content_analysis import mock_content_analysis_service
-        from app.core.content import content_analysis
+        from backend.app.core.content import content_analysis
 
         content_analysis.content_analysis_service = mock_content_analysis_service
     except Exception as e:

@@ -1,6 +1,7 @@
 import enum
 import uuid
 from datetime import datetime, timezone
+from typing import Optional
 
 from sqlalchemy import (
     Boolean,
@@ -17,7 +18,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from app.db import Base
+from backend.app.db import Base
 
 
 class OrderStatus(str, enum.Enum):
@@ -84,13 +85,6 @@ class Order(Base):
         "Payment", back_populates="order", cascade="all, delete-orphan")
     returns = relationship(
         "OrderReturn", back_populates="order", cascade="all, delete-orphan")
-    # whatsapp_details = relationship(
-    #     "WhatsAppOrderDetails",
-    #     uselist=False,
-    #     back_populates="order",
-    #     lazy="joined",
-    #     doc="WhatsApp/conversational metadata for this order."
-    # )
 
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -99,3 +93,34 @@ class Order(Base):
     returned_at = Column(DateTime(timezone=True))
     cancellation_reason = Column(String)
     return_reason = Column(String)
+
+    # Property to access WhatsApp-specific metadata for backward compatibility
+    @property
+    def whatsapp_details(self) -> Optional['OrderChannelMeta']:
+        """
+        Get WhatsApp-specific metadata for this order.
+        This replaces the old WhatsAppOrderDetails relationship.
+        """
+        from backend.app.models.conversation_history import ChannelType
+
+        if not self.channel_metadata:
+            return None
+
+        # Find WhatsApp channel metadata
+        for metadata in self.channel_metadata:
+            if metadata.channel == ChannelType.whatsapp:
+                return metadata
+        return None
+
+    # Helper method to check if order has WhatsApp metadata
+    def has_whatsapp_metadata(self) -> bool:
+        """Check if this order has WhatsApp-specific metadata"""
+        return self.whatsapp_details is not None
+
+    # Helper method to get WhatsApp phone number
+    def get_whatsapp_number(self) -> Optional[str]:
+        """Get WhatsApp phone number from metadata or buyer phone"""
+        whatsapp_meta = self.whatsapp_details
+        if whatsapp_meta and whatsapp_meta.user_response_log:
+            return whatsapp_meta.user_response_log
+        return self.buyer_phone if self.order_source == OrderSource.whatsapp else None

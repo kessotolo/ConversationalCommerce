@@ -1,6 +1,22 @@
 from typing import Optional
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
+
+
+class TenantCreate(BaseModel):
+    """
+    Tenant creation schema for onboarding.
+    """
+    storeName: str
+    businessName: str
+    phoneNumber: str
+    whatsappNumber: Optional[str] = None
+    storeEmail: str
+    category: str
+    description: str
+    subdomain: str
+    userId: str
 
 
 class TenantOut(BaseModel):

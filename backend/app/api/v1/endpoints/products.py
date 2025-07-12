@@ -1,21 +1,21 @@
-from app.services.product_service import (
+from backend.app.services.product_service import (
     create_product,
     delete_product,
     get_product,
     get_products,
     update_product,
 )
-from app.schemas.product import (
+from backend.app.schemas.product import (
     PaginatedResponse,
     ProductCreate,
     ProductResponse,
     ProductSearchParams,
     ProductUpdate,
 )
-from app.api.deps import get_db
-from app.core.security.auth_deps import require_auth
-from app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
-from app.core.exceptions import (
+from backend.app.api.deps import get_db
+from backend.app.core.security.auth_deps import require_auth
+from backend.app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
+from backend.app.core.exceptions import (
     DatabaseError,
     ProductNotFoundError,
     ProductPermissionError,

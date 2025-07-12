@@ -3,7 +3,7 @@ from unittest.mock import patch, AsyncMock, MagicMock
 from fastapi import Response
 import uuid
 import socket
-from app.middleware.domain_verification import (
+from backend.app.middleware.domain_verification import (
     DomainVerificationMiddleware,
     DomainVerificationService,
     SSL_STATUS_VALID,

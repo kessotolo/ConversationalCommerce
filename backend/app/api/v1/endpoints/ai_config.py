@@ -4,11 +4,11 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db, get_current_active_user
-from app.models.ai_config import AIConfig
-from app.models.user import User
-from app.schemas.ai_config import AIConfigCreate, AIConfigResponse, AIConfigUpdate
-from app.services.audit_service import AuditActionType, AuditResourceType, create_audit_log
+from backend.app.api.deps import get_db, get_current_user
+from backend.app.models.ai_config import AIConfig
+from backend.app.models.user import User
+from backend.app.schemas.ai_config import AIConfigCreate, AIConfigResponse, AIConfigUpdate
+from backend.app.services.audit_service import AuditActionType, AuditResourceType, create_audit_log
 
 router = APIRouter()
 
@@ -18,7 +18,7 @@ async def create_ai_config(
     tenant_id: uuid.UUID = Path(...),
     ai_config_data: AIConfigCreate = Body(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Create AI configuration for a tenant.
@@ -47,7 +47,6 @@ async def create_ai_config(
 
         # Create new AI config
         ai_config = AIConfig(
-            merchant_id=user_id,
             tenant_id=tenant_id,
             style_tone=ai_config_data.style_tone,
             auto_reply_enabled=ai_config_data.auto_reply_enabled,
@@ -88,7 +87,7 @@ async def create_ai_config(
 async def get_ai_config(
     tenant_id: uuid.UUID = Path(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Get AI configuration for a tenant.
@@ -119,7 +118,7 @@ async def update_ai_config(
     tenant_id: uuid.UUID = Path(...),
     ai_config_data: AIConfigUpdate = Body(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Update AI configuration for a tenant.
@@ -182,7 +181,7 @@ async def update_ai_config(
 async def delete_ai_config(
     tenant_id: uuid.UUID = Path(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Delete AI configuration for a tenant.
@@ -246,7 +245,7 @@ async def delete_ai_config(
 async def get_ai_config_status(
     tenant_id: uuid.UUID = Path(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Get AI configuration status and summary for a tenant.

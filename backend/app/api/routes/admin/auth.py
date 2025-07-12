@@ -11,10 +11,10 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status, Body
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.session import get_db
-from app.models.admin.admin_user import AdminUser
-from app.services.admin.admin_user.service import AdminUserService
-from app.services.admin.auth.session import (
+from backend.app.db.session import get_db
+from backend.app.models.admin.admin_user import AdminUser
+from backend.app.services.admin.admin_user.service import AdminUserService
+from backend.app.services.admin.auth.session import (
     authenticate_admin_user,
     create_admin_access_token,
     get_admin_login_info,
@@ -22,11 +22,11 @@ from app.services.admin.auth.session import (
     require_two_factor_auth,
     verify_two_factor_auth,
 )
-from app.services.admin.auth.dependencies import (
+from backend.app.services.admin.auth.dependencies import (
     get_current_admin_user,
     get_current_super_admin,
 )
-from app.core.config.settings import get_settings
+from backend.app.core.config.settings import get_settings
 
 
 router = APIRouter(prefix="/admin/auth", tags=["admin-auth"])

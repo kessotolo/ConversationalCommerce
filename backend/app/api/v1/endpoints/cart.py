@@ -5,11 +5,11 @@ from uuid import UUID
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from app.api import deps
-from app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
-from app.models.cart import Cart, CartItem
-from app.models.product import Product
-from app.schemas.cart import CartItemCreate, CartResponse
+from backend.app.api import deps
+from backend.app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
+from backend.app.models.cart import Cart, CartItem
+from backend.app.models.product import Product
+from backend.app.schemas.cart import CartItemCreate, CartResponse
 
 router = APIRouter()
 

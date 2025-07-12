@@ -7,10 +7,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.core.exceptions import ResourceNotFoundError, ValidationError
-from app.models.storefront_theme import StorefrontTheme
-from app.models.theme_version import ThemeVersion
-from app.schemas.theme_builder import (
+from backend.app.core.exceptions import ResourceNotFoundError, ValidationError
+from backend.app.models.storefront_theme import StorefrontTheme
+from backend.app.models.theme_version import ThemeVersion
+from backend.app.schemas.theme_builder import (
     ThemeBuilderCreateRequest,
     ThemeBuilderUpdateRequest,
     ThemeBuilderResponse,

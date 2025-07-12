@@ -1,8 +1,8 @@
 import logging
 from typing import Any, Dict, Optional
 
-from app.core.config.settings import get_settings
-from app.schemas.shipping import ShippingDetails
+from backend.app.core.config.settings import get_settings
+from backend.app.schemas.shipping import ShippingDetails
 
 # Initialize logger
 logger = logging.getLogger(__name__)

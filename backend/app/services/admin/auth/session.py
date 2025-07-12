@@ -12,11 +12,11 @@ from fastapi import Request, Response, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from jose import jwt
 
-from app.core.config.settings import get_settings
-from app.core.security.password import verify_password
-from app.models.admin.admin_user import AdminUser
-from app.models.user import User
-from app.services.admin.admin_user.service import AdminUserService
+from backend.app.core.config.settings import get_settings
+from backend.app.core.security.password import verify_password
+from backend.app.models.admin.admin_user import AdminUser
+from backend.app.models.user import User
+from backend.app.services.admin.admin_user.service import AdminUserService
 
 settings = get_settings()
 

@@ -1,4 +1,4 @@
-from app.core.exceptions import AppError
+from backend.app.core.exceptions import AppError
 
 
 class OrderError(AppError):

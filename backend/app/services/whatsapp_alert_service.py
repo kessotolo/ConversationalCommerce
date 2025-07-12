@@ -1,5 +1,5 @@
 from twilio.rest import Client
-from app.core.config.settings import get_settings
+from backend.app.core.config.settings import get_settings
 settings = get_settings()
 
 

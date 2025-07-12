@@ -14,10 +14,10 @@ import backend.app
 sys.modules['app'] = sys.modules['backend.app']
 
 from sqlalchemy import create_engine, inspect, MetaData, Table
-from app.core.config.settings.settings import Settings
+from backend.app.core.config.settings.settings import Settings
 
 # Import the Base from app.db to match what models are importing
-from app.db import Base
+from backend.app.db import Base
 
 # Explicitly import all models to ensure they're registered with Base
 from backend.app.models.conversation_event import ConversationEvent

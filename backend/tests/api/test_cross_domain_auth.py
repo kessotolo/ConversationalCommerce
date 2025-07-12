@@ -8,7 +8,7 @@ across different domains (main app and admin dashboard).
 import pytest
 from fastapi import status
 
-from app.core.config.settings import get_settings
+from backend.app.core.config.settings import get_settings
 
 
 def test_admin_cors_headers(client):

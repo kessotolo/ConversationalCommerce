@@ -2,9 +2,9 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
-from app.api.deps import get_db, get_current_buyer
-from app.models.address_book import AddressBook as AddressBookModel
-from app.schemas.address_book import AddressBookCreate, AddressBookUpdate, AddressBookResponse
+from backend.app.api.deps import get_db, get_current_buyer
+from backend.app.models.address_book import AddressBook as AddressBookModel
+from backend.app.schemas.address_book import AddressBookCreate, AddressBookUpdate, AddressBookResponse
 
 router = APIRouter()
 

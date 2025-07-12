@@ -5,9 +5,9 @@ from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from app.models.returns import ReturnRequest, ReturnItem, ReturnStatus
-from app.models.order import Order, OrderItem
-from app.schemas.returns import ReturnRequestCreate, ReturnRequestUpdate, ReturnItemUpdate
+from backend.app.models.returns import ReturnRequest, ReturnItem, ReturnStatus
+from backend.app.models.order import Order, OrderItem
+from backend.app.schemas.returns import ReturnRequestCreate, ReturnRequestUpdate, ReturnItemUpdate
 
 
 class ReturnRepository:

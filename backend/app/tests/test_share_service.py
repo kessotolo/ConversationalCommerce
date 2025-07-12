@@ -1,9 +1,9 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from app.models.product import Product
-from app.models.tenant import Tenant
-from app.services.share_service import ShareService
+from backend.app.models.product import Product
+from backend.app.models.tenant import Tenant
+from backend.app.services.share_service import ShareService
 
 
 class TestShareService(unittest.TestCase):

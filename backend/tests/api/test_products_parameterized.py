@@ -2,8 +2,8 @@ import pytest
 import logging
 from sqlalchemy import delete
 from tests.api.test_products import TEST_USER_ID
-from app.models.product import Product
-from app.models.user import User
+from backend.app.models.product import Product
+from backend.app.models.user import User
 
 
 @pytest.mark.parametrize(
