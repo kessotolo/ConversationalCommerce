@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@clerk/nextjs';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -15,7 +16,8 @@ import {
     CheckCircle,
     Users,
     ShoppingCart,
-    DollarSign
+    DollarSign,
+    AlertTriangle
 } from 'lucide-react';
 
 import { SecurityOverview } from './SecurityOverview';
@@ -26,7 +28,7 @@ import { SystemMonitoring } from '@/modules/monitoring/components/SystemMonitori
 import { EmergencyControls } from '@/modules/emergency/components/EmergencyControls';
 import { ComplianceDashboard } from '@/modules/compliance/components/ComplianceDashboard';
 import { DashboardOverview } from './DashboardOverview';
-import api from '@/lib/api';
+import { createAuthenticatedApi } from '@/lib/api';
 import { TenantImpersonation } from '@/modules/tenant/components/TenantImpersonation';
 
 interface DashboardMetrics {
@@ -109,6 +111,7 @@ interface SystemHealth {
 }
 
 export function UnifiedDashboard() {
+    const { isSignedIn, getToken } = useAuth();
     const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
     const [kpis, setKPIs] = useState<DashboardKPIs | null>(null);
     const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
@@ -117,6 +120,8 @@ export function UnifiedDashboard() {
     const [activeTab, setActiveTab] = useState('overview');
     const [searchOpen, setSearchOpen] = useState(false);
     const [notificationsOpen, setNotificationsOpen] = useState(false);
+    const [usingMockData, setUsingMockData] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     // Auto-refresh interval (30 seconds)
     const REFRESH_INTERVAL = 30000;
@@ -124,12 +129,23 @@ export function UnifiedDashboard() {
     const fetchDashboardData = useCallback(async () => {
         try {
             setRefreshing(true);
+            setError(null);
+            setUsingMockData(false);
 
-            // Fetch all dashboard data in parallel using the configured API client
+            // Get Clerk token for authentication
+            const token = await getToken();
+            if (!token) {
+                throw new Error('No authentication token available');
+            }
+
+            // Create authenticated API client
+            const authenticatedApi = createAuthenticatedApi(token);
+
+            // Fetch all dashboard data in parallel using the authenticated API client
             const [metricsResponse, kpisResponse, healthResponse] = await Promise.all([
-                api.get('/api/admin/dashboard/metrics'),
-                api.get('/api/admin/dashboard/kpis'),
-                api.get('/api/admin/dashboard/health')
+                authenticatedApi.get('/api/admin/dashboard/metrics'),
+                authenticatedApi.get('/api/admin/dashboard/kpis'),
+                authenticatedApi.get('/api/admin/dashboard/health')
             ]);
 
             setMetrics(metricsResponse.data);
@@ -137,95 +153,100 @@ export function UnifiedDashboard() {
             setSystemHealth(healthResponse.data);
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
-            // Fallback to mock data for development
-            setMetrics({
-                tenant_metrics: {
+            if (process.env.NODE_ENV === 'development') {
+                setUsingMockData(true);
+                // Fallback to mock data for development
+                setMetrics({
+                    tenant_metrics: {
+                        total_tenants: 150,
+                        active_tenants: 142,
+                        verified_tenants: 138,
+                        new_tenants: 12,
+                        growth_rate: 9.1
+                    },
+                    user_metrics: {
+                        total_users: 25000,
+                        active_users: 8900,
+                        new_users: 1200,
+                        active_in_period: 4500,
+                        retention_rate: 78.5
+                    },
+                    order_metrics: {
+                        total_orders: 45000,
+                        completed_orders: 42000,
+                        recent_orders: 150,
+                        total_revenue: 1250000,
+                        avg_order_value: 27.8,
+                        completion_rate: 93.3
+                    },
+                    product_metrics: {
+                        total_products: 12500,
+                        active_products: 11800,
+                        new_products: 450,
+                        total_inventory: 89000
+                    },
+                    security_metrics: {
+                        successful_logins: 1247,
+                        failed_logins: 23,
+                        security_violations: 5,
+                        emergency_lockdowns: 0,
+                        threat_level: 'LOW'
+                    },
+                    performance_metrics: {
+                        total_requests: 125000,
+                        avg_response_time: 125,
+                        error_count: 250,
+                        uptime_percentage: 99.9
+                    },
+                    last_updated: new Date().toISOString()
+                });
+                setKPIs({
                     total_tenants: 150,
                     active_tenants: 142,
-                    verified_tenants: 138,
-                    new_tenants: 12,
-                    growth_rate: 9.1
-                },
-                user_metrics: {
                     total_users: 25000,
                     active_users: 8900,
-                    new_users: 1200,
-                    active_in_period: 4500,
-                    retention_rate: 78.5
-                },
-                order_metrics: {
                     total_orders: 45000,
-                    completed_orders: 42000,
-                    recent_orders: 150,
                     total_revenue: 1250000,
-                    avg_order_value: 27.8,
-                    completion_rate: 93.3
-                },
-                product_metrics: {
-                    total_products: 12500,
-                    active_products: 11800,
-                    new_products: 450,
-                    total_inventory: 89000
-                },
-                security_metrics: {
-                    successful_logins: 1247,
-                    failed_logins: 23,
-                    security_violations: 5,
-                    emergency_lockdowns: 0,
-                    threat_level: 'LOW'
-                },
-                performance_metrics: {
-                    total_requests: 125000,
-                    avg_response_time: 125,
-                    error_count: 250,
-                    uptime_percentage: 99.9
-                },
-                last_updated: new Date().toISOString()
-            });
-            setKPIs({
-                total_tenants: 150,
-                active_tenants: 142,
-                total_users: 25000,
-                active_users: 8900,
-                total_orders: 45000,
-                total_revenue: 1250000,
-                avg_daily_tenants: 4.8,
-                avg_daily_users: 400,
-                avg_daily_orders: 1500,
-                avg_daily_revenue: 41667,
-                system_health_score: 95.0,
-                security_score: 98.0,
-                errors_today: 5,
-                security_events_today: 2,
-                lockdowns_today: 0
-            });
-            setSystemHealth({
-                overall_status: 'healthy',
-                uptime_percentage: 99.9,
-                database_status: 'healthy',
-                database_response_time: 0.005,
-                api_response_time: 0.125,
-                error_rate: 0.2,
-                memory_usage: 65.2,
-                cpu_usage: 42.1,
-                disk_usage: 78.5,
-                last_deployment: new Date().toISOString(),
-                alerts_count: 3,
-                critical_alerts_count: 1,
-                services_status: {
-                    'Authentication': 'healthy',
-                    'Order Processing': 'healthy',
-                    'Payment Gateway': 'warning',
-                    'Email Service': 'healthy',
-                    'SMS Service': 'healthy',
-                    'File Storage': 'healthy'
-                }
-            });
+                    avg_daily_tenants: 4.8,
+                    avg_daily_users: 400,
+                    avg_daily_orders: 1500,
+                    avg_daily_revenue: 41667,
+                    system_health_score: 95.0,
+                    security_score: 98.0,
+                    errors_today: 5,
+                    security_events_today: 2,
+                    lockdowns_today: 0
+                });
+                setSystemHealth({
+                    overall_status: 'healthy',
+                    uptime_percentage: 99.9,
+                    database_status: 'healthy',
+                    database_response_time: 0.005,
+                    api_response_time: 0.125,
+                    error_rate: 0.2,
+                    memory_usage: 65.2,
+                    cpu_usage: 42.1,
+                    disk_usage: 78.5,
+                    last_deployment: new Date().toISOString(),
+                    alerts_count: 3,
+                    critical_alerts_count: 1,
+                    services_status: {
+                        'Authentication': 'healthy',
+                        'Order Processing': 'healthy',
+                        'Payment Gateway': 'warning',
+                        'Email Service': 'healthy',
+                        'SMS Service': 'healthy',
+                        'File Storage': 'healthy'
+                    }
+                });
+            } else {
+                setError('Failed to load dashboard data. Please try again later.');
+            }
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
-    }, []);
+    }, [getToken]);
 
     useEffect(() => {
         fetchDashboardData();
@@ -266,6 +287,18 @@ export function UnifiedDashboard() {
 
     return (
         <div className="min-h-screen bg-gray-50">
+            {usingMockData && (
+                <div className="flex items-center bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded">
+                    <AlertTriangle className="w-5 h-5 mr-2 text-yellow-500" />
+                    <span>Warning: Showing mock data. API is unreachable.</span>
+                </div>
+            )}
+            {error && (
+                <div className="flex items-center bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded">
+                    <AlertTriangle className="w-5 h-5 mr-2 text-red-500" />
+                    <span>{error}</span>
+                </div>
+            )}
             {/* Professional Header */}
             <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

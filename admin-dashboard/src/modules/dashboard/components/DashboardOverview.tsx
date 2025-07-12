@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Building2, ShoppingCart, Shield, TrendingUp, AlertTriangle, CheckCircle, Users, DollarSign, ArrowRight, Eye } from 'lucide-react';
 import { QuickActions } from './QuickActions';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface DashboardMetrics {
     tenant_metrics: {
@@ -156,6 +157,59 @@ export function DashboardOverview({ kpis, metrics, loading = false }: DashboardO
         }
     };
 
+    // Helper to render a metric card/button
+    const MetricButton = ({
+        onClick,
+        icon,
+        label,
+        value,
+        description,
+        colorClass,
+        viewText,
+        to,
+        disabled = false,
+        tooltip
+    }: {
+        onClick?: () => void;
+        icon: React.ReactNode;
+        label: string;
+        value: string | number;
+        description: string;
+        colorClass: string;
+        viewText: string;
+        to?: string;
+        disabled?: boolean;
+        tooltip?: string;
+    }) => (
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button
+                        variant="ghost"
+                        className={`h-auto p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 w-full flex flex-col items-start ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        onClick={disabled ? undefined : onClick}
+                        disabled={disabled}
+                        tabIndex={disabled ? -1 : 0}
+                    >
+                        <div className="flex items-center justify-between w-full mb-2">
+                            {icon}
+                            <span className="text-xs text-gray-500">{label}</span>
+                        </div>
+                        <div className={`text-2xl font-bold ${colorClass}`}>{value}</div>
+                        <div className="text-xs text-gray-500 mt-1">{description}</div>
+                        <div className={`flex items-center mt-2 text-xs ${colorClass}`}>
+                            <span>{viewText}</span>
+                            <ArrowRight className="w-3 h-3 ml-1" />
+                        </div>
+                    </Button>
+                </TooltipTrigger>
+                {tooltip && (
+                    <TooltipContent>{tooltip}</TooltipContent>
+                )}
+            </Tooltip>
+        </TooltipProvider>
+    );
+
     if (loading) {
         return (
             <div className="space-y-8">
@@ -204,130 +258,71 @@ export function DashboardOverview({ kpis, metrics, loading = false }: DashboardO
                     <CardContent>
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                             {/* Total Tenants */}
-                            <Button
-                                variant="ghost"
-                                className="h-auto p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                            <MetricButton
                                 onClick={() => handleMetricClick('tenants')}
-                            >
-                                <div className="w-full text-left">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <Building2 className="w-5 h-5 text-blue-600" aria-hidden="true" />
-                                        <span className="text-xs text-gray-500">TENANTS</span>
-                                    </div>
-                                    <div className="text-2xl font-bold text-gray-900">{formatNumber(kpis.total_tenants)}</div>
-                                    <div className="text-xs text-gray-500 mt-1">Active merchants</div>
-                                    <div className="flex items-center mt-2 text-xs text-blue-600">
-                                        <span>View all tenants</span>
-                                        <ArrowRight className="w-3 h-3 ml-1" />
-                                    </div>
-                                </div>
-                            </Button>
-
+                                icon={<Building2 className="w-5 h-5 text-blue-600" aria-hidden="true" />}
+                                label="TENANTS"
+                                value={formatNumber(kpis.total_tenants)}
+                                description="Active merchants"
+                                colorClass="text-blue-600"
+                                viewText="View all tenants"
+                                to="/dashboard/tenants"
+                            />
                             {/* Active Users */}
-                            <Button
-                                variant="ghost"
-                                className="h-auto p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                            <MetricButton
                                 onClick={() => handleMetricClick('users')}
-                            >
-                                <div className="w-full text-left">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <Users className="w-5 h-5 text-green-600" aria-hidden="true" />
-                                        <span className="text-xs text-gray-500">USERS</span>
-                                    </div>
-                                    <div className="text-2xl font-bold text-gray-900">{formatNumber(kpis.active_users)}</div>
-                                    <div className="text-xs text-gray-500 mt-1">Currently active</div>
-                                    <div className="flex items-center mt-2 text-xs text-green-600">
-                                        <span>View user analytics</span>
-                                        <ArrowRight className="w-3 h-3 ml-1" />
-                                    </div>
-                                </div>
-                            </Button>
-
+                                icon={<Users className="w-5 h-5 text-green-600" aria-hidden="true" />}
+                                label="USERS"
+                                value={formatNumber(kpis.active_users)}
+                                description="Currently active"
+                                colorClass="text-green-600"
+                                viewText="View user analytics"
+                                to="/dashboard/users"
+                            />
                             {/* Total Revenue */}
-                            <Button
-                                variant="ghost"
-                                className="h-auto p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                            <MetricButton
                                 onClick={() => handleMetricClick('revenue')}
-                            >
-                                <div className="w-full text-left">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <DollarSign className="w-5 h-5 text-yellow-600" aria-hidden="true" />
-                                        <span className="text-xs text-gray-500">REVENUE</span>
-                                    </div>
-                                    <div className="text-2xl font-bold text-gray-900">{formatCurrency(kpis.total_revenue)}</div>
-                                    <div className="text-xs text-gray-500 mt-1">Total platform</div>
-                                    <div className="flex items-center mt-2 text-xs text-yellow-600">
-                                        <span>View revenue report</span>
-                                        <ArrowRight className="w-3 h-3 ml-1" />
-                                    </div>
-                                </div>
-                            </Button>
-
+                                icon={<DollarSign className="w-5 h-5 text-yellow-600" aria-hidden="true" />}
+                                label="REVENUE"
+                                value={formatCurrency(kpis.total_revenue)}
+                                description="Total platform"
+                                colorClass="text-yellow-600"
+                                viewText="View revenue report"
+                                to="/dashboard/analytics/revenue"
+                            />
                             {/* System Health */}
-                            <Button
-                                variant="ghost"
-                                className="h-auto p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                            <MetricButton
                                 onClick={() => handleMetricClick('health')}
-                            >
-                                <div className="w-full text-left">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <CheckCircle className="w-5 h-5 text-green-600" aria-hidden="true" />
-                                        <span className="text-xs text-gray-500">HEALTH</span>
-                                    </div>
-                                    <div className={`text-2xl font-bold ${getHealthColor(kpis.system_health_score)}`}>
-                                        {kpis.system_health_score}%
-                                    </div>
-                                    <div className="text-xs text-gray-500 mt-1">System status</div>
-                                    <div className="flex items-center mt-2 text-xs text-green-600">
-                                        <span>View system health</span>
-                                        <ArrowRight className="w-3 h-3 ml-1" />
-                                    </div>
-                                </div>
-                            </Button>
-
-                            {/* Security Score */}
-                            <Button
-                                variant="ghost"
-                                className="h-auto p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                                icon={<CheckCircle className="w-5 h-5 text-green-500" aria-hidden="true" />}
+                                label="HEALTH"
+                                value={kpis.system_health_score + '%'}
+                                description="System status"
+                                colorClass={getHealthColor(kpis.system_health_score)}
+                                viewText="View system health"
+                                to="/dashboard/monitoring/health"
+                            />
+                            {/* Security */}
+                            <MetricButton
                                 onClick={() => handleMetricClick('security')}
-                            >
-                                <div className="w-full text-left">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <Shield className="w-5 h-5 text-purple-600" aria-hidden="true" />
-                                        <span className="text-xs text-gray-500">SECURITY</span>
-                                    </div>
-                                    <div className={`text-2xl font-bold ${getSecurityColor(kpis.security_score)}`}>
-                                        {kpis.security_score}%
-                                    </div>
-                                    <div className="text-xs text-gray-500 mt-1">Threat level</div>
-                                    <div className="flex items-center mt-2 text-xs text-purple-600">
-                                        <span>View security dashboard</span>
-                                        <ArrowRight className="w-3 h-3 ml-1" />
-                                    </div>
-                                </div>
-                            </Button>
-
-                            {/* Errors Today */}
-                            <Button
-                                variant="ghost"
-                                className="h-auto p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                                icon={<Shield className="w-5 h-5 text-purple-600" aria-hidden="true" />}
+                                label="SECURITY"
+                                value={kpis.security_score + '%'}
+                                description="Threat level"
+                                colorClass={getSecurityColor(kpis.security_score)}
+                                viewText="View security dashboard"
+                                to="/dashboard/security"
+                            />
+                            {/* Errors */}
+                            <MetricButton
                                 onClick={() => handleMetricClick('errors')}
-                            >
-                                <div className="w-full text-left">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <AlertTriangle className="w-5 h-5 text-red-600" aria-hidden="true" />
-                                        <span className="text-xs text-gray-500">ERRORS</span>
-                                    </div>
-                                    <div className={`text-2xl font-bold ${getErrorColor(kpis.errors_today)}`}>
-                                        {kpis.errors_today}
-                                    </div>
-                                    <div className="text-xs text-gray-500 mt-1">Today&apos;s issues</div>
-                                    <div className="flex items-center mt-2 text-xs text-red-600">
-                                        <span>View error logs</span>
-                                        <ArrowRight className="w-3 h-3 ml-1" />
-                                    </div>
-                                </div>
-                            </Button>
+                                icon={<AlertTriangle className="w-5 h-5 text-red-600" aria-hidden="true" />}
+                                label="ERRORS"
+                                value={kpis.errors_today}
+                                description="Today's issues"
+                                colorClass={getErrorColor(kpis.errors_today)}
+                                viewText="View error logs"
+                                to="/dashboard/monitoring/logs"
+                            />
                         </div>
                     </CardContent>
                 </Card>
