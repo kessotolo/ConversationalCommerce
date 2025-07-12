@@ -18,7 +18,7 @@ from prometheus_client import (
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from backend.app.core.config.settings import get_settings
+from app.core.config.settings import get_settings
 
 logger = logging.getLogger(__name__)
 

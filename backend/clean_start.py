@@ -20,7 +20,7 @@ import shutil
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__))))
 
 # Import database configuration
-from backend.app.core.config.settings import get_settings
+from app.core.config.settings import get_settings
 settings = get_settings()
 
 def clean_start():
@@ -47,21 +47,20 @@ def clean_start():
     # Step 2a: Drop all enum types that might exist (at server level)
     print("Dropping existing enum types...")
     # Connect to the new database
-    drop_enums_cmd = f"PGPASSWORD={db_password} psql -U {db_user} -h {db_host} -p {db_port} -d {db_name} -c \"
-        DO $$ 
-        DECLARE
-            enum_type text;
-        BEGIN
-            FOR enum_type IN 
-                SELECT t.typname 
-                FROM pg_type t 
-                JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace 
-                WHERE t.typtype = 'e' AND n.nspname = 'public'
-            LOOP
-                EXECUTE 'DROP TYPE IF EXISTS ' || enum_type || ' CASCADE;';
-                RAISE NOTICE 'Dropped enum type: %', enum_type;
-            END LOOP;
-        END $$;\""
+    drop_enums_cmd = f"""PGPASSWORD={db_password} psql -U {db_user} -h {db_host} -p {db_port} -d {db_name} -c \"DO $$ 
+DECLARE
+    enum_type text;
+BEGIN
+    FOR enum_type IN 
+        SELECT t.typname 
+        FROM pg_type t 
+        JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace 
+        WHERE t.typtype = 'e' AND n.nspname = 'public'
+    LOOP
+        EXECUTE 'DROP TYPE IF EXISTS ' || enum_type || ' CASCADE;';
+        RAISE NOTICE 'Dropped enum type: %', enum_type;
+    END LOOP;
+END $$;\"""
     subprocess.run(drop_enums_cmd, shell=True, check=True)
     
     # Step 3: Clean up migrations directory
