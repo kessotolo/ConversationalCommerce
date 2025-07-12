@@ -166,7 +166,6 @@ export function DashboardOverview({ kpis, metrics, loading = false }: DashboardO
         description,
         colorClass,
         viewText,
-        to,
         disabled = false,
         tooltip
     }: {
