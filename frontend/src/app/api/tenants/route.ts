@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
 
         // Make request to backend API
         const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:8000';
-        const response = await fetch(`${backendUrl}/api/v1/tenants`, {
+        const response = await fetch(`${backendUrl}/api/v1/tenants/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
 
         // Make request to backend API
         const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:8000';
-        const response = await fetch(`${backendUrl}/api/v1/tenants?userId=${userId}`, {
+        const response = await fetch(`${backendUrl}/api/v1/tenants/?userId=${userId}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

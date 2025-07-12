@@ -23,7 +23,7 @@ class TenantOut(BaseModel):
     """
     Tenant output schema. phone_number is required, whatsapp_number is optional.
     """
-    id: str
+    id: UUID
     name: str
     subdomain: str
     custom_domain: Optional[str]

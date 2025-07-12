@@ -129,8 +129,16 @@ export default function StoreSetupPage() {
             });
 
             if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.message || 'Failed to create store');
+                let message = 'Failed to create store';
+                try {
+                    const data = await response.json();
+                    message = data.message || message;
+                } catch {
+                    // fallback to text if not JSON
+                    const text = await response.text();
+                    message = text || message;
+                }
+                throw new Error(message);
             }
 
             const result = await response.json();
@@ -207,10 +215,10 @@ export default function StoreSetupPage() {
                         {[1, 2, 3].map((stepNumber) => (
                             <div key={stepNumber} className="flex items-center">
                                 <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300 ${completedSteps.includes(stepNumber)
-                                        ? 'bg-[#6C9A8B] border-[#6C9A8B] text-white scale-110'
-                                        : step === stepNumber
-                                            ? 'border-[#6C9A8B] text-[#6C9A8B] scale-105'
-                                            : 'border-gray-300 text-gray-400'
+                                    ? 'bg-[#6C9A8B] border-[#6C9A8B] text-white scale-110'
+                                    : step === stepNumber
+                                        ? 'border-[#6C9A8B] text-[#6C9A8B] scale-105'
+                                        : 'border-gray-300 text-gray-400'
                                     }`}>
                                     {completedSteps.includes(stepNumber) ? (
                                         <CheckCircle className="w-6 h-6" />
@@ -220,8 +228,8 @@ export default function StoreSetupPage() {
                                 </div>
                                 {stepNumber < 3 && (
                                     <div className={`w-16 h-1 mx-3 transition-all duration-300 ${completedSteps.includes(stepNumber + 1)
-                                            ? 'bg-[#6C9A8B]'
-                                            : 'bg-gray-300'
+                                        ? 'bg-[#6C9A8B]'
+                                        : 'bg-gray-300'
                                         }`} />
                                 )}
                             </div>

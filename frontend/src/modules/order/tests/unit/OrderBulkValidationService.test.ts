@@ -1,5 +1,7 @@
 import { OrderBulkValidationService } from '../../services/OrderBulkValidationService';
-import { OrderStatus, PaymentStatus, ShippingMethod } from '../../models/order';
+import type { OrderCsvFormat } from '../../services/OrderCsvService';
+import { OrderStatus, PaymentMethod, PaymentStatus, ShippingMethod } from '../../models/order';
+import type { Order, PaymentDetails, ShippingDetails } from '../../models/order';
 
 describe('OrderBulkValidationService', () => {
   let orderBulkValidationService: OrderBulkValidationService;
@@ -140,10 +142,12 @@ describe('OrderBulkValidationService', () => {
     test('should validate payment status with proper nested structure', () => {
       // Arrange
       const orderIds = ['order-123', 'order-456'];
-      const fieldsToUpdate = {
+      const fieldsToUpdate: Partial<Order> = {
         payment: {
-          status: 'INVALID_STATUS' as any
-        }
+          method: PaymentMethod.CARD,
+          status: 'INVALID_STATUS' as PaymentStatus,
+          amount_paid: { amount: 100, currency: 'USD' }
+        } as PaymentDetails
       };
 
       // Act
@@ -174,10 +178,18 @@ describe('OrderBulkValidationService', () => {
     test('should validate shipping method with proper nested structure', () => {
       // Arrange
       const orderIds = ['order-123', 'order-456'];
-      const fieldsToUpdate = {
+      const fieldsToUpdate: Partial<Order> = {
         shipping: {
-          method: 'INVALID_METHOD' as any
-        }
+          method: 'INVALID_METHOD' as ShippingMethod,
+          address: {
+            street: '123 Test St',
+            city: 'Testville',
+            state: 'TS',
+            postalCode: '12345',
+            country: 'Testland'
+          },
+          shipping_cost: { amount: 10, currency: 'USD' }
+        } as ShippingDetails
       };
 
       // Act

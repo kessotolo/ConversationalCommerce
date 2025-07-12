@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from uuid import UUID
+import uuid
 
 from backend.app.api.deps import get_current_tenant_id, get_db
 from backend.app.models.tenant import Tenant
@@ -76,25 +77,25 @@ async def create_tenant(
     """
     tenant_service = TenantService()
 
-    try:
-        # Convert user ID to UUID
-        user_uuid = UUID(tenant_data.userId)
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid user ID format"
-        )
+    # Handle Clerk user IDs (they are strings, not UUIDs)
+    # For now, we'll create a user if they don't exist
+    # In a real implementation, you'd want to sync users from Clerk
 
-    # Check if user exists
-    user_query = select(User).where(User.id == user_uuid)
+    # Check if user exists by email or create a new one
+    user_query = select(User).where(User.email == tenant_data.storeEmail)
     user_result = await db.execute(user_query)
     user = user_result.scalar_one_or_none()
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+        # Create a new user for this Clerk user ID
+        user = User(
+            id=uuid.uuid4(),  # Generate a new UUID
+            email=tenant_data.storeEmail,
+            is_seller=False
         )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
 
     # Create tenant using service
     # Note: category and description are not stored in Tenant model

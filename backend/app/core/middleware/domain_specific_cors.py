@@ -46,15 +46,17 @@ class DomainSpecificCORSMiddleware(BaseHTTPMiddleware):
             "enwhe.io",
             "app.enwhe.io",
             "www.enwhe.io",
-            "localhost:3001",  # Development
-            "127.0.0.1:3001"   # Development
+            "localhost:3000",  # Development (frontend)
+            "127.0.0.1:3000"   # Development (frontend)
         }
 
         # Test domains (for pytest TestClient)
         self.test_domains = {
             "testserver",
             "localhost",
-            "127.0.0.1"
+            "127.0.0.1",
+            "localhost:3000",
+            "127.0.0.1:3000"
         }
 
         # SuperAdmin CORS configuration (Strict)
@@ -97,8 +99,8 @@ class DomainSpecificCORSMiddleware(BaseHTTPMiddleware):
                 "https://enwhe.io",
                 "https://app.enwhe.io",
                 "https://www.enwhe.io",
-                "http://localhost:3001",  # Development
-                "http://127.0.0.1:3001"   # Development
+                "http://localhost:3000",  # Development (frontend)
+                "http://127.0.0.1:3000"   # Development (frontend)
             ],
             "allow_credentials": True,
             "allow_methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],

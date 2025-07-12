@@ -1,17 +1,12 @@
 import { NextResponse } from 'next/server';
-
 import type { NextRequest } from 'next/server';
-
-/**
- * Type definition for auth session with UUID tenant data
- */
-// import type { AuthSessionWithTenant } from '@/modules/core/models/auth';
 
 /**
  * Custom middleware implementation that combines tenant handling with auth
  * While respecting clean architecture principles
  */
 async function middlewareImplementation(request: NextRequest) {
+
   // Get hostname from request (e.g. merchant-id.enwhe.io or customdomain.com)
   const hostname = request.headers.get('host') || '';
   const url = request.nextUrl.clone();
@@ -63,15 +58,6 @@ async function middlewareImplementation(request: NextRequest) {
     tenantIdentifier = hostname;
     identifierType = 'custom_domain';
   }
-
-  // Check if the current path is public
-  // const isPublicPath = publicPaths.some(
-  //   (publicPath) =>
-  //     url.pathname === publicPath ||
-  //     url.pathname.startsWith(`${publicPath}/`) ||
-  //     url.pathname.startsWith('/api/public/') ||
-  //     url.pathname.startsWith('/api/webhook/'),
-  // );
 
   // Add tenant identifier to request headers for server components to access
   const requestHeaders = new Headers(request.headers);
