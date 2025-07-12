@@ -38,7 +38,11 @@ class DomainSpecificCORSMiddleware(BaseHTTPMiddleware):
             "enwhe.com",
             "admin.enwhe.com",
             "localhost:3000",  # Development
-            "127.0.0.1:3000"   # Development
+            "localhost:3001",  # Development
+            "localhost:3002",  # Development
+            "127.0.0.1:3000",  # Development
+            "127.0.0.1:3001",  # Development
+            "127.0.0.1:3002"   # Development
         }
 
         # Main app domain configuration
@@ -47,7 +51,11 @@ class DomainSpecificCORSMiddleware(BaseHTTPMiddleware):
             "app.enwhe.io",
             "www.enwhe.io",
             "localhost:3000",  # Development (frontend)
-            "127.0.0.1:3000"   # Development (frontend)
+            "localhost:3001",  # Development (frontend)
+            "localhost:3002",  # Development (frontend)
+            "127.0.0.1:3000",  # Development (frontend)
+            "127.0.0.1:3001",  # Development (frontend)
+            "127.0.0.1:3002"   # Development (frontend)
         }
 
         # Test domains (for pytest TestClient)
@@ -65,7 +73,11 @@ class DomainSpecificCORSMiddleware(BaseHTTPMiddleware):
                 "https://enwhe.com",
                 "https://admin.enwhe.com",
                 "http://localhost:3000",  # Development
-                "http://127.0.0.1:3000"   # Development
+                "http://localhost:3001",  # Development
+                "http://localhost:3002",  # Development
+                "http://127.0.0.1:3000",  # Development
+                "http://127.0.0.1:3001",  # Development
+                "http://127.0.0.1:3002"   # Development
             ],
             "allow_credentials": True,
             "allow_methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -100,7 +112,11 @@ class DomainSpecificCORSMiddleware(BaseHTTPMiddleware):
                 "https://app.enwhe.io",
                 "https://www.enwhe.io",
                 "http://localhost:3000",  # Development (frontend)
-                "http://127.0.0.1:3000"   # Development (frontend)
+                "http://localhost:3001",  # Development (frontend)
+                "http://localhost:3002",  # Development (frontend)
+                "http://127.0.0.1:3000",  # Development (frontend)
+                "http://127.0.0.1:3001",  # Development (frontend)
+                "http://127.0.0.1:3002"   # Development (frontend)
             ],
             "allow_credentials": True,
             "allow_methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
