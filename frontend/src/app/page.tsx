@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { MessageCircle, LayoutDashboard, CheckCircle, Twitter, Linkedin } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
+import type { Route } from 'next';
 
 export default function Home() {
   const router = useRouter();
@@ -27,24 +28,24 @@ export default function Home() {
       // Check if user has completed onboarding by checking for tenant
       const checkUserOnboarding = async () => {
         try {
-          const response = await fetch(`/api/users/has-tenant?userId=${user.id}`);
+          const response = await fetch(`/api/v1/users/has-tenant?user_id=${user.id}`);
           if (response.ok) {
             const { hasTenant } = await response.json();
 
             // If user has a tenant, go to dashboard; otherwise, go to store setup
             if (hasTenant) {
-              router.push('/dashboard');
+              router.push('/dashboard' as Route);
             } else {
-              router.push('/store-setup');
+              router.push('/store-setup' as Route);
             }
           } else {
             // If API call fails, redirect to store setup as fallback
-            router.push('/store-setup');
+            router.push('/store-setup' as Route);
           }
         } catch (error) {
           console.error('Error checking user onboarding status:', error);
           // If there's an error, redirect to store setup as fallback
-          router.push('/store-setup');
+          router.push('/store-setup' as Route);
         }
       };
 
@@ -116,7 +117,7 @@ export default function Home() {
           <button
             type="button"
             className="px-8 py-3 rounded-full bg-highlight text-primary font-semibold text-lg shadow cta-animate transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-highlight focus:ring-offset-2 cursor-pointer relative overflow-hidden"
-            onClick={() => router.push('/sign-up')}
+            onClick={() => router.push('/sign-up' as Route)}
             aria-label="Launch Your Store Free"
             data-testid="hero-primary-cta"
           >
@@ -125,7 +126,7 @@ export default function Home() {
           <button
             type="button"
             className="px-8 py-3 rounded-full border-2 border-accent text-accent font-semibold text-lg bg-section hover:bg-accent hover:text-section cta-animate transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 cursor-pointer hidden sm:inline"
-            onClick={() => router.push('/sign-in')}
+            onClick={() => router.push('/sign-in' as Route)}
             aria-label="Already selling? Log in"
             data-testid="hero-login-cta"
           >
@@ -137,7 +138,7 @@ export default function Home() {
           <button
             type="button"
             className="text-accent underline text-sm font-medium hover:text-highlight transition-colors"
-            onClick={() => router.push('/sign-in')}
+            onClick={() => router.push('/sign-in' as Route)}
             aria-label="Already selling? Log in"
             data-testid="hero-login-link"
           >
@@ -208,7 +209,7 @@ export default function Home() {
           <button
             type="button"
             className="w-full sm:w-auto px-8 py-3 rounded-full bg-highlight text-primary font-semibold text-lg shadow hover:bg-accent hover:text-section border-2 border-highlight transition-all duration-200 mb-2 focus:outline-none focus:ring-2 focus:ring-highlight focus:ring-offset-2 relative overflow-hidden ripple"
-            onClick={() => router.push('/sign-up')}
+            onClick={() => router.push('/sign-up' as Route)}
             aria-label="Start Free — No Hassle"
             data-testid="quickstart-cta"
           >

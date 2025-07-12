@@ -21,9 +21,7 @@ export default function SignInCatchallPage() {
                 <SignIn
                     routing="path"
                     path="/sign-in"
-                    redirectUrl={process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL || "/dashboard"}
                     fallbackRedirectUrl={process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL || "/dashboard"}
-                    afterSignInUrl={process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL || "/dashboard"}
                 />
             </div>
         </div>

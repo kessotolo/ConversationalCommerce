@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
+import type { Route } from 'next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -109,22 +110,18 @@ export default function StoreSetupPage() {
             const subdomain = generatedSubdomain || generateSubdomain(formData.storeName);
             const whatsappNumber = formData.whatsappNumber || formData.phoneNumber;
 
-            // Create tenant/store
-            const response = await fetch('/api/tenants', {
+            // Create tenant/store using the correct API endpoint and schema
+            const response = await fetch('/api/v1/tenants', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    storeName: formData.storeName,
                     businessName: formData.businessName,
+                    subdomain: subdomain,
                     phoneNumber: formData.phoneNumber,
                     whatsappNumber: whatsappNumber,
                     storeEmail: formData.email,
-                    category: formData.category,
-                    description: formData.description,
-                    subdomain,
-                    userId: user.id,
                 }),
             });
 
@@ -132,7 +129,7 @@ export default function StoreSetupPage() {
                 let message = 'Failed to create store';
                 try {
                     const data = await response.json();
-                    message = data.message || message;
+                    message = data.detail || data.message || message;
                 } catch {
                     // fallback to text if not JSON
                     const text = await response.text();
@@ -150,6 +147,7 @@ export default function StoreSetupPage() {
             });
             setShowSuccess(true);
         } catch (err) {
+            console.error('Store creation error:', err);
             setError(err instanceof Error ? err.message : 'Something went wrong');
         } finally {
             setLoading(false);
@@ -181,7 +179,7 @@ export default function StoreSetupPage() {
     }
 
     if (!user) {
-        router.push('/sign-in');
+        router.push('/sign-in' as Route);
         return null;
     }
 
@@ -190,7 +188,7 @@ export default function StoreSetupPage() {
             <StoreSetupSuccess
                 storeName={createdStore.name}
                 subdomain={createdStore.subdomain}
-                onContinue={() => router.push('/dashboard')}
+                onContinue={() => router.push('/dashboard' as Route)}
             />
         );
     }

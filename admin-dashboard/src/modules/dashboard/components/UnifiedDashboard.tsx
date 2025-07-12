@@ -126,6 +126,21 @@ export function UnifiedDashboard() {
     // Auto-refresh interval (30 seconds)
     const REFRESH_INTERVAL = 30000;
 
+    // Security check - prevent unauthorized access
+    if (!isSignedIn) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-16 h-16 bg-red-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <Shield className="w-8 h-8 text-white" />
+                    </div>
+                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+                    <p className="text-gray-600">You must be signed in to access the SuperAdmin dashboard.</p>
+                </div>
+            </div>
+        );
+    }
+
     const fetchDashboardData = useCallback(async () => {
         try {
             setRefreshing(true);

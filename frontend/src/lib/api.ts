@@ -110,7 +110,10 @@ if (FEATURES.offlineMode && typeof window !== 'undefined') {
 // Add request interceptor to include auth token
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('clerk-token');
+    // Try multiple possible token storage keys
+    const token = localStorage.getItem('clerk-token') ||
+      localStorage.getItem('authToken') ||
+      localStorage.getItem('__clerk_client_jwt');
     if (token && typeof config === 'object' && config !== null && 'headers' in config) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
@@ -235,7 +238,8 @@ export const orderService = {
 // Dashboard endpoints
 export const dashboardService = {
   getStats: async (): Promise<ApiResponse<DashboardStatsResponse>> => {
-    const response = await apiClient.get('/api/v1/dashboard/stats');
+    // Use development endpoint for now
+    const response = await apiClient.get('/api/v1/dashboard/stats/dev');
     return response.data;
   },
 };

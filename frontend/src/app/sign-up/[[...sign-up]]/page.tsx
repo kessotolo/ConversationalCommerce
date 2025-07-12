@@ -21,9 +21,7 @@ export default function SignUpCatchallPage() {
                 <SignUp
                     routing="path"
                     path="/sign-up"
-                    redirectUrl={process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL || "/store-setup"}
                     fallbackRedirectUrl={process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL || "/store-setup"}
-                    afterSignUpUrl={process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL || "/store-setup"}
                     signInUrl="/sign-in"
                 />
             </div>
