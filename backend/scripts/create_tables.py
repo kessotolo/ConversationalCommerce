@@ -14,24 +14,24 @@ import backend.app
 sys.modules['app'] = sys.modules['backend.app']
 
 from sqlalchemy import create_engine, inspect, MetaData, Table
-from backend.app.core.config.settings.settings import Settings
+from app.core.config.settings.settings import Settings
 
 # Import the Base from app.db to match what models are importing
-from backend.app.db import Base
+from app.db import Base
 
 # Explicitly import all models to ensure they're registered with Base
-from backend.app.models.conversation_event import ConversationEvent
-from backend.app.models.complaint import Complaint
-from backend.app.models.order import Order
-from backend.app.models.product import Product
-from backend.app.models.seller_profile import SellerProfile
-from backend.app.models.storefront_theme import StorefrontTheme
-from backend.app.models.tenant import Tenant
-from backend.app.models.user import User
-from backend.app.models.customer import Customer
-from backend.app.models.address_book import AddressBook
-from backend.app.models.saved_payment_method import SavedPaymentMethod
-from backend.app.models.notification_preferences import NotificationPreferences
+from app.models.conversation_event import ConversationEvent
+from app.models.complaint import Complaint
+from app.models.order import Order
+from app.models.product import Product
+from app.models.seller_profile import SellerProfile
+from app.models.storefront_theme import StorefrontTheme
+from app.models.tenant import Tenant
+from app.models.user import User
+from app.models.customer import Customer
+from app.models.address_book import AddressBook
+from app.models.saved_payment_method import SavedPaymentMethod
+from app.models.notification_preferences import NotificationPreferences
 
 def main():
     """Create all tables in the database."""
