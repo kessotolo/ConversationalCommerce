@@ -16,7 +16,7 @@ export function AuthRedirect() {
     // Add a small delay to ensure state is fully processed
     const timer = setTimeout(() => {
       // If user is signed in and on auth pages, redirect to dashboard
-      if (isSignedIn && (pathname === '/sign-in' || pathname === '/sign-up' || pathname === '/')) {
+      if (isSignedIn && (pathname === '/auth/sign-in' || pathname === '/auth/sign-up' || pathname === '/')) {
         router.push('/dashboard');
       }
 

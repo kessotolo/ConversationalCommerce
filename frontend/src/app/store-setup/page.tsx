@@ -131,9 +131,8 @@ export default function StoreSetupPage() {
                     const data = await response.json();
                     message = data.detail || data.message || message;
                 } catch {
-                    // fallback to text if not JSON
-                    const text = await response.text();
-                    message = text || message;
+                    // fallback to status text if not JSON
+                    message = response.statusText || message;
                 }
                 throw new Error(message);
             }
@@ -179,7 +178,7 @@ export default function StoreSetupPage() {
     }
 
     if (!user) {
-        router.push('/sign-in' as Route);
+        router.push('/auth/sign-in' as Route);
         return null;
     }
 

@@ -16,14 +16,14 @@ export default function SignInCatchallPage() {
     }, []);
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-white">
-            <div className="w-full max-w-md mx-auto p-6 bg-white rounded-2xl shadow-lg">
+        <main className="min-h-screen flex items-center justify-center bg-white">
+            <section className="w-full max-w-md mx-auto p-6 bg-white rounded-2xl shadow-lg" aria-label="Sign in form">
                 <SignIn
                     routing="path"
-                    path="/sign-in"
-                    fallbackRedirectUrl={process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL || "/dashboard"}
+                    path="/auth/sign-in"
+                    fallbackRedirectUrl="/dashboard"
                 />
-            </div>
-        </div>
+            </section>
+        </main>
     );
 }

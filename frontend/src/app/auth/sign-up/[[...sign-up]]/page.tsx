@@ -16,15 +16,15 @@ export default function SignUpCatchallPage() {
     }, []);
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-white">
-            <div className="w-full max-w-md mx-auto p-6 bg-white rounded-2xl shadow-lg">
+        <main className="min-h-screen flex items-center justify-center bg-white">
+            <section className="w-full max-w-md mx-auto p-6 bg-white rounded-2xl shadow-lg" aria-label="Sign up form">
                 <SignUp
                     routing="path"
-                    path="/sign-up"
-                    fallbackRedirectUrl={process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL || "/store-setup"}
-                    signInUrl="/sign-in"
+                    path="/auth/sign-up"
+                    fallbackRedirectUrl="/store-setup"
+                    signInUrl="/auth/sign-in"
                 />
-            </div>
-        </div>
+            </section>
+        </main>
     );
 }

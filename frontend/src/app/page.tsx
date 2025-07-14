@@ -117,7 +117,7 @@ export default function Home() {
           <button
             type="button"
             className="px-8 py-3 rounded-full bg-highlight text-primary font-semibold text-lg shadow cta-animate transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-highlight focus:ring-offset-2 cursor-pointer relative overflow-hidden"
-            onClick={() => router.push('/sign-up' as Route)}
+            onClick={() => router.push('/auth/sign-up' as Route)}
             aria-label="Launch Your Store Free"
             data-testid="hero-primary-cta"
           >
@@ -126,7 +126,7 @@ export default function Home() {
           <button
             type="button"
             className="px-8 py-3 rounded-full border-2 border-accent text-accent font-semibold text-lg bg-section hover:bg-accent hover:text-section cta-animate transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 cursor-pointer hidden sm:inline"
-            onClick={() => router.push('/sign-in' as Route)}
+            onClick={() => router.push('/auth/sign-in' as Route)}
             aria-label="Already selling? Log in"
             data-testid="hero-login-cta"
           >
@@ -138,7 +138,7 @@ export default function Home() {
           <button
             type="button"
             className="text-accent underline text-sm font-medium hover:text-highlight transition-colors"
-            onClick={() => router.push('/sign-in' as Route)}
+            onClick={() => router.push('/auth/sign-in' as Route)}
             aria-label="Already selling? Log in"
             data-testid="hero-login-link"
           >
@@ -209,7 +209,7 @@ export default function Home() {
           <button
             type="button"
             className="w-full sm:w-auto px-8 py-3 rounded-full bg-highlight text-primary font-semibold text-lg shadow hover:bg-accent hover:text-section border-2 border-highlight transition-all duration-200 mb-2 focus:outline-none focus:ring-2 focus:ring-highlight focus:ring-offset-2 relative overflow-hidden ripple"
-            onClick={() => router.push('/sign-up' as Route)}
+            onClick={() => router.push('/auth/sign-up' as Route)}
             aria-label="Start Free — No Hassle"
             data-testid="quickstart-cta"
           >

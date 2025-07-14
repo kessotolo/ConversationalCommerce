@@ -6,23 +6,23 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 # Import Base and all models using absolute imports (per coding rules)
-from backend.app.db.base_class import Base
-import backend.app.models.user
-import backend.app.models.customer
-import backend.app.models.tenant
-import backend.app.models.product
-import backend.app.models.order
-import backend.app.models.cart
-import backend.app.models.storefront
-import backend.app.models.address_book
-import backend.app.models.notification_preferences
-import backend.app.models.saved_payment_method
-import backend.app.models.seller_profile
-import backend.app.models.complaint
-import backend.app.models.conversation_event
-import backend.app.models.storefront_theme
-import backend.app.models.ai_config
-import backend.app.models.payment
+from app.db.base_class import Base
+import app.models.user
+import app.models.customer
+import app.models.tenant
+import app.models.product
+import app.models.order
+import app.models.cart
+import app.models.storefront
+import app.models.address_book
+import app.models.notification_preferences
+import app.models.saved_payment_method
+import app.models.seller_profile
+import app.models.complaint
+import app.models.conversation_event
+import app.models.storefront_theme
+import app.models.ai_config
+import app.models.payment
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

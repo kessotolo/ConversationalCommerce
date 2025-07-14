@@ -5,6 +5,7 @@ import { useTenant } from '@/contexts/TenantContext';
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import type { Route } from 'next';
 
 export default function DashboardRootLayout({ children }: { children: React.ReactNode }) {
   const { tenant, isLoading: isTenantLoading } = useTenant();
@@ -17,7 +18,7 @@ export default function DashboardRootLayout({ children }: { children: React.Reac
 
     // If user is not authenticated, redirect to sign-in
     if (!user) {
-      router.push('/sign-in');
+      router.push('/auth/sign-in' as Route);
       return;
     }
 
