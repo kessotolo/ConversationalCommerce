@@ -34,14 +34,14 @@ show_usage() {
     echo "Commands:"
     echo "  create    - Create environment branch"
     echo "  deploy    - Deploy to environment"
-    echo "  merge     - Merge environment to main"
+    echo "  merge     - Merge environment to maincopy (production)"
     echo "  status    - Show branch status"
     echo "  cleanup   - Clean up old branches"
     echo ""
     echo "Environments:"
     echo "  dev       - Development environment"
     echo "  uat       - UAT/Staging environment"
-    echo "  prod      - Production environment"
+    echo "  prod      - Production environment (maincopy)"
     echo ""
     echo "Examples:"
     echo "  $0 create dev"
@@ -71,11 +71,11 @@ create_branch() {
             ;;
     esac
 
-    log "Creating $branch_name branch from main..."
+    log "Creating $branch_name branch from maincopy..."
 
-    # Ensure we're on main and up to date
-    git checkout main
-    git pull origin main
+    # Ensure we're on maincopy and up to date
+    git checkout maincopy
+    git pull origin maincopy
 
     # Create new branch
     git checkout -b $branch_name
@@ -97,7 +97,7 @@ deploy_branch() {
             branch_name="uat"
             ;;
         "prod")
-            branch_name="main"
+            branch_name="maincopy"
             ;;
         *)
             error "Invalid environment: $env"
@@ -117,7 +117,7 @@ deploy_branch() {
     log "Deployment to $env completed"
 }
 
-# Function to merge environment to main
+# Function to merge environment to maincopy
 merge_branch() {
     local env=$1
     local branch_name=""
@@ -139,20 +139,20 @@ merge_branch() {
             ;;
     esac
 
-    log "Merging $branch_name to main..."
+    log "Merging $branch_name to maincopy..."
 
-    # Ensure we're on main and up to date
-    git checkout main
-    git pull origin main
+    # Ensure we're on maincopy and up to date
+    git checkout maincopy
+    git pull origin maincopy
 
     # Merge the branch
-    git merge $branch_name --no-ff -m "Merge $branch_name to main"
+    git merge $branch_name --no-ff -m "Merge $branch_name to maincopy"
 
     # Push to remote
-    git push origin main
+    git push origin maincopy
 
     log "Merge completed successfully"
-    echo -e "${GREEN}✅ $branch_name has been merged to main${NC}"
+    echo -e "${GREEN}✅ $branch_name has been merged to maincopy${NC}"
 }
 
 # Function to show branch status
@@ -180,7 +180,7 @@ cleanup_branches() {
     log "Cleaning up old branches..."
 
     # Delete local branches that have been merged
-    git branch --merged main | grep -v "main" | xargs -r git branch -d
+    git branch --merged maincopy | grep -v "maincopy" | xargs -r git branch -d
 
     # Delete remote tracking branches that no longer exist on remote
     git remote prune origin

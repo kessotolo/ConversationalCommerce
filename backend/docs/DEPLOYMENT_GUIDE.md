@@ -10,12 +10,12 @@ This guide covers the deployment process for ConversationalCommerce across diffe
 |-------------|---------|--------|-----|----------|
 | **Development** | Active development | `dev` | `dev.enwhe.io` | `conversationalcommerce_dev` |
 | **UAT/Staging** | Testing & QA | `uat` | `uat.enwhe.io` | `conversationalcommerce_uat` |
-| **Production** | Live users | `main` | `enwhe.io` | `conversationalcommerce_prod` |
+| **Production** | Live users | `maincopy` | `enwhe.io` | `conversationalcommerce_prod` |
 
 ### **Branch Strategy**
 
 ```
-main (production)
+maincopy (production)
 ├── uat (staging/testing)
 ├── dev (development)
 └── feature branches (individual work)
@@ -60,7 +60,7 @@ git push origin uat
 ### **3. Production Deployment**
 
 ```bash
-# After UAT approval, merge to main
+# After UAT approval, merge to maincopy
 ./scripts/manage_branches.sh merge uat
 
 # Deploy to production
