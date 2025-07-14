@@ -3,11 +3,11 @@ from uuid import UUID
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
 
-from app.app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
-from app.app.core.security.auth_deps import require_auth
-from app.app.core.security.role_based_auth import RoleChecker, RoleType
-from app.app.api.deps import get_db
-from app.app.schemas.order import (
+from app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
+from app.core.security.auth_deps import require_auth
+from app.core.security.role_based_auth import RoleChecker, RoleType
+from app.api.deps import get_db
+from app.schemas.order import (
     OrderCreate,
     OrderResponse,
     OrderSearchParams,
@@ -17,7 +17,7 @@ from app.app.schemas.order import (
     PaginatedOrdersResponse,
     ModernOrderCreate,
 )
-from app.app.services.order_service import (
+from app.services.order_service import (
     OrderError,
     OrderNotFoundError,
     OrderService,

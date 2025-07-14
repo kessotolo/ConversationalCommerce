@@ -5,10 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.app.api import deps
-from app.app.core.enforcement.violation_service import violation_service
-from app.app.models.violation import Violation
-from app.app.schemas.violation import ViolationResolveUpdate, ViolationResponse
+from app.api import deps
+from app.core.enforcement.violation_service import violation_service
+from app.models.violation import Violation
+from app.schemas.violation import ViolationResolveUpdate, ViolationResponse
 
 router = APIRouter()
 

@@ -3,8 +3,8 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 
-from app.app.models.analytics import ScheduledReport as ScheduledReportModel
-from app.app.schemas.analytics import ScheduledReportCreate, ScheduledReportUpdate, ScheduledReport
+from app.models.analytics import ScheduledReport as ScheduledReportModel
+from app.schemas.analytics import ScheduledReportCreate, ScheduledReportUpdate, ScheduledReport
 
 class ScheduledReportRepository:
     @staticmethod
@@ -130,7 +130,7 @@ class ScheduledReportRepository:
         db_report.last_run_date = run_date
         
         # Calculate next run date based on frequency
-        from app.app.services.report_scheduler_service import ReportSchedulerService
+        from app.services.report_scheduler_service import ReportSchedulerService
         db_report.next_run_date = await ReportSchedulerService.calculate_next_run_date(
             db_report.frequency, 
             run_date

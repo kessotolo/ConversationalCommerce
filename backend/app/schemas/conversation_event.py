@@ -47,6 +47,14 @@ class ConversationEventCreate(ConversationEventBase):
     pass
 
 
+class ConversationEventUpdate(BaseModel):
+    conversation_id: Optional[UUID] = None
+    user_id: Optional[UUID] = None
+    event_type: Optional[ConversationEventType] = None
+    payload: Optional[Dict[str, Any]] = None
+    event_metadata: Optional[Dict[str, Any]] = None
+
+
 class ConversationEventResponse(ConversationEventBase):
     id: UUID
     created_at: datetime

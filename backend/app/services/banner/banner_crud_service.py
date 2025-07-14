@@ -7,16 +7,16 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import or_, desc
 
-from app.app.models.storefront_banner import (
+from app.models.storefront_banner import (
     BannerStatus,
     BannerType,
     StorefrontBanner,
     TargetAudience,
 )
-from app.app.models.tenant import Tenant
-from app.app.models.user import User
-from app.app.services.storefront_asset_service import get_asset, track_asset_usage
-from app.app.services.storefront.permissions.storefront_permissions_service import StorefrontPermissionsService
+from app.models.tenant import Tenant
+from app.models.user import User
+from app.services.storefront_asset_service import get_asset, track_asset_usage
+from app.services.storefront.permissions.storefront_permissions_service import StorefrontPermissionsService
 
 # CRUD operations for banners
 

@@ -3,28 +3,28 @@ from typing import Any
 from fastapi import APIRouter, Body, Depends, Header, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from app.app.api import deps
-from app.app.api.deps.security_deps import payment_security_checks
-from app.app.core.auth import get_current_active_user
-from app.app.core.config.settings import get_settings
-from app.app.core.security.payment_security import mask_sensitive_data
-from app.app.models.tenant import Tenant
-from app.app.models.user import User
-from app.app.services.admin.admin_user.service import AdminUserService
-from app.app.services.audit_service import AuditActionType, AuditResourceType, create_audit_log
-from app.app.schemas.payment.payment import (
+from app.api import deps
+from app.api.deps.security_deps import payment_security_checks
+from app.core.auth import get_current_active_user
+from app.core.config.settings import get_settings
+from app.core.security.payment_security import mask_sensitive_data
+from app.models.tenant import Tenant
+from app.models.user import User
+from app.services.admin.admin_user.service import AdminUserService
+from app.services.audit_service import AuditActionType, AuditResourceType, create_audit_log
+from app.schemas.payment.payment import (
     PaymentInitializeResponseWithWrapper,
     PaymentProvider,
     PaymentSettings,
     PaymentSettingsResponseWithWrapper,
     PaymentVerificationResponseWithWrapper,
 )
-from app.app.schemas.payment.payment_validation import (
+from app.schemas.payment.payment_validation import (
     EnhancedManualPaymentProof,
     EnhancedPaymentInitializeRequest,
 )
-from app.app.services.payment.payment_provider import get_payment_provider
-from app.app.services.payment.payment_service import PaymentService
+from app.services.payment.payment_provider import get_payment_provider
+from app.services.payment.payment_service import PaymentService
 
 router = APIRouter()
 

@@ -5,11 +5,11 @@ from sqlalchemy import select
 from uuid import UUID
 import uuid
 
-from app.app.api.deps import get_current_tenant_id, get_db
-from app.app.models.tenant import Tenant
-from app.app.models.user import User
-from app.app.schemas.tenant import TenantOut, TenantUpdate, TenantCreate
-from app.app.services.tenant.service import TenantService
+from app.api.deps import get_current_tenant_id, get_db
+from app.models.tenant import Tenant
+from app.models.user import User
+from app.schemas.tenant import TenantOut, TenantUpdate, TenantCreate
+from app.services.tenant.service import TenantService
 
 router = APIRouter()
 

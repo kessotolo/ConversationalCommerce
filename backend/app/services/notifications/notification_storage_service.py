@@ -6,8 +6,8 @@ from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from app.app.models.notifications.admin_notification import AdminNotification
-from app.app.core.notifications.unified_notification_system import (
+from app.models.notifications.admin_notification import AdminNotification
+from app.core.notifications.unified_notification_system import (
     UnifiedNotification,
     RecipientType,
     NotificationPriority,

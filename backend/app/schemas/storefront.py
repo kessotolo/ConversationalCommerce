@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.app.utils.domain_validator import validate_domain, validate_subdomain
+from app.utils.domain_validator import validate_domain, validate_subdomain
 
 
 class StorefrontConfigBase(BaseModel):

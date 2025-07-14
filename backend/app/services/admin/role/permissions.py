@@ -9,13 +9,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
-from app.app.models.admin.role import Role
-from app.app.models.admin.role_permission import RolePermission
-from app.app.models.admin.permission import Permission
-from app.app.core.exceptions import ResourceNotFoundError, ValidationError
-from app.app.services.admin.role.crud import get_role
-from app.app.services.admin.role.hierarchy import get_all_ancestor_roles
-from app.app.services.admin.permission.crud import get_permission
+from app.models.admin.role import Role
+from app.models.admin.role_permission import RolePermission
+from app.models.admin.permission import Permission
+from app.core.exceptions import ResourceNotFoundError, ValidationError
+from app.services.admin.role.crud import get_role
+from app.services.admin.role.hierarchy import get_all_ancestor_roles
+from app.services.admin.permission.crud import get_permission
 
 
 async def assign_permission_to_role(

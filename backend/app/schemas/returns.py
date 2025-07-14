@@ -4,7 +4,7 @@ import uuid
 
 from pydantic import BaseModel, Field, validator, root_validator
 
-from app.app.models.returns import ReturnStatus, ReturnReason, RefundMethod
+from app.models.returns import ReturnStatus, ReturnReason, RefundMethod
 
 
 # Base schema for address used in returns

@@ -9,9 +9,9 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 from twilio.rest import Client
 
-from app.app.core.config.settings import get_settings
-from app.app.db.async_session import get_async_session_local
-from app.app.models.tenant import Tenant
+from app.core.config.settings import get_settings
+from app.db.async_session import get_async_session_local
+from app.models.tenant import Tenant
 
 settings = get_settings()
 logger = logging.getLogger(__name__)
@@ -137,7 +137,7 @@ class NotificationService:
         """Send in-app notification through WebSocket"""
         # This will be handled by the WebSocket service
         # The notification will be broadcast to all connected clients for the tenant
-        from app.app.core.websocket.monitoring import connection_manager
+        from app.core.websocket.monitoring import connection_manager
 
         await connection_manager.broadcast_to_tenant(
             notification.tenant_id,

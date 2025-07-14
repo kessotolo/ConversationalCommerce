@@ -3,7 +3,7 @@ Synchronous database engine configuration for Alembic migrations.
 """
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.app.db.engines.base import get_database_url
+from app.db.engines.base import get_database_url
 
 
 def get_sync_engine():

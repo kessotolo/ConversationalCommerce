@@ -10,14 +10,14 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from textblob import TextBlob
 
-from app.app.core.notifications.notification_service import (
+from app.core.notifications.notification_service import (
     Notification,
     NotificationChannel,
     NotificationPriority,
     notification_service,
 )
-from app.app.db.async_session import get_async_session_local
-from app.app.models.content_filter import ContentAnalysisResult, ContentFilterRule
+from app.db.async_session import get_async_session_local
+from app.models.content_filter import ContentAnalysisResult, ContentFilterRule
 
 # Skip heavy downloads in test mode
 IS_TESTING = os.environ.get("TESTING", "false").lower() == "true"

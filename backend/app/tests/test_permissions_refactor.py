@@ -13,13 +13,13 @@ import pytest
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.app.models.storefront_permission import StorefrontRole, StorefrontSectionType
-from app.app.services.storefront.permissions.storefront_permissions_service import StorefrontPermissionsService
-from app.app.services.storefront.permissions.storefront_role_service import assign_role, has_permission
-from app.app.services.storefront.permissions.storefront_section_permissions_service import set_section_permission
-from app.app.services.storefront.permissions.storefront_component_permissions_service import set_component_permission
-from app.app.services.storefront.permissions.storefront_permissions_validator import validate_theme_settings
-from app.app.services.storefront.permissions.storefront_html_sanitizer import sanitize_html_content
+from app.models.storefront_permission import StorefrontRole, StorefrontSectionType
+from app.services.storefront.permissions.storefront_permissions_service import StorefrontPermissionsService
+from app.services.storefront.permissions.storefront_role_service import assign_role, has_permission
+from app.services.storefront.permissions.storefront_section_permissions_service import set_section_permission
+from app.services.storefront.permissions.storefront_component_permissions_service import set_component_permission
+from app.services.storefront.permissions.storefront_permissions_validator import validate_theme_settings
+from app.services.storefront.permissions.storefront_html_sanitizer import sanitize_html_content
 
 
 class TestPermissionsRefactor:

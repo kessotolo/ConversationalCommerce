@@ -4,11 +4,11 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 from sqlalchemy.orm import Session
 
-from app.app.api.deps import get_current_active_user, get_db
-from app.app.models.storefront_logo import LogoStatus, LogoType
-from app.app.models.user import User
-from app.app.schemas.storefront_logo import LogoCreate, LogoList, LogoResponse, LogoUpdate
-from app.app.services import storefront_logo_service
+from app.api.deps import get_current_active_user, get_db
+from app.models.storefront_logo import LogoStatus, LogoType
+from app.models.user import User
+from app.schemas.storefront_logo import LogoCreate, LogoList, LogoResponse, LogoUpdate
+from app.services import storefront_logo_service
 
 router = APIRouter()
 

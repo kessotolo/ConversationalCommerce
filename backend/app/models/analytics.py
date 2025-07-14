@@ -5,9 +5,9 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from app.app.db.base_class import Base
-from app.app.models.tenant import Tenant
-from app.app.models.user import User
+from app.db.base_class import Base
+from app.models.tenant import Tenant
+from app.models.user import User
 
 
 class AnalyticsEvent(Base):

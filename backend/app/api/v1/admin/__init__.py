@@ -10,7 +10,7 @@ authentication and authorization.
 
 from fastapi import APIRouter
 
-from app.app.api.v1.admin.endpoints import (
+from app.api.v1.admin.endpoints import (
     dashboard,
     products,
     orders,

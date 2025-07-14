@@ -7,10 +7,10 @@ This module handles the creation and management of default system roles.
 from typing import Dict
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.app.models.admin.role import Role
-from app.app.core.errors.exceptions import ValidationError
-from app.app.services.admin.role.crud import create_role, get_role_by_name
-from app.app.services.admin.role.hierarchy import add_role_parent
+from app.models.admin.role import Role
+from app.core.errors.exceptions import ValidationError
+from app.services.admin.role.crud import create_role, get_role_by_name
+from app.services.admin.role.hierarchy import add_role_parent
 
 
 async def create_system_roles(

@@ -4,14 +4,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 from uuid import UUID
 
-from app.app.api.deps import get_db, get_current_admin
-from app.app.models.order_return import OrderReturn
-from app.app.schemas.order_return import (
+from app.api.deps import get_db, get_current_admin
+from app.models.order_return import OrderReturn
+from app.schemas.order_return import (
     OrderReturnResponse,
     OrderReturnUpdate
 )
-from app.app.services.order_return_service import OrderReturnService
-from app.app.services.order_exceptions import OrderNotFoundError, OrderValidationError
+from app.services.order_return_service import OrderReturnService
+from app.services.order_exceptions import OrderNotFoundError, OrderValidationError
 
 router = APIRouter()
 

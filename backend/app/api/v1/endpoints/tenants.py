@@ -10,11 +10,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.app.api.deps import get_db, get_current_tenant_id
-from app.app.models.tenant import Tenant
-from app.app.schemas.tenant import TenantOut, TenantCreate, TenantUpdate
-from app.app.services.tenant.service import TenantService
-from app.app.services.tenant.subdomain_service import SubdomainService
+from app.api.deps import get_db, get_current_tenant_id
+from app.models.tenant import Tenant
+from app.schemas.tenant import TenantOut, TenantCreate, TenantUpdate
+from app.services.tenant.service import TenantService
+from app.services.tenant.subdomain_service import SubdomainService
 
 router = APIRouter()
 

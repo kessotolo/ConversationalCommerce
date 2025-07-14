@@ -13,9 +13,9 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.app.models.storefront_permission import StorefrontPermission
-from app.app.models.tenant import Tenant
-from app.app.models.user import User
+from app.models.storefront_permission import StorefrontPermission
+from app.models.tenant import Tenant
+from app.models.user import User
 from .storefront_role_service import has_permission
 
 

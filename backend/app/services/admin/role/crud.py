@@ -9,8 +9,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
-from app.app.models.admin.role import Role
-from app.app.core.exceptions import ResourceNotFoundError, ValidationError
+from app.models.admin.role import Role
+from app.core.exceptions import ResourceNotFoundError, ValidationError
 
 
 async def create_role(

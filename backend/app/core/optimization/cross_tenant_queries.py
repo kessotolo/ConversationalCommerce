@@ -4,8 +4,8 @@ from sqlalchemy import select, func, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, contains_eager, selectinload
 
-from app.app.core.cache.redis_cache import redis_cache
-from app.app.db.async_session import get_async_session_local
+from app.core.cache.redis_cache import redis_cache
+from app.db.async_session import get_async_session_local
 
 logger = logging.getLogger(__name__)
 

@@ -4,11 +4,11 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 from sqlalchemy.orm import Session
 
-from app.app.api.deps import get_db, get_current_user
-from app.app.models.ai_config import AIConfig
-from app.app.models.user import User
-from app.app.schemas.ai_config import AIConfigCreate, AIConfigResponse, AIConfigUpdate
-from app.app.services.audit_service import AuditActionType, AuditResourceType, create_audit_log
+from app.api.deps import get_db, get_current_user
+from app.models.ai_config import AIConfig
+from app.models.user import User
+from app.schemas.ai_config import AIConfigCreate, AIConfigResponse, AIConfigUpdate
+from app.services.audit_service import AuditActionType, AuditResourceType, create_audit_log
 
 router = APIRouter()
 

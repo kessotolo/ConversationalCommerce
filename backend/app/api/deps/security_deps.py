@@ -5,10 +5,10 @@ import redis.asyncio as redis
 from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.app.core.auth import get_current_active_user
-from app.app.core.config.settings import get_settings
-from app.app.core.logging import logger
-from app.app.api.deps import get_db
+from app.core.auth import get_current_active_user
+from app.core.config.settings import get_settings
+from app.core.logging import logger
+from app.api.deps import get_db
 
 # Redis client for distributed rate limiting
 redis_client = redis.from_url(settings.REDIS_URL)

@@ -1,8 +1,8 @@
 import uuid
 from typing import Any, Dict, Optional
 
-from app.app.models.storefront import StorefrontConfig
-from app.app.utils.domain_validator import validate_subdomain
+from app.models.storefront import StorefrontConfig
+from app.utils.domain_validator import validate_subdomain
 
 # Default color palette
 DEFAULT_COLORS = {

@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy import Column, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 
-from app.app.db import Base
+from app.db import Base
 
 
 class SellerProfile(Base):

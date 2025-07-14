@@ -4,9 +4,9 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.app.models.order import OrderSource, OrderStatus
-from app.app.schemas.order_channel_meta import OrderChannelMetaResponse
-from app.app.schemas.shipping import ShippingDetails
+from app.models.order import OrderSource, OrderStatus
+from app.schemas.order_channel_meta import OrderChannelMetaResponse
+from app.schemas.shipping import ShippingDetails
 
 
 class OrderBase(BaseModel):

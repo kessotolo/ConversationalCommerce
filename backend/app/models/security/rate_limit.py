@@ -16,7 +16,7 @@ from sqlalchemy import Column, String, Integer, Boolean, DateTime, ForeignKey, E
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 
-from app.app.db.base_class import Base
+from app.db.base_class import Base
 
 
 class LoginAttemptResult(str, enum.Enum):

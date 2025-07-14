@@ -1,4 +1,4 @@
-from app.app.core.http.response_optimization import (
+from app.core.http.response_optimization import (
     conditional_response,
     generate_etag,
     handle_conditional_request,

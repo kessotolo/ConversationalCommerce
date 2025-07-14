@@ -4,25 +4,25 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 from sqlalchemy.orm import Session
 
-from app.app.api.deps import get_current_active_user, get_db
-from app.app.models.storefront_component import ComponentStatus, ComponentType
-from app.app.models.storefront_page_template import PageTemplateType, TemplateStatus
-from app.app.models.user import User
-from app.app.schemas.storefront_component import (
+from app.api.deps import get_current_active_user, get_db
+from app.models.storefront_component import ComponentStatus, ComponentType
+from app.models.storefront_page_template import PageTemplateType, TemplateStatus
+from app.models.user import User
+from app.schemas.storefront_component import (
     ComponentCreate,
     ComponentList,
     ComponentResponse,
     ComponentUpdate,
     ComponentUsageResponse,
 )
-from app.app.schemas.storefront_page_template import (
+from app.schemas.storefront_page_template import (
     LayoutUpdate,
     PageTemplateCreate,
     PageTemplateList,
     PageTemplateResponse,
     PageTemplateUpdate,
 )
-from app.app.services import storefront_component_service, storefront_page_template_service
+from app.services import storefront_component_service, storefront_page_template_service
 
 router = APIRouter()
 

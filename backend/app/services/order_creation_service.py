@@ -3,12 +3,12 @@ from typing import Any, Dict, List, Optional
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import and_, select, text
-from app.app.models.order import Order, OrderSource
-from app.app.models.product import Product
-from app.app.models.order_channel_meta import OrderChannelMeta
-from app.app.models.order_item import OrderItem
-from app.app.schemas.order import OrderCreate, ModernOrderCreate
-from app.app.services.audit_service import AuditActionType, create_audit_log
+from app.models.order import Order, OrderSource
+from app.models.product import Product
+from app.models.order_channel_meta import OrderChannelMeta
+from app.models.order_item import OrderItem
+from app.schemas.order import OrderCreate, ModernOrderCreate
+from app.services.audit_service import AuditActionType, create_audit_log
 import logging
 
 

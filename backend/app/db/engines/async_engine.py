@@ -2,7 +2,7 @@
 Async database engine configuration for application runtime.
 """
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from app.app.db.engines.base import get_database_url
+from app.db.engines.base import get_database_url
 
 
 def get_async_engine():
@@ -15,7 +15,7 @@ def get_async_engine():
     database_url = get_database_url(use_async_driver=True)
     
     # Get current settings for connect args
-    from app.app.core.config.settings import get_settings
+    from app.core.config.settings import get_settings
     settings = get_settings()
     
     return create_async_engine(

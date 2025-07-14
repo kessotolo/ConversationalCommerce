@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from app.app.models.storefront_page_template import (
+from app.models.storefront_page_template import (
     PageTemplateType,
     StorefrontPageTemplate,
     TemplateStatus,

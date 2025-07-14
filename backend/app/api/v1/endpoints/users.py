@@ -8,10 +8,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.app.api.deps import get_db
-from app.app.models.user import User
-from app.app.models.tenant import Tenant
-from app.app.schemas.user import UserHasTenantResponse
+from app.api.deps import get_db
+from app.models.user import User
+from app.models.tenant import Tenant
+from app.schemas.user import UserHasTenantResponse
 
 router = APIRouter()
 

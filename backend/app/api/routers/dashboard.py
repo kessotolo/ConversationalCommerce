@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.app.api.deps import get_db
-from app.app.models.seller_profile import SellerProfile
-from app.app.schemas.seller_profile import SellerProfileResponse, SellerProfileUpdate
+from app.api.deps import get_db
+from app.models.seller_profile import SellerProfile
+from app.schemas.seller_profile import SellerProfileResponse, SellerProfileUpdate
 
 router = APIRouter(
     prefix="/api/dashboard",

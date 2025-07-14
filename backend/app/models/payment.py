@@ -16,11 +16,11 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 
-from app.app.core.security.payment_security import (
+from app.core.security.payment_security import (
     decrypt_sensitive_data,
     encrypt_sensitive_data,
 )
-from app.app.db.base_class import Base
+from app.db.base_class import Base
 
 
 class Payment(Base):

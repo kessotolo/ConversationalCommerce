@@ -12,7 +12,7 @@ from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String, JSON, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from app.app.db.base_class import Base
+from app.db.base_class import Base
 
 
 class FeatureFlag(Base):

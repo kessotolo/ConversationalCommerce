@@ -8,8 +8,8 @@ import uuid
 from celery import Task
 from pydantic import BaseModel, Field
 
-from app.app.core.celery_app import celery_app
-from app.app.core.notifications.notification_service import (
+from app.core.celery_app import celery_app
+from app.core.notifications.notification_service import (
     notification_service, 
     Notification, 
     NotificationChannel, 

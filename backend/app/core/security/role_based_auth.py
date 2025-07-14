@@ -3,8 +3,8 @@ from typing import List
 from fastapi import Depends, HTTPException, status
 from enum import Enum
 
-from app.app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
-from app.app.core.security.auth_deps import require_auth
+from app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
+from app.core.security.auth_deps import require_auth
 
 # Helper: is test mode?
 IS_TEST_MODE = os.getenv("TESTING", "").lower() in (

@@ -11,11 +11,11 @@ from PIL import Image
 from sqlalchemy import desc, or_
 from sqlalchemy.orm import Session
 
-from app.app.models.storefront_asset import AssetType, StorefrontAsset
-from app.app.models.tenant import Tenant
-from app.app.models.user import User
-from app.app.services.storefront.permissions.storefront_permissions_service import StorefrontPermissionsService
-from app.app.core.config.settings import get_settings
+from app.models.storefront_asset import AssetType, StorefrontAsset
+from app.models.tenant import Tenant
+from app.models.user import User
+from app.services.storefront.permissions.storefront_permissions_service import StorefrontPermissionsService
+from app.core.config.settings import get_settings
 
 # Configuration
 settings = get_settings()

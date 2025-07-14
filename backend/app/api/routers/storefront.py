@@ -3,8 +3,8 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.app.api.deps import get_current_tenant_id, get_db
-from app.app.schemas.storefront import (
+from app.api.deps import get_current_tenant_id, get_db
+from app.schemas.storefront import (
     DomainVerificationResponse,
     DomainVerificationStatusResponse,
     StorefrontConfigCreate,
@@ -13,7 +13,7 @@ from app.app.schemas.storefront import (
     StorefrontStatusUpdate,
     ThemeVariationsResponse,
 )
-from app.app.services import storefront_service
+from app.services import storefront_service
 
 router = APIRouter()
 

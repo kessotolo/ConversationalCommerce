@@ -10,10 +10,10 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.app.db.session import get_db
-from app.app.models.admin.admin_user import AdminUser
-from app.app.services.admin.search.service import GlobalSearchService, SearchEntityType
-from app.app.services.admin.auth.dependencies import get_current_admin_user
+from app.db.session import get_db
+from app.models.admin.admin_user import AdminUser
+from app.services.admin.search.service import GlobalSearchService, SearchEntityType
+from app.services.admin.auth.dependencies import get_current_admin_user
 
 
 router = APIRouter(prefix="/admin/search", tags=["admin-search"])

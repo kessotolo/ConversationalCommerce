@@ -15,7 +15,7 @@ from datetime import datetime
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 
-from app.app.db.base_class import Base
+from app.db.base_class import Base
 
 
 class ConversationEventType(str, enum.Enum):

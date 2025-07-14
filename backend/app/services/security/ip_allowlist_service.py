@@ -15,9 +15,9 @@ from typing import List, Optional, Dict, Any, Union
 from sqlalchemy import select, update, delete, and_, or_, not_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.app.models.security.ip_allowlist import IPAllowlistEntry, IPAllowlistSetting, IPTemporaryBypass
-from app.app.models.admin.admin_user import AdminUser
-from app.app.services.audit.audit_service import AuditService
+from app.models.security.ip_allowlist import IPAllowlistEntry, IPAllowlistSetting, IPTemporaryBypass
+from app.models.admin.admin_user import AdminUser
+from app.services.audit.audit_service import AuditService
 
 
 class IPAllowlistService:

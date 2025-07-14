@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
 
-from app.app.models.alert_config import AlertConfig
-from app.app.models.conversation_event import ConversationEvent
-from app.app.models.tenant import Tenant
-from app.app.services.whatsapp_alert_service import send_whatsapp_alert
+from app.models.alert_config import AlertConfig
+from app.models.conversation_event import ConversationEvent
+from app.models.tenant import Tenant
+from app.services.whatsapp_alert_service import send_whatsapp_alert
 
 
 def maybe_trigger_alert(db: Session, event: ConversationEvent) -> None:

@@ -6,15 +6,15 @@ import io
 import pandas as pd
 from datetime import datetime, timedelta
 
-from app.app.core.database import get_db
-from app.app.core.security import get_current_user_id, get_tenant_id_from_headers
-from app.app.schemas.analytics import (
+from app.core.database import get_db
+from app.core.security import get_current_user_id, get_tenant_id_from_headers
+from app.schemas.analytics import (
     AnalyticsEvent, AnalyticsEventCreate, 
     AnalyticsMetric, AnalyticsMetricCreate, AnalyticsMetricUpdate,
     AnalyticsReport, AnalyticsReportCreate, AnalyticsReportUpdate,
     AnalyticsQuery, AnalyticsExportQuery, AnalyticsExportFormat
 )
-from app.app.repositories.analytics_repository import AnalyticsRepository
+from app.repositories.analytics_repository import AnalyticsRepository
 
 router = APIRouter()
 

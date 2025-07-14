@@ -1,9 +1,9 @@
-from app.app.core.celery_app import celery_app
-from app.app.core.notifications.notification_service import NotificationService, Notification
-from app.app.services.fulfillment.fulfillment_service import FulfillmentService
-from app.app.services.fulfillment.providers.base import FulfillmentProvider
-from app.app.services.fulfillment.providers.shipping import ShippingProvider
-from app.app.services.fulfillment.providers.delivery import DeliveryProvider
+from app.core.celery_app import celery_app
+from app.core.notifications.notification_service import NotificationService, Notification
+from app.services.fulfillment.fulfillment_service import FulfillmentService
+from app.services.fulfillment.providers.base import FulfillmentProvider
+from app.services.fulfillment.providers.shipping import ShippingProvider
+from app.services.fulfillment.providers.delivery import DeliveryProvider
 import logging
 import asyncio
 
@@ -98,7 +98,7 @@ def update_fulfillment_status_task(self, tracking_id: str, provider_name: str):
 def notify_fulfillment_update_task(self, order_id: str, status_update: dict):
     """Celery task to notify about fulfillment status updates."""
     try:
-        from app.app.core.notifications.unified_notification_system import UnifiedNotificationSystem
+        from app.core.notifications.unified_notification_system import UnifiedNotificationSystem
 
         notification_system = UnifiedNotificationSystem()
 

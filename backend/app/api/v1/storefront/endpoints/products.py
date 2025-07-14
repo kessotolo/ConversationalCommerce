@@ -12,10 +12,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
-from app.app.api.deps import get_db
-from app.app.models.tenant import Tenant
-from app.app.models.product import Product
-from app.app.schemas.product import (
+from app.api.deps import get_db
+from app.models.tenant import Tenant
+from app.models.product import Product
+from app.schemas.product import (
     ProductResponse,
     PaginatedResponse,
     ProductSearchParams

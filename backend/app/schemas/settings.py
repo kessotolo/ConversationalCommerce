@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field, validator
 from datetime import datetime
 from uuid import UUID
 
-from app.app.schemas.common import TimestampSchema, UUIDSchema
+from app.schemas.common import TimestampSchema, UUIDSchema
 
 
 class SettingsDomainBase(BaseModel):

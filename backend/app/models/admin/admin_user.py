@@ -22,7 +22,7 @@ from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from app.app.db import Base
+from app.db import Base
 
 
 class AdminUser(Base):

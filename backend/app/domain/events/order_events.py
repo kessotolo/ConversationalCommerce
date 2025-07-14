@@ -5,8 +5,8 @@ from decimal import Decimal
 
 from pydantic import BaseModel, Field
 
-from app.app.models.order import Order, OrderStatus
-from app.app.models.payment import PaymentSettings
+from app.models.order import Order, OrderStatus
+from app.models.payment import PaymentSettings
 
 # Define missing types as string literals to avoid import issues
 PaymentStatus = str  # Will be replaced with actual enum when available

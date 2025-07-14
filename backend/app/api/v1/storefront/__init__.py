@@ -10,7 +10,7 @@ for customer browsing and shopping experience.
 
 from fastapi import APIRouter
 
-from app.app.api.v1.storefront.endpoints import (
+from app.api.v1.storefront.endpoints import (
     products,
     categories,
     cart,

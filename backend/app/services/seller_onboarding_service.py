@@ -1,21 +1,21 @@
 from typing import Any, Dict
 from uuid import UUID
-from app.app.schemas.onboarding import (
+from app.schemas.onboarding import (
     OnboardingRequest, OnboardingResponse, KYCInfoCreate, KYCInfoResponse, TeamInviteCreate, TeamInviteResponse, OnboardingStatusResponse
 )
-from app.app.schemas.conversation_event import ConversationEventType
-from app.app.models.conversation_event import ConversationEvent
-from app.app.models.tenant import Tenant
-from app.app.models.kyc_info import KYCInfo, KYCStatusEnum
-from app.app.models.kyc_document import KYCDocument, KYCDocumentStatusEnum
-from app.app.models.team_invite import TeamInvite, TeamInviteStatusEnum
-from app.app.core.cloudinary.client import CloudinaryClient
+from app.schemas.conversation_event import ConversationEventType
+from app.models.conversation_event import ConversationEvent
+from app.models.tenant import Tenant
+from app.models.kyc_info import KYCInfo, KYCStatusEnum
+from app.models.kyc_document import KYCDocument, KYCDocumentStatusEnum
+from app.models.team_invite import TeamInvite, TeamInviteStatusEnum
+from app.core.cloudinary.client import CloudinaryClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import and_
-from app.app.core.exceptions import AppError
-from app.app.core.notifications.notification_service import NotificationService, Notification, NotificationChannel, NotificationPriority
+from app.core.exceptions import AppError
+from app.core.notifications.notification_service import NotificationService, Notification, NotificationChannel, NotificationPriority
 # The following imports are placeholders for future async DB session and Cloudinary integration.
 # Uncomment and implement when those features are prioritized.
 # from app.db.session import async_session

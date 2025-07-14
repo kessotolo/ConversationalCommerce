@@ -9,7 +9,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.app.models.admin.admin_user import AdminUser
+from app.models.admin.admin_user import AdminUser
 
 
 def validate_ip_ranges(ip_ranges: List[str]) -> None:
@@ -108,8 +108,8 @@ async def get_admin_user_permissions(
     Returns:
         List of permission objects with attributes and conditions
     """
-    from app.app.services.admin.admin_user.roles import get_admin_user_roles
-    from app.app.services.admin.role.permissions import get_role_permissions
+    from app.services.admin.admin_user.roles import get_admin_user_roles
+    from app.services.admin.role.permissions import get_role_permissions
     
     # Get all roles assigned to the admin user
     assigned_roles = await get_admin_user_roles(

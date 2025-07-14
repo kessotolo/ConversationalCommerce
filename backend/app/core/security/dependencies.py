@@ -12,10 +12,10 @@ from typing import Optional
 from fastapi import Depends, HTTPException, status, Request, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.app.db.deps import get_db
-from app.app.core.security.clerk_multi_org import MultiOrgClerkTokenData, clerk_service
-from app.app.core.security.auth_deps import require_auth
-from app.app.services.admin.admin_service import AdminService
+from app.db.deps import get_db
+from app.core.security.clerk_multi_org import MultiOrgClerkTokenData, clerk_service
+from app.core.security.auth_deps import require_auth
+from app.services.admin.admin_service import AdminService
 
 # Helper: is test mode?
 IS_TEST_MODE = os.getenv("TESTING", "").lower() in (

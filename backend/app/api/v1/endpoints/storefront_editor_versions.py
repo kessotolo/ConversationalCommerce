@@ -4,13 +4,13 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from sqlalchemy.orm import Session
 
-from app.app.api.deps import get_current_active_user, get_db
-from app.app.models.user import User
-from app.app.schemas.storefront_version import (
+from app.api.deps import get_current_active_user, get_db
+from app.models.user import User
+from app.schemas.storefront_version import (
     StorefrontVersionList,
     StorefrontVersionResponse,
 )
-from app.app.services import storefront_version_service
+from app.services import storefront_version_service
 
 router = APIRouter()
 

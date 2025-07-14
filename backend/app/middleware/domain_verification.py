@@ -12,11 +12,11 @@ from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-from app.app.core.cache.redis_cache import redis_cache
-from app.app.db.session import SessionLocal
-from app.app.db.async_session import get_async_session_local
-from app.app.models.storefront import StorefrontConfig
-from app.app.utils.domain_validator import generate_verification_token, verify_domain_dns
+from app.core.cache.redis_cache import redis_cache
+from app.db.session import SessionLocal
+from app.db.async_session import get_async_session_local
+from app.models.storefront import StorefrontConfig
+from app.utils.domain_validator import generate_verification_token, verify_domain_dns
 
 logger = logging.getLogger(__name__)
 

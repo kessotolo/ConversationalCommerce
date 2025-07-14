@@ -5,9 +5,9 @@ from typing import Dict, Any, Optional, List
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.app.models.shipping import SellerShippingProvider, ShippingCourier
-from app.app.schemas.shipping import ShippingDetails
-from app.app.services.shipping_service import ShippingProviderPlugin
+from app.models.shipping import SellerShippingProvider, ShippingCourier
+from app.schemas.shipping import ShippingDetails
+from app.services.shipping_service import ShippingProviderPlugin
 
 logger = logging.getLogger(__name__)
 

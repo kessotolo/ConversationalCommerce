@@ -10,11 +10,11 @@ from email.mime.application import MIMEApplication
 from fastapi import BackgroundTasks
 from sqlalchemy.orm import Session
 
-from app.app.core.config.settings import get_settings
-from app.app.schemas.analytics import ScheduledReportCreate, ScheduledReportUpdate, ScheduledReport, ReportScheduleFrequency
-from app.app.repositories.analytics_repository import AnalyticsRepository
-from app.app.repositories.scheduled_report_repository import ScheduledReportRepository
-from app.app.schemas.analytics import AnalyticsQuery, AnalyticsExportFormat
+from app.core.config.settings import get_settings
+from app.schemas.analytics import ScheduledReportCreate, ScheduledReportUpdate, ScheduledReport, ReportScheduleFrequency
+from app.repositories.analytics_repository import AnalyticsRepository
+from app.repositories.scheduled_report_repository import ScheduledReportRepository
+from app.schemas.analytics import AnalyticsQuery, AnalyticsExportFormat
 
 logger = logging.getLogger(__name__)
 

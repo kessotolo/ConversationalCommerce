@@ -1,4 +1,4 @@
-from app.app.core.cache.redis_cache import (
+from app.core.cache.redis_cache import (
     CONFIG_EXPIRATION,
     DEFAULT_EXPIRATION,
     LAYOUT_EXPIRATION,

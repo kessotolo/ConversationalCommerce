@@ -8,7 +8,7 @@ from typing import Optional
 import os
 from urllib.parse import urlparse, parse_qs
 
-from app.app.core.config.settings import get_settings
+from app.core.config.settings import get_settings
 
 def get_database_url(*, use_async_driver: bool = True) -> str:
     """

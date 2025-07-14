@@ -1,7 +1,7 @@
 import os
 from typing import Optional
 from fastapi import HTTPException, status, Request
-from app.app.core.security.clerk_multi_org import MultiOrgClerkTokenData, clerk_service
+from app.core.security.clerk_multi_org import MultiOrgClerkTokenData, clerk_service
 
 
 async def require_auth(request: Request, authorization: Optional[str] = None) -> MultiOrgClerkTokenData:

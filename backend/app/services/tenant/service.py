@@ -12,8 +12,8 @@ from fastapi import HTTPException, status
 from sqlalchemy import select, update, delete, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.app.models.tenant import Tenant
-from app.app.core.errors.exceptions import EntityNotFoundException, DuplicateEntityException
+from app.models.tenant import Tenant
+from app.core.errors.exceptions import EntityNotFoundException, DuplicateEntityException
 
 
 class TenantService:

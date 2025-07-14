@@ -12,11 +12,11 @@ from typing import List, Optional, Dict, Any, Tuple
 from sqlalchemy import select, update, and_, or_, not_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.app.models.security.emergency import (
+from app.models.security.emergency import (
     EmergencyEvent, EmergencySeverity, EmergencyType,
     EmergencyNotification, EmergencyContact, NotificationChannel
 )
-from app.app.services.audit.audit_service import AuditService
+from app.services.audit.audit_service import AuditService
 
 
 class EmergencyNotificationService:
@@ -444,7 +444,7 @@ class EmergencyNotificationService:
     ) -> None:
         """Dispatch email notification."""
         try:
-            from app.app.core.notifications.email_service import EmailService
+            from app.core.notifications.email_service import EmailService
 
             email_service = EmailService()
             await email_service.send_emergency_email(
@@ -467,7 +467,7 @@ class EmergencyNotificationService:
     ) -> None:
         """Dispatch SMS notification."""
         try:
-            from app.app.core.notifications.sms_service import SMSService
+            from app.core.notifications.sms_service import SMSService
 
             sms_service = SMSService()
             await sms_service.send_emergency_sms(
@@ -490,7 +490,7 @@ class EmergencyNotificationService:
     ) -> None:
         """Dispatch Slack notification."""
         try:
-            from app.app.core.notifications.slack_service import SlackService
+            from app.core.notifications.slack_service import SlackService
 
             slack_service = SlackService()
             await slack_service.send_emergency_message(
@@ -513,7 +513,7 @@ class EmergencyNotificationService:
     ) -> None:
         """Dispatch webhook notification."""
         try:
-            from app.app.core.notifications.webhook_service import WebhookService
+            from app.core.notifications.webhook_service import WebhookService
 
             webhook_service = WebhookService()
             await webhook_service.send_emergency_webhook(

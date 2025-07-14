@@ -5,9 +5,9 @@ from fastapi import HTTPException, status
 from sqlalchemy import desc, func, or_
 from sqlalchemy.orm import Session
 
-from app.app.models.product import Product as ProductModel
-from app.app.models.storefront import StorefrontConfig
-from app.app.models.tenant import Tenant
+from app.models.product import Product as ProductModel
+from app.models.storefront import StorefrontConfig
+from app.models.tenant import Tenant
 
 
 async def get_storefront_metadata(db: Session, tenant_id: uuid.UUID) -> Dict[str, Any]:

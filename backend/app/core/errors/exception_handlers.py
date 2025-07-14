@@ -5,7 +5,7 @@ from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from app.app.core.errors.error_response import (
+from app.core.errors.error_response import (
     authentication_error,
     authorization_error,
     business_logic_error,
@@ -15,7 +15,7 @@ from app.app.core.errors.error_response import (
     server_error,
     validation_error,
 )
-from app.app.core.exceptions import (
+from app.core.exceptions import (
     AuthenticationError,
     AuthorizationError,
     BusinessLogicError,
@@ -30,7 +30,7 @@ from app.app.core.exceptions import (
 )
 
 # Import settings for environment check
-from app.app.core.config.settings import get_settings
+from app.core.config.settings import get_settings
 settings = get_settings()
 
 # Configure logger

@@ -18,8 +18,8 @@ from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import Response
 
-from app.app.core.config.settings import get_settings
-from app.app.core.security.clerk_multi_org import clerk_service
+from app.core.config.settings import get_settings
+from app.core.security.clerk_multi_org import clerk_service
 
 logger = logging.getLogger(__name__)
 

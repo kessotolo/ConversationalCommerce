@@ -7,10 +7,10 @@ from sqlalchemy import select, and_, text
 from sqlalchemy.orm import joinedload
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
-from app.app.models.order import Order, OrderStatus
-from app.app.models.payment import Payment, PaymentSettings, ProviderConfiguration
-from app.app.models.tenant import Tenant
-from app.app.core.security.payment_security import (
+from app.models.order import Order, OrderStatus
+from app.models.payment import Payment, PaymentSettings, ProviderConfiguration
+from app.models.tenant import Tenant
+from app.core.security.payment_security import (
     encrypt_sensitive_data,
     decrypt_sensitive_data,
     generate_payment_reference,
@@ -18,13 +18,13 @@ from app.app.core.security.payment_security import (
     calculate_payment_risk,
     mask_sensitive_data
 )
-from app.app.core.config.settings import get_settings
-from app.app.services.order_exceptions import OrderNotFoundError, OrderValidationError
-from app.app.services.audit_service import AuditActionType, create_audit_log
-from app.app.core.exceptions import AppError
-from app.app.core.error_counters import payment_failures
-from app.app.domain.events.event_bus import get_event_bus
-from app.app.domain.events.order_events import OrderEventFactory
+from app.core.config.settings import get_settings
+from app.services.order_exceptions import OrderNotFoundError, OrderValidationError
+from app.services.audit_service import AuditActionType, create_audit_log
+from app.core.exceptions import AppError
+from app.core.error_counters import payment_failures
+from app.domain.events.event_bus import get_event_bus
+from app.domain.events.order_events import OrderEventFactory
 
 logger = logging.getLogger(__name__)
 settings = get_settings()

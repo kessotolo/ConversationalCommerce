@@ -5,13 +5,13 @@ from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, text
 from sqlalchemy.orm import joinedload
-from app.app.models.order import Order, OrderStatus
-from app.app.models.order_channel_meta import OrderChannelMeta
-from app.app.services.order_exceptions import OrderNotFoundError, OrderValidationError
-from app.app.services.audit_service import AuditActionType, create_audit_log
-from app.app.core.exceptions import AppError
-from app.app.domain.events.event_bus import get_event_bus
-from app.app.domain.events.order_events import OrderEventFactory
+from app.models.order import Order, OrderStatus
+from app.models.order_channel_meta import OrderChannelMeta
+from app.services.order_exceptions import OrderNotFoundError, OrderValidationError
+from app.services.audit_service import AuditActionType, create_audit_log
+from app.core.exceptions import AppError
+from app.domain.events.event_bus import get_event_bus
+from app.domain.events.order_events import OrderEventFactory
 
 logger = logging.getLogger(__name__)
 
@@ -381,7 +381,7 @@ class OrderStatusService:
                     f"Order {order_id} not found or access denied")
 
             # Get audit logs for this order
-            from app.app.models.audit.audit_log import AuditLog
+            from app.models.audit.audit_log import AuditLog
 
             query = select(AuditLog).where(
                 and_(

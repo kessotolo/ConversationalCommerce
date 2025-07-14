@@ -15,7 +15,7 @@ from sqlalchemy import select, desc, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Request
 
-from app.app.models.audit.audit_log import AuditLog
+from app.models.audit.audit_log import AuditLog
 
 
 class AuditService:

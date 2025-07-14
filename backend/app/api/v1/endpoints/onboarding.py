@@ -1,13 +1,13 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.app.services.seller_onboarding_service import SellerOnboardingService, OnboardingError, DomainConflictError
-from app.app.schemas.onboarding import (
+from app.services.seller_onboarding_service import SellerOnboardingService, OnboardingError, DomainConflictError
+from app.schemas.onboarding import (
     OnboardingStartRequest, OnboardingStartResponse, KYCRequest, KYCResponse, DomainRequest, DomainResponse, TeamInviteRequest, TeamInviteResponseModel, KYCUploadResponse, OnboardingStatusResponse, KYCReviewRequest
 )
-from app.app.db.session import get_db
-from app.app.core.security.dependencies import require_auth
-from app.app.core.security.clerk import ClerkTokenData
-from app.app.services.admin.admin_user.service import AdminUserService
+from app.db.session import get_db
+from app.core.security.dependencies import require_auth
+from app.core.security.clerk import ClerkTokenData
+from app.services.admin.admin_user.service import AdminUserService
 from uuid import UUID
 
 router = APIRouter(prefix="/onboarding", tags=["onboarding"])

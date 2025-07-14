@@ -4,7 +4,7 @@ from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import Response
 
-from app.app.core.logging import logger
+from app.core.logging import logger
 
 # Helper: is test mode?
 IS_TEST_MODE = os.getenv("TESTING", "").lower() in (

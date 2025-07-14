@@ -12,12 +12,12 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from jose import JWTError, jwt
 
-from app.app.models.admin.admin_user import AdminUser
-from app.app.services.admin.admin_user.service import AdminUserService
-from app.app.services.admin.admin_user.auth import verify_admin_access
-from app.app.core.security.password import get_password_hash, verify_password
-from app.app.core.config.settings import get_settings
-from app.app.db.session import get_db
+from app.models.admin.admin_user import AdminUser
+from app.services.admin.admin_user.service import AdminUserService
+from app.services.admin.admin_user.auth import verify_admin_access
+from app.core.security.password import get_password_hash, verify_password
+from app.core.config.settings import get_settings
+from app.db.session import get_db
 
 
 # OAuth2 scheme for admin routes

@@ -5,7 +5,7 @@ from sqlalchemy import Enum as SQLAlchemyEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from app.app.db import Base
+from app.db import Base
 
 
 class KYCDocumentStatusEnum(str, enum.Enum):

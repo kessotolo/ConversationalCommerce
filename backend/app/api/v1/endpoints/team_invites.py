@@ -3,15 +3,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 from uuid import UUID
 
-from app.app.api.deps import get_db, get_current_user, get_current_tenant_owner_or_admin
-from app.app.schemas.team_member import (
+from app.api.deps import get_db, get_current_user, get_current_tenant_owner_or_admin
+from app.schemas.team_member import (
     TeamInviteCreate,
     TeamInviteUpdate,
     TeamInviteAccept,
     TeamInviteResponse,
     TeamRoleEnum
 )
-from app.app.services.team_member_service import (
+from app.services.team_member_service import (
     TeamMemberService,
     TeamInviteNotFoundError,
     TeamValidationError,

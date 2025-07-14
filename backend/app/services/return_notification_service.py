@@ -4,12 +4,12 @@ from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 import asyncio
 
-from app.app.models.returns import ReturnRequest, ReturnStatus
-from app.app.models.users import User
-from app.app.models.notifications import NotificationType, NotificationChannel
-from app.app.repositories.return_repository import ReturnRepository
-from app.app.repositories.user_repository import UserRepository
-from app.app.services.notification_service import NotificationService
+from app.models.returns import ReturnRequest, ReturnStatus
+from app.models.users import User
+from app.models.notifications import NotificationType, NotificationChannel
+from app.repositories.return_repository import ReturnRepository
+from app.repositories.user_repository import UserRepository
+from app.services.notification_service import NotificationService
 
 logger = logging.getLogger(__name__)
 

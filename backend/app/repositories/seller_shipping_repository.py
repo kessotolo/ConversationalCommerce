@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy import select, update, delete, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.app.models.shipping import SellerShippingProvider, ShippingCourier
+from app.models.shipping import SellerShippingProvider, ShippingCourier
 
 
 class SellerShippingRepository:

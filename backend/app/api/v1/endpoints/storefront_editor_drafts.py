@@ -5,14 +5,14 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 from sqlalchemy.orm import Session
 
-from app.app.api.deps import get_current_active_user, get_db
-from app.app.models.user import User
-from app.app.schemas.storefront_draft import (
+from app.api.deps import get_current_active_user, get_db
+from app.models.user import User
+from app.schemas.storefront_draft import (
     StorefrontDraftCreate,
     StorefrontDraftList,
     StorefrontDraftResponse,
 )
-from app.app.services import storefront_service
+from app.services import storefront_service
 
 router = APIRouter()
 

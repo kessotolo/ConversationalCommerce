@@ -11,10 +11,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Body, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text, func, desc, and_, or_
 
-from app.app.core.security.dependencies import get_current_super_admin
-from app.app.models.admin.admin_user import AdminUser
-from app.app.db.async_session import get_async_db
-from app.app.schemas.admin.dashboard import (
+from app.core.security.dependencies import get_current_super_admin
+from app.models.admin.admin_user import AdminUser
+from app.db.async_session import get_async_db
+from app.schemas.admin.dashboard import (
     SearchRequest,
     SearchFilter,
     SearchResultItem,

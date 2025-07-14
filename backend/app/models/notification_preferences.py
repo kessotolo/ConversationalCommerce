@@ -2,7 +2,7 @@ import uuid
 from sqlalchemy import Column, DateTime, ForeignKey, JSON
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
-from app.app.db import Base
+from app.db import Base
 
 
 class NotificationPreferences(Base):

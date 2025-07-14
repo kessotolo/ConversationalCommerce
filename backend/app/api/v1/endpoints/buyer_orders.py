@@ -2,9 +2,9 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.app.api.deps import get_db, get_current_buyer
-from app.app.schemas.order import PaginatedOrdersResponse, OrderResponse
-from app.app.services.order_service import OrderService, OrderNotFoundError
+from app.api.deps import get_db, get_current_buyer
+from app.schemas.order import PaginatedOrdersResponse, OrderResponse
+from app.services.order_service import OrderService, OrderNotFoundError
 
 router = APIRouter()
 

@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from fastapi import HTTPException, status
 
-from app.app.models.tenant import Tenant
+from app.models.tenant import Tenant
 
 
 class SubdomainService:

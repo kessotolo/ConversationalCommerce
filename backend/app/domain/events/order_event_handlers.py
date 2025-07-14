@@ -3,13 +3,13 @@ import logging
 
 from sqlalchemy import update
 
-from app.app.core.notifications.notification_service import (
+from app.core.notifications.notification_service import (
     Notification,
     NotificationChannel,
     NotificationService,
 )
-from app.app.domain.events.event_bus import get_event_bus
-from app.app.domain.events.order_events import (
+from app.domain.events.event_bus import get_event_bus
+from app.domain.events.order_events import (
     OrderCancelledEvent,
     OrderCreatedEvent,
     OrderDeliveredEvent,
@@ -17,7 +17,7 @@ from app.app.domain.events.order_events import (
     OrderStatusChangedEvent,
     PaymentProcessedEvent,
 )
-from app.app.models.product import Product
+from app.models.product import Product
 # OrderService import removed to avoid circular dependency
 
 logger = logging.getLogger(__name__)

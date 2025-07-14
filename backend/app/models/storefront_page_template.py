@@ -6,7 +6,7 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from app.app.db.base_class import Base
+from app.db.base_class import Base
 
 
 class PageType(enum.Enum):

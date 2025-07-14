@@ -12,12 +12,12 @@ from typing import List, Optional, Dict, Any, Tuple, Set
 from sqlalchemy import select, update, and_, or_, not_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.app.models.security.emergency import (
+from app.models.security.emergency import (
     SystemLockout, EmergencyEvent, EmergencyAction
 )
-from app.app.models.admin.admin_user import AdminUser
-from app.app.services.audit.audit_service import AuditService
-from app.app.services.security.emergency_events_service import EmergencyEventsService
+from app.models.admin.admin_user import AdminUser
+from app.services.audit.audit_service import AuditService
+from app.services.security.emergency_events_service import EmergencyEventsService
 
 
 class SystemLockoutService:

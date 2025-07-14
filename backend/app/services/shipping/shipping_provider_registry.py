@@ -2,11 +2,11 @@ from typing import Dict, List, Optional, Type, Any
 import logging
 from fastapi import HTTPException
 
-from app.app.services.shipping.providers.base_provider import (
+from app.services.shipping.providers.base_provider import (
     ShippingProviderInterface,
     ShippingProviderConfig
 )
-from app.app.services.shipping.providers.usps_provider import USPSProvider, USPSConfig
+from app.services.shipping.providers.usps_provider import USPSProvider, USPSConfig
 
 
 class ShippingProviderRegistry:

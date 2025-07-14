@@ -14,8 +14,8 @@ from datetime import datetime
 from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.app.models.feature_flags.feature_flag import FeatureFlag, TenantFeatureFlagOverride
-from app.app.models.tenant import Tenant
+from app.models.feature_flags.feature_flag import FeatureFlag, TenantFeatureFlagOverride
+from app.models.tenant import Tenant
 
 
 class FeatureFlagService:

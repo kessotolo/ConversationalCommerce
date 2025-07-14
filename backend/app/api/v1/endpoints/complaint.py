@@ -4,16 +4,16 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.app.api import deps
-from app.app.api.auth import ClerkTokenData, require_auth
-from app.app.schemas.complaint import (
+from app.api import deps
+from app.api.auth import ClerkTokenData, require_auth
+from app.schemas.complaint import (
     ComplaintCreate,
     ComplaintEscalate,
     ComplaintResponse,
     ComplaintUpdate,
 )
-from app.app.services.complaint_service import complaint_service
-from app.app.services.exceptions import (
+from app.services.complaint_service import complaint_service
+from app.services.exceptions import (
     ComplaintNotFoundError,
     ComplaintPermissionError,
     ComplaintValidationError,

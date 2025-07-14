@@ -10,9 +10,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
-from app.app.models.admin.admin_user import AdminUser
-from app.app.models.user import User
-from app.app.core.exceptions import ResourceNotFoundError, ValidationError
+from app.models.admin.admin_user import AdminUser
+from app.models.user import User
+from app.core.exceptions import ResourceNotFoundError, ValidationError
 
 
 async def create_admin_user(
@@ -49,7 +49,7 @@ async def create_admin_user(
         
     # Validate IP ranges if provided
     if allowed_ip_ranges:
-        from app.app.services.admin.admin_user.auth import validate_ip_ranges
+        from app.services.admin.admin_user.auth import validate_ip_ranges
         validate_ip_ranges(allowed_ip_ranges)
     
     try:
@@ -166,7 +166,7 @@ async def update_admin_user(
     
     # Validate IP ranges if provided
     if "allowed_ip_ranges" in update_data and update_data["allowed_ip_ranges"]:
-        from app.app.services.admin.admin_user.auth import validate_ip_ranges
+        from app.services.admin.admin_user.auth import validate_ip_ranges
         validate_ip_ranges(update_data["allowed_ip_ranges"])
         
     # Update attributes that are provided

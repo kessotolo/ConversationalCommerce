@@ -2,8 +2,8 @@ from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from app.app.schemas.shipping import Address, ShippingDetails, ShippingMethod
-from app.app.services.shipping_service import ShippingService, shipping_service
+from app.schemas.shipping import Address, ShippingDetails, ShippingMethod
+from app.services.shipping_service import ShippingService, shipping_service
 
 router = APIRouter(prefix="/shipping", tags=["shipping"])
 

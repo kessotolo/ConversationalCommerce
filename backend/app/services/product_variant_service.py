@@ -5,9 +5,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy.future import select
 from sqlalchemy import func
 
-from app.app.models.product import Product
-from app.app.models.product_variant import ProductVariant, VariantOption, VariantOptionValue
-from app.app.schemas.product_variant import (
+from app.models.product import Product
+from app.models.product_variant import ProductVariant, VariantOption, VariantOptionValue
+from app.schemas.product_variant import (
     ProductVariantCreate,
     ProductVariantUpdate,
     VariantOptionCreate,

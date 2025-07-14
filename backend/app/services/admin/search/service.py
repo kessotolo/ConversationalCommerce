@@ -12,9 +12,9 @@ from enum import Enum
 from sqlalchemy import or_, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.app.models.tenant import Tenant
-from app.app.models.admin.admin_user import AdminUser
-from app.app.services.admin.permission.service import PermissionService
+from app.models.tenant import Tenant
+from app.models.admin.admin_user import AdminUser
+from app.services.admin.permission.service import PermissionService
 
 
 logger = logging.getLogger(__name__)

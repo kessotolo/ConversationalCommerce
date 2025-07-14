@@ -14,14 +14,14 @@ from sqlalchemy import desc, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from app.app.models.storefront_page_template import (
+from app.models.storefront_page_template import (
     PageTemplateType,
     StorefrontPageTemplate,
     TemplateStatus,
 )
-from app.app.models.tenant import Tenant
-from app.app.models.user import User
-from app.app.services.storefront.permissions.storefront_permissions_service import StorefrontPermissionsService
+from app.models.tenant import Tenant
+from app.models.user import User
+from app.services.storefront.permissions.storefront_permissions_service import StorefrontPermissionsService
 from .storefront_template_validator import validate_template_structure
 
 

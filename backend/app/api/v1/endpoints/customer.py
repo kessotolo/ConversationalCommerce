@@ -1,10 +1,10 @@
 import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.app.api.deps import get_db
-from app.app.models.customer import Customer as CustomerModel
-from app.app.schemas.customer import Customer, CustomerCreate, CustomerUpdate
-from app.app.core.security.password import get_password_hash, verify_password
+from app.api.deps import get_db
+from app.models.customer import Customer as CustomerModel
+from app.schemas.customer import Customer, CustomerCreate, CustomerUpdate
+from app.core.security.password import get_password_hash, verify_password
 
 router = APIRouter()
 

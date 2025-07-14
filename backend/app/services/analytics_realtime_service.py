@@ -6,9 +6,9 @@ import json
 import logging
 from datetime import datetime, timedelta
 
-from app.app.core.database import get_db
-from app.app.repositories.analytics_repository import AnalyticsRepository
-from app.app.schemas.analytics import AnalyticsQuery
+from app.core.database import get_db
+from app.repositories.analytics_repository import AnalyticsRepository
+from app.schemas.analytics import AnalyticsQuery
 
 logger = logging.getLogger(__name__)
 

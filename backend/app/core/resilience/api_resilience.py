@@ -248,7 +248,7 @@ class GracefulFallback:
 
                     # Cache successful result
                     try:
-                        from app.app.core.cache.redis_cache import redis_cache
+                        from app.core.cache.redis_cache import redis_cache
                         await redis_cache.set(
                             cache_key,
                             result,
@@ -266,7 +266,7 @@ class GracefulFallback:
 
                     # Try to get cached result
                     try:
-                        from app.app.core.cache.redis_cache import redis_cache
+                        from app.core.cache.redis_cache import redis_cache
                         cached_result = await redis_cache.get(cache_key)
                         if cached_result:
                             logger.info("Returning cached result")

@@ -11,14 +11,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from datetime import datetime, timedelta
 
-from app.app.api.deps import get_db
-from app.app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
-from app.app.core.security.auth_deps import require_auth
-from app.app.models.tenant import Tenant
-from app.app.models.user import User
-from app.app.models.order import Order
-from app.app.models.product import Product
-from app.app.schemas.admin.dashboard import (
+from app.api.deps import get_db
+from app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
+from app.core.security.auth_deps import require_auth
+from app.models.tenant import Tenant
+from app.models.user import User
+from app.models.order import Order
+from app.models.product import Product
+from app.schemas.admin.dashboard import (
     DashboardMetrics,
     RecentActivity,
     SalesMetrics,

@@ -15,11 +15,11 @@ from fastapi import (
 )
 from sqlalchemy.orm import Session
 
-from app.app.api.deps import get_current_active_user, get_db
-from app.app.models.storefront_asset import AssetType
-from app.app.models.user import User
-from app.app.schemas.storefront_asset import AssetList, AssetResponse, AssetUpdateRequest
-from app.app.services import storefront_asset_service
+from app.api.deps import get_current_active_user, get_db
+from app.models.storefront_asset import AssetType
+from app.models.user import User
+from app.schemas.storefront_asset import AssetList, AssetResponse, AssetUpdateRequest
+from app.services import storefront_asset_service
 
 router = APIRouter()
 

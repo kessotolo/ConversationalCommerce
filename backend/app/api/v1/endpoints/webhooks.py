@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.app.api.deps import get_db
-from app.app.core.config.settings import get_settings
-from app.app.core.security.payment_security import verify_paystack_signature
-from app.app.services.payment.payment_service import PaymentService
-from app.app.core.monitoring.webhook_metrics import WebhookMetrics
-from app.app.core.logging import logger
-from app.app.api.deps import get_db
-from app.app.services.payment.payment_service import PaymentService
+from app.api.deps import get_db
+from app.core.config.settings import get_settings
+from app.core.security.payment_security import verify_paystack_signature
+from app.services.payment.payment_service import PaymentService
+from app.core.monitoring.webhook_metrics import WebhookMetrics
+from app.core.logging import logger
+from app.api.deps import get_db
+from app.services.payment.payment_service import PaymentService
 from typing import Dict, Optional, Callable, Any
 import json
 import ipaddress
@@ -60,7 +60,7 @@ def validate_ip(request: Request, provider: str) -> bool:
 # Ensure idempotency for webhook processing
 async def ensure_idempotency(db: AsyncSession, event_id: str, provider: str) -> bool:
     """Check if the event has already been processed to ensure idempotency"""
-    from app.app.services.payment.webhook_event_service import WebhookEventService
+    from app.services.payment.webhook_event_service import WebhookEventService
     service = WebhookEventService()
     return await service.is_webhook_processed(db, event_id, provider)
 
@@ -140,7 +140,7 @@ async def paystack_webhook(
             # Add more event types as needed
 
             # Record the processed event for idempotency
-            from app.app.services.payment.webhook_event_service import WebhookEventService
+            from app.services.payment.webhook_event_service import WebhookEventService
             service = WebhookEventService()
             await service.record_webhook_event(
                 db=db,
@@ -227,7 +227,7 @@ async def mpesa_webhook(
                 WebhookMetrics.record_processed("mpesa", "failure")
 
             # Record the processed event for idempotency
-            from app.app.services.payment.webhook_event_service import WebhookEventService
+            from app.services.payment.webhook_event_service import WebhookEventService
             service = WebhookEventService()
             await service.record_webhook_event(
                 db=db,

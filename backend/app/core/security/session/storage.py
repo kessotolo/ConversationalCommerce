@@ -9,8 +9,8 @@ from datetime import datetime, timezone
 from typing import Optional, List
 from dataclasses import asdict
 
-from app.app.core.logging import logger
-from app.app.core.cache.redis_cache import redis_cache
+from app.core.logging import logger
+from app.core.cache.redis_cache import redis_cache
 from .models import SessionInfo, SessionConfig
 
 

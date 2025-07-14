@@ -4,9 +4,9 @@ from typing import Dict, Any
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, field_validator
 
-from app.app.api.deps import get_current_tenant, get_db
-from app.app.models.tenant import Tenant
-from app.app.services.domain_verification_service import (
+from app.api.deps import get_current_tenant, get_db
+from app.models.tenant import Tenant
+from app.services.domain_verification_service import (
     initiate_domain_verification, 
     verify_domain_txt_record,
     get_verification_instructions

@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 
 # ai_config router removed - using v1 endpoints instead
-from app.app.api.routers.conversation import router as conversation_router
-from app.app.api.routers.storefront import router as storefront_router
-from app.app.api.v1.endpoints import (
+from app.api.routers.conversation import router as conversation_router
+from app.api.routers.storefront import router as storefront_router
+from app.api.v1.endpoints import (
     activities,
     batch_operations,
     dashboard,
@@ -12,21 +12,21 @@ from app.app.api.v1.endpoints import (
     products,
     products_keyset,
 )
-from app.app.api.v1.endpoints import storefront as storefront_content
-from app.app.api.v1.endpoints import storefront_catalog, websocket
-from app.app.api.v1.endpoints.behavior import router as behavior_router
-from app.app.api.v1.endpoints.complaint import router as complaint_router
-from app.app.api.v1.endpoints.content_moderation import router as content_moderation_router
-from app.app.api.v1.endpoints.domain_verification import router as domain_verification_router
-from app.app.api.v1.endpoints.theme_builder import router as theme_builder_router
-from app.app.api.v1.endpoints.violation import router as violation_router
-from app.app.api.v1.endpoints.whatsapp import router as whatsapp_router
-from app.app.api.v1.endpoints.users import router as users_router
-from app.app.api.routers.tenant import router as tenant_router
+from app.api.v1.endpoints import storefront as storefront_content
+from app.api.v1.endpoints import storefront_catalog, websocket
+from app.api.v1.endpoints.behavior import router as behavior_router
+from app.api.v1.endpoints.complaint import router as complaint_router
+from app.api.v1.endpoints.content_moderation import router as content_moderation_router
+from app.api.v1.endpoints.domain_verification import router as domain_verification_router
+from app.api.v1.endpoints.theme_builder import router as theme_builder_router
+from app.api.v1.endpoints.violation import router as violation_router
+from app.api.v1.endpoints.whatsapp import router as whatsapp_router
+from app.api.v1.endpoints.users import router as users_router
+from app.api.routers.tenant import router as tenant_router
 
 # New multi-tenant admin and storefront routers
-from app.app.api.v1.admin import admin_router
-from app.app.api.v1.storefront import storefront_router as new_storefront_router
+from app.api.v1.admin import admin_router
+from app.api.v1.storefront import storefront_router as new_storefront_router
 
 api_router = APIRouter()
 

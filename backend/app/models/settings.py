@@ -5,8 +5,8 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 import uuid
 
-from app.app.db.base_class import Base
-from app.app.models.tenant import Tenant
+from app.db.base_class import Base
+from app.models.tenant import Tenant
 from sqlalchemy.dialects.postgresql import UUID
 
 

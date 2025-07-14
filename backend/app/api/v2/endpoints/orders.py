@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from app.app.api.v1.endpoints.orders import *
+from app.api.v1.endpoints.orders import *
 
 router = APIRouter()
 

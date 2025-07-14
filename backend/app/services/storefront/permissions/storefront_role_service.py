@@ -13,12 +13,12 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.app.models.storefront_permission import (
+from app.models.storefront_permission import (
     StorefrontPermission,
     StorefrontRole,
 )
-from app.app.models.tenant import Tenant
-from app.app.models.user import User
+from app.models.tenant import Tenant
+from app.models.user import User
 
 # Define permission levels with corresponding actions
 PERMISSION_LEVELS = {

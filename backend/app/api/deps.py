@@ -9,13 +9,13 @@ from typing import Any, Dict, Optional, List
 from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.app.core.db.session import get_db
-from app.app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
-from app.app.core.security.auth_deps import require_auth
-from app.app.db.async_session import get_async_session_local
-from app.app.models.storefront import StorefrontConfig
-from app.app.models.tenant import Tenant
-from app.app.models.admin.admin_user import AdminUser
+from app.core.db.session import get_db
+from app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
+from app.core.security.auth_deps import require_auth
+from app.db.async_session import get_async_session_local
+from app.models.storefront import StorefrontConfig
+from app.models.tenant import Tenant
+from app.models.admin.admin_user import AdminUser
 
 
 # Alias for compatibility

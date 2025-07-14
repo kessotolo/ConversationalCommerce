@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.app.models.storefront_permission import (
+from app.models.storefront_permission import (
     StorefrontPermission,
     StorefrontRole,
     StorefrontSectionType,

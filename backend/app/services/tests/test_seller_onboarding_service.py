@@ -2,12 +2,12 @@ import pytest
 import asyncio
 from uuid import uuid4
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.app.services.seller_onboarding_service import SellerOnboardingService, DomainConflictError
-from app.app.models.tenant import Tenant
-from app.app.models.kyc_info import KYCInfo
-from app.app.models.kyc_document import KYCDocument
-from app.app.models.team_invite import TeamInvite
-from app.app.models.conversation_event import ConversationEvent
+from app.services.seller_onboarding_service import SellerOnboardingService, DomainConflictError
+from app.models.tenant import Tenant
+from app.models.kyc_info import KYCInfo
+from app.models.kyc_document import KYCDocument
+from app.models.team_invite import TeamInvite
+from app.models.conversation_event import ConversationEvent
 
 
 @pytest.mark.asyncio

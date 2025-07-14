@@ -2,9 +2,9 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.app.api.deps import get_db, get_current_buyer
-from app.app.models.saved_payment_method import SavedPaymentMethod as SavedPaymentMethodModel
-from app.app.schemas.saved_payment_method import (
+from app.api.deps import get_db, get_current_buyer
+from app.models.saved_payment_method import SavedPaymentMethod as SavedPaymentMethodModel
+from app.schemas.saved_payment_method import (
     SavedPaymentMethodCreate, SavedPaymentMethodUpdate, SavedPaymentMethodResponse
 )
 

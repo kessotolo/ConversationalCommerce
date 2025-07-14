@@ -8,8 +8,8 @@ from typing import Any, Dict, Optional
 import redis.asyncio as redis
 from fastapi import Request
 
-from app.app.core.config.settings import get_settings
-from app.app.core.exceptions import CacheError
+from app.core.config.settings import get_settings
+from app.core.exceptions import CacheError
 
 settings = get_settings()
 logger = logging.getLogger(__name__)

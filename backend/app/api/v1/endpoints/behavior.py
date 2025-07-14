@@ -4,10 +4,10 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.app.api import deps
-from app.app.core.behavior.behavior_analysis import behavior_analysis_service
-from app.app.models.behavior_analysis import BehaviorPattern, PatternDetection
-from app.app.schemas.behavior import (
+from app.api import deps
+from app.core.behavior.behavior_analysis import behavior_analysis_service
+from app.models.behavior_analysis import BehaviorPattern, PatternDetection
+from app.schemas.behavior import (
     BehaviorPatternCreate,
     BehaviorPatternResponse,
     BehaviorPatternUpdate,

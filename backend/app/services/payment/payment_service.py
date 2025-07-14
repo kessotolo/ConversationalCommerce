@@ -4,36 +4,36 @@ import sentry_sdk
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.app.core.logging import logger
-from app.app.core.security.payment_security import (
+from app.core.logging import logger
+from app.core.security.payment_security import (
     calculate_payment_risk,
     generate_payment_reference,
     get_tls12_session,
     verify_payment_reference,
 )
-from app.app.models.order import Order
-from app.app.models.payment import ManualPaymentProof, Payment, PaymentSettings
+from app.models.order import Order
+from app.models.payment import ManualPaymentProof, Payment, PaymentSettings
 # Import Tenant instead of Store which does not exist
-from app.app.models.tenant import Tenant
-from app.app.core.errors import payment_failures
-from app.app.schemas.payment.payment import (
+from app.models.tenant import Tenant
+from app.core.errors import payment_failures
+from app.schemas.payment.payment import (
     BankAccountDetails,
 )
-from app.app.schemas.payment.payment import ManualPaymentProof as ManualPaymentProofSchema
-from app.app.schemas.payment.payment import (
+from app.schemas.payment.payment import ManualPaymentProof as ManualPaymentProofSchema
+from app.schemas.payment.payment import (
     Money,
     PaymentInitializeRequest,
     PaymentInitializeResponse,
     PaymentProvider,
     PaymentProviderConfig,
 )
-from app.app.schemas.payment.payment import PaymentSettings as PaymentSettingsSchema
-from app.app.schemas.payment.payment import (
+from app.schemas.payment.payment import PaymentSettings as PaymentSettingsSchema
+from app.schemas.payment.payment import (
     PaymentStatus,
     PaymentVerificationResponse,
 )
-from app.app.services.order_service import OrderService
-from app.app.services.payment.payment_provider import get_payment_provider
+from app.services.order_service import OrderService
+from app.services.payment.payment_provider import get_payment_provider
 
 
 class PaymentService:
@@ -288,8 +288,8 @@ class PaymentService:
                     # Emit PaymentProcessedEvent
                     import asyncio
 
-                    from app.app.domain.events.event_bus import get_event_bus
-                    from app.app.domain.events.order_events import OrderEventFactory
+                    from app.domain.events.event_bus import get_event_bus
+                    from app.domain.events.order_events import OrderEventFactory
 
                     event = OrderEventFactory.create_payment_processed_event(
                         order, payment
@@ -673,12 +673,12 @@ class PaymentService:
         """
         import logging
 
-        from app.app.schemas.payment.payment import (
+        from app.schemas.payment.payment import (
             Money,
             PaymentInitializeRequest,
             PaymentProvider,
         )
-        from app.app.services.payment.payment_provider import get_payment_provider
+        from app.services.payment.payment_provider import get_payment_provider
 
         # Get provider credentials/settings for the tenant/store
         settings = (

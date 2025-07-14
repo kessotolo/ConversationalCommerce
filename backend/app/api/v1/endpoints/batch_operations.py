@@ -5,15 +5,15 @@ from fastapi import APIRouter, Depends, Request, status
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
-from app.app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
-from app.app.core.security.role_based_auth import require_seller
-from app.app.api.deps import get_db
-from app.app.services.audit_service import (
+from app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
+from app.core.security.role_based_auth import require_seller
+from app.api.deps import get_db
+from app.services.audit_service import (
     AuditActionType,
     AuditResourceType,
     create_audit_log,
 )
-from app.app.services.product_service import batch_update_products
+from app.services.product_service import batch_update_products
 
 router = APIRouter()
 
