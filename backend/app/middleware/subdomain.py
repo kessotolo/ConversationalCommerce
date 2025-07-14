@@ -7,12 +7,12 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from backend.app.core.cache.redis_cache import redis_cache
-from backend.app.core.config.settings import get_settings
-from backend.app.db.session import SessionLocal
-from backend.app.db.async_session import get_async_session_local
-from backend.app.models.storefront import StorefrontConfig
-from backend.app.models.tenant import Tenant
+from app.app.core.cache.redis_cache import redis_cache
+from app.app.core.config.settings import get_settings
+from app.app.db.session import SessionLocal
+from app.app.db.async_session import get_async_session_local
+from app.app.models.storefront import StorefrontConfig
+from app.app.models.tenant import Tenant
 
 logger = logging.getLogger(__name__)
 settings = get_settings()

@@ -2,13 +2,13 @@ from fastapi import APIRouter, Depends, Request, status, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select
 
-from backend.app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
-from backend.app.core.security.auth_deps import require_auth
-from backend.app.api.deps import get_current_tenant_id, get_db
-from backend.app.schemas.dashboard import DashboardStatsResponse
-from backend.app.models.user import User
-from backend.app.models.order import Order
-from backend.app.models.product import Product
+from app.app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
+from app.app.core.security.auth_deps import require_auth
+from app.app.api.deps import get_current_tenant_id, get_db
+from app.app.schemas.dashboard import DashboardStatsResponse
+from app.app.models.user import User
+from app.app.models.order import Order
+from app.app.models.product import Product
 import logging
 
 logger = logging.getLogger(__name__)

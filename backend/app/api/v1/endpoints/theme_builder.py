@@ -4,8 +4,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.api.deps import get_current_user, get_db
-from backend.app.schemas.theme_builder import (
+from app.app.api.deps import get_current_user, get_db
+from app.app.schemas.theme_builder import (
     ThemeBuilderCreateRequest,
     ThemeBuilderUpdateRequest,
     ThemeBuilderResponse,
@@ -15,13 +15,13 @@ from backend.app.schemas.theme_builder import (
     WhatsAppThemeCommand,
     WhatsAppThemeResponse,
 )
-from backend.app.services.theme_builder_service import (
+from app.app.services.theme_builder_service import (
     ThemeBuilderService,
     ThemeBuilderError,
     ThemeNotFoundError,
     ThemeVersionNotFoundError,
 )
-from backend.app.models.user import User
+from app.app.models.user import User
 
 router = APIRouter()
 

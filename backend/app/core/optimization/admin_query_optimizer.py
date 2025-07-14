@@ -15,9 +15,9 @@ from sqlalchemy.orm import Session, joinedload, contains_eager, selectinload
 from sqlalchemy.sql import Select
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
-from backend.app.db.session import engine
-from backend.app.core.cache.redis_cache import cache_response, invalidate_cache
-from backend.app.core.telemetry import performance_metrics
+from app.app.db.session import engine
+from app.app.core.cache.redis_cache import cache_response, invalidate_cache
+from app.app.core.telemetry import performance_metrics
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -325,9 +325,9 @@ def get_tenant_metrics(db: Session, start_date: Optional[str] = None,
     Returns:
         List of tenant metrics
     """
-    from backend.app.models.tenant import Tenant
-    from backend.app.models.user import User
-    from backend.app.models.activity_log import ActivityLog
+    from app.app.models.tenant import Tenant
+    from app.app.models.user import User
+    from app.app.models.activity_log import ActivityLog
     
     # Use the query optimizer
     query = db.query(
@@ -383,9 +383,9 @@ def get_admin_dashboard_summary(db: Session) -> Dict[str, Any]:
     Returns:
         Dictionary with dashboard summary metrics
     """
-    from backend.app.models.tenant import Tenant
-    from backend.app.models.user import User
-    from backend.app.models.activity_log import ActivityLog
+    from app.app.models.tenant import Tenant
+    from app.app.models.user import User
+    from app.app.models.activity_log import ActivityLog
     
     # Cache the dashboard summary
     @AdminQueryCache.cache_admin_query("dashboard_summary", 300)

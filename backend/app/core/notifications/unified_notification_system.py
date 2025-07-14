@@ -6,7 +6,7 @@ import uuid
 import asyncio
 from pydantic import BaseModel, Field
 
-from backend.app.core.notifications.notification_service import (
+from app.app.core.notifications.notification_service import (
     notification_service,
     Notification,
     NotificationChannel,
@@ -163,13 +163,13 @@ class UnifiedNotificationSystem:
             notification: Unified notification
         """
         try:
-            from backend.app.services.notifications.notification_storage_service import NotificationStorageService
+            from app.app.services.notifications.notification_storage_service import NotificationStorageService
 
             # Initialize storage service
             storage_service = NotificationStorageService()
 
             # Get database session (you may need to adjust this based on your session management)
-            from backend.app.db.session import get_db
+            from app.app.db.session import get_db
             async with get_db() as db:
                 # Store notification in database
                 await storage_service.store_notification(db, notification)

@@ -16,13 +16,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel, Field, validator
 
-from backend.app.api.deps import get_db
-from backend.app.services.security.super_admin_two_factor_service import super_admin_2fa_service
-from backend.app.services.security.ip_allowlist_service import IPAllowlistService
-from backend.app.core.security.dependencies import get_current_super_admin, get_current_admin_user
-from backend.app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
-from backend.app.core.security.clerk_organizations import clerk_organizations_service
-from backend.app.models.admin.admin_user import AdminUser
+from app.app.api.deps import get_db
+from app.app.services.security.super_admin_two_factor_service import super_admin_2fa_service
+from app.app.services.security.ip_allowlist_service import IPAllowlistService
+from app.app.core.security.dependencies import get_current_super_admin, get_current_admin_user
+from app.app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
+from app.app.core.security.clerk_organizations import clerk_organizations_service
+from app.app.models.admin.admin_user import AdminUser
 
 
 router = APIRouter(prefix="/super-admin/security",
@@ -459,7 +459,7 @@ async def create_emergency_lockout(
     """
     try:
         from datetime import datetime, timedelta
-        from backend.app.models.security.emergency import SystemLockout
+        from app.app.models.security.emergency import SystemLockout
 
         expires_at = None
         if request.duration_hours:
@@ -503,7 +503,7 @@ async def get_emergency_lockouts(
     Get all active emergency lockouts.
     """
     from sqlalchemy import select
-    from backend.app.models.security.emergency import SystemLockout
+    from app.app.models.security.emergency import SystemLockout
 
     result = await db.execute(
         select(SystemLockout).where(SystemLockout.is_active == True)
@@ -536,7 +536,7 @@ async def deactivate_emergency_lockout(
     Deactivate emergency lockout.
     """
     from datetime import datetime
-    from backend.app.models.security.emergency import SystemLockout
+    from app.app.models.security.emergency import SystemLockout
 
     lockout = await db.get(SystemLockout, lockout_id)
     if not lockout:
@@ -566,7 +566,7 @@ async def get_super_admin_audit_logs(
     Get security audit logs for Super Admin actions.
     """
     from sqlalchemy import select, desc
-    from backend.app.models.audit.audit_log import AuditLog
+    from app.app.models.audit.audit_log import AuditLog
 
     query = select(AuditLog).order_by(desc(AuditLog.timestamp))
 

@@ -2,8 +2,8 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, Dict, Any, List
 from uuid import UUID
 from datetime import datetime
-from backend.app.schemas.kyc_info import KYCInfoCreate, KYCInfoResponse
-from backend.app.schemas.team_invite import TeamInviteCreate, TeamInviteResponse
+from app.app.schemas.kyc_info import KYCInfoCreate, KYCInfoResponse
+from app.app.schemas.team_invite import TeamInviteCreate, TeamInviteResponse
 
 
 class OnboardingStartRequest(BaseModel):

@@ -4,10 +4,10 @@ from urllib.parse import urlencode
 
 from sqlalchemy.orm import Session
 
-from backend.app.models.product import Product
-from backend.app.models.tenant import Tenant
-from backend.app.services.audit_service import create_audit_log
-from backend.app.utils.social_links import (
+from app.app.models.product import Product
+from app.app.models.tenant import Tenant
+from app.app.services.audit_service import create_audit_log
+from app.app.utils.social_links import (
     generate_facebook_share_link,
     generate_instagram_share,
     generate_telegram_share_link,
@@ -15,7 +15,7 @@ from backend.app.utils.social_links import (
     generate_twitter_share_link,
     generate_whatsapp_link,
 )
-from backend.app.core.exceptions import AppError
+from app.app.core.exceptions import AppError
 
 logger = logging.getLogger(__name__)
 

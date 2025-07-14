@@ -20,10 +20,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from pyotp import TOTP, random_base32
 from cryptography.fernet import Fernet
 
-from backend.app.core.config.settings import get_settings
-from backend.app.models.security.two_factor import TOTPSecret, AdminTOTPRequirement
-from backend.app.models.admin.admin_user import AdminUser
-from backend.app.services.audit.audit_service import AuditService
+from app.app.core.config.settings import get_settings
+from app.app.models.security.two_factor import TOTPSecret, AdminTOTPRequirement
+from app.app.models.admin.admin_user import AdminUser
+from app.app.services.audit.audit_service import AuditService
 
 
 class TwoFactorService:

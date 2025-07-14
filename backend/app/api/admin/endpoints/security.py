@@ -15,10 +15,10 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel, Field, validator
 
-from backend.app.api.deps import get_db
-from backend.app.services.security.two_factor_service import TwoFactorService
-from backend.app.services.admin.auth.dependencies import get_current_admin_user
-from backend.app.models.admin.admin_user import AdminUser
+from app.app.api.deps import get_db
+from app.app.services.security.two_factor_service import TwoFactorService
+from app.app.services.admin.auth.dependencies import get_current_admin_user
+from app.app.models.admin.admin_user import AdminUser
 
 
 router = APIRouter(prefix="/security", tags=["security"])

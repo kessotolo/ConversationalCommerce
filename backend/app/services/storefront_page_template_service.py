@@ -11,12 +11,12 @@ from typing import Any, Dict, List, Optional, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from backend.app.models.storefront_page_template import (
+from app.app.models.storefront_page_template import (
     PageTemplateType,
     StorefrontPageTemplate,
     TemplateStatus,
 )
-from backend.app.services.storefront.page_templates.storefront_page_template_service import StorefrontPageTemplateService
+from app.app.services.storefront.page_templates.storefront_page_template_service import StorefrontPageTemplateService
 
 
 async def create_page_template(

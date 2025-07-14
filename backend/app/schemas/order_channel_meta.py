@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
-from backend.app.models.conversation_history import ChannelType
+from app.app.models.conversation_history import ChannelType
 
 
 class OrderChannelMetaBase(BaseModel):

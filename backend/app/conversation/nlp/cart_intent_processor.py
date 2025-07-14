@@ -8,16 +8,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, or_, func, desc
 from sqlalchemy.orm import selectinload
 
-from backend.app.models.cart import Cart, CartItem
-from backend.app.models.product import Product
-from backend.app.models.customer import Customer
-from backend.app.models.order import Order, OrderStatus, OrderSource
-from backend.app.models.order_item import OrderItem
-from backend.app.models.order_channel_meta import OrderChannelMeta
-from backend.app.models.conversation_history import ChannelType
-from backend.app.services.order_creation_service import OrderCreationService
-from backend.app.services.order_exceptions import OrderValidationError
-from backend.app.core.exceptions import AppError
+from app.app.models.cart import Cart, CartItem
+from app.app.models.product import Product
+from app.app.models.customer import Customer
+from app.app.models.order import Order, OrderStatus, OrderSource
+from app.app.models.order_item import OrderItem
+from app.app.models.order_channel_meta import OrderChannelMeta
+from app.app.models.conversation_history import ChannelType
+from app.app.services.order_creation_service import OrderCreationService
+from app.app.services.order_exceptions import OrderValidationError
+from app.app.core.exceptions import AppError
 
 logger = logging.getLogger(__name__)
 

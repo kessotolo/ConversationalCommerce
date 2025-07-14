@@ -1,8 +1,8 @@
 import logging
 from typing import Any, Dict, Optional
 
-from backend.app.core.config.settings import get_settings
-from backend.app.schemas.shipping import ShippingDetails
+from app.app.core.config.settings import get_settings
+from app.app.schemas.shipping import ShippingDetails
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -85,7 +85,7 @@ class MockShippingPlugin(ShippingProviderPlugin):
 
 # Import the Sendy plugin conditionally to handle potential import errors
 try:
-    from backend.app.services.shipping.sendy_plugin import SendyShippingPlugin
+    from app.app.services.shipping.sendy_plugin import SendyShippingPlugin
     has_sendy_plugin = True
 except ImportError:
     logger.warning(

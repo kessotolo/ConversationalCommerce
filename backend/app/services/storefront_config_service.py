@@ -19,11 +19,11 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 
-from backend.app.models.storefront import StorefrontConfig, StorefrontStatus
-from backend.app.models.tenant import Tenant
-from backend.app.models.user import User
-from backend.app.utils.domain_validator import validate_domain, validate_subdomain
-from backend.app.core.exceptions import (
+from app.app.models.storefront import StorefrontConfig, StorefrontStatus
+from app.app.models.tenant import Tenant
+from app.app.models.user import User
+from app.app.utils.domain_validator import validate_domain, validate_subdomain
+from app.app.core.exceptions import (
     ResourceNotFoundError,
     ValidationError as ValidationException,
     BusinessLogicError as ResourceConflictException,

@@ -1,12 +1,12 @@
-from backend.app.services.audit_service import create_audit_log
-from backend.app.models.order import Order, OrderStatus
+from app.app.services.audit_service import create_audit_log
+from app.app.models.order import Order, OrderStatus
 import logging
 from uuid import UUID
 
 from sqlalchemy.orm import Session
 from twilio.rest import Client
 
-from backend.app.core.config.settings import get_settings
+from app.app.core.config.settings import get_settings
 settings = get_settings()
 
 

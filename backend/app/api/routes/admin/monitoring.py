@@ -10,11 +10,11 @@ import logging
 import time
 from datetime import datetime, timedelta
 
-from backend.app.core.monitoring.metrics import (
+from app.app.core.monitoring.metrics import (
     metrics_collector, get_system_info, get_metrics_snapshot
 )
-from backend.app.services.admin.auth.dependencies import get_current_admin_user
-from backend.app.core.monitoring.rules_engine import rules_engine
+from app.app.services.admin.auth.dependencies import get_current_admin_user
+from app.app.core.monitoring.rules_engine import rules_engine
 
 router = APIRouter()
 logger = logging.getLogger(__name__)

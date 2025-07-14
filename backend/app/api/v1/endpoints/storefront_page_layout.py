@@ -4,10 +4,10 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 from sqlalchemy.orm import Session
 
-from backend.app.api.deps import get_db, get_current_active_user
-from backend.app.models.user import User
-from backend.app.schemas.storefront.page_layout import LayoutUpdate
-from backend.app.services.storefront.page_layout_orchestrator import PageLayoutOrchestrator
+from app.app.api.deps import get_db, get_current_active_user
+from app.app.models.user import User
+from app.app.schemas.storefront.page_layout import LayoutUpdate
+from app.app.services.storefront.page_layout_orchestrator import PageLayoutOrchestrator
 
 router = APIRouter(prefix="/storefront", tags=["storefront-page-layout"])
 

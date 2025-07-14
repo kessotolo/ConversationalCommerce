@@ -6,13 +6,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from backend.app.core.logging import logger
+from app.app.core.logging import logger
 
-from backend.app.api import deps
-from backend.app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
-from backend.app.models.product import Product
-from backend.app.models.tenant import Tenant
-from backend.app.services.share_service import share_service
+from app.app.api import deps
+from app.app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
+from app.app.models.product import Product
+from app.app.models.tenant import Tenant
+from app.app.services.share_service import share_service
 
 router = APIRouter()
 
@@ -357,7 +357,7 @@ def generate_qr_code(
 
         # Log the QR code generation
         try:
-            from backend.app.services.audit_service import create_audit_log
+            from app.app.services.audit_service import create_audit_log
 
             create_audit_log(
                 db=db,

@@ -5,11 +5,11 @@ from datetime import datetime
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.models.returns import ReturnRequest, ReturnItem, ReturnStatus, ReturnReason
-from backend.app.models.order import Order, OrderItem
-from backend.app.schemas.returns import ReturnRequestCreate, ReturnRequestUpdate, ReturnItemUpdate
-from backend.app.repositories.return_repository import ReturnRepository
-from backend.app.repositories.order_repository import OrderRepository
+from app.app.models.returns import ReturnRequest, ReturnItem, ReturnStatus, ReturnReason
+from app.app.models.order import Order, OrderItem
+from app.app.schemas.returns import ReturnRequestCreate, ReturnRequestUpdate, ReturnItemUpdate
+from app.app.repositories.return_repository import ReturnRepository
+from app.app.repositories.order_repository import OrderRepository
 
 
 class ReturnService:

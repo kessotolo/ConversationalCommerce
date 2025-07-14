@@ -5,8 +5,8 @@ from sqlalchemy import Column, DateTime, Enum, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from backend.app.db import Base
-from backend.app.models.conversation_history import ChannelType
+from app.app.db import Base
+from app.app.models.conversation_history import ChannelType
 
 
 class OrderChannelMeta(Base):

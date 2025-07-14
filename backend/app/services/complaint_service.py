@@ -5,8 +5,8 @@ from sqlalchemy import and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from backend.app.models.complaint import Complaint
-from backend.app.schemas.complaint import ComplaintCreate, ComplaintEscalate, ComplaintUpdate
+from app.app.models.complaint import Complaint
+from app.app.schemas.complaint import ComplaintCreate, ComplaintEscalate, ComplaintUpdate
 
 
 class ComplaintService:

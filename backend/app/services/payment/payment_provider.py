@@ -6,8 +6,8 @@ from typing import Dict, Optional
 
 import requests
 
-from backend.app.core.logging import logger
-from backend.app.schemas.payment.payment import (
+from app.app.core.logging import logger
+from app.app.schemas.payment.payment import (
     Money,
     PaymentInitializeRequest,
     PaymentInitializeResponse,

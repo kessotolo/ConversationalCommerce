@@ -6,7 +6,7 @@ from typing import Callable
 from fastapi import Depends, HTTPException, Request, status
 from redis import Redis
 
-from backend.app.dependencies import get_redis
+from app.app.dependencies import get_redis
 
 
 class IdempotencyKey:

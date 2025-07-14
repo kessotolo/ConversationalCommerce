@@ -5,7 +5,7 @@ from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, St
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 
-from backend.app.db import Base
+from app.app.db import Base
 
 
 class Product(Base):

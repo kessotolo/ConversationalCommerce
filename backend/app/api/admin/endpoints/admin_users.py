@@ -8,15 +8,15 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.api.deps import get_db, get_current_admin_user_with_permissions
-from backend.app.schemas.admin_user import (
+from app.app.api.deps import get_db, get_current_admin_user_with_permissions
+from app.app.schemas.admin_user import (
     AdminUserCreate,
     AdminUserUpdate,
     AdminUserResponse,
     AdminUserWithRolesResponse
 )
-from backend.app.services.admin.users_service import AdminUserService
-from backend.app.models.auth.admin_user import AdminUser
+from app.app.services.admin.users_service import AdminUserService
+from app.app.models.auth.admin_user import AdminUser
 
 router = APIRouter()
 

@@ -4,8 +4,8 @@ from sqlalchemy import select, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from backend.app.models.settings import Setting, SettingsDomain, SettingHistory
-from backend.app.schemas.settings import SettingCreate, SettingsDomainCreate, SettingHistoryCreate
+from app.app.models.settings import Setting, SettingsDomain, SettingHistory
+from app.app.schemas.settings import SettingCreate, SettingsDomainCreate, SettingHistoryCreate
 
 
 class SettingsRepository:

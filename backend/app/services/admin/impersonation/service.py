@@ -13,11 +13,11 @@ from typing import Dict, Any, Optional, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 from jose import jwt
 
-from backend.app.models.tenant import Tenant
-from backend.app.services.tenant.service import TenantService
-from backend.app.services.admin.admin_user.service import AdminUserService
-from backend.app.core.errors.exceptions import EntityNotFoundException, UnauthorizedException
-from backend.app.core.config.settings import Settings, get_settings
+from app.app.models.tenant import Tenant
+from app.app.services.tenant.service import TenantService
+from app.app.services.admin.admin_user.service import AdminUserService
+from app.app.core.errors.exceptions import EntityNotFoundException, UnauthorizedException
+from app.app.core.config.settings import Settings, get_settings
 
 
 class ImpersonationService:

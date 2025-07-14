@@ -4,9 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.api.deps import get_db, get_current_buyer
-from backend.app.models.notification_preferences import NotificationPreferences as NotificationPreferencesModel
-from backend.app.schemas.notification_preferences import (
+from app.app.api.deps import get_db, get_current_buyer
+from app.app.models.notification_preferences import NotificationPreferences as NotificationPreferencesModel
+from app.app.schemas.notification_preferences import (
     NotificationPreferencesUpdate, NotificationPreferencesResponse,
 )
 

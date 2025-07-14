@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional
 from sqlalchemy import Boolean, Column, DateTime, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 
-from backend.app.db.base_class import Base
+from app.app.db.base_class import Base
 
 
 class AdminNotification(Base):

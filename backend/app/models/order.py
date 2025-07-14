@@ -18,7 +18,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from backend.app.db import Base
+from app.app.db import Base
 
 
 class OrderStatus(str, enum.Enum):
@@ -101,7 +101,7 @@ class Order(Base):
         Get WhatsApp-specific metadata for this order.
         This replaces the old WhatsAppOrderDetails relationship.
         """
-        from backend.app.models.conversation_history import ChannelType
+        from app.app.models.conversation_history import ChannelType
 
         if not self.channel_metadata:
             return None

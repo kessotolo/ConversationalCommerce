@@ -4,17 +4,17 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 from sqlalchemy.orm import Session
 
-from backend.app.api.deps import get_current_active_user, get_db
-from backend.app.models.storefront_banner import BannerStatus, BannerType
-from backend.app.models.user import User
-from backend.app.schemas.storefront_banner import (
+from app.app.api.deps import get_current_active_user, get_db
+from app.app.models.storefront_banner import BannerStatus, BannerType
+from app.app.models.user import User
+from app.app.schemas.storefront_banner import (
     BannerCreate,
     BannerList,
     BannerOrderUpdate,
     BannerResponse,
     BannerUpdate,
 )
-from backend.app.services.banner import banner_orchestrator
+from app.app.services.banner import banner_orchestrator
 
 router = APIRouter()
 

@@ -7,8 +7,8 @@ This module defines and initializes default system roles.
 from typing import Dict, List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.models.admin.role import Role
-from backend.app.services.admin.role.service import RoleService
+from app.app.models.admin.role import Role
+from app.app.services.admin.role.service import RoleService
 
 
 async def initialize_default_roles(

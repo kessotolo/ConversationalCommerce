@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from backend.app.api.v1.endpoints import (
+from app.app.api.v1.endpoints import (
     storefront_editor_assets,
     storefront_editor_banners,
     storefront_editor_components,

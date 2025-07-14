@@ -5,7 +5,7 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from backend.app.db.base_class import Base
+from app.app.db.base_class import Base
 
 
 class StorefrontDraft(Base):

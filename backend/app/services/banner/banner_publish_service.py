@@ -1,10 +1,10 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from datetime import datetime, timezone
-from backend.app.models.storefront_banner import StorefrontBanner, BannerStatus
-from backend.app.models.tenant import Tenant
-from backend.app.models.user import User
-from backend.app.services.storefront.permissions.storefront_permissions_service import StorefrontPermissionsService
+from app.app.models.storefront_banner import StorefrontBanner, BannerStatus
+from app.app.models.tenant import Tenant
+from app.app.models.user import User
+from app.app.services.storefront.permissions.storefront_permissions_service import StorefrontPermissionsService
 
 
 async def publish_banner(db: Session, tenant_id, banner_id, user_id):

@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
-from backend.app.core.config.settings import get_settings
+from app.app.core.config.settings import get_settings
 
 settings = get_settings()
 

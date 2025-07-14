@@ -9,8 +9,8 @@ from typing import Set
 
 from sqlalchemy.orm import Session
 
-from backend.app.models.conversation_event import ConversationEvent
-from backend.app.services.audit_service import create_audit_log
+from app.app.models.conversation_event import ConversationEvent
+from app.app.services.audit_service import create_audit_log
 
 # Define which event types should be audit-logged (extensible)
 AUDIT_EVENT_TYPES: Set[str] = {

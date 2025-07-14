@@ -4,10 +4,10 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.api.deps import get_current_active_tenant, get_db
-from backend.app.models.tenant import Tenant
-from backend.app.repositories.seller_shipping_repository import SellerShippingRepository
-from backend.app.schemas.seller_shipping import (
+from app.app.api.deps import get_current_active_tenant, get_db
+from app.app.models.tenant import Tenant
+from app.app.repositories.seller_shipping_repository import SellerShippingRepository
+from app.app.schemas.seller_shipping import (
     SellerShippingProviderCreate,
     SellerShippingProviderUpdate,
     SellerShippingProviderResponse,
@@ -18,7 +18,7 @@ from backend.app.schemas.seller_shipping import (
     DeliveryQuoteRequest,
     DeliveryQuoteResponse,
 )
-from backend.app.services.shipping.seller_plugin import calculate_delivery_fee, estimate_delivery_time
+from app.app.services.shipping.seller_plugin import calculate_delivery_fee, estimate_delivery_time
 
 router = APIRouter()
 

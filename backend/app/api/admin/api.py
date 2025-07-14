@@ -6,8 +6,8 @@ This module provides the main admin router that includes all admin-specific endp
 
 from fastapi import APIRouter
 
-from backend.app.api.routes.admin.auth import router as auth_router
-from backend.app.api.admin.endpoints.super_admin_security import router as super_admin_security_router
+from app.app.api.routes.admin.auth import router as auth_router
+from app.app.api.admin.endpoints.super_admin_security import router as super_admin_security_router
 
 # Main admin API router
 admin_router = APIRouter()

@@ -1,4 +1,4 @@
-from backend.app.core.exceptions import AppError
+from app.app.core.exceptions import AppError
 
 
 class ComplaintNotFoundError(AppError):

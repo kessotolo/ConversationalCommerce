@@ -1,7 +1,7 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, Path
-from backend.app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
-from backend.app.core.websocket.monitoring import get_websocket_endpoint
-from backend.app.api import deps
+from app.app.core.security.clerk_multi_org import MultiOrgClerkTokenData as ClerkTokenData
+from app.app.core.websocket.monitoring import get_websocket_endpoint
+from app.app.api import deps
 
 router = APIRouter()
 

@@ -14,7 +14,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from backend.app.db.base_class import Base
+from app.app.db.base_class import Base
 
 
 class BehaviorPattern(Base):

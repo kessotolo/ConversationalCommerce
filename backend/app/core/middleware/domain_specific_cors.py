@@ -13,8 +13,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import Response
 
-from backend.app.core.logging import logger
-from backend.app.core.config.settings import get_settings
+from app.app.core.logging import logger
+from app.app.core.config.settings import get_settings
 
 # Check if we're in test mode
 TESTING = str(os.environ.get("TESTING", "false")

@@ -13,15 +13,15 @@ from fastapi import (
 )
 from sqlalchemy.orm import Session
 
-from backend.app.api.deps import get_db, get_tenant_context
-from backend.app.schemas.storefront_product import (
+from app.app.api.deps import get_db, get_tenant_context
+from app.app.schemas.storefront_product import (
     CollectionInfo,
     PaginatedStorefrontProducts,
     StorefrontProductBase,
     StorefrontProductWithVariants,
     TagInfo,
 )
-from backend.app.services import storefront_product_service
+from app.app.services import storefront_product_service
 
 router = APIRouter()
 

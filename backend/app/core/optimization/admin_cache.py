@@ -9,8 +9,8 @@ from datetime import datetime
 from fastapi import Request, Response, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.core.cache.redis_cache import redis_cache
-from backend.app.db.async_session import get_async_session_local
+from app.app.core.cache.redis_cache import redis_cache
+from app.app.db.async_session import get_async_session_local
 
 logger = logging.getLogger(__name__)
 

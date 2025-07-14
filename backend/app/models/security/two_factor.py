@@ -13,7 +13,7 @@ from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String, JSON, Inte
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from sqlalchemy.orm import relationship
 
-from backend.app.db.base_class import Base
+from app.app.db.base_class import Base
 
 
 class TOTPSecret(Base):

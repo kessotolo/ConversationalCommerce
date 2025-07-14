@@ -1,4 +1,4 @@
-from backend.app.core.logging import logger
+from app.app.core.logging import logger
 import base64
 import hashlib
 import hmac
@@ -12,7 +12,7 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
-from backend.app.core.config.settings import get_settings
+from app.app.core.config.settings import get_settings
 settings = get_settings()
 
 

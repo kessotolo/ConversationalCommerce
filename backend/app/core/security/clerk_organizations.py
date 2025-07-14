@@ -15,8 +15,8 @@ from datetime import datetime, timezone
 import httpx
 from fastapi import HTTPException, status
 
-from backend.app.core.logging import logger
-from backend.app.core.config.settings import get_settings
+from app.app.core.logging import logger
+from app.app.core.config.settings import get_settings
 
 
 class ClerkOrganizationsService:

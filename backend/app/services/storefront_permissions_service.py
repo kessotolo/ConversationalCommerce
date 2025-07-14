@@ -4,13 +4,13 @@ from typing import Any, Dict, List, Optional, Tuple
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from backend.app.models.storefront_permission import (
+from app.app.models.storefront_permission import (
     StorefrontPermission,
     StorefrontRole,
     StorefrontSectionType,
 )
-from backend.app.models.tenant import Tenant
-from backend.app.models.user import User
+from app.app.models.tenant import Tenant
+from app.app.models.user import User
 
 # Define permission levels with corresponding actions
 PERMISSION_LEVELS = {

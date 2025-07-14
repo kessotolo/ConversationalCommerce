@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from pydantic import root_validator, validator
 
-from backend.app.schemas.payment.payment import (
+from app.app.schemas.payment.payment import (
     ManualPaymentProof,
     PaymentInitializeRequest,
     PaymentProviderConfig,

@@ -17,7 +17,7 @@ from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from backend.app.db import Base
+from app.app.db import Base
 
 
 class ReturnStatus(str, enum.Enum):

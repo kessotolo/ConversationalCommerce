@@ -14,7 +14,7 @@ from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Enum, Text
 from sqlalchemy.dialects.postgresql import UUID, JSONB, ARRAY
 from sqlalchemy.orm import relationship
 
-from backend.app.db.base_class import Base
+from app.app.db.base_class import Base
 
 
 class EmergencyStatus(str, enum.Enum):

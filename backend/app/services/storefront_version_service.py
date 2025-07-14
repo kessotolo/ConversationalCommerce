@@ -7,10 +7,10 @@ from fastapi import HTTPException, status
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
-from backend.app.models.storefront import StorefrontConfig
-from backend.app.models.storefront_version import StorefrontVersion
-from backend.app.models.tenant import Tenant
-from backend.app.models.user import User
+from app.app.models.storefront import StorefrontConfig
+from app.app.models.storefront_version import StorefrontVersion
+from app.app.models.tenant import Tenant
+from app.app.models.user import User
 
 
 async def create_version(

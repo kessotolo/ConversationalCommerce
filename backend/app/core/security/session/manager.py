@@ -11,8 +11,8 @@ from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 
-from backend.app.core.logging import logger
-from backend.app.core.security.clerk_organizations import clerk_organizations_service
+from app.app.core.logging import logger
+from app.app.core.security.clerk_organizations import clerk_organizations_service
 from .models import SessionInfo, SessionConfig, SessionValidationResult
 from .storage import SessionStorage
 from .validator import SessionValidator

@@ -20,11 +20,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete
 from sqlalchemy.orm import selectinload
 
-from backend.app.core.logging import logger
-from backend.app.models.security.two_factor import TOTPSecret, AdminTOTPRequirement
-from backend.app.models.admin.admin_user import AdminUser
-from backend.app.models.audit.audit_log import AuditLog
-from backend.app.core.security.password import get_password_hash, verify_password
+from app.app.core.logging import logger
+from app.app.models.security.two_factor import TOTPSecret, AdminTOTPRequirement
+from app.app.models.admin.admin_user import AdminUser
+from app.app.models.audit.audit_log import AuditLog
+from app.app.core.security.password import get_password_hash, verify_password
 
 
 class SuperAdminTwoFactorService:

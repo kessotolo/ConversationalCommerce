@@ -9,10 +9,10 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.api.deps import get_db, get_current_admin_user_with_permissions
-from backend.app.services.audit.audit_service import AuditService
-from backend.app.schemas.audit import AuditLogResponse, AuditLogFilter
-from backend.app.models.auth.admin_user import AdminUser
+from app.app.api.deps import get_db, get_current_admin_user_with_permissions
+from app.app.services.audit.audit_service import AuditService
+from app.app.schemas.audit import AuditLogResponse, AuditLogFilter
+from app.app.models.auth.admin_user import AdminUser
 
 router = APIRouter()
 

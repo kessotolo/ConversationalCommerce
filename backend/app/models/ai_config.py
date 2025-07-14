@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 
-from backend.app.db.base_class import Base
+from app.app.db.base_class import Base
 
 
 class AIConfig(Base):

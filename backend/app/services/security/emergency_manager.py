@@ -11,14 +11,14 @@ from typing import List, Optional, Dict, Any, Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.models.security.emergency import (
+from app.app.models.security.emergency import (
     EmergencyEvent, EmergencyStatus, EmergencySeverity, EmergencyType,
     EmergencyAction, SystemLockout, EmergencyContact, EmergencyNotification
 )
-from backend.app.services.security.emergency_events_service import EmergencyEventsService
-from backend.app.services.security.system_lockout_service import SystemLockoutService
-from backend.app.services.security.emergency_notification_service import EmergencyNotificationService
-from backend.app.services.audit.audit_service import AuditService
+from app.app.services.security.emergency_events_service import EmergencyEventsService
+from app.app.services.security.system_lockout_service import SystemLockoutService
+from app.app.services.security.emergency_notification_service import EmergencyNotificationService
+from app.app.services.audit.audit_service import AuditService
 
 
 class EmergencyManager:

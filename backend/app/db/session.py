@@ -7,7 +7,7 @@ from contextlib import contextmanager
 from typing import Generator
 
 from sqlalchemy.orm import Session
-from backend.app.db.engines.sync_engine import get_sync_engine, get_sync_session_maker
+from app.app.db.engines.sync_engine import get_sync_engine, get_sync_session_maker
 
 # Create a session maker for sync code
 SessionLocal = get_sync_session_maker()

@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock
-from backend.app.services.storefront_config_service import (
+from app.app.services.storefront_config_service import (
     create_storefront_config,
     get_storefront_config,
     update_storefront_config,

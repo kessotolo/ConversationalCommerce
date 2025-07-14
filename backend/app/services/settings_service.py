@@ -4,8 +4,8 @@ from fastapi import HTTPException, status
 from jsonschema import validate, ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.repositories.settings_repository import SettingsRepository
-from backend.app.schemas.settings import (
+from app.app.repositories.settings_repository import SettingsRepository
+from app.app.schemas.settings import (
     SettingsDomainCreate, SettingsDomainUpdate, SettingsDomainInDB, 
     SettingCreate, SettingUpdate, SettingInDB, 
     DomainWithSettings, BulkSettingUpdate, SettingValidationResult, SettingValidationError

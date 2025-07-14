@@ -1,14 +1,15 @@
-from backend.app.schemas.conversation_event import (
+from app.schemas.conversation_event import (
     ConversationEventBase,
     ConversationEventCreate,
-    ConversationEventResponse,
+    ConversationEventUpdate,
+    ConversationEventResponse
 )
-from backend.app.schemas.seller_profile import (
+from app.schemas.seller_profile import (
     SellerProfileBase,
     SellerProfileCreate,
     SellerProfileUpdate,
-    SellerProfileResponse,
+    SellerProfileResponse
 )
-from backend.app.schemas.address_book import AddressBookBase, AddressBookCreate, AddressBookUpdate, AddressBookResponse
-from backend.app.schemas.saved_payment_method import SavedPaymentMethodBase, SavedPaymentMethodCreate, SavedPaymentMethodUpdate, SavedPaymentMethodResponse
-from backend.app.schemas.notification_preferences import NotificationPreferencesBase, NotificationPreferencesUpdate, NotificationPreferencesResponse
+from app.schemas.address_book import AddressBookBase, AddressBookCreate, AddressBookUpdate, AddressBookResponse
+from app.schemas.saved_payment_method import SavedPaymentMethodBase, SavedPaymentMethodCreate, SavedPaymentMethodUpdate, SavedPaymentMethodResponse
+from app.schemas.notification_preferences import NotificationPreferencesBase, NotificationPreferencesUpdate, NotificationPreferencesResponse

@@ -3,7 +3,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from backend.app.api.deps import get_db
+from app.app.api.deps import get_db
 
 router = APIRouter()
 

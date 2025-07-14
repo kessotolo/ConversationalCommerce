@@ -15,10 +15,10 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel, Field, validator, IPvAnyNetwork, IPvAnyAddress
 
-from backend.app.api.deps import get_db
-from backend.app.services.security.ip_allowlist_service import IPAllowlistService
-from backend.app.services.admin.auth.dependencies import get_current_admin_user
-from backend.app.models.admin.admin_user import AdminUser
+from app.app.api.deps import get_db
+from app.app.services.security.ip_allowlist_service import IPAllowlistService
+from app.app.services.admin.auth.dependencies import get_current_admin_user
+from app.app.models.admin.admin_user import AdminUser
 
 
 router = APIRouter(prefix="/ip-allowlist", tags=["ip-allowlist"])

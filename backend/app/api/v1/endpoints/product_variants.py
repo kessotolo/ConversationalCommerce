@@ -3,10 +3,10 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.api.deps import get_current_tenant_user, get_db
-from backend.app.models.users import User
-from backend.app.services.product_variant_service import ProductVariantService
-from backend.app.schemas.product_variant import (
+from app.app.api.deps import get_current_tenant_user, get_db
+from app.app.models.users import User
+from app.app.services.product_variant_service import ProductVariantService
+from app.app.schemas.product_variant import (
     ProductVariant,
     ProductVariantCreate,
     ProductVariantUpdate,

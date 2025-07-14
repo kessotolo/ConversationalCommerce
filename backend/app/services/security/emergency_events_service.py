@@ -12,11 +12,11 @@ from typing import List, Optional, Dict, Any, Tuple
 from sqlalchemy import select, update, and_, or_, not_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.models.security.emergency import (
+from app.app.models.security.emergency import (
     EmergencyEvent, EmergencyStatus, EmergencySeverity, 
     EmergencyType, EmergencyAction
 )
-from backend.app.services.audit.audit_service import AuditService
+from app.app.services.audit.audit_service import AuditService
 
 
 class EmergencyEventsService:

@@ -6,7 +6,7 @@ building on the unified engine infrastructure.
 from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from backend.app.db.engines.async_engine import get_async_session_maker
+from app.app.db.engines.async_engine import get_async_session_maker
 
 
 async def get_async_db() -> AsyncGenerator[AsyncSession, None]:

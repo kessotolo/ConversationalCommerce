@@ -5,13 +5,13 @@ from datetime import datetime, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, or_, desc, asc, text
 from sqlalchemy.orm import joinedload, selectinload
-from backend.app.models.order import Order, OrderStatus, OrderSource
-from backend.app.models.order_item import OrderItem
-from backend.app.models.order_channel_meta import OrderChannelMeta
-from backend.app.models.product import Product
-from backend.app.models.customer import Customer
-from backend.app.services.order_exceptions import OrderNotFoundError, OrderValidationError
-from backend.app.core.exceptions import AppError
+from app.app.models.order import Order, OrderStatus, OrderSource
+from app.app.models.order_item import OrderItem
+from app.app.models.order_channel_meta import OrderChannelMeta
+from app.app.models.product import Product
+from app.app.models.customer import Customer
+from app.app.services.order_exceptions import OrderNotFoundError, OrderValidationError
+from app.app.core.exceptions import AppError
 
 logger = logging.getLogger(__name__)
 

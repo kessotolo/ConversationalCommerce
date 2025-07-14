@@ -2,7 +2,7 @@ import asyncio
 import logging
 from typing import Awaitable, Callable, Dict, List, Optional, TypeVar
 
-from backend.app.domain.events.order_events import DomainEvent
+from app.app.domain.events.order_events import DomainEvent
 
 logger = logging.getLogger(__name__)
 

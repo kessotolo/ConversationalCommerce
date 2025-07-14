@@ -6,16 +6,16 @@ from fastapi import HTTPException, status
 from sqlalchemy import desc, func, or_
 from sqlalchemy.orm import Session
 
-from backend.app.models.storefront_banner import (
+from app.app.models.storefront_banner import (
     BannerStatus,
     BannerType,
     StorefrontBanner,
     TargetAudience,
 )
-from backend.app.models.tenant import Tenant
-from backend.app.models.user import User
-from backend.app.services.storefront_asset_service import get_asset, track_asset_usage
-from backend.app.services.storefront.permissions.storefront_permissions_service import StorefrontPermissionsService
+from app.app.models.tenant import Tenant
+from app.app.models.user import User
+from app.app.services.storefront_asset_service import get_asset, track_asset_usage
+from app.app.services.storefront.permissions.storefront_permissions_service import StorefrontPermissionsService
 
 
 async def create_banner(

@@ -8,8 +8,8 @@ from pydantic import BaseModel
 from sqlalchemy import func, distinct
 from sqlalchemy.orm import Session
 
-from backend.app.api.deps import get_db
-from backend.app.models.audit.audit_log import AuditLog
+from app.app.api.deps import get_db
+from app.app.models.audit.audit_log import AuditLog
 
 router = APIRouter()
 logger = logging.getLogger(__name__)

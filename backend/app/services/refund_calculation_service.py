@@ -3,13 +3,13 @@ from typing import List, Dict, Optional, Tuple
 import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.models.orders import Order, OrderItem
-from backend.app.models.payments import Payment, PaymentStatus
-from backend.app.models.returns import ReturnRequest, ReturnItem, ReturnStatus
-from backend.app.models.taxes import Tax
-from backend.app.repositories.order_repository import OrderRepository
-from backend.app.repositories.payment_repository import PaymentRepository
-from backend.app.repositories.return_repository import ReturnRepository
+from app.app.models.orders import Order, OrderItem
+from app.app.models.payments import Payment, PaymentStatus
+from app.app.models.returns import ReturnRequest, ReturnItem, ReturnStatus
+from app.app.models.taxes import Tax
+from app.app.repositories.order_repository import OrderRepository
+from app.app.repositories.payment_repository import PaymentRepository
+from app.app.repositories.return_repository import ReturnRepository
 
 logger = logging.getLogger(__name__)
 

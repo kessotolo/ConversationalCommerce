@@ -4,7 +4,7 @@ from pathlib import Path
 from fastapi import Request, status
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from backend.app.core.exceptions import AppError
+from app.app.core.exceptions import AppError
 
 logger = logging.getLogger(__name__)
 

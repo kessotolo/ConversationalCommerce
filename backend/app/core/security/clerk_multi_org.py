@@ -12,7 +12,7 @@ from typing import Optional, Dict, Any, List
 from fastapi import HTTPException, status
 from pydantic import BaseModel
 
-from backend.app.core.config.settings import get_settings
+from app.app.core.config.settings import get_settings
 
 # Check if we're in test mode
 IS_TEST_MODE = os.getenv("TESTING", "").lower() in (

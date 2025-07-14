@@ -4,7 +4,7 @@ Includes all dashboard, RBAC, search, and activity feed endpoints.
 """
 
 from fastapi import APIRouter
-from backend.app.api.admin.endpoints import (
+from app.app.api.admin.endpoints import (
     dashboard,
     rbac,
     global_search,
@@ -23,7 +23,7 @@ router.include_router(activity_feed.router,
 
 # Include security dashboard router with proper error handling
 try:
-    from backend.app.api.admin.endpoints import security_dashboard
+    from app.app.api.admin.endpoints import security_dashboard
     router.include_router(security_dashboard.router,
                           prefix="/security", tags=["security"])
 except ImportError as e:

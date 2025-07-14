@@ -18,15 +18,15 @@ from fastapi import (
 )
 from sqlalchemy.orm import Session
 
-from backend.app.api.routers.conversation import log_conversation_event
-from backend.app.conversation.chat_flow_engine import ChatFlowEngine
-from backend.app.conversation.handlers.order_handler import OrderIntentHandler
-from backend.app.conversation.nlp.cart_intent_processor import process_cart_intent
-from backend.app.conversation.nlp.intent_parser import IntentType, parse_intent
-from backend.app.api.deps import get_db
-from backend.app.models.conversation_history import ChannelType, ConversationHistory, SenderType
-from backend.app.models.tenant import Tenant
-from backend.app.schemas.conversation_event import ConversationEventCreate
+from app.app.api.routers.conversation import log_conversation_event
+from app.app.conversation.chat_flow_engine import ChatFlowEngine
+from app.app.conversation.handlers.order_handler import OrderIntentHandler
+from app.app.conversation.nlp.cart_intent_processor import process_cart_intent
+from app.app.conversation.nlp.intent_parser import IntentType, parse_intent
+from app.app.api.deps import get_db
+from app.app.models.conversation_history import ChannelType, ConversationHistory, SenderType
+from app.app.models.tenant import Tenant
+from app.app.schemas.conversation_event import ConversationEventCreate
 
 # WhatsApp Business API settings
 WHATSAPP_API_VERSION = os.getenv("WHATSAPP_API_VERSION", "v16.0")
@@ -77,7 +77,7 @@ def find_tenant_by_whatsapp(phone_number: str, db: Session) -> Optional[Tenant]:
 
 
 def get_tenant_by_id(db, tenant_id):
-    from backend.app.models.tenant import Tenant
+    from app.app.models.tenant import Tenant
 
     return db.query(Tenant).filter(Tenant.id == tenant_id).first()
 

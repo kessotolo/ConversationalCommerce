@@ -5,10 +5,10 @@ from sqlalchemy import func, and_, or_, desc, asc
 import pandas as pd
 import json
 
-from backend.app.models.analytics import AnalyticsEvent, AnalyticsMetric, AnalyticsReport
-from backend.app.schemas.analytics import AnalyticsEventCreate, AnalyticsMetricCreate, AnalyticsReportCreate, AnalyticsQuery
-from backend.app.schemas.analytics import AnalyticsMetricUpdate, AnalyticsReportUpdate
-from backend.app.core.security import get_tenant_id_from_context
+from app.app.models.analytics import AnalyticsEvent, AnalyticsMetric, AnalyticsReport
+from app.app.schemas.analytics import AnalyticsEventCreate, AnalyticsMetricCreate, AnalyticsReportCreate, AnalyticsQuery
+from app.app.schemas.analytics import AnalyticsMetricUpdate, AnalyticsReportUpdate
+from app.app.core.security import get_tenant_id_from_context
 
 
 class AnalyticsRepository:

@@ -9,8 +9,8 @@ import os
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.core.db.session import get_db
-from backend.app.core.security.dependencies import (
+from app.app.core.db.session import get_db
+from app.app.core.security.dependencies import (
     get_current_admin,
     get_current_super_admin,
     get_current_admin_user,
@@ -18,11 +18,11 @@ from backend.app.core.security.dependencies import (
     get_current_admin_or_seller,
     get_current_super_admin_user,
 )
-from backend.app.core.security.clerk_multi_org import MultiOrgClerkTokenData
-from backend.app.core.security.role_based_auth import require_role, require_any_role, require_all_roles
-from backend.app.models.admin.admin_user import AdminUser
-from backend.app.schemas.admin.admin_user import AdminUserResponse
-from backend.app.services.admin.admin_service import AdminService
+from app.app.core.security.clerk_multi_org import MultiOrgClerkTokenData
+from app.app.core.security.role_based_auth import require_role, require_any_role, require_all_roles
+from app.app.models.admin.admin_user import AdminUser
+from app.app.schemas.admin.admin_user import AdminUserResponse
+from app.app.services.admin.admin_service import AdminService
 
 router = APIRouter(tags=["admin"])
 

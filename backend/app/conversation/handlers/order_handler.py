@@ -3,16 +3,16 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from backend.app.conversation.message_builder import MessageBuilder
-from backend.app.conversation.nlp.intent_parser import IntentType, ParsedIntent
-from backend.app.domain.events.event_bus import get_event_bus
-from backend.app.domain.events.order_events import OrderEventFactory
-from backend.app.models.order import OrderSource, OrderStatus
-from backend.app.models.payment_method import PaymentMethodType
-from backend.app.schemas.shipping import Address
-from backend.app.services.cart_service import get_cart_service
-from backend.app.services.order_service import OrderService
-from backend.app.utils.retry import with_retry
+from app.app.conversation.message_builder import MessageBuilder
+from app.app.conversation.nlp.intent_parser import IntentType, ParsedIntent
+from app.app.domain.events.event_bus import get_event_bus
+from app.app.domain.events.order_events import OrderEventFactory
+from app.app.models.order import OrderSource, OrderStatus
+from app.app.models.payment_method import PaymentMethodType
+from app.app.schemas.shipping import Address
+from app.app.services.cart_service import get_cart_service
+from app.app.services.order_service import OrderService
+from app.app.utils.retry import with_retry
 
 logger = logging.getLogger(__name__)
 

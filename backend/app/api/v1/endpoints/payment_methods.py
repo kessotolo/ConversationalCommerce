@@ -3,13 +3,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from uuid import UUID
 
-from backend.app.api.deps import get_db, get_current_buyer
-from backend.app.schemas.payment_method import (
+from app.app.api.deps import get_db, get_current_buyer
+from app.app.schemas.payment_method import (
     PaymentMethodCreate,
     PaymentMethodUpdate,
     PaymentMethodResponse,
 )
-from backend.app.services.payment_method_service import (
+from app.app.services.payment_method_service import (
     PaymentMethodService,
     PaymentMethodNotFoundError,
 )

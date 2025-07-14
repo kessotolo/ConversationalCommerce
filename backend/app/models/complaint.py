@@ -7,7 +7,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import Enum as SQLAlchemyEnum
 
-from backend.app.db.base_class import Base
+from app.app.db.base_class import Base
 
 
 class ComplaintStatus(str, enum.Enum):
