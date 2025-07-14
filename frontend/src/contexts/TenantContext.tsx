@@ -1,3 +1,5 @@
+"use client";
+
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { usePathname, useParams, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/modules/core/hooks/useAuth';
@@ -35,7 +37,7 @@ const TenantContext = createContext<TenantContextType>({
   error: null,
   mode: 'unknown',
   merchantId: null,
-  refreshTenant: async () => {}, // Default no-op implementation
+  refreshTenant: async () => { }, // Default no-op implementation
 });
 
 interface TenantProviderProps {
@@ -48,7 +50,7 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
   const [error, setError] = useState<Error | null>(null);
   const [mode, setMode] = useState<TenantContextMode>('unknown');
   const [merchantId, setMerchantId] = useState<string | null>(null);
-  
+
   const pathname = usePathname();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -59,10 +61,10 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
   useEffect(() => {
     // Check if we're in the admin context
     const isAdminPath = pathname?.startsWith('/dashboard') || pathname?.startsWith('/admin');
-    
+
     // Check if we're in a merchant-specific route (/store/[merchantId])
     const storeParam = params?.merchantId || searchParams?.get('merchant');
-    
+
     // Get merchant ID from the header if available (set by middleware)
     const getMerchantIdFromHeader = async () => {
       try {
@@ -79,14 +81,14 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
         return null;
       }
     };
-    
+
     const detectContext = async () => {
       // Try to get merchant ID from different sources in order of priority
       const headerMerchantId = await getMerchantIdFromHeader();
       const contextMerchantId = headerMerchantId || storeParam || null;
-      
+
       setMerchantId(contextMerchantId);
-      
+
       // Determine the mode based on the path and merchant ID
       if (isAdminPath) {
         setMode('admin');
@@ -96,10 +98,10 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
         setMode('unknown');
       }
     };
-    
+
     detectContext();
   }, [pathname, params, searchParams]);
-  
+
   // Fetch tenant data based on the determined mode and merchant ID
   const fetchTenant = useCallback(async () => {
     if (!merchantId && !userId) {
@@ -107,18 +109,18 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
       setIsLoading(false);
       return;
     }
-    
+
     try {
       setIsLoading(true);
       setError(null);
-      
+
       let endpoint;
-      
+
       // Different endpoints based on context
       if (mode === 'admin') {
         // For admin, fetch the tenant associated with the user, or the specified merchant
-        endpoint = merchantId 
-          ? `/api/v1/admin/tenants/${merchantId}` 
+        endpoint = merchantId
+          ? `/api/v1/admin/tenants/${merchantId}`
           : `/api/v1/users/has-tenant?user_id=${userId}`;
       } else if (mode === 'storefront') {
         // For storefront, always fetch by merchant ID
@@ -127,13 +129,13 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
         // Unknown mode, try user's tenant as fallback
         endpoint = userId ? `/api/v1/users/has-tenant?user_id=${userId}` : null;
       }
-      
+
       if (!endpoint) {
         setTenant(null);
         setIsLoading(false);
         return;
       }
-      
+
       const res = await fetch(endpoint);
       if (!res.ok) {
         if (res.status === 404) {
@@ -154,21 +156,21 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
       setIsLoading(false);
     }
   }, [merchantId, userId, mode]);
-  
+
   // Fetch tenant when dependencies change
   useEffect(() => {
     fetchTenant();
   }, [fetchTenant]);
 
   return (
-    <TenantContext.Provider 
-      value={{ 
-        tenant, 
-        isLoading, 
-        error, 
-        mode, 
-        merchantId, 
-        refreshTenant: fetchTenant 
+    <TenantContext.Provider
+      value={{
+        tenant,
+        isLoading,
+        error,
+        mode,
+        merchantId,
+        refreshTenant: fetchTenant
       }}
     >
       {children}
