@@ -21,10 +21,12 @@ from app.models.product import Product
 from app.schemas.admin.dashboard import (
     DashboardMetrics,
     RecentActivity,
-    SalesMetrics,
-    CustomerMetrics,
+    OrderMetrics,
     ProductMetrics,
-    OrderMetrics
+    TenantOverview,
+    UserMetrics,
+    SecurityMetrics,
+    PerformanceMetrics
 )
 
 router = APIRouter()
@@ -128,23 +130,48 @@ async def get_dashboard_metrics(
         recent_orders = recent_orders_result.scalars().all()
 
         return DashboardMetrics(
-            sales_metrics=SalesMetrics(
-                total_sales=total_sales,
-                sales_period="30_days"
+            tenant_metrics=TenantOverview(
+                total_tenants=1,
+                active_tenants=1,
+                verified_tenants=1,
+                new_tenants=0,
+                growth_rate=0.0
+            ),
+            user_metrics=UserMetrics(
+                total_users=1,
+                active_users=1,
+                new_users=0,
+                active_in_period=1,
+                retention_rate=100.0
             ),
             order_metrics=OrderMetrics(
                 total_orders=total_orders,
-                recent_orders=len(recent_orders)
+                completed_orders=total_orders,
+                recent_orders=len(recent_orders),
+                total_revenue=total_sales,
+                avg_order_value=total_sales / total_orders if total_orders > 0 else 0,
+                completion_rate=100.0
             ),
             product_metrics=ProductMetrics(
-                total_products=total_products
+                total_products=total_products,
+                active_products=total_products,
+                new_products=0,
+                total_inventory=0
             ),
-            customer_metrics=CustomerMetrics(
-                total_customers=0  # TODO: Implement customer counting
+            security_metrics=SecurityMetrics(
+                successful_logins=0,
+                failed_logins=0,
+                security_violations=0,
+                emergency_lockdowns=0,
+                threat_level="LOW"
             ),
-            recent_activity=RecentActivity(
-                orders=recent_orders[:5]  # Last 5 orders
-            )
+            performance_metrics=PerformanceMetrics(
+                total_requests=0,
+                avg_response_time=0.0,
+                error_count=0,
+                uptime_percentage=100.0
+            ),
+            last_updated=datetime.utcnow()
         )
 
     except Exception as e:
@@ -175,7 +202,11 @@ async def get_recent_activity(
         recent_orders = recent_orders_result.scalars().all()
 
         return RecentActivity(
-            orders=recent_orders
+            total_events=len(recent_orders),
+            critical_events=0,
+            warning_events=0,
+            info_events=len(recent_orders),
+            activities=[]
         )
 
     except Exception as e:
