@@ -3,6 +3,9 @@
 import { Check, Eye, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
+import { Route } from 'next';
+
+import { createMerchantAdminRoute } from '@/utils/routes';
 
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';
@@ -160,7 +163,7 @@ export function OrdersTable({
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex space-x-2">
-                      <Link href={`/dashboard/orders/${order.id}`} passHref>
+                      <Link href={createMerchantAdminRoute(order.tenant_id, `orders/${order.id}`)} passHref>
                         <Button variant="ghost" size="sm" className="flex items-center" title="View Order">
                           <Eye className="h-4 w-4" />
                         </Button>

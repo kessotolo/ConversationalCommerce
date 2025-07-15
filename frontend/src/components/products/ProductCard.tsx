@@ -2,10 +2,13 @@ import { ChevronRight, Copy, Trash2, X } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useRef } from 'react';
 
+import { createMerchantAdminRoute } from '@/utils/routes';
+
 import { formatCurrency } from '@/lib/utils';
 
 interface Product {
   id: string;
+  tenant_id: string; // Tenant/merchant ID for multi-tenant isolation
   name: string;
   price: number;
   image: string;
@@ -72,7 +75,7 @@ export function ProductCard({ product, onDelete, onDuplicate }: ProductCardProps
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <Link href={`/dashboard/products/${product.id}`}>
+        <Link href={createMerchantAdminRoute(product.tenant_id, `products/${product.id}`)}>
           <div className="flex items-center p-4">
             <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md">
               <img

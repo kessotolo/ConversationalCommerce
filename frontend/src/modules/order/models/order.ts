@@ -1,5 +1,5 @@
 import type { Address } from '@/modules/core/models/base/address';
-import type { TenantScoped } from '@/modules/core/models/base';
+import type { TenantScoped, UUID } from '@/modules/core/models/base';
 import type { Money } from '@/modules/core/models/base/money';
 
 /**
@@ -135,8 +135,11 @@ export interface OrderTimeline {
 
 /**
  * Complete Order domain model with all details
+ * Implements TenantScoped for multi-tenant isolation
  */
 export interface Order extends TenantScoped {
+  id: UUID;
+  tenant_id: UUID;         // Merchant ID for tenant isolation
   order_number: string;
   customer: CustomerInfo;
   items: OrderItem[];
@@ -150,7 +153,9 @@ export interface Order extends TenantScoped {
   notes?: string;
   metadata?: Record<string, unknown>;
   timeline: OrderTimeline[];
-  idempotency_key: string; // Used to prevent duplicate orders
+  idempotency_key: string;
+  created_at: string;
+  updated_at?: string; // Used to prevent duplicate orders
 }
 
 /**
