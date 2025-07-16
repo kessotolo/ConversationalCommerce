@@ -2,6 +2,10 @@ import React from 'react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { useTenant } from '@/contexts/TenantContext';
+import { createMerchantAdminRoute } from '@/utils/routes';
+import { OfflineAwareLayout } from '@/layouts/OfflineAwareLayout';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { DataSavingModeToggle } from '@/components/DataSavingModeToggle';
 
 interface MerchantDashboardLayoutProps {
   children: React.ReactNode;
@@ -28,7 +32,8 @@ export default function MerchantDashboardLayout({
   }
   
   return (
-    <div className="flex flex-col min-h-screen">
+    <OfflineAwareLayout showNetworkIndicator={true} showDataSavingToggle={true} dataSavingTogglePosition="inline">
+      <div className="flex flex-col min-h-screen">
       <header className="bg-white border-b border-gray-200 shadow-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -40,31 +45,31 @@ export default function MerchantDashboardLayout({
           
           <nav className="flex items-center space-x-6">
             <Link 
-              href={`/store/${merchantId}/dashboard`}
+              href={createMerchantAdminRoute(merchantId)}
               className="text-gray-600 hover:text-gray-900"
             >
               Dashboard
             </Link>
             <Link 
-              href={`/store/${merchantId}/dashboard/products`}
+              href={createMerchantAdminRoute(merchantId, 'products')}
               className="text-gray-600 hover:text-gray-900"
             >
               Products
             </Link>
             <Link 
-              href={`/store/${merchantId}/dashboard/orders`}
+              href={createMerchantAdminRoute(merchantId, 'orders')}
               className="text-gray-600 hover:text-gray-900"
             >
               Orders
             </Link>
             <Link 
-              href={`/store/${merchantId}/dashboard/customers`}
+              href={createMerchantAdminRoute(merchantId, 'customers')}
               className="text-gray-600 hover:text-gray-900"
             >
               Customers
             </Link>
             <Link 
-              href={`/store/${merchantId}/dashboard/settings`}
+              href={createMerchantAdminRoute(merchantId, 'settings')}
               className="text-gray-600 hover:text-gray-900"
             >
               Settings
@@ -95,10 +100,16 @@ export default function MerchantDashboardLayout({
       </main>
       
       <footer className="bg-gray-50 border-t border-gray-200">
-        <div className="container mx-auto px-4 py-3 text-center text-sm text-gray-500">
-          enwhe.io Admin Dashboard &copy; {new Date().getFullYear()}
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <div className="text-sm text-gray-500">
+            enwhe.io Admin Dashboard &copy; {new Date().getFullYear()}
+          </div>
+          <div className="flex items-center">
+            <DataSavingModeToggle position="inline" />
+          </div>
         </div>
       </footer>
-    </div>
+      </div>
+    </OfflineAwareLayout>
   );
 }

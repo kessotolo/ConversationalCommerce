@@ -44,7 +44,7 @@ const variantFormSchema = z.object({
   barcode: z.string().optional(),
   weight: z.coerce.number().min(0).optional(),
   weight_unit: z.string().optional(),
-  is_default: z.boolean().optional().default(false),
+  is_default: z.boolean(),
 });
 
 type VariantFormValues = z.infer<typeof variantFormSchema>;

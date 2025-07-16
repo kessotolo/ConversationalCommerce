@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useAuth as useClerkAuth, useUser as useClerkUser } from '@clerk/nextjs';
 
 import { useTenant } from '@/contexts/TenantContext';
 
@@ -34,96 +35,56 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const { tenant } = useTenant();
 
-  // Check for existing auth session on mount
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        setIsLoading(true);
+  // Use real Clerk authentication
+  const { isLoaded: authLoaded, isSignedIn, getToken } = useClerkAuth();
+  const { isLoaded: userLoaded, user: clerkUser } = useClerkUser();
 
-        // In a real implementation, this would verify the auth session
-        // For now, check localStorage for demo purposes
-        const storedUser = localStorage.getItem('auth_user');
+  // Derive auth state from Clerk
+  const isLoading = !authLoaded || !userLoaded;
+  const isAuthenticated = !!isSignedIn && !!clerkUser;
 
-        if (storedUser) {
-          const parsedUser = JSON.parse(storedUser) as AuthUser;
+  // Map Clerk user to our AuthUser interface
+  const user: AuthUser | null = clerkUser ? {
+    id: clerkUser.id,
+    email: clerkUser.primaryEmailAddress?.emailAddress || '',
+    firstName: clerkUser.firstName || undefined,
+    lastName: clerkUser.lastName || undefined,
+    tenantId: tenant?.id || '',
+  } : null;
 
-          // When properly integrated with Clerk, this would check
-          // if the user has access to this specific tenant's UUID
-          if (tenant && tenant.id) {
-            // In production: verify user has access to this UUID tenant
-            // For demo: just assume they do
-            parsedUser.tenantId = tenant.id;
-          }
-
-          setUser(parsedUser);
-        }
-      } catch (err) {
-        console.error('Auth check error:', err);
-        setError(err instanceof Error ? err : new Error('Unknown auth error'));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, [tenant]);
-
-  // Sign in function
-  const signIn = async (email: string, _password: string) => {
+  // Sign in function (redirects to Clerk)
+  const signIn = async (email: string, password: string) => {
     try {
-      setIsLoading(true);
       setError(null);
 
-      // This would be a real auth API call in production
-      // For demo purposes, just simulate a successful login
-
-      // In production, this would validate credentials against Clerk
-      // and retrieve the user's UUID from your database
-
-      // IMPORTANT: The UUID tenant system requires proper joining here
-      const tenantId = tenant?.id as string | undefined || '';
-
-      const userWithTenant: AuthUser = {
-        id: `user_${Math.random().toString(36).substring(2, 11)}`,
-        email,
-        firstName: 'Demo',
-        lastName: 'User',
-        tenantId, // Now guaranteed to be a string
-      };
-
-      // Store user data (in production, this would be handled by Clerk)
-      localStorage.setItem('auth_user', JSON.stringify(userWithTenant));
-
-      setUser(userWithTenant);
+      // With Clerk, users sign in through Clerk's UI components
+      // This function can redirect to sign-in page or handle programmatic sign-in
+      if (typeof window !== 'undefined') {
+        window.location.href = '/auth/sign-in';
+      }
     } catch (err) {
       console.error('Sign in error:', err);
       setError(err instanceof Error ? err : new Error('Failed to sign in'));
       throw err;
-    } finally {
-      setIsLoading(false);
     }
   };
 
   // Sign out function
   const signOut = async () => {
     try {
-      setIsLoading(true);
+      setError(null);
 
-      // In production, this would call Clerk's signOut method
-      localStorage.removeItem('auth_user');
-
-      setUser(null);
+      // Use Clerk's sign out method
+      if (typeof window !== 'undefined' && (window as any).__clerk) {
+        await (window as any).__clerk.signOut();
+      }
     } catch (err) {
       console.error('Sign out error:', err);
       setError(err instanceof Error ? err : new Error('Failed to sign out'));
       throw err;
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -135,7 +96,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         error,
         signIn,
         signOut,
-        isAuthenticated: !!user,
+        isAuthenticated,
       }}
     >
       {children}

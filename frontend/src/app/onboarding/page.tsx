@@ -2,11 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import type { Route } from 'next';
 import { Loader2 } from 'lucide-react';
 
 import { useAuth } from '@/modules/core/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
 import OnboardingForm from '@/components/onboarding/OnboardingForm';
+import { createMerchantAdminRoute } from '@/utils/routes';
 
 export default function OnboardingPage() {
     const router = useRouter();
@@ -56,7 +58,7 @@ export default function OnboardingPage() {
     // Redirect to sign-in if not authenticated
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
-            router.push('/sign-in');
+            router.push('/auth/sign-in' as Route);
         }
     }, [isLoading, isAuthenticated, router]);
 

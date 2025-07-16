@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { OrderItem } from '@/modules/orders/models/order';
+import { OrderItem } from '@/modules/order/models/order';
 import { ReturnItemCreate, ReturnReason } from '../models/return';
 import { formatCurrency } from '@/utils/format';
 import { ReturnReasonSelector } from './ReturnReasonSelector';

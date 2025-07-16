@@ -1,10 +1,11 @@
 import { cva, type VariantProps } from 'class-variance-authority';
 import React from 'react';
+import { Slot } from '@radix-ui/react-slot';
 
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none',
+  'inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 aria-disabled:opacity-50 aria-disabled:pointer-events-none',
   {
     variants: {
       variant: {
@@ -32,13 +33,57 @@ const buttonVariants = cva(
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
   VariantProps<typeof buttonVariants> {
+  /**
+   * When true, the button will be rendered as a child component (Radix UI Slot)
+   * This is useful when you want to use your own component as the button
+   */
   asChild?: boolean;
+  
+  /**
+   * Optional loading state that shows a spinner and makes button inoperable
+   */
+  loading?: boolean;
+  
+  /**
+   * Accessible label for the button when icon-only or content is not descriptive
+   */
+  ariaLabel?: string;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, loading, ariaLabel, children, disabled, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button";
+    const ariaProps: Record<string, string> = {};
+    
+    // Handle loading state
+    const isDisabled = disabled || loading;
+    
+    // Set appropriate ARIA attributes
+    if (ariaLabel) {
+      ariaProps['aria-label'] = ariaLabel;
+    }
+    
+    if (isDisabled) {
+      ariaProps['aria-disabled'] = 'true';
+    }
+    
     return (
-      <button className={cn(buttonVariants({ variant, size }), className)} ref={ref} {...props} />
+      <Comp
+        className={cn(buttonVariants({ variant, size }), className)}
+        ref={ref}
+        disabled={isDisabled}
+        {...ariaProps}
+        {...props}
+      >
+        {loading ? (
+          <span className="flex items-center justify-center gap-2">
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            {children}
+          </span>
+        ) : (
+          children
+        )}
+      </Comp>
     );
   },
 );

@@ -9,285 +9,417 @@ import type { Route } from 'next';
 export default function Home() {
   const router = useRouter();
   const { isSignedIn, isLoaded, user } = useUser();
+  const [showDashboardPrompt, setShowDashboardPrompt] = useState(false);
+  const [hasTenant, setHasTenant] = useState<boolean | null>(null);
 
-  // Chat animation state
+  // Chat animation state with useRef to prevent memory leaks
   const [bubbleStep, setBubbleStep] = useState(0);
+  const timersRef = React.useRef<NodeJS.Timeout[]>([]);
+  
+  // Clean up animation with better memory management
   useEffect(() => {
+    // Reset animation state
     setBubbleStep(0);
-    const timers = [
+    
+    // Clear any existing timers
+    if (timersRef.current.length > 0) {
+      timersRef.current.forEach(clearTimeout);
+      timersRef.current = [];
+    }
+    
+    // Set up new animation sequence with properly tracked timers
+    timersRef.current = [
       setTimeout(() => setBubbleStep(1), 700),
       setTimeout(() => setBubbleStep(2), 1400),
       setTimeout(() => setBubbleStep(3), 2100),
     ];
-    return () => timers.forEach(clearTimeout);
+    
+    // Cleanup function will run on unmount or when dependencies change
+    return () => {
+      if (timersRef.current.length > 0) {
+        timersRef.current.forEach(clearTimeout);
+        timersRef.current = [];
+      }
+    };
   }, []);
 
-  // Redirect signed-in users to appropriate page
+  // Check user's onboarding status without auto-redirecting
   useEffect(() => {
     if (isLoaded && isSignedIn && user) {
-      // Check if user has completed onboarding by checking for tenant
       const checkUserOnboarding = async () => {
         try {
           const response = await fetch(`/api/v1/users/has-tenant?user_id=${user.id}`);
           if (response.ok) {
-            const { hasTenant } = await response.json();
-
-            // If user has a tenant, go to dashboard; otherwise, go to store setup
-            if (hasTenant) {
-              router.push('/dashboard' as Route);
-            } else {
-              router.push('/store-setup' as Route);
-            }
-          } else {
-            // If API call fails, redirect to store setup as fallback
-            router.push('/store-setup' as Route);
+            const { hasTenant: userHasTenant } = await response.json();
+            setHasTenant(userHasTenant);
+            // Show a subtle prompt to go to dashboard, but don't force redirect
+            setShowDashboardPrompt(true);
           }
         } catch (error) {
-          console.error('Error checking user onboarding status:', error);
-          // If there's an error, redirect to store setup as fallback
-          router.push('/store-setup' as Route);
+          // Handle error silently without console logging in production
+          // Use a proper error tracking system in production instead of console.error
+          if (process.env.NODE_ENV === 'development') {
+            // Only log in development
+            console.error('Error checking user onboarding status:', error);
+          }
+          // Don't redirect on error - let users stay on the page
+          setShowDashboardPrompt(true);
         }
       };
 
       checkUserOnboarding();
     }
-  }, [isLoaded, isSignedIn, user, router]);
+  }, [isLoaded, isSignedIn, user]);
 
-  if (isLoaded && isSignedIn) {
-    return null;
-  }
+  // Function to handle going to dashboard/store-setup
+  const handleGoToDashboard = () => {
+    if (hasTenant) {
+      router.push('/dashboard' as Route);
+    } else {
+      router.push('/store-setup' as Route);
+    }
+  };
 
   return (
-    <main className="min-h-screen bg-background flex flex-col font-sans">
-      {/* Skip to content link for accessibility */}
-      <a href="#main-content" className="sr-only focus:not-sr-only absolute top-2 left-2 bg-accent text-section px-4 py-2 rounded z-50" tabIndex={0} data-testid="skip-to-content">Skip to main content</a>
-      {/* Hero Section */}
-      <section id="main-content" className="relative flex flex-col items-center justify-center px-4 pt-24 pb-20 w-full max-w-5xl mx-auto" tabIndex={-1} aria-label="Hero Section" data-testid="hero-section">
-        <div className="flex flex-col items-center w-full gap-2 mb-8 min-h-[220px]">
-          {/* Simulated Chat Bubbles with Animation */}
-          <div className="w-full flex flex-col items-center gap-2 max-w-xs">
-            {/* Typing indicator */}
-            {bubbleStep === 0 && (
-              <div className="bg-section border border-muted rounded-2xl px-4 py-2 shadow-sm w-full text-left text-muted text-base font-medium flex items-center fade-in" aria-label="Chat typing" data-testid="hero-chat-typing">
-                <span className="inline-block animate-pulse">...</span>
-              </div>
-            )}
-            {/* Buyer: Still available? */}
-            {bubbleStep >= 1 && (
-              <div className="bg-section border border-muted rounded-2xl px-4 py-2 shadow-sm w-full text-left text-primary text-base font-medium fade-in" aria-label="Chat bubble 1" data-testid="hero-chat-bubble-1" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
-                Still available?
-              </div>
-            )}
-            {/* Seller: Can I pay with bank transfer? */}
-            {bubbleStep >= 2 && (
-              <div className="bg-accent text-section border border-accent rounded-2xl px-4 py-2 shadow-sm w-full text-right font-medium fade-in" aria-label="Chat bubble 2" data-testid="hero-chat-bubble-2" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
-                Can I pay with bank transfer?
-              </div>
-            )}
-            {/* Buyer: How fast is delivery? */}
-            {bubbleStep >= 3 && (
-              <div className="bg-section border border-muted rounded-2xl px-4 py-2 shadow-sm w-full text-left text-primary text-base font-medium fade-in" aria-label="Chat bubble 3" data-testid="hero-chat-bubble-3" style={{ animationDelay: '0.3s', animationFillMode: 'both' }}>
-                How fast is delivery?
-              </div>
-            )}
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
+      {/* Dashboard prompt only for signed-in users with existing tenants */}
+      {showDashboardPrompt && isSignedIn && hasTenant && (
+        <div 
+          className="bg-blue-600 text-white px-4 py-3 text-center relative" 
+          role="alert"
+          aria-live="polite"
+        >
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-sm">
+              Welcome back! Ready to manage your store?
+            </span>
+            <button
+              onClick={handleGoToDashboard}
+              className="bg-white text-blue-600 px-3 py-1 rounded text-sm font-medium hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600"
+            >
+              Go to Dashboard
+            </button>
           </div>
-          {/* Dashboard Card */}
-          <div className="card-outline relative z-10 p-4 max-w-xs w-full shadow-lg mt-4" aria-label="Dashboard mockup" data-testid="hero-dashboard-mockup">
-            <span className="block text-accent font-semibold text-sm mb-1">New Order • Paid $27.90</span>
-            <span className="block text-muted text-xs">Order #12345</span>
-          </div>
-          {/* Message preview animation (typing dots) - mobile only */}
-          <div className="absolute left-1/2 -bottom-8 transform -translate-x-1/2 flex gap-1 items-center opacity-80 md:hidden">
-            <span className="w-2 h-2 bg-muted rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
-            <span className="w-2 h-2 bg-muted rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-            <span className="w-2 h-2 bg-muted rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
-          </div>
-        </div>
-        <h1 className="headline text-5xl sm:text-6xl text-primary text-center leading-tight mb-8 tracking-tight drop-shadow-lg">
-          The storefront for sellers who close deals in DMs.
-        </h1>
-        <p className="tagline-hero text-center fade-in" data-testid="hero-tagline-hero">
-          enwhe.io — where commerce begins with conversation.
-        </p>
-        <p className="text-primary text-lg sm:text-xl section-title text-center mb-10 max-w-2xl mx-auto">
-          <span className="hidden md:inline">Sell from WhatsApp, Instagram, or anywhere you chat — Enwhe.io turns conversations into commerce.</span>
-          <span className="inline md:hidden">Whether you're selling from WhatsApp in Lagos or Instagram in Manila — Enwhe.io helps you turn conversations into commerce.</span>
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3 w-full justify-center mb-6">
           <button
-            type="button"
-            className="px-8 py-3 rounded-full bg-highlight text-primary font-semibold text-lg shadow cta-animate transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-highlight focus:ring-offset-2 cursor-pointer relative overflow-hidden"
-            onClick={() => router.push('/auth/sign-up' as Route)}
-            aria-label="Launch Your Store Free"
-            data-testid="hero-primary-cta"
+            onClick={() => setShowDashboardPrompt(false)}
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-white rounded-full w-6 h-6 flex items-center justify-center"
+            aria-label="Dismiss notification"
           >
-            Launch Your Store Free
-          </button>
-          <button
-            type="button"
-            className="px-8 py-3 rounded-full border-2 border-accent text-accent font-semibold text-lg bg-section hover:bg-accent hover:text-section cta-animate transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 cursor-pointer hidden sm:inline"
-            onClick={() => router.push('/auth/sign-in' as Route)}
-            aria-label="Already selling? Log in"
-            data-testid="hero-login-cta"
-          >
-            Already selling? Log in
+            <span aria-hidden="true">×</span>
           </button>
         </div>
-        {/* Mobile login link */}
-        <div className="sm:hidden w-full flex justify-center mb-4">
-          <button
-            type="button"
-            className="text-accent underline text-sm font-medium hover:text-highlight transition-colors"
-            onClick={() => router.push('/auth/sign-in' as Route)}
-            aria-label="Already selling? Log in"
-            data-testid="hero-login-link"
-          >
-            Already selling? Log in
-          </button>
-        </div>
-      </section>
+      )}
 
-      {/* Core Benefits Section */}
-      <section className="w-full max-w-3xl mx-auto px-4 py-14 fade-in">
-        <h2 className="section-title text-2xl text-primary text-center mb-10">Built for how modern sellers actually sell.</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-          <div className="card-outline flex flex-col items-center text-center p-6 transition-transform duration-200 hover:scale-105 hover:shadow-xl group" tabIndex={0} aria-label="Launch in Minutes" data-testid="feature-launch">
-            <div className="w-14 h-14 rounded-full border-2 border-highlight flex items-center justify-center mb-3 bg-section group-hover:bg-background transition-colors" data-testid="feature-launch-icon">
-              <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" className="text-accent" aria-hidden="true"><circle cx="14" cy="14" r="12" /></svg>
-            </div>
-            <h3 className="text-primary font-semibold mb-1">Launch in Minutes</h3>
-            <p className="text-muted text-sm">Skip the tech. Upload a product and go live fast.</p>
-          </div>
-          <div className="flex items-center justify-center" aria-hidden="true">
-            <div className="h-16 w-px bg-background sm:bg-gradient-to-b sm:from-background sm:via-muted sm:to-background opacity-60 mx-auto" />
-          </div>
-          <div className="card-outline flex flex-col items-center text-center p-6 transition-transform duration-200 hover:scale-105 hover:shadow-xl group" tabIndex={0} aria-label="Sell Where You Chat" data-testid="feature-chat">
-            <div className="w-14 h-14 rounded-full border-2 border-accent flex items-center justify-center mb-3 bg-section group-hover:bg-background transition-colors" data-testid="feature-chat-icon">
-              <MessageCircle className="w-7 h-7 text-accent" strokeWidth={2} aria-hidden="true" />
-            </div>
-            <h3 className="text-primary font-semibold mb-1">Sell Where You Chat</h3>
-            <div className="flex justify-center gap-3 mb-2 mt-1">
-              {/* Social icons: WhatsApp, IG, Telegram */}
-              <svg width="22" height="22" fill="none" viewBox="0 0 24 24" className="text-muted" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.031-.967-.273-.099-.472-.148-.67.15-.198.297-.767.966-.94 1.164-.173.198-.347.223-.644.075-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.372-.025-.521-.075-.149-.669-1.612-.916-2.21-.242-.58-.487-.501-.669-.51-.173-.007-.372-.009-.571-.009-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.099 3.205 5.077 4.372.71.306 1.263.489 1.694.626.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.288.173-1.413-.074-.124-.272-.198-.57-.347z" stroke="currentColor" strokeWidth="2" /></svg>
-              <svg width="22" height="22" fill="none" viewBox="0 0 24 24" className="text-muted" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="5" stroke="currentColor" strokeWidth="2" /><circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" /></svg>
-              <svg width="22" height="22" fill="none" viewBox="0 0 24 24" className="text-muted" aria-hidden="true"><path d="M21 3L9.218 20.812a1 1 0 01-1.7-1.06l1.6-4.8a1 1 0 01.6-.6l4.8-1.6a1 1 0 011.06 1.7L3 21" stroke="currentColor" strokeWidth="2" /></svg>
-            </div>
-            <p className="text-muted text-sm">WhatsApp, IG DMs, Messenger, Telegram — your link works everywhere.</p>
-          </div>
-          <div className="flex items-center justify-center" aria-hidden="true">
-            <div className="h-16 w-px bg-background sm:bg-gradient-to-b sm:from-background sm:via-muted sm:to-background opacity-60 mx-auto" />
-          </div>
-          <div className="card-outline flex flex-col items-center text-center p-6 transition-transform duration-200 hover:scale-105 hover:shadow-xl group" tabIndex={0} aria-label="Track Everything in One Place" data-testid="feature-track">
-            <div className="w-14 h-14 rounded-full border-2 border-primary flex items-center justify-center mb-3 bg-section group-hover:bg-background transition-colors" data-testid="feature-track-icon">
-              <LayoutDashboard className="w-7 h-7 text-primary" strokeWidth={2} aria-hidden="true" />
-            </div>
-            <h3 className="text-primary font-semibold mb-1">Track Everything in One Place</h3>
-            <p className="text-muted text-sm">Orders, inventory, payments — beautifully organized.</p>
-          </div>
-        </div>
-        <p className="text-center text-accent font-normal mt-10 fade-in">Enwhe.io — where commerce begins with conversation.</p>
-      </section>
-
-      {/* Quick Start Section */}
-      <section id="quickstart" className="w-full max-w-2xl mx-auto px-4 py-14 fade-in">
-        <div className="card-outline bg-section p-8">
-          <h2 className="section-title text-2xl text-primary text-center mb-8">Start selling in 3 simple steps</h2>
-          <ol className="space-y-6 mb-8">
-            <li className="flex items-start gap-4 animate-fade-in" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
-              <span className="text-highlight font-bold text-xl">1.</span>
-              <span className="text-primary">Create your store – It's free to start.</span>
-            </li>
-            <li className="flex items-start gap-4 animate-fade-in" style={{ animationDelay: '0.3s', animationFillMode: 'both' }}>
-              <span className="text-highlight font-bold text-xl">2.</span>
-              <span className="text-primary">Add your products and brand – Customize your storefront.</span>
-            </li>
-            <li className="flex items-start gap-4 animate-fade-in" style={{ animationDelay: '0.5s', animationFillMode: 'both' }}>
-              <span className="text-highlight font-bold text-xl">3.</span>
-              <span className="text-primary">Share your link in chats – Accept orders and track everything in one place.</span>
-            </li>
-          </ol>
-          <button
-            type="button"
-            className="w-full sm:w-auto px-8 py-3 rounded-full bg-highlight text-primary font-semibold text-lg shadow hover:bg-accent hover:text-section border-2 border-highlight transition-all duration-200 mb-2 focus:outline-none focus:ring-2 focus:ring-highlight focus:ring-offset-2 relative overflow-hidden ripple"
-            onClick={() => router.push('/auth/sign-up' as Route)}
-            aria-label="Start Free — No Hassle"
-            data-testid="quickstart-cta"
-          >
-            📦 Start Free — No Hassle
-          </button>
-          <p className="text-center text-muted text-sm mt-2">No credit card required. Mobile-first from day one.</p>
-        </div>
-      </section>
-
-      {/* Trust Section */}
-      <section className="w-full max-w-2xl mx-auto px-4 py-14 fade-in">
-        <h2 className="section-title text-2xl text-primary text-center mb-8">Trusted by sellers across communities and continents</h2>
-        <div className="space-y-8">
-          <div className="card-outline flex flex-col items-center p-6 shadow-md fade-in" style={{ animationDelay: '0.1s', animationFillMode: 'both' }} tabIndex={0} aria-label="Testimonial Kemi O." data-testid="testimonial-kemi">
-            <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mb-3 text-accent font-bold text-lg border-2 border-accent">KO</div>
-            <blockquote className="italic text-gray-700 text-center mb-2">"My audience lives on WhatsApp. Enwhe.io lets me sell without ever leaving the chat."</blockquote>
-            <footer className="text-muted text-sm">— Kemi O., Nigeria</footer>
-          </div>
-          <div className="w-full flex items-center justify-center" aria-hidden="true">
-            <div className="w-24 h-px bg-gradient-to-r from-background via-muted to-background opacity-40" />
-          </div>
-          <div className="card-outline flex flex-col items-center p-6 shadow-md fade-in" style={{ animationDelay: '0.3s', animationFillMode: 'both' }} tabIndex={0} aria-label="Testimonial Tega E." data-testid="testimonial-tega">
-            <div className="w-12 h-12 rounded-full bg-highlight/10 flex items-center justify-center mb-3 text-highlight font-bold text-lg border-2 border-highlight">TE</div>
-            <blockquote className="italic text-gray-700 text-center mb-2">"This platform gets how we actually do business. I don't need a website — I need results. And I'm getting them."</blockquote>
-            <footer className="text-muted text-sm">— Tega E., Brazil</footer>
-          </div>
-        </div>
-        <p className="text-center text-primary mt-8 fade-in">Enwhe.io is used by creators, merchants, and hustlers from Nairobi to New York.</p>
-      </section>
-
-      {/* Founder/Ethos Section */}
-      <section className="w-full max-w-2xl mx-auto px-4 py-14 fade-in">
-        <div className="card-outline border-2 border-accent rounded-2xl p-8 shadow-md flex flex-col items-center">
-          <div className="flex items-center gap-2 mb-2">
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" className="text-accent" aria-hidden="true"><path d="M15.232 5.232l3.536 3.536M9 11l6.586-6.586a2 2 0 112.828 2.828L11.828 13.828a4 4 0 01-1.414.94l-3.053 1.221a.5.5 0 01-.65-.65l1.22-3.053a4 4 0 01.94-1.414z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            <span className="uppercase text-muted text-xs font-semibold tracking-widest">From the Founder</span>
-          </div>
-          <blockquote className="italic text-gray-700 text-center mb-2 section-title">"I built Enwhe.io after watching brilliant sellers do everything manually — flipping between DMs, notes, and screenshots just to close a sale. We've taken that chaotic energy and turned it into clean, powerful commerce — for anyone, anywhere."</blockquote>
-          <footer className="text-muted text-sm mt-2">– Kesena Otolo, Founder</footer>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="w-full max-w-4xl mx-auto px-4 py-10 text-muted text-sm flex flex-col gap-6 border-t border-gray-100 mt-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-center">
-          <div className="flex flex-col gap-2 items-center">
-            <div className="flex flex-wrap justify-center gap-4 mb-2">
-              <a href="#features" className="hover:text-accent transition-colors">Features</a>
-              <a href="#" className="hover:text-accent transition-colors">Pricing</a>
-              <a href="#" className="hover:text-accent transition-colors">Guides</a>
-              <a href="#" className="hover:text-accent transition-colors">WhatsApp Playbook</a>
-              <a href="#" className="hover:text-accent transition-colors">FAQs</a>
-              <a href="#" className="hover:text-accent transition-colors">Referral</a>
-              <a href="#" className="hover:text-accent transition-colors">About</a>
-              <a href="#" className="hover:text-accent transition-colors">Privacy</a>
-              <a href="#" className="hover:text-accent transition-colors">Terms</a>
-            </div>
-          </div>
-          <div className="flex flex-col gap-2 items-center">
-            <div className="flex justify-center gap-4 mb-2">
-              <a href="#" aria-label="Instagram" className="hover:text-accent transition-colors focus:outline-none" data-testid="footer-instagram-link">
-                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="5" stroke="currentColor" strokeWidth="2" /><circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" /></svg>
-              </a>
-              <a href="#" aria-label="X" className="hover:text-accent transition-colors focus:outline-none" data-testid="footer-x-link"><Twitter className="w-5 h-5" aria-hidden="true" /></a>
-              <a href="#" aria-label="LinkedIn" className="hover:text-accent transition-colors focus:outline-none" data-testid="footer-linkedin-link"><Linkedin className="w-5 h-5" aria-hidden="true" /></a>
-              <a href="#" aria-label="WhatsApp" className="hover:text-accent transition-colors focus:outline-none" data-testid="footer-whatsapp-link">
-                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.031-.967-.273-.099-.472-.148-.67.15-.198.297-.767.966-.94 1.164-.173.198-.347.223-.644.075-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.372-.025-.521-.075-.149-.669-1.612-.916-2.21-.242-.58-.487-.501-.669-.51-.173-.007-.372-.009-.571-.009-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.099 3.205 5.077 4.372.71.306 1.263.489 1.694.626.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.288.173-1.413-.074-.124-.272-.198-.57-.347z" stroke="currentColor" strokeWidth="2" /></svg>
+      {/* Header with improved accessibility */}
+      <header className="bg-white shadow-sm" role="banner">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <a 
+                href="/" 
+                className="flex items-center space-x-3 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 rounded-md"
+                aria-label="ConversationalCommerce home page"
+              >
+                <MessageCircle className="h-8 w-8 text-green-600" aria-hidden="true" />
+                <span className="text-xl font-bold text-gray-900">enwhe.io</span>
               </a>
             </div>
+            <nav>
+              <ul className="flex items-center space-x-4">
+                {/* Always show auth buttons - removed conditional that could be causing them to not display */}
+                <li>
+                  <button
+                    onClick={() => router.push('/auth/sign-in' as Route)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+                    aria-label="Sign in to your account"
+                  >
+                    Sign In
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => router.push('/auth/sign-up' as Route)}
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2"
+                    aria-label="Create an account and start selling"
+                  >
+                    Start Selling
+                  </button>
+                </li>
+                {isSignedIn && hasTenant && (
+                  <li>
+                    <button
+                      onClick={() => router.push('/dashboard' as Route)}
+                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 flex items-center gap-2"
+                      aria-label="Go to your dashboard"
+                    >
+                      <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
+                      <span>Dashboard</span>
+                    </button>
+                  </li>
+                )}
+              </ul>
+            </nav>
           </div>
         </div>
-        <p className="text-center tagline-footer fade-in" data-testid="footer-tagline">
-          enwhe.io — where commerce begins with conversation.
-        </p>
-        <div className="text-center text-muted mt-2">© {new Date().getFullYear()} enwhe.io</div>
+      </header>
+
+      {/* Rest of your existing homepage content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        {/* Hero Section */}
+        <div className="text-center mb-16">
+          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+            Sell Anywhere, <br />
+            <span className="text-green-600">Chat Everywhere</span>
+          </h1>
+          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            Turn WhatsApp, Instagram, and TikTok into your personal storefront.
+            Start conversations, build relationships, and close sales - all in the chat apps your customers already use.
+          </p>
+
+          {/* Chat Animation Demo with improved accessibility */}
+          <div 
+            className="bg-white rounded-2xl shadow-lg p-6 max-w-md mx-auto mb-8" 
+            aria-label="Chat conversation demo"
+            role="region"
+          >
+            <div className="text-left space-y-3">
+              <div className="flex justify-end">
+                <div 
+                  className="bg-green-500 text-white rounded-lg px-3 py-2 max-w-xs" 
+                  aria-label="Customer message"
+                >
+                  Hi! Do you have this in blue? 💙
+                </div>
+              </div>
+              <div 
+                className="flex justify-start" 
+                aria-hidden={bubbleStep < 1}
+                style={{
+                  opacity: bubbleStep >= 1 ? 1 : 0,
+                  transition: 'opacity 0.3s ease-in-out',
+                  height: bubbleStep >= 1 ? 'auto' : 0,
+                  overflow: 'hidden'
+                }}
+              >
+                <div className="bg-gray-100 text-gray-800 rounded-lg px-3 py-2 max-w-xs" aria-label="Seller response">
+                  Yes! Here's the blue version with 20% off today only 🎉
+                </div>
+              </div>
+              <div 
+                className="flex justify-end" 
+                aria-hidden={bubbleStep < 2}
+                style={{
+                  opacity: bubbleStep >= 2 ? 1 : 0,
+                  transition: 'opacity 0.3s ease-in-out',
+                  height: bubbleStep >= 2 ? 'auto' : 0,
+                  overflow: 'hidden'
+                }}
+              >
+                <div className="bg-green-500 text-white rounded-lg px-3 py-2 max-w-xs" aria-label="Customer order">
+                  Perfect! I'll take 2 please
+                </div>
+              </div>
+              <div 
+                className="flex justify-start" 
+                aria-hidden={bubbleStep < 3}
+                style={{
+                  opacity: bubbleStep >= 3 ? 1 : 0,
+                  transition: 'opacity 0.3s ease-in-out',
+                  height: bubbleStep >= 3 ? 'auto' : 0,
+                  overflow: 'hidden'
+                }}
+              >
+                <div className="bg-gray-100 text-gray-800 rounded-lg px-3 py-2 max-w-xs" aria-label="Order confirmation">
+                  <CheckCircle 
+                    className="h-4 w-4 text-green-500 inline mr-1" 
+                    aria-hidden="true" 
+                  />
+                  <span>Order confirmed! Delivery in 2 days</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {!isSignedIn && isLoaded && (
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button
+                onClick={() => router.push('/auth/sign-up' as Route)}
+                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg text-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2"
+                aria-label="Create your store for free"
+              >
+                Start Your Store Free
+              </button>
+              <button
+                onClick={() => router.push('/demo' as Route)}
+                className="border border-green-600 text-green-600 hover:bg-green-50 px-8 py-3 rounded-lg text-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2"
+                aria-label="View a demonstration of our platform"
+              >
+                See Demo
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Features Grid with improved accessibility */}
+        <section aria-labelledby="features-heading" id="features" className="mb-16">
+          <h2 id="features-heading" className="sr-only">Key Features</h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center p-6 bg-white bg-opacity-50 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="rounded-full bg-green-100 w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <MessageCircle className="h-12 w-12 text-green-600" aria-hidden="true" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Chat Commerce</h3>
+              <p className="text-gray-600">
+                Sell directly through WhatsApp, Instagram DM, and TikTok messages
+              </p>
+            </div>
+            <div className="text-center p-6 bg-white bg-opacity-50 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="rounded-full bg-blue-100 w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <LayoutDashboard className="h-12 w-12 text-blue-600" aria-hidden="true" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Unified Dashboard</h3>
+              <p className="text-gray-600">
+                Manage orders, inventory, and customers from one simple dashboard
+              </p>
+            </div>
+            <div className="text-center p-6 bg-white bg-opacity-50 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="rounded-full bg-purple-100 w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="h-12 w-12 text-purple-600" aria-hidden="true" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Instant Checkout</h3>
+              <p className="text-gray-600">
+                Customers buy with one click - no app downloads or account creation needed
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section with improved accessibility */}
+        <section aria-labelledby="cta-heading" className="bg-white rounded-2xl shadow-lg p-8 text-center">
+          <h2 id="cta-heading" className="text-3xl font-bold text-gray-900 mb-4">
+            Ready to Transform Your Sales?
+          </h2>
+          <p className="text-xl text-gray-600 mb-6">
+            Join thousands of sellers already using enwhe.io
+          </p>
+          {!isSignedIn && isLoaded && (
+            <button
+              onClick={() => router.push('/auth/sign-up' as Route)}
+              className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg text-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2"
+              aria-label="Sign up for a free account"
+            >
+              Get Started Free
+            </button>
+          )}
+        </section>
+      </main>
+
+      {/* Footer with improved accessibility */}
+      <footer className="bg-gray-900 text-white py-12" role="contentinfo">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div>
+              <div className="flex items-center space-x-2 mb-4">
+                <a 
+                  href="/" 
+                  className="flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-white rounded-md"
+                  aria-label="enwhe.io home page"
+                >
+                  <MessageCircle className="h-6 w-6" aria-hidden="true" />
+                  <span className="font-bold">enwhe.io</span>
+                </a>
+              </div>
+              <p className="text-gray-400">
+                The future of commerce is conversational.
+              </p>
+            </div>
+            <nav aria-labelledby="product-heading">
+              <h3 id="product-heading" className="font-semibold mb-3">Product</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li>
+                  <a 
+                    href="#features" 
+                    className="hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:underline focus:text-white rounded px-1"
+                  >
+                    Features
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="#pricing" 
+                    className="hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:underline focus:text-white rounded px-1"
+                  >
+                    Pricing
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="#integrations" 
+                    className="hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:underline focus:text-white rounded px-1"
+                  >
+                    Integrations
+                  </a>
+                </li>
+              </ul>
+            </nav>
+            <nav aria-labelledby="support-heading">
+              <h3 id="support-heading" className="font-semibold mb-3">Support</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li>
+                  <a 
+                    href="#help" 
+                    className="hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:underline focus:text-white rounded px-1"
+                  >
+                    Help Center
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="#contact" 
+                    className="hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:underline focus:text-white rounded px-1"
+                  >
+                    Contact
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="#status" 
+                    className="hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:underline focus:text-white rounded px-1"
+                  >
+                    Status
+                  </a>
+                </li>
+              </ul>
+            </nav>
+            <div>
+              <h3 id="connect-heading" className="font-semibold mb-3">Connect</h3>
+              <div className="flex space-x-4">
+                <a 
+                  href="https://twitter.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="focus:outline-none focus:ring-2 focus:ring-white rounded-full p-1"
+                  aria-label="Follow us on Twitter"
+                >
+                  <Twitter className="h-5 w-5 text-gray-400 hover:text-white" aria-hidden="true" />
+                </a>
+                <a 
+                  href="https://linkedin.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="focus:outline-none focus:ring-2 focus:ring-white rounded-full p-1"
+                  aria-label="Connect with us on LinkedIn"
+                >
+                  <Linkedin className="h-5 w-5 text-gray-400 hover:text-white" aria-hidden="true" />
+                </a>
+              </div>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+            <p>&copy; 2024 enwhe.io. All rights reserved.</p>
+          </div>
+        </div>
       </footer>
-
-
-    </main>
+    </div>
   );
 }

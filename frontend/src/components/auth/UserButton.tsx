@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import type { Route } from 'next';
 
 interface UserButtonProps {
   afterSignOutUrl?: string;
@@ -16,7 +17,7 @@ export function UserButton({ afterSignOutUrl = '/' }: UserButtonProps) {
     // In a real implementation, this would call an auth service
     // For now, just redirect to the afterSignOutUrl
     console.log('User signed out');
-    router.push(afterSignOutUrl);
+    router.push(afterSignOutUrl as Route);
   };
 
   return (

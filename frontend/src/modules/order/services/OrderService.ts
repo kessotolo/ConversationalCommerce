@@ -104,9 +104,9 @@ export class HttpOrderService implements OrderService {
 
   constructor(apiUrl = '/api/v1') {
     this.apiUrl = apiUrl;
-    this.queryService = new OrderQueryService(apiUrl);
-    this.statusService = new OrderStatusService(apiUrl);
-    this.bulkOperationsService = new OrderBulkOperationsService(apiUrl);
+    this.queryService = new OrderQueryService();
+    this.statusService = new OrderStatusService();
+    this.bulkOperationsService = new OrderBulkOperationsService();
   }
 
   /**
@@ -468,8 +468,8 @@ export class HttpOrderService implements OrderService {
 
   async deleteOrders(orderIds: string[], tenantId: string): Promise<Result<boolean, Error>> {
     try {
-      const response = await this.bulkOperationsService.deleteOrders(orderIds, tenantId);
-      
+      const response = await this.bulkOperationsService.bulkDeleteOrders(orderIds, tenantId);
+
       if (!response.success) {
         throw new Error(response.error?.message || 'Failed to delete orders');
       }
@@ -489,7 +489,7 @@ export class HttpOrderService implements OrderService {
   async deleteOrder(orderId: string, tenantId: string): Promise<Result<boolean, Error>> {
     try {
       const response = await this.bulkOperationsService.deleteOrder(orderId, tenantId);
-      
+
       if (!response.success) {
         throw new Error(response.error?.message || `Failed to delete order ${orderId}`);
       }

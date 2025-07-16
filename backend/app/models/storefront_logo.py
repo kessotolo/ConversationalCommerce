@@ -35,7 +35,7 @@ class StorefrontLogo(Base):
     )
 
     # Logo information
-    variant = Column(Enum(LogoVariant, create_type=False), nullable=False, default=LogoVariant.PRIMARY)
+    variant = Column(Enum(LogoVariant), nullable=False, default=LogoVariant.PRIMARY)
     is_active = Column(Boolean, nullable=False, default=True)
 
     # Asset reference

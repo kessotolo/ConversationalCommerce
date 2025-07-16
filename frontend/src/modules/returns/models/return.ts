@@ -1,4 +1,4 @@
-import { OrderItem } from '@/modules/orders/models/order';
+import { OrderItem } from '@/modules/order/models/order';
 
 /**
  * Enum for return request statuses
@@ -98,13 +98,13 @@ export interface ReturnItemResponse extends ReturnItemCreate {
   store_notes?: string;
   created_at: string;
   updated_at: string;
-  
+
   // Additional fields from OrderItem
   product_name?: string;
   product_image?: string;
   variant_name?: string;
   unit_price?: number;
-  
+
   // Extended data
   order_item?: OrderItem;
 }
@@ -167,7 +167,7 @@ export interface ReturnRequestResponse {
   rejection_reason?: string;
   created_at: string;
   updated_at: string;
-  
+
   // Related objects
   items?: ReturnItemResponse[];
 }

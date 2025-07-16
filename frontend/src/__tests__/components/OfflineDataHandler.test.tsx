@@ -15,7 +15,7 @@ jest.mock('../../services/MobileOptimizationService', () => ({
 // Mock localStorage
 const mockLocalStorage = (() => {
   let store: Record<string, string> = {};
-  
+
   return {
     getItem: jest.fn((key: string) => store[key] || null),
     setItem: jest.fn((key: string, value: string) => {
@@ -48,16 +48,16 @@ describe('OfflineDataHandler', () => {
     { id: 1, name: 'Test 1' },
     { id: 2, name: 'Test 2' },
   ];
-  
+
   const mockFetchData = jest.fn();
-  
+
   beforeEach(() => {
     jest.resetAllMocks();
     mockLocalStorage.clear();
     // Default mock for online fetch with successful response
     mockFetchData.mockResolvedValue(testData);
   });
-  
+
   test('renders loading state initially', () => {
     render(
       <OfflineDataHandler
@@ -71,40 +71,40 @@ describe('OfflineDataHandler', () => {
         )}
       </OfflineDataHandler>
     );
-    
+
     expect(screen.getByText('Loading...')).toBeInTheDocument();
   });
-  
+
   test('fetches and renders data when online', async () => {
     (mobileOptimizationService.getNetworkStatus as jest.Mock).mockReturnValue({ online: true });
-    
+
     render(
       <OfflineDataHandler
         fetchData={mockFetchData}
         localStorageKey="test-data"
       >
         {(data, isOffline) => (
-          <div>{data.map((item: any) => (
+          <div>{(data as Array<{ id: string; name: string }>).map((item) => (
             <div key={item.id}>{item.name}</div>
           ))}</div>
         )}
       </OfflineDataHandler>
     );
-    
+
     await waitFor(() => {
       expect(screen.getByText('Test 1')).toBeInTheDocument();
       expect(screen.getByText('Test 2')).toBeInTheDocument();
     });
-    
+
     expect(mockFetchData).toHaveBeenCalled();
-    
+
     // Verify data was cached
     expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
       'test-data',
       expect.stringContaining('"data"')
     );
   });
-  
+
   test('uses cached data when offline', async () => {
     // Setup cached data
     const timestamp = new Date().toISOString();
@@ -115,11 +115,11 @@ describe('OfflineDataHandler', () => {
         timestamp
       })
     );
-    
+
     // Set offline mode
     (mobileOptimizationService.getNetworkStatus as jest.Mock).mockReturnValue({ online: false });
     (mobileOptimizationService.shouldUseOfflineMode as jest.Mock).mockReturnValue(true);
-    
+
     render(
       <OfflineDataHandler
         fetchData={mockFetchData}
@@ -128,24 +128,24 @@ describe('OfflineDataHandler', () => {
         {(data, isOffline) => (
           <div>
             {isOffline && <div>Offline Mode</div>}
-            {data.map((item: any) => (
-              <div key={item.id}>{item.name}</div>
+            {data.map((item) => (
+              <div key={(item as { id: string; name: string }).id}>{(item as { id: string; name: string }).name}</div>
             ))}
           </div>
         )}
       </OfflineDataHandler>
     );
-    
+
     await waitFor(() => {
       expect(screen.getByText('Offline Mode')).toBeInTheDocument();
       expect(screen.getByText('Test 1')).toBeInTheDocument();
       expect(screen.getByText('Test 2')).toBeInTheDocument();
     });
-    
+
     // Should not try to fetch data when offline
     expect(mockFetchData).not.toHaveBeenCalled();
   });
-  
+
   test('handles data fetch error with fallback to cache', async () => {
     // Setup cached data
     const timestamp = new Date().toISOString();
@@ -156,58 +156,58 @@ describe('OfflineDataHandler', () => {
         timestamp
       })
     );
-    
+
     // Mock fetch error
     mockFetchData.mockRejectedValue(new Error('Network error'));
-    
+
     render(
       <OfflineDataHandler
         fetchData={mockFetchData}
         localStorageKey="test-data"
       >
         {(data, isOffline) => (
-          <div>{data.map((item: any) => (
+          <div>{(data as Array<{ id: string; name: string }>).map((item) => (
             <div key={item.id}>{item.name}</div>
           ))}</div>
         )}
       </OfflineDataHandler>
     );
-    
+
     await waitFor(() => {
       expect(screen.getByText('Test 1')).toBeInTheDocument();
       expect(screen.getByText('Test 2')).toBeInTheDocument();
     });
-    
+
     // Should try to fetch but fall back to cache when error occurs
     expect(mockFetchData).toHaveBeenCalled();
     expect(mockLocalStorage.getItem).toHaveBeenCalledWith('test-data');
   });
-  
+
   test('shows error when fetch fails and no cache is available', async () => {
     // Mock fetch error
     mockFetchData.mockRejectedValue(new Error('Network error'));
-    
+
     render(
       <OfflineDataHandler
         fetchData={mockFetchData}
         localStorageKey="test-data"
       >
         {(data, isOffline) => (
-          <div>{data.map((item: any) => (
+          <div>{(data as Array<{ id: string; name: string }>).map((item) => (
             <div key={item.id}>{item.name}</div>
           ))}</div>
         )}
       </OfflineDataHandler>
     );
-    
+
     await waitFor(() => {
       expect(screen.getByText(/Could not fetch data/)).toBeInTheDocument();
     });
-    
+
     expect(mockFetchData).toHaveBeenCalled();
     expect(mockLocalStorage.getItem).toHaveBeenCalledWith('test-data');
   });
-  
+
   test('handles manual refresh', async () => {
     // Setup initial render with data
     render(
@@ -217,37 +217,37 @@ describe('OfflineDataHandler', () => {
         allowManualRefresh={true}
       >
         {(data, isOffline) => (
-          <div>{data.map((item: any) => (
+          <div>{(data as Array<{ id: string; name: string }>).map((item) => (
             <div key={item.id}>{item.name}</div>
           ))}</div>
         )}
       </OfflineDataHandler>
     );
-    
+
     await waitFor(() => {
       expect(screen.getByText('Test 1')).toBeInTheDocument();
     });
-    
+
     // Clear previous calls
     mockFetchData.mockClear();
     mockLocalStorage.setItem.mockClear();
-    
+
     // Updated data for the second fetch
     const updatedData = [
       { id: 1, name: 'Updated Test 1' },
       { id: 2, name: 'Updated Test 2' },
     ];
     mockFetchData.mockResolvedValue(updatedData);
-    
+
     // Find and click refresh button
     const refreshButton = screen.getByText('Refresh');
     fireEvent.click(refreshButton);
-    
+
     await waitFor(() => {
       expect(screen.getByText('Updated Test 1')).toBeInTheDocument();
       expect(screen.getByText('Updated Test 2')).toBeInTheDocument();
     });
-    
+
     // Verify refresh triggered a new fetch
     expect(mockFetchData).toHaveBeenCalled();
     expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
@@ -255,12 +255,12 @@ describe('OfflineDataHandler', () => {
       expect.stringContaining('"data"')
     );
   });
-  
+
   test('handles expired cache data', async () => {
     // Setup expired cached data (more than 24 hours old)
     const oldTimestamp = new Date();
     oldTimestamp.setDate(oldTimestamp.getDate() - 2); // 2 days old
-    
+
     mockLocalStorage.setItem(
       'test-data',
       JSON.stringify({
@@ -268,11 +268,11 @@ describe('OfflineDataHandler', () => {
         timestamp: oldTimestamp.toISOString()
       })
     );
-    
+
     // Mock new data for fetch
     const newData = [{ id: 1, name: 'Fresh Test Data' }];
     mockFetchData.mockResolvedValue(newData);
-    
+
     render(
       <OfflineDataHandler
         fetchData={mockFetchData}
@@ -280,18 +280,18 @@ describe('OfflineDataHandler', () => {
         expiryHours={24} // 24 hour expiry
       >
         {(data, isOffline) => (
-          <div>{data.map((item: any) => (
+          <div>{(data as Array<{ id: string; name: string }>).map((item) => (
             <div key={item.id}>{item.name}</div>
           ))}</div>
         )}
       </OfflineDataHandler>
     );
-    
+
     await waitFor(() => {
       expect(screen.getByText('Fresh Test Data')).toBeInTheDocument();
       expect(screen.queryByText('Old Test Data')).not.toBeInTheDocument();
     });
-    
+
     // Verify fetch was called to get fresh data
     expect(mockFetchData).toHaveBeenCalled();
   });

@@ -21,7 +21,7 @@ class TeamInvite(Base):
     invitee_phone = Column(String, nullable=True)
     invitee_email = Column(String, nullable=True)
     role = Column(String, nullable=True)
-    status = Column(Enum(TeamInviteStatusEnum, create_type=False),
+    status = Column(Enum(TeamInviteStatusEnum),
                     default=TeamInviteStatusEnum.pending, nullable=False)
     invited_by = Column(UUID(as_uuid=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -50,10 +50,10 @@ class OrderReturn(Base):
     customer_id = Column(UUID(as_uuid=True), nullable=False, index=True)
     
     # Return details
-    return_reason = Column(Enum(ReturnReason, create_type=False), nullable=False)
+    return_reason = Column(Enum(ReturnReason), nullable=False)
     return_description = Column(Text)
     return_status = Column(
-        Enum(ReturnStatus, create_type=False),
+        Enum(ReturnStatus),
         default=ReturnStatus.requested,
         nullable=False
     )

@@ -22,7 +22,7 @@ class KYCInfo(Base):
     business_name = Column(String, nullable=False)
     id_number = Column(String, nullable=False)
     id_type = Column(String, nullable=False)
-    status = Column(SQLAlchemyEnum(KYCStatusEnum, create_type=False),
+    status = Column(SQLAlchemyEnum(KYCStatusEnum),
                     default=KYCStatusEnum.pending, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

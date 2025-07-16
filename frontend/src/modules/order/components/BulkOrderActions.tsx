@@ -124,7 +124,7 @@ export function BulkOrderActions({
 
     setIsDeleting(true);
     try {
-      const result = await bulkOperationsService.deleteOrders(
+      const result = await bulkOperationsService.bulkDeleteOrders(
         selectedOrderIds,
         tenantId
       );

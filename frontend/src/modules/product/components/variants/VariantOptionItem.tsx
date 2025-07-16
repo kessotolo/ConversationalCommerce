@@ -30,11 +30,11 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import type {
+import {
   VariantOption,
+  VariantOptionValue,
   VariantOptionType,
-  VariantOptionValue
-} from '../../models/product';
+} from '@/modules/product/models/product';
 import { SortableOptionValueItem } from './SortableOptionValueItem';
 
 /**

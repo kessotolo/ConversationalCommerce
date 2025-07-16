@@ -39,7 +39,7 @@ class Tenant(Base):
 
     # Country and KYC information
     country_code = Column(String(2), nullable=True)  # ISO 3166-1 alpha-2 code
-    kyc_status = Column(Enum(KYCStatus, create_type=False),
+    kyc_status = Column(Enum(KYCStatus),
                         default=KYCStatus.NOT_STARTED)
     # Store KYC data specific to country
     kyc_data = Column(JSONB, nullable=True)

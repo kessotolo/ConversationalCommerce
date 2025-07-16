@@ -50,7 +50,7 @@ class TeamMember(Base):
     user_id = Column(UUID(as_uuid=True), nullable=False, index=True)
     
     # Role and permissions
-    role = Column(Enum(TeamRole, create_type=False), nullable=False)
+    role = Column(Enum(TeamRole), nullable=False)
     custom_permissions = Column(JSONB)  # Optional custom permissions beyond role
     
     # Member information
@@ -79,13 +79,13 @@ class TeamInvite(Base):
     
     # Invite details
     email = Column(String, nullable=False, index=True)
-    role = Column(Enum(TeamRole, create_type=False), nullable=False)
+    role = Column(Enum(TeamRole), nullable=False)
     invite_message = Column(Text)
     invite_code = Column(String, unique=True, nullable=False)
     
     # Status
     status = Column(
-        Enum(TeamInviteStatus, create_type=False),
+        Enum(TeamInviteStatus),
         default=TeamInviteStatus.pending,
         nullable=False
     )

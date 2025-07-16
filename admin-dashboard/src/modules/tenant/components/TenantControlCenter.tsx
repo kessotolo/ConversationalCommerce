@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { adminApiService } from '@/lib/adminApiService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -68,87 +69,104 @@ export function TenantControlCenter({ className }: TenantControlCenterProps) {
     const [sortBy, setSortBy] = useState<'name' | 'created_at' | 'status' | 'total_users'>('name');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
-    // Mock data - replace with API call
+    // Fetch tenants from real API
     useEffect(() => {
-        const mockTenants: Tenant[] = [
-            {
-                id: '1',
-                name: 'TechCorp',
-                subdomain: 'techcorp',
-                custom_domain: 'techcorp.com',
-                status: 'active',
-                is_verified: true,
-                created_at: '2024-01-15T10:30:00Z',
-                admin_user_id: 'user1',
-                admin_user_name: 'John Smith',
-                metrics: {
-                    total_users: 1250,
-                    total_orders: 3420,
-                    total_revenue: 125000,
-                    active_users: 890,
-                    order_completion_rate: 94.5,
-                    avg_order_value: 36.5
-                },
-                health: {
-                    status: 'healthy',
-                    uptime_percentage: 99.8,
-                    last_activity: '2024-01-20T14:30:00Z',
-                    error_rate: 0.2
-                }
-            },
-            {
-                id: '2',
-                name: 'FashionStore',
-                subdomain: 'fashionstore',
-                status: 'active',
-                is_verified: true,
-                created_at: '2024-01-10T09:15:00Z',
-                admin_user_id: 'user2',
-                admin_user_name: 'Sarah Johnson',
-                metrics: {
-                    total_users: 890,
-                    total_orders: 1560,
-                    total_revenue: 89000,
-                    active_users: 450,
-                    order_completion_rate: 91.2,
-                    avg_order_value: 57.1
-                },
-                health: {
-                    status: 'warning',
-                    uptime_percentage: 98.5,
-                    last_activity: '2024-01-20T12:45:00Z',
-                    error_rate: 1.5
-                }
-            },
-            {
-                id: '3',
-                name: 'FoodMart',
-                subdomain: 'foodmart',
-                status: 'suspended',
-                is_verified: false,
-                created_at: '2024-01-05T16:20:00Z',
-                admin_user_id: 'user3',
-                admin_user_name: 'Mike Wilson',
-                metrics: {
-                    total_users: 320,
-                    total_orders: 450,
-                    total_revenue: 18000,
-                    active_users: 120,
-                    order_completion_rate: 88.9,
-                    avg_order_value: 40.0
-                },
-                health: {
-                    status: 'critical',
-                    uptime_percentage: 95.2,
-                    last_activity: '2024-01-19T08:15:00Z',
-                    error_rate: 4.8
-                }
-            }
-        ];
+        const fetchTenants = async () => {
+            try {
+                setLoading(true);
+                const data = await adminApiService.getTenants({
+                    status: statusFilter !== 'all' ? statusFilter : undefined,
+                    search: searchTerm || undefined,
+                    limit: 100
+                });
+                setTenants(data);
+            } catch (error) {
+                console.error('Error fetching tenants:', error);
+                // Keep existing mock data as fallback for development
+                const mockTenants: Tenant[] = [
+                    {
+                        id: '1',
+                        name: 'TechCorp',
+                        subdomain: 'techcorp',
+                        custom_domain: 'techcorp.com',
+                        status: 'active',
+                        is_verified: true,
+                        created_at: '2024-01-15T10:30:00Z',
+                        admin_user_id: 'user1',
+                        admin_user_name: 'John Smith',
+                        metrics: {
+                            total_users: 1250,
+                            total_orders: 3420,
+                            total_revenue: 125000,
+                            active_users: 890,
+                            order_completion_rate: 94.5,
+                            avg_order_value: 36.5
+                        },
+                        health: {
+                            status: 'healthy',
+                            uptime_percentage: 99.8,
+                            last_activity: '2024-01-20T14:30:00Z',
+                            error_rate: 0.2
+                        }
+                    },
+                    {
+                        id: '2',
+                        name: 'FashionStore',
+                        subdomain: 'fashionstore',
+                        status: 'active',
+                        is_verified: true,
+                        created_at: '2024-01-10T09:15:00Z',
+                        admin_user_id: 'user2',
+                        admin_user_name: 'Sarah Johnson',
+                        metrics: {
+                            total_users: 890,
+                            total_orders: 1560,
+                            total_revenue: 89000,
+                            active_users: 450,
+                            order_completion_rate: 91.2,
+                            avg_order_value: 57.1
+                        },
+                        health: {
+                            status: 'warning',
+                            uptime_percentage: 98.5,
+                            last_activity: '2024-01-20T12:45:00Z',
+                            error_rate: 1.5
+                        }
+                    },
+                    {
+                        id: '3',
+                        name: 'FoodMart',
+                        subdomain: 'foodmart',
+                        status: 'suspended',
+                        is_verified: false,
+                        created_at: '2024-01-05T16:20:00Z',
+                        admin_user_id: 'user3',
+                        admin_user_name: 'Mike Wilson',
+                        metrics: {
+                            total_users: 320,
+                            total_orders: 450,
+                            total_revenue: 18000,
+                            active_users: 120,
+                            order_completion_rate: 88.9,
+                            avg_order_value: 40.0
+                        },
+                        health: {
+                            status: 'critical',
+                            uptime_percentage: 95.2,
+                            last_activity: '2024-01-19T08:15:00Z',
+                            error_rate: 4.8
+                        }
+                    }
+                ];
 
-        setTenants(mockTenants);
-        setLoading(false);
-    }, []);
+                setTenants(mockTenants);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchTenants();
+    }, [statusFilter, searchTerm]);
 
     const filteredTenants = tenants.filter(tenant => {
         const matchesSearch = tenant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

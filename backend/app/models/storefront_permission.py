@@ -1,7 +1,16 @@
-import enum
 import uuid
+from enum import Enum
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Index, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Enum as SQLAlchemyEnum,
+    ForeignKey,
+    Index,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -9,7 +18,7 @@ from sqlalchemy.sql import func
 from app.db.base_class import Base
 
 
-class StorefrontRole(enum.Enum):
+class StorefrontRole(Enum):
     """Roles for storefront editing permissions"""
 
     VIEWER = "viewer"
@@ -18,7 +27,7 @@ class StorefrontRole(enum.Enum):
     ADMIN = "admin"
 
 
-class StorefrontSectionType(enum.Enum):
+class StorefrontSectionType(Enum):
     """Types of sections that can have granular permissions"""
 
     THEME = "theme"
@@ -48,7 +57,8 @@ class StorefrontPermission(Base):
     )
 
     # Global role for this user
-    role = Column(Enum(StorefrontRole, create_type=False), nullable=False, default=StorefrontRole.VIEWER)
+    role = Column(SQLAlchemyEnum(StorefrontRole),
+                  nullable=False, default=StorefrontRole.VIEWER)
 
     # Section-specific permissions (overrides global role)
     section_permissions = Column(JSONB, nullable=False, default=lambda: {})
@@ -66,7 +76,8 @@ class StorefrontPermission(Base):
 
     __table_args__ = (
         # Each user can only have one permission entry per tenant
-        UniqueConstraint("tenant_id", "user_id", name="uq_user_tenant_permission"),
+        UniqueConstraint("tenant_id", "user_id",
+                         name="uq_user_tenant_permission"),
         # Index for efficient permission lookups
         Index("idx_storefront_permission_user", "user_id"),
         Index("idx_storefront_permission_tenant", "tenant_id"),

@@ -58,8 +58,8 @@ class Order(Base):
     total_amount = Column(Float, nullable=False)
     # Changed default to WhatsApp
     order_source = Column(
-        Enum(OrderSource, create_type=False), default=OrderSource.whatsapp)
-    status = Column(Enum(OrderStatus, create_type=False),
+        Enum(OrderSource), default=OrderSource.whatsapp)
+    status = Column(Enum(OrderStatus),
                     default=OrderStatus.pending)
     notes = Column(Text)
 

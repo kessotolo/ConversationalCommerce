@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
+import Link from 'next/link';
+import { useRouter, usePathname } from 'next/navigation';
+import type { Route } from 'next';
 import { Home, Menu, CreditCard, Truck, Bell, Link2, ShoppingBag } from 'lucide-react';
 import { SettingsService } from '../services/SettingsService';
 import { SettingsDomain } from '../models/settings';
@@ -17,10 +19,10 @@ interface NavItemProps {
 }
 
 const NavItem: React.FC<NavItemProps> = ({ icon: Icon, title, path, isActive, onClose }) => {
-  const navigate = useNavigate();
+  const navigate = useRouter();
 
   const handleClick = () => {
-    navigate(path);
+    navigate.push(path as Route);
     if (onClose) onClose();
   };
 
@@ -67,39 +69,39 @@ const getDomainIcon = (domainName: string): React.ComponentType<{ className?: st
 
 const SettingsDashboard: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
+  const location = usePathname();
+  const navigate = useRouter();
   const [domains, setDomains] = useState<SettingsDomain[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const settingsService = new SettingsService();
 
   // Get the current domain from the URL
-  const currentPath = location.pathname;
+  const currentPath = location;
   const pathParts = currentPath.split('/');
   const currentDomain = pathParts[pathParts.length - 1];
 
   // Load settings domains
   useEffect(() => {
-    const loadDomains = async () => {
-      setIsLoading(true);
+    const fetchDomains = async () => {
       try {
+        setIsLoading(true);
         const domainsData = await settingsService.getDomains();
         setDomains(domainsData);
 
-        // If we're at the root settings path, redirect to the first domain
-        if (currentPath === '/settings' && domainsData.length > 0) {
-          navigate(`/settings/${domainsData[0].name}`);
+        // Redirect to first domain if no specific domain in URL
+        if (domainsData.length > 0 && !currentDomain) {
+          navigate.push(`/settings/${domainsData[0]?.name}` as Route);
         }
       } catch (error) {
-        console.error('Failed to load settings domains:', error);
+        console.error('Failed to fetch domains:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadDomains();
-  }, []);
+    fetchDomains();
+  }, [navigate, currentDomain]);
 
   // Get current domain name for breadcrumb
   const currentDomainName = domains.find(domain =>
@@ -168,7 +170,7 @@ const SettingsDashboard: React.FC = () => {
               {/* Breadcrumb */}
               <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-6">
                 <Link
-                  to="/settings"
+                  href={"/settings" as Route}
                   className="hover:text-gray-700 dark:hover:text-gray-300"
                 >
                   Settings
@@ -179,7 +181,12 @@ const SettingsDashboard: React.FC = () => {
                 </span>
               </nav>
 
-              <Outlet />
+              {/* Outlet for nested routes */}
+              {/* This component is now managed by Next.js routing */}
+              {/* The Outlet component is no longer needed here */}
+              {/* The actual content of the nested route will be rendered here */}
+              {/* For now, we'll just show a placeholder or a simple message */}
+              <p>Settings for {currentDomainName} will be displayed here.</p>
             </div>
           </div>
         </div>

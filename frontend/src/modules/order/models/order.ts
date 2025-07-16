@@ -1,3 +1,8 @@
+/**
+ * Order domain models and interfaces
+ * Core order management types for the application
+ */
+
 import type { Address } from '@/modules/core/models/base/address';
 import type { TenantScoped, UUID } from '@/modules/core/models/base';
 import type { Money } from '@/modules/core/models/base/money';
@@ -20,20 +25,26 @@ export enum OrderStatus {
  * Order source enum representing different channels
  */
 export enum OrderSource {
-  WHATSAPP = 'WHATSAPP',
   WEBSITE = 'WEBSITE',
+  MOBILE_APP = 'MOBILE_APP',
+  WHATSAPP = 'WHATSAPP',
   INSTAGRAM = 'INSTAGRAM',
+  FACEBOOK = 'FACEBOOK',
+  PHONE = 'PHONE',
+  IN_PERSON = 'IN_PERSON'
 }
 
 /**
  * Payment method enum for different payment options
  */
 export enum PaymentMethod {
+  CREDIT_CARD = 'CREDIT_CARD',
+  DEBIT_CARD = 'DEBIT_CARD',
   CARD = 'CARD',
-  MOBILE_MONEY = 'MOBILE_MONEY',
-  CASH_ON_DELIVERY = 'CASH_ON_DELIVERY',
+  PAYPAL = 'PAYPAL',
   BANK_TRANSFER = 'BANK_TRANSFER',
-  USSD = 'USSD',
+  CASH_ON_DELIVERY = 'CASH_ON_DELIVERY',
+  MOBILE_MONEY = 'MOBILE_MONEY'
 }
 
 /**
@@ -41,23 +52,24 @@ export enum PaymentMethod {
  */
 export enum PaymentStatus {
   PENDING = 'PENDING',
+  PROCESSING = 'PROCESSING',
+  PAID = 'PAID',
   COMPLETED = 'COMPLETED',
   FAILED = 'FAILED',
   REFUNDED = 'REFUNDED',
-  PARTIALLY_REFUNDED = 'PARTIALLY_REFUNDED',
+  CANCELLED = 'CANCELLED'
 }
 
 /**
  * Shipping method enum for different shipping options
  */
 export enum ShippingMethod {
-  RIDER = 'rider',
-  COURIER = 'courier',
-  PICKUP = 'pickup',
-  BODA = 'boda',
-  BUS_PARCEL = 'bus_parcel',
-  IN_PERSON = 'in_person',
-  OTHER = 'other',
+  STANDARD = 'STANDARD',
+  EXPRESS = 'EXPRESS',
+  OVERNIGHT = 'OVERNIGHT',
+  PICKUP = 'PICKUP',
+  RIDER = 'RIDER',
+  COURIER = 'COURIER'
 }
 
 /**
@@ -66,13 +78,23 @@ export enum ShippingMethod {
 export interface OrderItem {
   id: string;
   product_id: string;
-  product_name: string;
+  variant_id?: string;
+  name: string;
+  description?: string;
   quantity: number;
   unit_price: Money;
   total_price: Money;
-  variant_id?: string;
-  variant_name?: string;
   image_url?: string;
+  sku?: string;
+  weight?: number;
+  weight_unit?: string;
+  // Additional properties for return functionality
+  product_name?: string;
+  product_image?: string;
+  variant_name?: string;
+  returned_quantity?: number;
+  created_at: string;
+  updated_at: string;
 }
 
 /**
@@ -115,11 +137,13 @@ export interface PaymentDetails {
  * Customer information for an order
  */
 export interface CustomerInfo {
-  id?: string; // Optional for guest checkout
+  id: string;
   name: string;
   email: string;
   phone: string;
   is_guest: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 /**
@@ -127,10 +151,12 @@ export interface CustomerInfo {
  */
 export interface OrderTimeline {
   id: string;
+  order_id: string;
   status: OrderStatus;
   timestamp: string;
-  note?: string;
+  notes?: string;
   created_by?: string;
+  created_at: string;
 }
 
 /**

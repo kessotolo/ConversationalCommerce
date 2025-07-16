@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 
 import NotificationCenter from '@/components/monitoring/NotificationCenter';
+import type { Route } from 'next';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -29,7 +30,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   ];
 
   const handleMenuItemClick = (path: string) => {
-    router.push(path);
+    router.push(path as Route);
     setDrawerOpen(false);
   };
 

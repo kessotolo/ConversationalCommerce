@@ -46,9 +46,9 @@ class SellerVerification(Base):
     tenant_id = Column(UUID(as_uuid=True), nullable=False, index=True)
     
     # Verification details
-    verification_type = Column(Enum(SellerVerificationType, create_type=False), nullable=False)
+    verification_type = Column(Enum(SellerVerificationType), nullable=False)
     status = Column(
-        Enum(SellerVerificationStatus, create_type=False),
+        Enum(SellerVerificationStatus),
         default=SellerVerificationStatus.pending,
         nullable=False
     )

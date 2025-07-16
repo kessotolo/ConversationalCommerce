@@ -65,7 +65,7 @@ class Permission(Base):
     
     # The scope of the permission
     scope = Column(
-        Enum(PermissionScope, create_type=False),
+        Enum(PermissionScope),
         nullable=False,
         default=PermissionScope.TENANT
     )

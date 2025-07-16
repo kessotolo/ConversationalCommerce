@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 import type { ReactNode } from 'react';
+import type { Route } from 'next';
 
 // Type definitions
 interface AuthContextType {
@@ -18,8 +19,8 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   isAuthenticated: false,
   userId: null,
-  redirectToLogin: () => {},
-  redirectToDashboard: () => {},
+  redirectToLogin: () => { },
+  redirectToDashboard: () => { },
 });
 
 // Provider component
@@ -36,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [isAuthLoaded, isUserLoaded]);
 
   const redirectToLogin = () => {
-    router.push('/sign-in');
+    router.push('/sign-in' as Route);
   };
 
   const redirectToDashboard = () => {

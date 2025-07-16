@@ -132,10 +132,11 @@ export class OrderCsvService {
         status: data.status as OrderStatus,
         notes: data.notes,
         customer: {
+          id: `customer-${Date.now()}`, // Generate a temporary ID
           name: data.customer_name,
           email: data.customer_email,
           phone: data.customer_phone,
-          is_guest: false, // Default value, might need adjustment based on API
+          is_guest: false,
         },
       };
 

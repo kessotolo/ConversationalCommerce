@@ -11,6 +11,22 @@
 - If a file grows beyond ~200 lines or covers more than one responsibility, split it.
 - Never allow a file to become a "god file."
 
+## Database & Model Standards
+- **UUID-only IDs:** ALL database models MUST use UUID primary keys and foreign keys:
+  ```python
+  import uuid
+  from sqlalchemy.dialects.postgresql import UUID
+
+  id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+  tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
+  ```
+- **Multi-tenant by default:** Every tenant-scoped model MUST include `tenant_id` UUID foreign key.
+- **No Integer or String IDs** for entities - UUIDs provide better security, scalability, and collision resistance.
+- **Consistent model patterns:** Use `created_at`, `updated_at` with timezone-aware DateTime columns.
+- **Row Level Security (RLS):** All tenant-scoped tables must have RLS policies enforcing tenant isolation.
+- **Migration discipline:** All schema changes via Alembic migrations, never manual SQL.
+- **Foreign key constraints:** Always define proper foreign key relationships for data integrity.
+
 ## Async/Await and SQLAlchemy Standards
 - Always use context managers (`async with AsyncSession() as session:`) to ensure sessions are closed, even on error.
 - Absolutely prohibit mixing sync and async SQLAlchemy sessions in the same service or test.
@@ -36,6 +52,8 @@
 - [ ] All exceptions are custom and mapped to HTTP responses
 - [ ] All code is type-annotated and passes lint/type-check
 - [ ] All tests use async fixtures and verify tenant isolation
+- [ ] **All models use UUID primary/foreign keys**
+- [ ] **Multi-tenant models include tenant_id**
 - [ ] No anti-patterns (see below)
 
 ## Anti-Patterns to Avoid
@@ -46,10 +64,13 @@
 - Unhandled async errors
 - Test fixtures that leak data or use sync sessions
 - Bridge files or centralized type directories
+- **Integer or String primary keys for entities**
+- **Models without tenant_id for tenant-scoped data**
 
 ## Tooling & Automation
 - Pre-commit: Run `black`, `isort`, `flake8`, and `mypy` before every commit.
 - CI: All PRs must pass lint, type-check, and test suites.
+- **UUID Compliance:** Run `python backend/scripts/check_uuid_compliance.py` to verify all models follow UUID standards.
 - Optionally, add a script to warn on large files/functions.
 
 ## Sample Orchestrator Pattern (Python)
@@ -64,3 +85,4 @@ class OrderOrchestrator:
         except AppError as e:
             logger.error(f"Order processing failed: {e}")
             raise
+```

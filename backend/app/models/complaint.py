@@ -32,8 +32,8 @@ class Complaint(Base):
     product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"), nullable=True)
     order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id"), nullable=True)
     type = Column(String, nullable=False)  # product, order, user, other
-    status = Column(SQLAlchemyEnum(ComplaintStatus, create_type=False), default=ComplaintStatus.pending)
-    tier = Column(SQLAlchemyEnum(ComplaintTier, create_type=False), default=ComplaintTier.tier1)
+    status = Column(SQLAlchemyEnum(ComplaintStatus), default=ComplaintStatus.pending)
+    tier = Column(SQLAlchemyEnum(ComplaintTier), default=ComplaintTier.tier1)
     description = Column(String, nullable=False)
     resolution = Column(String, nullable=True)
     escalation_reason = Column(String, nullable=True)

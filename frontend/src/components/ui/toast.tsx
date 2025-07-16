@@ -1,6 +1,7 @@
 import { cva, type VariantProps } from 'class-variance-authority';
 import { X } from 'lucide-react';
 import * as React from 'react';
+import { useEffect, useRef } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -8,8 +9,8 @@ const ToastProvider = React.createContext<{
   toast: (props: ToastProps) => void;
   dismiss: (id: string) => void;
 }>({
-  toast: () => {},
-  dismiss: () => {},
+  toast: () => { },
+  dismiss: () => { },
 });
 
 export const useToast = () => {
@@ -18,12 +19,41 @@ export const useToast = () => {
 
 export interface ToastProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof toastVariants> {
+  VariantProps<typeof toastVariants> {
+  /**
+   * Title content for the toast
+   */
   title?: string;
+
+  /**
+   * Description content for the toast
+   */
   description?: string;
+
+  /**
+   * Visual style variant of the toast
+   */
   variant?: 'default' | 'destructive' | 'success';
+
+  /**
+   * Unique identifier for the toast
+   */
   id?: string;
+
+  /**
+   * Function called when toast is dismissed
+   */
   onDismiss?: () => void;
+
+  /**
+   * Duration in milliseconds before auto-dismissing (0 for no auto-dismiss)
+   */
+  duration?: number;
+
+  /**
+   * Whether this toast represents an important announcement that should interrupt the screen reader
+   */
+  important?: boolean;
 }
 
 const toastVariants = cva(
@@ -42,9 +72,56 @@ const toastVariants = cva(
   },
 );
 
-export function Toast({ className, title, description, variant, onDismiss, ...props }: ToastProps) {
+export function Toast({
+  className,
+  title,
+  description,
+  variant,
+  onDismiss,
+  important = false,
+  duration = 5000, // Default 5 seconds
+  ...props
+}: ToastProps) {
+  const toastRef = useRef<HTMLDivElement>(null);
+
+  // Auto-dismiss logic
+  useEffect(() => {
+    if (duration > 0 && onDismiss) {
+      const timer = setTimeout(() => onDismiss(), duration);
+      return () => clearTimeout(timer);
+    }
+
+    return undefined;
+  }, [duration, onDismiss]);
+
+  // Focus management - focus the toast when it appears for keyboard navigation
+  useEffect(() => {
+    if (toastRef.current) {
+      toastRef.current.focus();
+    }
+  }, []);
+
+  // Handle escape key press to dismiss
+  const handleKeyDown = (event: React.KeyboardEvent): void => {
+    if (event.key === 'Escape' && onDismiss) {
+      onDismiss();
+    }
+  };
+
+  // Determine the appropriate ARIA role and live region attributes
+  const ariaLive = important ? "assertive" : "polite";
+
   return (
-    <div className={cn(toastVariants({ variant }), className)} {...props}>
+    <div
+      ref={toastRef}
+      role="alert"
+      aria-live={ariaLive}
+      aria-atomic="true"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      className={cn(toastVariants({ variant }), className)}
+      {...props}
+    >
       <div className="flex-1 grid gap-1">
         {title && <div className="text-sm font-semibold">{title}</div>}
         {description && <div className="text-sm opacity-90">{description}</div>}
@@ -52,9 +129,11 @@ export function Toast({ className, title, description, variant, onDismiss, ...pr
       {onDismiss && (
         <button
           onClick={onDismiss}
-          className="absolute right-2 top-2 rounded-md p-1 text-gray-500 opacity-70 transition-opacity hover:opacity-100 focus:opacity-100 focus:outline-none"
+          aria-label="Dismiss notification"
+          className="absolute right-2 top-2 rounded-md p-1 text-gray-500 opacity-70 transition-opacity hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
         >
           <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
         </button>
       )}
     </div>

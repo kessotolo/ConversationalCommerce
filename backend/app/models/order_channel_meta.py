@@ -14,7 +14,7 @@ class OrderChannelMeta(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id"), nullable=False)
-    channel = Column(Enum(ChannelType, create_type=False), nullable=False)
+    channel = Column(Enum(ChannelType), nullable=False)
     message_id = Column(String, nullable=True)
     chat_session_id = Column(String, nullable=True)
     # Consider JSON if needed

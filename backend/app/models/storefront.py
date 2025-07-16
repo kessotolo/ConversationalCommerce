@@ -42,7 +42,7 @@ class StorefrontConfig(Base):
 
     # Publishing workflow fields
     status = Column(
-        Enum(StorefrontStatus, create_type=False), default=StorefrontStatus.DRAFT, nullable=False
+        Enum(StorefrontStatus), default=StorefrontStatus.DRAFT, nullable=False
     )
     published_at = Column(DateTime(timezone=True), nullable=True)
     scheduled_publish_at = Column(DateTime(timezone=True), nullable=True)

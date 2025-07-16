@@ -153,7 +153,7 @@ export const ProductDomainMethods = {
    * Check if a product is on sale
    */
   isOnSale(product: Product): boolean {
-    return !!product.sale_price && 
+    return !!product.sale_price &&
       product.sale_price.amount < product.price.amount;
   },
 
@@ -169,14 +169,14 @@ export const ProductDomainMethods = {
    */
   isInStock(product: Product): boolean {
     if (!product.track_inventory) return true;
-    
+
     // If using variants, check variant inventory
     if (this.hasVariants(product)) {
-      return !!product.variants?.some(v => 
+      return !!product.variants?.some(v =>
         v.inventory_quantity === undefined || v.inventory_quantity > 0
       );
     }
-    
+
     // Otherwise check main product inventory
     return product.inventory_quantity === undefined || product.inventory_quantity > 0;
   },
@@ -190,28 +190,78 @@ export const ProductDomainMethods = {
     }
     return product.price;
   },
-  
+
   /**
    * Get inventory status text
    */
   getInventoryStatusText(product: Product): string {
     if (!product.track_inventory) return 'Always Available';
-    
+
     if (this.hasVariants(product)) {
       const inStockCount = product.variants?.filter(
         v => v.inventory_quantity !== undefined && v.inventory_quantity > 0
       ).length || 0;
-      
+
       const totalVariants = product.variants?.length || 0;
-      
+
       if (inStockCount === 0) return 'Out of Stock';
       if (inStockCount === totalVariants) return 'In Stock';
       return `${inStockCount}/${totalVariants} Variants In Stock`;
     }
-    
+
     if (product.inventory_quantity === undefined) return 'Unknown';
     if (product.inventory_quantity <= 0) return 'Out of Stock';
     if (product.inventory_quantity <= 10) return 'Low Stock';
     return 'In Stock';
   },
 };
+
+// Create interfaces for API operations
+export interface VariantOptionCreate extends Omit<VariantOption, 'id' | 'created_at' | 'updated_at'> {
+  product_id: string;
+  name: string;
+  type: VariantOptionType;
+  position?: number;
+}
+
+export interface VariantOptionUpdate extends Partial<VariantOptionCreate> {
+  id?: string;
+}
+
+export interface VariantOptionValueCreate extends Omit<VariantOptionValue, 'id' | 'created_at' | 'updated_at'> {
+  option_id: string;
+  value: string;
+  position?: number;
+}
+
+export interface VariantOptionValueUpdate extends Partial<VariantOptionValueCreate> {
+  id?: string;
+}
+
+export interface ProductVariantCreate {
+  product_id: string;
+  sku: string;
+  name?: string;
+  price?: Money;
+  sale_price?: Money;
+  inventory_quantity?: number;
+  option_values?: {
+    option_id: string;
+    value_id: string;
+  }[];
+  image_url?: string;
+  barcode?: string;
+  weight?: number;
+  weight_unit?: string;
+  dimensions?: {
+    length?: number;
+    width?: number;
+    height?: number;
+    unit?: string;
+  };
+  is_default?: boolean;
+}
+
+export interface ProductVariantUpdate extends Partial<ProductVariantCreate> {
+  id?: string;
+}

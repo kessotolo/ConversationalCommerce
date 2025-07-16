@@ -14,16 +14,16 @@ interface AdminLayoutProps {
 
 /**
  * Admin layout component for merchant dashboard
- * 
+ *
  * Provides consistent layout with navigation, error boundaries, toast notifications,
  * and network status monitoring for all merchant admin pages.
- * 
+ *
  * Implements accessibility features including proper landmark regions,
  * skip links, ARIA attributes, and keyboard navigation.
  */
 export function AdminLayout({ children, merchantId }: AdminLayoutProps): JSX.Element {
   const { tenant } = useTenant();
-  
+
   // Navigation items with proper routing
   const navItems = [
     { name: 'Dashboard', href: createMerchantAdminRoute(merchantId, 'dashboard'), icon: 'home' },
@@ -37,13 +37,13 @@ export function AdminLayout({ children, merchantId }: AdminLayoutProps): JSX.Ele
   return (
     <ToastProvider>
       {/* Skip link for keyboard users */}
-      <a 
-        href="#main-content" 
+      <a
+        href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-white focus:text-blue-700 focus:rounded focus:outline-none focus:shadow"
       >
         Skip to main content
       </a>
-      
+
       <div className="min-h-screen bg-gray-50">
         {/* Network status monitoring */}
         <Suspense fallback={null}>
@@ -52,7 +52,7 @@ export function AdminLayout({ children, merchantId }: AdminLayoutProps): JSX.Ele
 
         <div className="flex">
           {/* Sidebar Navigation */}
-          <nav 
+          <nav
             className="bg-gray-800 w-64 min-h-screen p-4 hidden md:block"
             aria-label="Main Navigation"
           >
@@ -66,13 +66,13 @@ export function AdminLayout({ children, merchantId }: AdminLayoutProps): JSX.Ele
             <ul className="space-y-2" role="list">
               {navItems.map((item) => (
                 <li key={item.name}>
-                  <Link 
-                    href={item.href as Route} 
+                  <Link
+                    href={item.href as Route}
                     className="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white rounded-md transition-colors"
                     aria-current={
-                      typeof window !== 'undefined' && 
-                      window.location.pathname.includes(item.name.toLowerCase()) 
-                        ? 'page' 
+                      typeof window !== 'undefined' &&
+                        window.location.pathname.includes(item.name.toLowerCase())
+                        ? 'page'
                         : undefined
                     }
                   >
@@ -86,8 +86,8 @@ export function AdminLayout({ children, merchantId }: AdminLayoutProps): JSX.Ele
             </ul>
 
             <div className="mt-auto pt-8">
-              <Link 
-                href="/help" 
+              <Link
+                href={"/help" as Route}
                 className="text-gray-400 hover:text-white text-sm flex items-center px-4 py-2"
               >
                 <span className="mr-2">
@@ -111,18 +111,18 @@ export function AdminLayout({ children, merchantId }: AdminLayoutProps): JSX.Ele
                 aria-expanded="false"
               >
                 <span className="sr-only">Open main menu</span>
-                <svg 
-                  className="h-6 w-6" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor" 
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                   aria-hidden="true"
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth="2" 
-                    d="M4 6h16M4 12h16M4 18h16" 
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M4 6h16M4 12h16M4 18h16"
                   />
                 </svg>
               </button>
@@ -130,8 +130,8 @@ export function AdminLayout({ children, merchantId }: AdminLayoutProps): JSX.Ele
           </div>
 
           {/* Main Content */}
-          <main 
-            id="main-content" 
+          <main
+            id="main-content"
             className="flex-1 overflow-auto"
             role="main"
             tabIndex={-1} // For focus when using skip link

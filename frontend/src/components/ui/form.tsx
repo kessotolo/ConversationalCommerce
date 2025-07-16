@@ -54,31 +54,43 @@ const useFormField = () => {
 }
 
 type FormItemContextValue = {
-    id: string
+    id: string;
+    required?: boolean;
 }
 
 const FormItemContext = React.createContext<FormItemContextValue>(
     {} as FormItemContextValue
 )
 
-const FormItem = React.forwardRef<
-    HTMLDivElement,
-    React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => {
-    const id = React.useId()
+interface FormItemProps extends React.HTMLAttributes<HTMLDivElement> {
+    /**
+     * When true, indicates the form field is required
+     * Used for accessibility and visual indication
+     */
+    required?: boolean;
+}
 
-    return (
-        <FormItemContext.Provider value={{ id }}>
-            <div ref={ref} className={cn("space-y-2", className)} {...props} />
-        </FormItemContext.Provider>
-    )
-})
+const FormItem = React.forwardRef<HTMLDivElement, FormItemProps>(
+    ({ className, required, ...props }, ref) => {
+        const id = React.useId()
+
+        return (
+            <FormItemContext.Provider value={{ id, required }}>
+                <div 
+                    ref={ref} 
+                    className={cn("space-y-2", className)} 
+                    {...props} 
+                />
+            </FormItemContext.Provider>
+        )
+    }
+)
 FormItem.displayName = "FormItem"
 
 const FormLabel = React.forwardRef<
     React.ElementRef<typeof Label>,
-    React.ComponentPropsWithoutRef<typeof Label>
->(({ className, ...props }, ref) => {
+    React.ComponentPropsWithoutRef<typeof Label> & { required?: boolean }
+>(({ className, required, ...props }, ref) => {
     const { error, formItemId } = useFormField()
 
     return (
@@ -87,7 +99,11 @@ const FormLabel = React.forwardRef<
             className={cn(error && "text-destructive", className)}
             htmlFor={formItemId}
             {...props}
-        />
+        >
+            {props.children}
+            {required && <span className="text-destructive ml-1" aria-hidden="true">*</span>}
+            {required && <span className="sr-only"> (required)</span>}
+        </Label>
     )
 })
 FormLabel.displayName = "FormLabel"
@@ -97,6 +113,8 @@ const FormControl = React.forwardRef<
     React.ComponentPropsWithoutRef<typeof Slot>
 >(({ ...props }, ref) => {
     const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
+    const itemContext = React.useContext(FormItemContext)
+    const { required } = itemContext
 
     return (
         <Slot
@@ -108,6 +126,9 @@ const FormControl = React.forwardRef<
                     : `${formDescriptionId} ${formMessageId}`
             }
             aria-invalid={!!error}
+            aria-required={required}
+            // Do not pass required to Slot as it doesn't accept this prop
+            // Instead, we use aria-required for accessibility
             {...props}
         />
     )
@@ -147,6 +168,8 @@ const FormMessage = React.forwardRef<
             ref={ref}
             id={formMessageId}
             className={cn("text-sm font-medium text-destructive", className)}
+            aria-live="polite"
+            role="alert"
             {...props}
         >
             {body}

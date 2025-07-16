@@ -8,6 +8,7 @@ import { CardSkeleton } from '@/components/Skeletons/CardSkeleton';
 import { TableSkeleton } from '@/components/Skeletons/TableSkeleton';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { createMerchantAdminRoute } from '@/utils/routes';
+import { dashboardService } from '@/services/dashboardService';
 import type { Route } from 'next';
 
 // Mock data for demonstration
@@ -68,14 +69,8 @@ export default function MerchantDashboardPage({ params }: MerchantDashboardPageP
         setStatsLoading(true);
         setStatsError(null);
 
-        // Mock API call - replace with actual endpoint
-        const response = await fetch(`/api/v1/admin/dashboard/stats?merchant_id=${merchantId}`);
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch dashboard statistics');
-        }
-
-        const data = await response.json();
+        // Use real API service
+        const data = await dashboardService.getDashboardStats(merchantId);
         setStats(data);
       } catch (error) {
         console.error('Error fetching dashboard stats:', error);
@@ -140,7 +135,7 @@ export default function MerchantDashboardPage({ params }: MerchantDashboardPageP
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold mb-6" id="dashboard-heading">Dashboard</h1>
         <Link
-          href={`/store/${merchantId}/dashboard/settings`}
+          href={createMerchantAdminRoute(merchantId, 'settings')}
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
         >
           Settings

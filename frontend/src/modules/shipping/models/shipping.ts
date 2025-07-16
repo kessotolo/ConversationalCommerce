@@ -1,4 +1,4 @@
-import type { AddressInterface } from '@/modules/core/models/address';
+import type { Address } from '@/modules/core/models/base/address';
 
 /**
  * Interface for package dimensions used in shipping
@@ -20,6 +20,8 @@ export interface ShippingService {
   transit_days?: number;
   guaranteed_delivery: boolean;
   description?: string;
+  isFastest?: boolean;
+  isRecommended?: boolean;
 }
 
 /**
@@ -32,8 +34,10 @@ export interface ShippingRate {
   fees?: Record<string, number>;
   insurance_rate?: number;
   total_rate: number;
+  totalCost?: number; // Alias for total_rate
   currency: string;
   estimated_delivery_date?: string;
+  estimatedDelivery?: string; // Alias for estimated_delivery_date
   transit_days?: number;
   id?: string; // Used for selecting a saved rate
 }
@@ -42,8 +46,8 @@ export interface ShippingRate {
  * Interface for shipping rate request
  */
 export interface ShippingRateRequest {
-  origin: AddressInterface;
-  destination: AddressInterface;
+  origin: Address;
+  destination: Address;
   packages: PackageDimensions[];
   service_codes?: string[];
   signature_required?: boolean;
@@ -75,8 +79,8 @@ export interface LabelRequest {
   rate_id?: string;
   service_code: string;
   carrier: string;
-  origin: AddressInterface;
-  destination: AddressInterface;
+  origin: Address;
+  destination: Address;
   packages: PackageDimensions[];
   reference?: string;
   format?: LabelFormat;

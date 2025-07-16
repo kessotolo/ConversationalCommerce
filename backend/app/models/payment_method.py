@@ -39,7 +39,7 @@ class PaymentMethod(Base):
 
     # Payment details
     payment_type = Column(
-        Enum(PaymentMethodType, create_type=False), nullable=False)
+        Enum(PaymentMethodType), nullable=False)
     nickname = Column(String)  # User-defined name for this payment method
 
     # Provider-specific details (tokenized/encrypted as needed)

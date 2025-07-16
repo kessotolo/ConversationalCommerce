@@ -399,8 +399,8 @@ export const OrderTracking = ({
                       <p className="text-xs text-gray-500">
                         {new Date(event.timestamp).toLocaleString()}
                       </p>
-                      {event.note && (
-                        <p className="text-sm text-gray-600 mt-1">{event.note}</p>
+                      {event.notes && (
+                        <p className="text-sm text-gray-600 mt-1">{event.notes}</p>
                       )}
                     </div>
                   </div>

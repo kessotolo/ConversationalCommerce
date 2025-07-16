@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useToast } from './Toast/ToastContext';
 
+// For tracking outgoing network requests
+const originalFetch = window.fetch;
+
 /**
  * NetworkStatusIndicator component
  * 
@@ -16,17 +19,55 @@ import { useToast } from './Toast/ToastContext';
  */
 
 type ConnectionQuality = 'good' | 'medium' | 'poor' | 'offline';
+type DataSavingMode = 'off' | 'low' | 'high';
 
-export function NetworkStatusIndicator({ showAlways = false }: { showAlways?: boolean }) {
+interface NetworkStatusIndicatorProps {
+  /** Always show the indicator, even when online */
+  showAlways?: boolean;
+  /** Show the detailed panel by default */
+  showDetails?: boolean;
+}
+
+export function NetworkStatusIndicator({ 
+  showAlways = false,
+  showDetails: initialShowDetails = false 
+}: NetworkStatusIndicatorProps) {
   const [isOnline, setIsOnline] = useState(true);
   const [connectionQuality, setConnectionQuality] = useState<ConnectionQuality>('good');
-  const [showDetails, setShowDetails] = useState(false);
+  const [showDetails, setShowDetails] = useState(initialShowDetails);
   const [pingTime, setPingTime] = useState<number | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [failedRequests, setFailedRequests] = useState(0);
+  const [dataSavingMode, setDataSavingMode] = useState<DataSavingMode>('off');
+  const [lastChecked, setLastChecked] = useState<Date | null>(null);
+  const [pendingRequests, setPendingRequests] = useState(0);
   const checkingRef = useRef<boolean>(false);
   const timeoutRef = useRef<NodeJS.Timeout>();
   const { showToast } = useToast();
   
+  // Override the fetch API to monitor network requests
+  useEffect(() => {
+    window.fetch = async (...args) => {
+      // Track pending requests
+      setPendingRequests(prev => prev + 1);
+      
+      try {
+        const response = await originalFetch(...args);
+        setPendingRequests(prev => Math.max(0, prev - 1));
+        return response;
+      } catch (error) {
+        setPendingRequests(prev => Math.max(0, prev - 1));
+        setFailedRequests(prev => prev + 1);
+        throw error;
+      }
+    };
+    
+    // Restore original fetch on unmount
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, []);
+
   // Check connection quality by measuring response time to a small endpoint
   const checkConnectionQuality = useCallback(async () => {
     if (checkingRef.current || !isOnline) return;
@@ -181,6 +222,40 @@ export function NetworkStatusIndicator({ showAlways = false }: { showAlways?: bo
     }
   };
   
+  // Toggle data saving mode
+  const toggleDataSavingMode = () => {
+    const nextMode = dataSavingMode === 'off' ? 'low' : dataSavingMode === 'low' ? 'high' : 'off';
+    setDataSavingMode(nextMode);
+    
+    // Store user preference
+    try {
+      localStorage.setItem('dataSavingMode', nextMode);
+    } catch (e) {
+      // Ignore storage errors
+    }
+    
+    // Show toast with the new mode
+    const messages = {
+      'off': 'Data saving mode disabled',
+      'low': 'Low data saving mode enabled',
+      'high': 'High data saving mode enabled'
+    };
+    
+    showToast(messages[nextMode], 'info');
+  };
+
+  // Load data saving preference
+  useEffect(() => {
+    try {
+      const savedMode = localStorage.getItem('dataSavingMode') as DataSavingMode;
+      if (savedMode && ['off', 'low', 'high'].includes(savedMode)) {
+        setDataSavingMode(savedMode);
+      }
+    } catch (e) {
+      // Ignore storage errors
+    }
+  }, []);
+
   // Helper function to get status text
   const getStatusText = () => {
     switch (connectionQuality) {
@@ -211,6 +286,7 @@ export function NetworkStatusIndicator({ showAlways = false }: { showAlways?: bo
         tabIndex={0}
         aria-expanded={showDetails}
         aria-controls="network-details-panel"
+        aria-label={`${getStatusText()}. Click to ${showDetails ? 'hide' : 'show'} network details`}
       >
         {/* Connection icon based on status */}
         {isOnline ? (
@@ -271,11 +347,13 @@ export function NetworkStatusIndicator({ showAlways = false }: { showAlways?: bo
         </svg>
       </div>
       
-      {/* Detailed panel */}
+      {/* Details panel */}
       {showDetails && (
         <div 
-          id="network-details-panel"
-          className="p-3 border-t border-opacity-30"
+          id="network-details-panel" 
+          className="border-t px-4 py-3 space-y-3 text-sm"
+          role="region"
+          aria-label="Network connection details"
         >
           {/* Connection details */}
           <div className="mb-3">
@@ -288,33 +366,53 @@ export function NetworkStatusIndicator({ showAlways = false }: { showAlways?: bo
             )}
           </div>
           
+          {/* Network activity */}
+          <div className="flex justify-between">
+            <span>Pending requests:</span>
+            <span>{pendingRequests}</span>
+          </div>
+          
+          {/* Failed requests */}
+          <div className="flex justify-between">
+            <span>Failed requests:</span>
+            <span>{failedRequests}</span>
+          </div>
+          
+          {/* Data saving mode */}
+          <div className="flex justify-between items-center">
+            <span>Data saving mode:</span>
+            <button
+              onClick={toggleDataSavingMode}
+              className={`px-2 py-1 rounded text-xs font-medium ${
+                dataSavingMode === 'off' ? 'bg-gray-100 text-gray-800' :
+                dataSavingMode === 'low' ? 'bg-blue-100 text-blue-800' :
+                'bg-purple-100 text-purple-800'
+              }`}
+              aria-label={`Data saving mode: ${dataSavingMode}. Click to change.`}
+            >
+              {dataSavingMode === 'off' ? 'Off' : dataSavingMode === 'low' ? 'Low' : 'High'}
+            </button>
+          </div>
+          
           {/* Actions */}
-          <div className="flex space-x-2">
+          <div className="flex justify-between items-center pt-2">
+            <button
+              className="px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 focus:outline-none"
+              onClick={checkConnectionQuality}
+              aria-label="Check connection status"
+            >
+              Refresh
+            </button>
+            
             {!isOnline && (
               <button
+                className="px-3 py-1 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 focus:outline-none"
                 onClick={attemptReconnection}
-                className="text-xs px-2 py-1 bg-white bg-opacity-30 hover:bg-opacity-50 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-                aria-label="Attempt to reconnect to the internet"
+                aria-label="Try to reconnect to the internet"
               >
-                Reconnect
+                Try to reconnect
               </button>
             )}
-            
-            <button
-              onClick={checkConnectionQuality}
-              className="text-xs px-2 py-1 bg-white bg-opacity-30 hover:bg-opacity-50 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-              aria-label="Check your internet connection quality"
-            >
-              Test Connection
-            </button>
-            
-            <button
-              onClick={() => setShowDetails(false)}
-              className="text-xs px-2 py-1 bg-white bg-opacity-30 hover:bg-opacity-50 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-              aria-label="Hide network details"
-            >
-              Close
-            </button>
           </div>
         </div>
       )}

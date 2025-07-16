@@ -21,7 +21,7 @@ class KYCDocument(Base):
         "kyc_info.id"), nullable=False)
     file_url = Column(String, nullable=False)
     file_type = Column(String, nullable=False)
-    status = Column(SQLAlchemyEnum(KYCDocumentStatusEnum, create_type=False),
+    status = Column(SQLAlchemyEnum(KYCDocumentStatusEnum),
                     default=KYCDocumentStatusEnum.uploaded, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     kyc_info = relationship("KYCInfo", back_populates="documents")

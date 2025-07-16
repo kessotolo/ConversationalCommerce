@@ -26,8 +26,8 @@ class ConversationHistory(Base):
     order_id = Column(UUID(as_uuid=True), ForeignKey(
         "orders.id"), nullable=True)
     message = Column(String, nullable=False)
-    sender_type = Column(Enum(SenderType, create_type=False), nullable=False)
-    channel = Column(Enum(ChannelType, create_type=False), nullable=False)
+    sender_type = Column(Enum(SenderType), nullable=False)
+    channel = Column(Enum(ChannelType), nullable=False)
     timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     tenant_id = Column(UUID(as_uuid=True), ForeignKey(
         "tenants.id"), nullable=False)

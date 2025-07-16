@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useTenant } from '@/contexts/TenantContext';
+import type { Route } from 'next';
 
 type KYCBannerProps = {
   className?: string;
@@ -71,32 +72,32 @@ const KYCBanner: React.FC<KYCBannerProps> = ({ className = '' }) => {
   };
 
   return (
-    <div 
+    <div
       className={`bg-amber-50 border-l-4 border-amber-400 p-4 shadow-md ${className}`}
       role="alert"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <div className="mr-3">
-            <svg 
-              className="h-6 w-6 text-amber-500" 
-              fill="none" 
-              viewBox="0 0 24 24" 
+            <svg
+              className="h-6 w-6 text-amber-500"
+              fill="none"
+              viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth="2" 
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
               />
             </svg>
           </div>
           <div className="text-sm leading-5 text-amber-700">
             <p>{getKYCMessage()}</p>
             <p className="mt-1">
-              <Link 
-                href="/dashboard/settings/verification" 
+              <Link
+                href={"/dashboard/settings/verification" as Route}
                 className="font-medium underline hover:text-amber-800"
               >
                 Complete Verification Now
@@ -104,8 +105,8 @@ const KYCBanner: React.FC<KYCBannerProps> = ({ className = '' }) => {
             </p>
           </div>
         </div>
-        <button 
-          onClick={handleDismiss} 
+        <button
+          onClick={handleDismiss}
           className="ml-4 text-amber-500 hover:text-amber-700 focus:outline-none"
         >
           <XCircle size={20} />
