@@ -157,11 +157,19 @@ function setTenantCookies(response: NextResponse, tenantIdentifier: string, iden
 }
 
 // Export the middleware with Clerk authentication wrapped around our tenant logic
-export default clerkMiddleware(async (auth, req) => {
+export default clerkMiddleware((auth, req) => {
   // Check if this route requires protection
   if (isProtectedRoute(req)) {
     // Apply authentication protection for protected routes
-    await auth.protect();
+    return auth.protect();
+  }
+
+  // Auto-redirect authenticated users from landing page to dashboard
+  if (req.url.includes('/') && req.nextUrl.pathname === '/' && auth.userId) {
+    // User is authenticated and on the home page
+    // Instead of showing home page with prompt, redirect to dashboard
+    const dashboardUrl = new URL('/dashboard', req.url);
+    return NextResponse.redirect(dashboardUrl);
   }
 
   // For all routes (protected and public), apply tenant logic

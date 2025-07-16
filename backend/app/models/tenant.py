@@ -98,6 +98,18 @@ class Tenant(Base):
     feature_flag_overrides = relationship(
         "TenantFeatureFlagOverride", back_populates="tenant", cascade="all, delete-orphan")
 
+    # Security relationships (Track A Phase 3)
+    security_policies = relationship(
+        "MerchantSecurityPolicy", back_populates="tenant", cascade="all, delete-orphan")
+    security_events = relationship(
+        "SecurityEvent", back_populates="tenant", cascade="all, delete-orphan")
+    security_assessments = relationship(
+        "SecurityAssessment", back_populates="tenant", cascade="all, delete-orphan")
+    security_audit_logs = relationship(
+        "SecurityAuditLog", back_populates="tenant", cascade="all, delete-orphan")
+    security_alerts = relationship(
+        "SecurityAlert", back_populates="tenant", cascade="all, delete-orphan")
+
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

@@ -43,7 +43,7 @@ export default function Home() {
     };
   }, []);
 
-  // Check user's onboarding status without auto-redirecting
+  // Check user's onboarding status and automatically redirect authenticated users
   useEffect(() => {
     if (isLoaded && isSignedIn && user) {
       const checkUserOnboarding = async () => {
@@ -52,8 +52,13 @@ export default function Home() {
           if (response.ok) {
             const { hasTenant: userHasTenant } = await response.json();
             setHasTenant(userHasTenant);
-            // Show a subtle prompt to go to dashboard, but don't force redirect
-            setShowDashboardPrompt(true);
+            
+            // Automatically redirect to appropriate location
+            if (userHasTenant) {
+              router.push('/dashboard');
+            } else {
+              router.push('/store-setup');
+            }
           }
         } catch (error) {
           // Handle error silently without console logging in production
@@ -62,14 +67,14 @@ export default function Home() {
             // Only log in development
             console.error('Error checking user onboarding status:', error);
           }
-          // Don't redirect on error - let users stay on the page
+          // Show prompt as fallback if we can't determine tenant status
           setShowDashboardPrompt(true);
         }
       };
 
       checkUserOnboarding();
     }
-  }, [isLoaded, isSignedIn, user]);
+  }, [isLoaded, isSignedIn, user, router]);
 
   // Function to handle going to dashboard/store-setup
   const handleGoToDashboard = () => {
